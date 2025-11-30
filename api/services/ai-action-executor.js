@@ -10,6 +10,7 @@ const facebookPublisher = require('./facebook-publisher');
 const n8nService = require('./n8n-service');
 const smartPostComposer = require('./smart-post-composer');
 const aiUsageTracker = require('./ai-usage-tracker');
+const imageGenerator = require('./image-generator');
 const OpenAI = require('openai');
 
 // Create instance of FacebookAdsManager
@@ -765,6 +766,49 @@ Trả về JSON:
         return {
           success: false,
           error: 'Failed to generate hashtags',
+        };
+      }
+    },
+  },
+
+  // Image Generation with DALL-E 3
+  'generate_image': {
+    description: 'Tạo hình ảnh bằng AI (DALL-E 3) và lưu vào Supabase Storage',
+    params: ['prompt', 'topic?', 'style?', 'size?', 'saveToStorage?'],
+    executor: async (params) => {
+      const { prompt, topic, style = 'modern', size = '1024x1024', saveToStorage = true } = params;
+      
+      // Track usage
+      await aiUsageTracker.trackUsage({
+        service: 'dalle',
+        model: 'dall-e-3',
+        actionType: 'generate_image',
+        imageCount: 1,
+        metadata: { prompt, style, size },
+      });
+      
+      try {
+        const result = await imageGenerator.generateSocialImage(prompt || topic, {
+          style,
+          size,
+          platform: 'general',
+        });
+        
+        return {
+          success: true,
+          imageUrl: result.url,
+          publicUrl: result.publicUrl || result.url,
+          storagePath: result.storagePath,
+          prompt: result.prompt,
+          model: result.model,
+          message: saveToStorage 
+            ? `Image generated and saved to Supabase Storage: ${result.publicUrl}`
+            : `Image generated: ${result.url}`,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: `Failed to generate image: ${error.message}`,
         };
       }
     },

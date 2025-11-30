@@ -260,6 +260,6 @@ function extractAPIMethod(command: string): string | null {
 }
 
 function extractAPIEndpoint(command: string): string | null {
-  const match = command.match(/\/api\/[\w\/-]+/i);
+  const match = command.match(/\/api\/[\w/-]+/i);
   return match ? match[0] : null;
 }

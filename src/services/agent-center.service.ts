@@ -15,11 +15,11 @@
 import { supabase } from '@/integrations/supabase/client';
 
 // Type-safe table accessors (bypass generated types for now)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const aiAgentsTable = () => supabase.from('ai_agents') as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const workflowsTable = () => supabase.from('workflows') as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const workflowExecutionsTable = () => supabase.from('workflow_executions') as any;
 
 import {
@@ -930,7 +930,7 @@ export const promoteN8nWorkflow = async (
 
     // Assign to agent if provided
     if (options.agentId) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       (workflowData as any).agent_id = options.agentId;
     }
 

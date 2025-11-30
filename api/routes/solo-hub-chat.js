@@ -462,6 +462,63 @@ router.post('/execute-action', async (req, res) => {
 });
 
 /**
+ * POST /api/solo-hub/chat-smart/stream-test
+ * FAST test endpoint - simulates 4-layer execution without AI calls
+ */
+router.post('/chat-smart/stream-test', async (req, res) => {
+  const { message } = req.body;
+  
+  if (!message) {
+    return res.status(400).json({ success: false, error: 'message is required' });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  const sendEvent = (event) => res.write(`data: ${JSON.stringify(event)}\n\n`);
+  const delay = (ms) => new Promise(r => setTimeout(r, ms));
+
+  console.log(`🧪 [STREAM-TEST] Fast simulation for: "${message}"`);
+
+  // Layer 1: Planning
+  sendEvent({ type: 'step_start', stepId: 'layer-1', stepName: 'Layer 1: Planning', description: 'Analyzing request...' });
+  await delay(300);
+  sendEvent({ type: 'step_progress', stepId: 'layer-1', progress: 100, description: 'Plan created: 3 steps' });
+  sendEvent({ type: 'step_complete', stepId: 'layer-1', duration: 300 });
+
+  // Layer 2: Orchestration
+  sendEvent({ type: 'step_start', stepId: 'layer-2', stepName: 'Layer 2: Orchestration', description: 'Selecting agents...' });
+  await delay(200);
+  sendEvent({ type: 'step_progress', stepId: 'layer-2', progress: 100, description: 'Routed to dev, content agents' });
+  sendEvent({ type: 'step_complete', stepId: 'layer-2', duration: 200 });
+
+  // Layer 3: Execution
+  sendEvent({ type: 'step_start', stepId: 'layer-3', stepName: 'Layer 3: Execution', description: 'Executing plan...' });
+  await delay(150);
+  sendEvent({ type: 'step_progress', stepId: 'layer-3', progress: 50, description: 'Step 1/2 complete' });
+  await delay(150);
+  sendEvent({ type: 'step_progress', stepId: 'layer-3', progress: 100, description: 'All steps complete' });
+  sendEvent({ type: 'step_complete', stepId: 'layer-3', duration: 300 });
+
+  // Layer 4: Learning
+  sendEvent({ type: 'step_start', stepId: 'layer-4', stepName: 'Layer 4: Learning', description: 'Recording feedback...' });
+  await delay(100);
+  sendEvent({ type: 'step_progress', stepId: 'layer-4', progress: 100, description: 'Feedback saved' });
+  sendEvent({ type: 'step_complete', stepId: 'layer-4', duration: 100 });
+
+  // Complete
+  sendEvent({ 
+    type: 'complete', 
+    message: `✅ **Processed:** "${message}"\n\n🎯 **Result:**\n- Planning: Created 3-step execution plan\n- Agents: dev, content\n- Execution: All steps successful\n- Learning: Feedback recorded\n\n_This is a fast test response. Real AI processing takes longer._`,
+    metadata: { totalTime: 1050, test: true }
+  });
+
+  res.write('data: [DONE]\n\n');
+  res.end();
+});
+
+/**
  * POST /api/solo-hub/chat-smart/stream
  * Stream execution events for Visual Workspace real-time updates
  * Returns SSE events matching the 4-layer architecture

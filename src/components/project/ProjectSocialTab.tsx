@@ -41,7 +41,7 @@ import {
 
 // Type-safe Supabase client for project_social_links
 // Note: Types will be updated after regenerating Supabase types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const socialLinksTable = () => supabase.from('project_social_links') as any;
 
 interface SocialLink {
@@ -254,7 +254,7 @@ export function ProjectSocialTab({ projectId, projectName }: Readonly<ProjectSoc
   useEffect(() => {
     fetchSocialLinks();
     fetchCredentials();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [projectId]);
 
   const fetchCredentials = async () => {

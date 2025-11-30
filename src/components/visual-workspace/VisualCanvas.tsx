@@ -1,5 +1,5 @@
 /**
- * Visual Canvas Component
+ * Visual Canvas Component - Lovable Style Dark Theme
  * React Flow canvas for visual workspace builder
  */
 
@@ -20,7 +20,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { nodeTypes } from './ComponentNodes';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, RotateCcw, Grid3X3, Layers } from 'lucide-react';
 
 interface VisualCanvasProps {
   nodes: Node[];
@@ -61,6 +61,7 @@ export function VisualCanvas({
           markerEnd: {
             type: MarkerType.ArrowClosed,
           },
+          style: { stroke: '#6366f1' },
         },
         canvasEdges
       );
@@ -106,7 +107,7 @@ export function VisualCanvas({
   }, [setNodes, setEdges]);
 
   return (
-    <div className={`relative w-full h-full bg-slate-50 dark:bg-slate-900 ${className}`}>
+    <div className={`relative w-full h-full bg-[#0d0d0d] ${className}`}>
       <ReactFlow
         nodes={canvasNodes}
         edges={canvasEdges}
@@ -116,20 +117,39 @@ export function VisualCanvas({
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
         fitView
-        className="bg-slate-50 dark:bg-slate-900"
+        className="bg-[#0d0d0d]"
         connectionLineType="smoothstep"
+        connectionLineStyle={{ stroke: '#6366f1', strokeWidth: 2 }}
         defaultEdgeOptions={{
           type: 'smoothstep',
           animated: true,
           markerEnd: {
             type: MarkerType.ArrowClosed,
           },
+          style: { stroke: '#6366f1' },
         }}
+        // 🚀 PERFORMANCE: Node virtualization - only render visible nodes
+        onlyRenderVisibleElements={true}
+        // Additional performance optimizations
+        nodesDraggable={true}
+        nodesConnectable={true}
+        elementsSelectable={true}
+        minZoom={0.1}
+        maxZoom={4}
       >
-        <Background color="#cbd5e1" gap={16} />
-        <Controls className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+        {/* Dark grid background */}
+        <Background color="#2a2a2a" gap={20} size={1} />
+        
+        {/* Dark styled controls */}
+        <Controls 
+          className="!bg-[#1a1a1a] !border-[#2a2a2a] !rounded-lg !shadow-lg [&>button]:!bg-[#1a1a1a] [&>button]:!border-[#2a2a2a] [&>button]:!text-gray-400 [&>button:hover]:!bg-[#2a2a2a] [&>button:hover]:!text-white"
+          position="bottom-right"
+        />
+        
+        {/* Dark styled minimap */}
         <MiniMap
-          className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+          className="!bg-[#1a1a1a] !border-[#2a2a2a] !rounded-lg"
+          maskColor="rgba(0, 0, 0, 0.7)"
           nodeColor={(node) => {
             switch (node.type) {
               case 'uiComponent':
@@ -148,27 +168,87 @@ export function VisualCanvas({
                 if (status === 'completed') return '#10b981';
                 if (status === 'running') return '#3b82f6';
                 if (status === 'failed') return '#ef4444';
-                return '#94a3b8';
+                return '#4a4a4a';
               default:
-                return '#94a3b8';
+                return '#4a4a4a';
             }
           }}
+          position="bottom-left"
         />
-        <Panel position="top-left" className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleZoomIn} title="Zoom In">
+        
+        {/* Lovable-style floating toolbar */}
+        <Panel position="top-right" className="flex gap-1 bg-[#1a1a1a] p-1 rounded-lg border border-[#2a2a2a]">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
+            onClick={handleZoomIn} 
+            title="Zoom In"
+          >
             <ZoomIn className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={handleZoomOut} title="Zoom Out">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
+            onClick={handleZoomOut} 
+            title="Zoom Out"
+          >
             <ZoomOut className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={handleFitView} title="Fit View">
+          <div className="w-px h-6 bg-[#2a2a2a] self-center" />
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
+            onClick={handleFitView} 
+            title="Fit View"
+          >
             <Maximize2 className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={handleReset} title="Reset Canvas">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
+            title="Toggle Grid"
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
+            title="Layers"
+          >
+            <Layers className="h-4 w-4" />
+          </Button>
+          <div className="w-px h-6 bg-[#2a2a2a] self-center" />
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+            onClick={handleReset} 
+            title="Reset Canvas"
+          >
             <RotateCcw className="h-4 w-4" />
           </Button>
         </Panel>
       </ReactFlow>
+      
+      {/* Empty state overlay when no nodes */}
+      {canvasNodes.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="text-center">
+            <div className="w-20 h-20 rounded-2xl bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center mx-auto mb-4">
+              <Layers className="h-10 w-10 text-gray-600" />
+            </div>
+            <h3 className="text-gray-400 font-medium mb-2">Empty Canvas</h3>
+            <p className="text-gray-600 text-sm max-w-[250px]">
+              Use the chat to describe what you want to build, or drag components onto the canvas
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -483,7 +483,7 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
     };
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const { error } = await supabase.from('agent_ideas').insert([newIdea] as any);
 
       if (error) {

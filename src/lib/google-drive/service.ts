@@ -44,11 +44,11 @@ interface FileMetadata {
 }
 
 class GoogleDriveService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   private drive: any = null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   private docs: any = null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   private auth: any = null;
 
   constructor() {

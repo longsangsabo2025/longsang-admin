@@ -143,6 +143,10 @@ const WorkspaceChatPage = lazy(() => import('./pages/WorkspaceChatPage'));
 // Visual Workspace Builder
 const VisualWorkspace = lazy(() => import('./pages/VisualWorkspace'));
 
+// AI Settings & Cost Dashboard
+const AISettings = lazy(() => import('./pages/AISettings'));
+const AICostDashboardPage = lazy(() => import('./pages/AICostDashboardPage'));
+
 // Mobile Pages
 const MobileDashboard = lazy(() => import('./pages/mobile/MobileDashboard'));
 const MobileGit = lazy(() => import('./pages/mobile/MobileGit'));
@@ -276,6 +280,8 @@ const App = () => {
                         <Route path="solo-hub" element={<AICommandCenter />} />
                         <Route path="ai-workspace" element={<AIWorkspace />} />
                         <Route path="visual-workspace" element={<VisualWorkspace />} />
+                        <Route path="ai-settings" element={<AISettings />} />
+                        <Route path="ai-cost" element={<AICostDashboardPage />} />
                         <Route path="facebook-marketing" element={<FacebookMarketing />} />
                         <Route path="bug-system" element={<BugSystemDashboard />} />
                         <Route path="sentry" element={<SentryDashboard />} />
