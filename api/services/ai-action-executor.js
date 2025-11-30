@@ -42,7 +42,14 @@ const AVAILABLE_ACTIONS = {
         
         console.log(`🎨 Auto-generating content for topic: "${topic}"`);
         
-        finalContent = await generateSmartContent(topic, pageInfo);
+        try {
+          finalContent = await generateSmartContent(topic, pageInfo);
+          console.log(`✅ Generated content (${finalContent?.length} chars):`, finalContent?.substring(0, 100));
+        } catch (genError) {
+          console.error('❌ Content generation failed:', genError.message);
+          // Fallback to original content if generation fails
+          finalContent = params.content || topic;
+        }
       }
       
       return await facebookPublisher.createPost(params.page || 'sabo_billiards', {
@@ -226,7 +233,7 @@ async function detectIntent(message) {
         content: `Bạn là AI assistant phân tích intent từ tin nhắn người dùng.
         
 Các actions có thể thực hiện:
-- post_facebook: Đăng bài lên Facebook (params: page, content)
+- post_facebook: Đăng bài lên Facebook (params: page, content, topic)
 - schedule_posts: Lên lịch đăng bài
 - create_ad_campaign: Tạo chiến dịch quảng cáo Facebook
 - list_campaigns: Xem danh sách chiến dịch quảng cáo
@@ -236,18 +243,29 @@ Các actions có thể thực hiện:
 - get_page_posts: Xem bài đăng gần đây (params: page, limit)
 - trigger_workflow: Kích hoạt workflow n8n
 - generate_and_post: Tạo nội dung và đăng
-- none: Chỉ chat thông thường, không cần thực hiện action
 
 Các page có sẵn: sabo_billiards, sabo_arena, ai_newbie, sabo_media
 
-QUAN TRỌNG: Nếu người dùng muốn THỰC HIỆN hành động (đăng bài, xem danh sách, tạo event...), hãy trả về action tương ứng với confidence >= 0.8.
+QUAN TRỌNG - Detect intent chủ động:
+1. "Đăng bài", "post", "viết bài", "đăng lên" → post_facebook
+2. "Giới thiệu về X", "quảng bá X" → post_facebook với topic=X
+3. Nếu có đề cập tên page → set page tương ứng
+4. "Xem campaigns", "list ads" → list_campaigns
+5. "Thống kê", "báo cáo" → get_campaign_stats
+
+Nếu người dùng đề cập đến việc tạo nội dung hoặc đăng bài, LUÔN trả về action với confidence cao.
+Nếu topic được đề cập, set vào params.topic (không cần content đầy đủ).
 
 Trả về JSON với format:
 {
-  "action": "action_name hoặc none",
+  "action": "action_name",
   "confidence": 0.0-1.0,
-  "params": { các tham số được trích xuất },
-  "clarification_needed": null hoặc "câu hỏi nếu thiếu thông tin bắt buộc"
+  "params": { 
+    "page": "detected_page hoặc mặc định sabo_arena",
+    "topic": "chủ đề được đề cập",
+    "content": "nội dung nếu có, nếu không thì null"
+  },
+  "clarification_needed": null
 }`,
       },
       {
