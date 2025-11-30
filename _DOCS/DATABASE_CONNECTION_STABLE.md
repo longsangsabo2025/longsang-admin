@@ -2,7 +2,8 @@
 
 ## 📚 PostgreSQL Là Gì?
 
-**PostgreSQL** là một hệ quản trị cơ sở dữ liệu quan hệ (RDBMS) mã nguồn mở, mạnh mẽ và ổn định.
+**PostgreSQL** là một hệ quản trị cơ sở dữ liệu quan hệ (RDBMS) mã nguồn mở,
+mạnh mẽ và ổn định.
 
 ### Mối Quan Hệ: Supabase = PostgreSQL + API Layer
 
@@ -58,4 +59,3 @@ Kiểm tra kết nối định kỳ và tự động reconnect.
 ## 📝 Đề Xuất Cụ Thể
 
 Xem file implementation: `src/lib/supabase-stable.ts`
-

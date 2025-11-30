@@ -208,21 +208,28 @@ async function detectIntent(message) {
         content: `Bạn là AI assistant phân tích intent từ tin nhắn người dùng.
         
 Các actions có thể thực hiện:
-- post_facebook: Đăng bài lên Facebook
+- post_facebook: Đăng bài lên Facebook (params: page, content)
 - schedule_posts: Lên lịch đăng bài
 - create_ad_campaign: Tạo chiến dịch quảng cáo Facebook
-- list_campaigns: Xem danh sách chiến dịch
+- list_campaigns: Xem danh sách chiến dịch quảng cáo
 - get_campaign_stats: Xem thống kê chiến dịch
+- create_event: Tạo sự kiện Facebook (params: page, name, description, startTime)
+- list_pages: Liệt kê các trang Facebook
+- get_page_posts: Xem bài đăng gần đây (params: page, limit)
 - trigger_workflow: Kích hoạt workflow n8n
 - generate_and_post: Tạo nội dung và đăng
-- none: Chỉ chat, không cần thực hiện action
+- none: Chỉ chat thông thường, không cần thực hiện action
+
+Các page có sẵn: sabo_billiards, sabo_arena, ai_newbie, sabo_media
+
+QUAN TRỌNG: Nếu người dùng muốn THỰC HIỆN hành động (đăng bài, xem danh sách, tạo event...), hãy trả về action tương ứng với confidence >= 0.8.
 
 Trả về JSON với format:
 {
   "action": "action_name hoặc none",
   "confidence": 0.0-1.0,
   "params": { các tham số được trích xuất },
-  "clarification_needed": "câu hỏi nếu cần thêm thông tin"
+  "clarification_needed": null hoặc "câu hỏi nếu thiếu thông tin bắt buộc"
 }`,
       },
       {

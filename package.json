@@ -83,6 +83,7 @@
     "admin:set-role": "tsx scripts/set-admin.ts",
     "test:mcp-supabase": "node scripts/test-mcp-supabase.js",
     "setup:mcp-supabase": "node scripts/setup-mcp-supabase.js",
+    "test:connection": "node scripts/compare-connection.js",
     "prepare": "husky"
   },
   "dependencies": {

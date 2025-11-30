@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import GoogleDriveTest from "@/components/GoogleDriveTest";
 import { Layout } from "@/components/Layout";
 import { MorningDashboard } from "@/components/dashboard/MorningDashboard";
+import { DatabaseConnectionStatus } from "@/components/admin/DatabaseConnectionStatus";
 import { useState, useEffect } from "react";
 import {
   Activity,
@@ -300,11 +301,14 @@ const AdminDashboard = () => {
       <MorningDashboard />
 
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Bảng Điều Khiển Admin</h1>
-        <p className="text-muted-foreground mt-1">
-          Chào mừng trở lại! Đây là những gì đang diễn ra với hệ thống tự động hóa AI của bạn.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Bảng Điều Khiển Admin</h1>
+          <p className="text-muted-foreground mt-1">
+            Chào mừng trở lại! Đây là những gì đang diễn ra với hệ thống tự động hóa AI của bạn.
+          </p>
+        </div>
+        <DatabaseConnectionStatus showDetails={false} />
       </div>
 
       {/* Stats Grid */}
