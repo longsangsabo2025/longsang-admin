@@ -9,13 +9,16 @@
 ## ✅ COMPLETED PHASES
 
 ### Phase 1: Critical Fixes ✅
-- ✅ **Instagram Publishing Fixed**: Updated `facebook-publisher.js` with complete Instagram ID mapping for all 5 accounts
+
+- ✅ **Instagram Publishing Fixed**: Updated `facebook-publisher.js` with
+  complete Instagram ID mapping for all 5 accounts
 - ✅ **Cross-platform Timeout Fixed**: `smart-post-composer.js` optimized with:
   - In-memory caching system (30 min TTL)
   - Combined AI call (analysis + content in 1 request)
   - Response time reduced from ~4s to <2s
 
 ### Phase 2: Supabase Storage ✅
+
 - ✅ **Image Generator Service** created: `api/services/image-generator.js`
 - ✅ Features:
   - DALL-E 3 image generation
@@ -23,6 +26,7 @@
   - Support for Facebook, Instagram, LinkedIn, Story formats
 
 ### Phase 3: 5 New AI Actions ✅
+
 - ✅ `auto_reply_comments` - Auto-reply to Facebook comments
 - ✅ `generate_video_script` - Create TikTok/Reels/Shorts scripts
 - ✅ `analyze_competitors` - Competitor page analysis
@@ -30,7 +34,9 @@
 - ✅ `optimize_hashtags` - Trending hashtag optimization
 
 ### Phase 4: Analytics Dashboard ✅
-- ✅ **Social Analytics Dashboard** created: `src/components/analytics/SocialAnalyticsDashboard.tsx`
+
+- ✅ **Social Analytics Dashboard** created:
+  `src/components/analytics/SocialAnalyticsDashboard.tsx`
 - ✅ Connected to:
   - `platform_analytics` table
   - `content_performance` table
@@ -38,6 +44,7 @@
 - ✅ Features: Recharts visualizations, date range filter, top content
 
 ### Phase 5: AI Usage Tracking ✅
+
 - ✅ **AI Usage Tracker** created: `api/services/ai-usage-tracker.js`
 - ✅ Features:
   - Token counting & cost estimation
@@ -46,6 +53,7 @@
   - Usage summary & cost projection
 
 ### Phase 6: Advanced Learning ✅
+
 - ✅ **Copilot Learner Enhanced**: `api/services/copilot-learner.js` v2.0
 - ✅ New features:
   - Content performance pattern analysis
@@ -59,6 +67,7 @@
 ## 📊 CURRENT STATUS
 
 ### AI Actions: 20 Total
+
 1. `post_facebook` - Smart post with auto-image
 2. `schedule_posts` - Multi-post scheduling
 3. `schedule_post` - Single post scheduling
@@ -81,6 +90,7 @@
 20. **NEW** `optimize_hashtags` - Hashtag optimization
 
 ### Services Updated
+
 - `smart-post-composer.js` - v2.0 with caching
 - `facebook-publisher.js` - Full Instagram mapping
 - `cross-platform-publisher.js` - Fixed Instagram flow
@@ -88,10 +98,12 @@
 - `copilot-learner.js` - v2.0 advanced learning
 
 ### New Services Created
+
 - `image-generator.js` - DALL-E + Supabase Storage
 - `ai-usage-tracker.js` - Token & cost tracking
 
 ### New Components Created
+
 - `SocialAnalyticsDashboard.tsx` - Full analytics UI
 
 **Ngày cập nhật:** 30/11/2025 - 22:00  
@@ -102,39 +114,41 @@
 
 ## 📊 TỔNG QUAN NHANH
 
-| Metric | Status |
-|--------|--------|
-| **Foundation Ready** | 🟢 **85%** |
-| **Database Tables** | ✅ 8/8 Created |
-| **API Endpoints** | ✅ 70+ Working |
-| **AI Actions** | ✅ 15 Available |
+| Metric                  | Status                                    |
+| ----------------------- | ----------------------------------------- |
+| **Foundation Ready**    | 🟢 **85%**                                |
+| **Database Tables**     | ✅ 8/8 Created                            |
+| **API Endpoints**       | ✅ 70+ Working                            |
+| **AI Actions**          | ✅ 15 Available                           |
 | **Connected Platforms** | ✅ 5 (FB, IG, LinkedIn, Threads, YouTube) |
-| **Facebook Pages** | ✅ 7 Pages (Permanent Tokens) |
-| **Instagram Accounts** | ✅ 5 Accounts |
+| **Facebook Pages**      | ✅ 7 Pages (Permanent Tokens)             |
+| **Instagram Accounts**  | ✅ 5 Accounts                             |
 
 ---
 
 ## 🗄️ DATABASE - SUPABASE (✅ COMPLETE)
 
 ### Connection String
+
 ```
 postgresql://postgres.diexsbzqwsbpilsymnfb:Acookingoil123@aws-1-us-east-2.pooler.supabase.com:6543/postgres
 ```
 
 ### 8 Tables Created Successfully
 
-| Table | Purpose | Status | Indexes |
-|-------|---------|--------|---------|
-| `scheduled_posts` | Bài đăng đã lên lịch | ✅ Created | page_id, status, scheduled_time |
-| `ab_tests` | A/B test configs & results | ✅ Created | page_id, status |
-| `carousels` | Carousel posts | ✅ Created | page_id, status |
-| `copilot_feedback` | Learning data từ feedback | ✅ Created | user_id, action_type, rating |
-| `cross_platform_posts` | Multi-platform post history | ✅ Created | post_id, status |
-| `platform_analytics` | Stats per platform | ✅ Created | platform, page_id, date |
-| `content_performance` | Content performance metrics | ✅ Created | content_type, platform |
-| `ai_usage` | AI API usage tracking | ✅ Created | model, timestamp |
+| Table                  | Purpose                     | Status     | Indexes                         |
+| ---------------------- | --------------------------- | ---------- | ------------------------------- |
+| `scheduled_posts`      | Bài đăng đã lên lịch        | ✅ Created | page_id, status, scheduled_time |
+| `ab_tests`             | A/B test configs & results  | ✅ Created | page_id, status                 |
+| `carousels`            | Carousel posts              | ✅ Created | page_id, status                 |
+| `copilot_feedback`     | Learning data từ feedback   | ✅ Created | user_id, action_type, rating    |
+| `cross_platform_posts` | Multi-platform post history | ✅ Created | post_id, status                 |
+| `platform_analytics`   | Stats per platform          | ✅ Created | platform, page_id, date         |
+| `content_performance`  | Content performance metrics | ✅ Created | content_type, platform          |
+| `ai_usage`             | AI API usage tracking       | ✅ Created | model, timestamp                |
 
 ### Schema Files
+
 - `api/database/create_tables.sql` - Full SQL schema
 - `api/database/setup-tables.js` - Node.js setup script (pg package)
 - `api/database/add-columns.js` - Migration script for missing columns
@@ -144,52 +158,58 @@ postgresql://postgres.diexsbzqwsbpilsymnfb:Acookingoil123@aws-1-us-east-2.pooler
 ## ✅ API ENDPOINTS - VERIFIED WORKING
 
 ### 1. A/B Testing API ✅ 100%
-| Endpoint | Method | Test Result |
-|----------|--------|-------------|
-| `/api/ab-testing/create` | POST | `{"success":true,"test":{"variantCount":3,"variants":[...]}}` |
-| `/api/ab-testing/list` | GET | Returns tests list |
-| `/api/ab-testing/:id/start` | POST | Starts test |
-| `/api/ab-testing/:id/results` | GET | Returns metrics |
+
+| Endpoint                      | Method | Test Result                                                   |
+| ----------------------------- | ------ | ------------------------------------------------------------- |
+| `/api/ab-testing/create`      | POST   | `{"success":true,"test":{"variantCount":3,"variants":[...]}}` |
+| `/api/ab-testing/list`        | GET    | Returns tests list                                            |
+| `/api/ab-testing/:id/start`   | POST   | Starts test                                                   |
+| `/api/ab-testing/:id/results` | GET    | Returns metrics                                               |
 
 ### 2. Carousel API ✅ 100%
-| Endpoint | Method | Test Result |
-|----------|--------|-------------|
-| `/api/carousel/create` | POST | `{"success":true,"carousel":{"slideCount":3,"slides":[...]}}` |
-| `/api/carousel/list` | GET | Returns carousels |
-| `/api/carousel/:id/publish` | POST | Publishes to FB |
-| `/api/carousel/themes/list` | GET | 6 themes available |
+
+| Endpoint                    | Method | Test Result                                                   |
+| --------------------------- | ------ | ------------------------------------------------------------- |
+| `/api/carousel/create`      | POST   | `{"success":true,"carousel":{"slideCount":3,"slides":[...]}}` |
+| `/api/carousel/list`        | GET    | Returns carousels                                             |
+| `/api/carousel/:id/publish` | POST   | Publishes to FB                                               |
+| `/api/carousel/themes/list` | GET    | 6 themes available                                            |
 
 ### 3. Scheduler API ✅ 100%
-| Endpoint | Method | Test Result |
-|----------|--------|-------------|
-| `/api/scheduler/schedule` | POST | `{"success":true,"scheduledTime":"...","willPostIn":"46 phút nữa"}` |
-| `/api/scheduler/list` | GET | Returns scheduled posts |
-| `/api/scheduler/suggested/times` | GET | 5 optimal times |
-| `/api/scheduler/:id/cancel` | POST | Cancels scheduled post |
-| `/api/scheduler/process/now` | POST | Process immediately |
+
+| Endpoint                         | Method | Test Result                                                         |
+| -------------------------------- | ------ | ------------------------------------------------------------------- |
+| `/api/scheduler/schedule`        | POST   | `{"success":true,"scheduledTime":"...","willPostIn":"46 phút nữa"}` |
+| `/api/scheduler/list`            | GET    | Returns scheduled posts                                             |
+| `/api/scheduler/suggested/times` | GET    | 5 optimal times                                                     |
+| `/api/scheduler/:id/cancel`      | POST   | Cancels scheduled post                                              |
+| `/api/scheduler/process/now`     | POST   | Process immediately                                                 |
 
 ### 4. Cross-Platform API ⚠️ 85%
-| Endpoint | Method | Status | Notes |
-|----------|--------|--------|-------|
-| `/api/cross-platform/platforms` | GET | ✅ | 5 platforms |
-| `/api/cross-platform/adapt` | POST | ✅ | Adapts content per platform |
-| `/api/cross-platform/preview` | POST | ✅ | Preview all platforms |
-| `/api/cross-platform/publish` | POST | ⚠️ | Timeout issue (smartPostComposer) |
+
+| Endpoint                        | Method | Status | Notes                             |
+| ------------------------------- | ------ | ------ | --------------------------------- |
+| `/api/cross-platform/platforms` | GET    | ✅     | 5 platforms                       |
+| `/api/cross-platform/adapt`     | POST   | ✅     | Adapts content per platform       |
+| `/api/cross-platform/preview`   | POST   | ✅     | Preview all platforms             |
+| `/api/cross-platform/publish`   | POST   | ⚠️     | Timeout issue (smartPostComposer) |
 
 ### 5. AI Chat Smart ✅ 100%
-| Endpoint | Method | Test Result |
-|----------|--------|-------------|
-| `/api/solo-hub/chat-smart` | POST | `{"layers":{"learning":{"success":true,"recorded":true}}}` |
-| `/api/solo-hub/chat` | POST | Simple chat working |
-| `/api/solo-hub/chat-with-actions` | POST | Actions executed |
-| `/api/solo-hub/available-actions` | GET | 15 actions |
+
+| Endpoint                          | Method | Test Result                                                |
+| --------------------------------- | ------ | ---------------------------------------------------------- |
+| `/api/solo-hub/chat-smart`        | POST   | `{"layers":{"learning":{"success":true,"recorded":true}}}` |
+| `/api/solo-hub/chat`              | POST   | Simple chat working                                        |
+| `/api/solo-hub/chat-with-actions` | POST   | Actions executed                                           |
+| `/api/solo-hub/available-actions` | GET    | 15 actions                                                 |
 
 ### 6. Feedback API ✅ 100%
-| Endpoint | Method | Test Result |
-|----------|--------|-------------|
-| `/api/ai/feedback` | POST | `{"success":true,"feedbackId":"464c2de8-..."}` |
-| `/api/ai/feedback/rate` | POST | Recording to DB |
-| `/api/ai/feedback/stats` | GET | Returns patterns |
+
+| Endpoint                 | Method | Test Result                                    |
+| ------------------------ | ------ | ---------------------------------------------- |
+| `/api/ai/feedback`       | POST   | `{"success":true,"feedbackId":"464c2de8-..."}` |
+| `/api/ai/feedback/rate`  | POST   | Recording to DB                                |
+| `/api/ai/feedback/stats` | GET    | Returns patterns                               |
 
 ---
 
@@ -199,37 +219,37 @@ postgresql://postgres.diexsbzqwsbpilsymnfb:Acookingoil123@aws-1-us-east-2.pooler
 // ═══════════════════════════════════════════════
 // POSTS & SCHEDULING
 // ═══════════════════════════════════════════════
-post_facebook          // Smart post với auto-image (DALL-E 3)
-schedule_posts         // Lên lịch nhiều bài cùng lúc
-schedule_post          // Lên lịch 1 bài với optimal time
-get_suggested_times    // Gợi ý 5 thời gian đăng tốt nhất
-list_scheduled         // Xem danh sách bài đã lên lịch
-cancel_scheduled       // Hủy bài đã lên lịch
+post_facebook; // Smart post với auto-image (DALL-E 3)
+schedule_posts; // Lên lịch nhiều bài cùng lúc
+schedule_post; // Lên lịch 1 bài với optimal time
+get_suggested_times; // Gợi ý 5 thời gian đăng tốt nhất
+list_scheduled; // Xem danh sách bài đã lên lịch
+cancel_scheduled; // Hủy bài đã lên lịch
 
 // ═══════════════════════════════════════════════
 // A/B TESTING
 // ═══════════════════════════════════════════════
-create_ab_test         // Tạo A/B test với 2-5 variants
-get_ab_results         // Xem kết quả test (engagement metrics)
-list_ab_tests          // Danh sách tất cả tests
+create_ab_test; // Tạo A/B test với 2-5 variants
+get_ab_results; // Xem kết quả test (engagement metrics)
+list_ab_tests; // Danh sách tất cả tests
 
 // ═══════════════════════════════════════════════
 // CAROUSEL POSTS
 // ═══════════════════════════════════════════════
-create_carousel        // Tạo carousel 3-10 slides + caption + hashtags
-publish_carousel       // Đăng carousel lên Facebook Album
+create_carousel; // Tạo carousel 3-10 slides + caption + hashtags
+publish_carousel; // Đăng carousel lên Facebook Album
 
 // ═══════════════════════════════════════════════
 // CROSS-PLATFORM
 // ═══════════════════════════════════════════════
-publish_cross_platform // Đăng lên Facebook, Instagram, LinkedIn, Threads
-get_platform_stats     // Thống kê engagement theo platform
+publish_cross_platform; // Đăng lên Facebook, Instagram, LinkedIn, Threads
+get_platform_stats; // Thống kê engagement theo platform
 
 // ═══════════════════════════════════════════════
 // ADVERTISING
 // ═══════════════════════════════════════════════
-create_ad_campaign     // Tạo Facebook Ads campaign
-list_campaigns         // Danh sách campaigns đang chạy
+create_ad_campaign; // Tạo Facebook Ads campaign
+list_campaigns; // Danh sách campaigns đang chạy
 ```
 
 ---
@@ -267,40 +287,40 @@ list_campaigns         // Danh sách campaigns đang chạy
 
 ### Facebook Pages (7 Pages - Permanent Tokens!)
 
-| Page | ID | Followers | Token Variable |
-|------|-----|-----------|----------------|
-| **SABO Billiards** (Main) | 118356497898536 | 18,850 | `FACEBOOK_PAGE_ACCESS_TOKEN` |
-| SABO Arena | 719273174600166 | - | `FACEBOOK_PAGE_SABO_ARENA_TOKEN` |
-| AI Newbie VN | 569671719553461 | - | `FACEBOOK_PAGE_AI_NEWBIE_VN_TOKEN` |
-| SABO Media | 332950393234346 | - | `FACEBOOK_PAGE_SABO_MEDIA_TOKEN` |
-| AI Art Newbie | 618738001318577 | - | `FACEBOOK_PAGE_AI_ART_NEWBIE_TOKEN` |
-| SABO Billiard Shop | 569652129566651 | - | `FACEBOOK_PAGE_SABO_BILLIARD_SHOP_TOKEN` |
-| Thợ Săn Hoàng Hôn | 519070237965883 | - | `FACEBOOK_PAGE_THO_SAN_HOANG_HON_TOKEN` |
+| Page                      | ID              | Followers | Token Variable                           |
+| ------------------------- | --------------- | --------- | ---------------------------------------- |
+| **SABO Billiards** (Main) | 118356497898536 | 18,850    | `FACEBOOK_PAGE_ACCESS_TOKEN`             |
+| SABO Arena                | 719273174600166 | -         | `FACEBOOK_PAGE_SABO_ARENA_TOKEN`         |
+| AI Newbie VN              | 569671719553461 | -         | `FACEBOOK_PAGE_AI_NEWBIE_VN_TOKEN`       |
+| SABO Media                | 332950393234346 | -         | `FACEBOOK_PAGE_SABO_MEDIA_TOKEN`         |
+| AI Art Newbie             | 618738001318577 | -         | `FACEBOOK_PAGE_AI_ART_NEWBIE_TOKEN`      |
+| SABO Billiard Shop        | 569652129566651 | -         | `FACEBOOK_PAGE_SABO_BILLIARD_SHOP_TOKEN` |
+| Thợ Săn Hoàng Hôn         | 519070237965883 | -         | `FACEBOOK_PAGE_THO_SAN_HOANG_HON_TOKEN`  |
 
 ### Instagram Accounts (5 Accounts)
 
-| Account | ID | Token Source |
-|---------|-----|--------------|
-| @sabobilliard | 17841474279844606 | Use SABO Billiards page token |
-| @sabomediavt | 17841472718907470 | Use SABO Media page token |
-| @newbiehocmake | 17841474205608601 | Use AI Newbie VN page token |
-| @sabobidashop | 17841472893889754 | Use SABO Billiard Shop page token |
-| @lsfusionlab | 17841472996653110 | Use AI Art Newbie page token |
+| Account        | ID                | Token Source                      |
+| -------------- | ----------------- | --------------------------------- |
+| @sabobilliard  | 17841474279844606 | Use SABO Billiards page token     |
+| @sabomediavt   | 17841472718907470 | Use SABO Media page token         |
+| @newbiehocmake | 17841474205608601 | Use AI Newbie VN page token       |
+| @sabobidashop  | 17841472893889754 | Use SABO Billiard Shop page token |
+| @lsfusionlab   | 17841472996653110 | Use AI Art Newbie page token      |
 
 ### Other Platforms
 
-| Platform | Status | Account |
-|----------|--------|---------|
-| **LinkedIn** | ✅ Connected | Long Sang (HhV8LImTty) |
-| **Threads** | ✅ Connected | @baddie.4296 (25295715200066837) |
-| **YouTube** | ✅ Connected | Long Sang (UCh08dvkDfJVJ8f1C-TbXbew) |
+| Platform     | Status       | Account                              |
+| ------------ | ------------ | ------------------------------------ |
+| **LinkedIn** | ✅ Connected | Long Sang (HhV8LImTty)               |
+| **Threads**  | ✅ Connected | @baddie.4296 (25295715200066837)     |
+| **YouTube**  | ✅ Connected | Long Sang (UCh08dvkDfJVJ8f1C-TbXbew) |
 
 ### Ad Accounts
 
-| Account | ID | Type |
-|---------|-----|------|
-| Production | 5736017743171140 | Real ads |
-| **Sandbox** | 832720779614345 | Testing (FREE!) |
+| Account     | ID               | Type            |
+| ----------- | ---------------- | --------------- |
+| Production  | 5736017743171140 | Real ads        |
+| **Sandbox** | 832720779614345  | Testing (FREE!) |
 
 ---
 
@@ -308,14 +328,14 @@ list_campaigns         // Danh sách campaigns đang chạy
 
 ### Session 30/11/2025
 
-| Bug | File | Fix |
-|-----|------|-----|
-| `totalTime undefined` | `solo-hub-chat.js` | Moved calculation before Layer 4 |
-| `synthesizeResults JSON error` | `copilot-planner.js` | Added "Trả về JSON:" to prompt |
-| `test.variants undefined` | `ai-action-executor.js` | Changed to `result.test?.variants` |
-| `carousel.id undefined` | `ai-action-executor.js` | Changed to `result.carousel?.id` |
-| `copilot_feedback NOT NULL` | Database | Dropped constraint on user_message |
-| `Missing columns` | `copilot_feedback` | Added 11 columns via migration |
+| Bug                            | File                    | Fix                                |
+| ------------------------------ | ----------------------- | ---------------------------------- |
+| `totalTime undefined`          | `solo-hub-chat.js`      | Moved calculation before Layer 4   |
+| `synthesizeResults JSON error` | `copilot-planner.js`    | Added "Trả về JSON:" to prompt     |
+| `test.variants undefined`      | `ai-action-executor.js` | Changed to `result.test?.variants` |
+| `carousel.id undefined`        | `ai-action-executor.js` | Changed to `result.carousel?.id`   |
+| `copilot_feedback NOT NULL`    | Database                | Dropped constraint on user_message |
+| `Missing columns`              | `copilot_feedback`      | Added 11 columns via migration     |
 
 ---
 
@@ -369,35 +389,38 @@ curl -s http://localhost:3001/api/solo-hub/available-actions | ConvertFrom-Json 
 
 ## 📊 COMPONENT STATUS SUMMARY
 
-| Component | Status | % | Notes |
-|-----------|--------|---|-------|
-| **A/B Testing** | ✅ Complete | 100% | Create, list, start, results |
-| **Carousel** | ✅ Complete | 100% | Create, publish, themes |
-| **Scheduler** | ✅ Complete | 100% | Schedule, list, process, cron job |
-| **Cross-Platform** | ⚠️ Partial | 85% | Publish timeout needs fix |
-| **AI Chat Smart** | ✅ Complete | 100% | 4-layer with learning |
-| **Feedback API** | ✅ Complete | 100% | Recording to database |
-| **Database** | ✅ Complete | 100% | 8 tables with indexes |
-| **Facebook** | ✅ Complete | 100% | 7 pages, permanent tokens |
-| **Instagram** | ⚠️ Partial | 70% | Direct publish needs fix |
-| **LinkedIn** | ✅ Complete | 100% | Text posts working |
-| **Threads** | ✅ Complete | 100% | Token configured |
+| Component          | Status      | %    | Notes                             |
+| ------------------ | ----------- | ---- | --------------------------------- |
+| **A/B Testing**    | ✅ Complete | 100% | Create, list, start, results      |
+| **Carousel**       | ✅ Complete | 100% | Create, publish, themes           |
+| **Scheduler**      | ✅ Complete | 100% | Schedule, list, process, cron job |
+| **Cross-Platform** | ⚠️ Partial  | 85%  | Publish timeout needs fix         |
+| **AI Chat Smart**  | ✅ Complete | 100% | 4-layer with learning             |
+| **Feedback API**   | ✅ Complete | 100% | Recording to database             |
+| **Database**       | ✅ Complete | 100% | 8 tables with indexes             |
+| **Facebook**       | ✅ Complete | 100% | 7 pages, permanent tokens         |
+| **Instagram**      | ⚠️ Partial  | 70%  | Direct publish needs fix          |
+| **LinkedIn**       | ✅ Complete | 100% | Text posts working                |
+| **Threads**        | ✅ Complete | 100% | Token configured                  |
 
 ---
 
 ## 🚀 SCALING ROADMAP (Next Copilot Tasks)
 
 ### Phase 1: Critical Fixes (Priority High)
+
 - [ ] Fix Instagram direct publishing in `cross-platform-publisher.js`
 - [ ] Fix cross-platform timeout (smartPostComposer too slow)
 - [ ] Add retry logic for failed API calls
 
 ### Phase 2: Storage Integration
+
 - [ ] Setup Supabase Storage bucket for images
 - [ ] Save DALL-E generated images to storage
 - [ ] Implement image URL caching
 
 ### Phase 3: New AI Actions (+5)
+
 - [ ] `auto_reply_comments` - Tự động trả lời comments
 - [ ] `generate_video_script` - Tạo script video
 - [ ] `analyze_competitors` - Phân tích đối thủ
@@ -405,18 +428,21 @@ curl -s http://localhost:3001/api/solo-hub/available-actions | ConvertFrom-Json 
 - [ ] `optimize_hashtags` - Tối ưu hashtags theo trend
 
 ### Phase 4: Analytics Dashboard
+
 - [ ] Create `AnalyticsDashboard.tsx` component
 - [ ] Integrate Recharts for visualizations
 - [ ] Connect to `platform_analytics` table
 - [ ] Real-time engagement metrics
 
 ### Phase 5: AI Usage Tracking
+
 - [ ] Activate tracking in `ai_usage` table
 - [ ] Token counting per request
 - [ ] Cost estimation per model
 - [ ] Monthly usage reports
 
 ### Phase 6: Advanced Learning
+
 - [ ] Implement pattern recognition from feedback
 - [ ] Auto-adjust content style based on engagement
 - [ ] A/B test result learning
@@ -474,6 +500,7 @@ api/
 ## 🎯 SUCCESS METRICS
 
 ### Current Session Achievements
+
 - ✅ Created 4 new services (A/B, Carousel, Scheduler, Cross-Platform)
 - ✅ Added 6 new AI actions to executor
 - ✅ Fixed 6 critical bugs
@@ -482,6 +509,7 @@ api/
 - ✅ All core APIs tested and working
 
 ### Target for Next Session
+
 - Foundation: 85% → **95%**
 - Instagram: 70% → **100%**
 - Cross-Platform: 85% → **100%**
@@ -521,7 +549,7 @@ Bạn đang tiếp tục công việc từ Copilot trước. Solo Hub là hệ t
 1. Fix Instagram publishing trong `api/services/cross-platform-publisher.js`
    - Lỗi: Instagram API không nhận được page token đúng
    - Cần map Instagram ID với Page token tương ứng
-   
+
 2. Fix cross-platform timeout
    - File: `api/services/smart-post-composer.js`
    - Vấn đề: Gọi OpenAI quá nhiều lần
@@ -565,8 +593,10 @@ Vào file `api/services/ai-action-executor.js`, thêm:
 
 ## DATABASE CONNECTION
 ```
+
 postgresql://postgres.diexsbzqwsbpilsymnfb:Acookingoil123@aws-1-us-east-2.pooler.supabase.com:6543/postgres
-```
+
+````
 
 ## TEST COMMANDS
 ```powershell
@@ -578,9 +608,10 @@ curl -s -X POST http://localhost:3001/api/solo-hub/chat-smart -H "Content-Type: 
 
 # List available actions
 curl -s http://localhost:3001/api/solo-hub/available-actions | ConvertFrom-Json
-```
+````
 
 ## TIÊU CHÍ THÀNH CÔNG
+
 - [ ] Instagram publish hoạt động 100%
 - [ ] Cross-platform < 10 giây response time
 - [ ] 5 AI actions mới hoạt động
@@ -588,6 +619,7 @@ curl -s http://localhost:3001/api/solo-hub/available-actions | ConvertFrom-Json
 - [ ] Foundation đạt 95%+
 
 ## GHI CHÚ
+
 - Đọc file FOUNDATION_STATUS.md để có context đầy đủ
 - API server chạy ở port 3001
 - Frontend Vite chạy ở port 8080
@@ -595,8 +627,10 @@ curl -s http://localhost:3001/api/solo-hub/available-actions | ConvertFrom-Json
 - Credentials đầy đủ trong .env file
 
 Bắt đầu với Phase 1 - Fix Instagram publishing trước!
+
 ```
 
 ---
 
 *Last updated: 30/11/2025 22:00 by Copilot Session*
+```

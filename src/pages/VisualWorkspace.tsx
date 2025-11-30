@@ -158,17 +158,17 @@ export default function VisualWorkspace() {
 
             // Check which layers were used
             const layersUsed = result.metadata?.layersUsed || [];
-            
+
             // Simulate layer progression based on actual response
-            await new Promise(r => setTimeout(r, 300));
+            await new Promise((r) => setTimeout(r, 300));
             processEvent({ type: 'step_complete', stepId: 'layer-2' });
             processEvent({ type: 'step_start', stepId: 'layer-3' });
-            
-            await new Promise(r => setTimeout(r, 300));
+
+            await new Promise((r) => setTimeout(r, 300));
             processEvent({ type: 'step_complete', stepId: 'layer-3' });
             processEvent({ type: 'step_start', stepId: 'layer-4' });
-            
-            await new Promise(r => setTimeout(r, 200));
+
+            await new Promise((r) => setTimeout(r, 200));
             processEvent({ type: 'step_complete', stepId: 'layer-4' });
 
             // Parse for visual components if applicable
@@ -201,7 +201,8 @@ export default function VisualWorkspace() {
 
             toast({
               title: '✅ Hoàn thành',
-              description: result.message?.substring(0, 100) || `Đã xử lý với ${layersUsed.length} layers`,
+              description:
+                result.message?.substring(0, 100) || `Đã xử lý với ${layersUsed.length} layers`,
             });
           } else {
             throw new Error(result.error || 'Unknown error');
@@ -228,7 +229,7 @@ export default function VisualWorkspace() {
         }
       } catch (error: any) {
         console.error('Error:', error);
-        
+
         // Check if cancelled by user
         if (error.name === 'AbortError') {
           processEvent({ type: 'error', error: 'Cancelled by user' });
@@ -244,7 +245,7 @@ export default function VisualWorkspace() {
             variant: 'destructive',
           });
         }
-        
+
         // Save failed execution
         addExecution({
           command: message,
@@ -253,7 +254,7 @@ export default function VisualWorkspace() {
           status: error.name === 'AbortError' ? 'cancelled' : 'failed',
           error: error.message,
         });
-        
+
         setIsGenerating(false);
       }
     },
@@ -308,11 +309,7 @@ export default function VisualWorkspace() {
           </div>
           <div className="flex gap-2">
             {isExecuting && (
-              <Button 
-                variant="destructive" 
-                size="sm"
-                onClick={handleCancelExecution}
-              >
+              <Button variant="destructive" size="sm" onClick={handleCancelExecution}>
                 <XCircle className="h-4 w-4 mr-2" />
                 Cancel
               </Button>

@@ -3,9 +3,9 @@
  * Save/load execution steps history to/from Supabase (with localStorage fallback)
  */
 
-import { useCallback, useEffect, useState } from "react";
-import { ExecutionStep } from "./useExecutionSteps";
-import { supabase } from "@/lib/supabase";
+import { useCallback, useEffect, useState } from 'react';
+import { ExecutionStep } from './useExecutionSteps';
+import { supabase } from '@/lib/supabase';
 
 export interface ExecutionHistory {
   id: string;
@@ -13,14 +13,14 @@ export interface ExecutionHistory {
   timestamp: Date;
   steps: ExecutionStep[];
   duration: number;
-  status: "completed" | "failed" | "cancelled";
+  status: 'completed' | 'failed' | 'cancelled';
   error?: string;
   user_id?: string;
   layers_used?: string[];
   metadata?: Record<string, any>;
 }
 
-const STORAGE_KEY = "longsang_execution_history";
+const STORAGE_KEY = 'longsang_execution_history';
 const MAX_HISTORY_ITEMS = 100;
 
 export function useExecutionHistory() {
@@ -32,17 +32,17 @@ export function useExecutionHistory() {
   useEffect(() => {
     const loadHistory = async () => {
       setIsLoading(true);
-      
+
       try {
         // Try Supabase first
         const { data, error } = await supabase
-          .from("execution_history")
-          .select("*")
-          .order("created_at", { ascending: false })
+          .from('execution_history')
+          .select('*')
+          .order('created_at', { ascending: false })
           .limit(MAX_HISTORY_ITEMS);
-        
+
         if (error) {
-          console.warn("Supabase load failed, using localStorage:", error.message);
+          console.warn('Supabase load failed, using localStorage:', error.message);
           setUseSupabase(false);
           loadFromLocalStorage();
         } else if (data) {
@@ -62,11 +62,11 @@ export function useExecutionHistory() {
           setUseSupabase(true);
         }
       } catch (err) {
-        console.warn("Supabase connection failed, using localStorage");
+        console.warn('Supabase connection failed, using localStorage');
         setUseSupabase(false);
         loadFromLocalStorage();
       }
-      
+
       setIsLoading(false);
     };
 
@@ -82,7 +82,7 @@ export function useExecutionHistory() {
           setHistory(historyWithDates);
         }
       } catch (error) {
-        console.error("Failed to load from localStorage:", error);
+        console.error('Failed to load from localStorage:', error);
       }
     };
 
@@ -95,13 +95,13 @@ export function useExecutionHistory() {
       const toStore = historyItems.slice(0, MAX_HISTORY_ITEMS);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
     } catch (error) {
-      console.error("Failed to save to localStorage:", error);
+      console.error('Failed to save to localStorage:', error);
     }
   }, []);
 
   // Add execution to history
   const addExecution = useCallback(
-    async (execution: Omit<ExecutionHistory, "id" | "timestamp">) => {
+    async (execution: Omit<ExecutionHistory, 'id' | 'timestamp'>) => {
       const newExecution: ExecutionHistory = {
         ...execution,
         id: `exec-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -115,9 +115,9 @@ export function useExecutionHistory() {
       if (useSupabase) {
         try {
           const { data, error } = await supabase
-            .from("execution_history")
+            .from('execution_history')
             .insert({
-              user_id: execution.user_id || "anonymous",
+              user_id: execution.user_id || 'anonymous',
               command: execution.command,
               steps: execution.steps,
               duration: execution.duration,
@@ -130,17 +130,17 @@ export function useExecutionHistory() {
             .single();
 
           if (error) {
-            console.warn("Failed to save to Supabase:", error.message);
+            console.warn('Failed to save to Supabase:', error.message);
             saveToLocalStorage(updated);
           } else if (data) {
             // Update with Supabase-generated ID
             newExecution.id = data.id;
-            setHistory(prev => prev.map(h => 
-              h.id === newExecution.id ? { ...h, id: data.id } : h
-            ));
+            setHistory((prev) =>
+              prev.map((h) => (h.id === newExecution.id ? { ...h, id: data.id } : h))
+            );
           }
         } catch (err) {
-          console.warn("Supabase save failed, saved to localStorage");
+          console.warn('Supabase save failed, saved to localStorage');
           saveToLocalStorage(updated);
         }
       } else {
@@ -168,12 +168,12 @@ export function useExecutionHistory() {
 
       if (useSupabase) {
         try {
-          await supabase.from("execution_history").delete().eq("id", id);
+          await supabase.from('execution_history').delete().eq('id', id);
         } catch (err) {
-          console.warn("Failed to delete from Supabase");
+          console.warn('Failed to delete from Supabase');
         }
       }
-      
+
       saveToLocalStorage(updated);
     },
     [history, useSupabase, saveToLocalStorage]
@@ -186,9 +186,9 @@ export function useExecutionHistory() {
 
     if (useSupabase) {
       try {
-        await supabase.from("execution_history").delete().neq("id", "");
+        await supabase.from('execution_history').delete().neq('id', '');
       } catch (err) {
-        console.warn("Failed to clear Supabase history");
+        console.warn('Failed to clear Supabase history');
       }
     }
   }, [useSupabase]);
@@ -196,11 +196,11 @@ export function useExecutionHistory() {
   // Export history as JSON
   const exportHistory = useCallback(() => {
     const dataStr = JSON.stringify(history, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = url;
-    link.download = `execution-history-${new Date().toISOString().split("T")[0]}.json`;
+    link.download = `execution-history-${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     URL.revokeObjectURL(url);
   }, [history]);
@@ -208,17 +208,17 @@ export function useExecutionHistory() {
   // Sync localStorage to Supabase (for migration)
   const syncToSupabase = useCallback(async () => {
     if (!useSupabase) return { synced: 0 };
-    
+
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return { synced: 0 };
-    
+
     try {
       const localHistory = JSON.parse(stored);
       let synced = 0;
-      
+
       for (const item of localHistory) {
-        const { error } = await supabase.from("execution_history").upsert({
-          user_id: item.user_id || "anonymous",
+        const { error } = await supabase.from('execution_history').upsert({
+          user_id: item.user_id || 'anonymous',
           command: item.command,
           steps: item.steps,
           duration: item.duration,
@@ -228,13 +228,13 @@ export function useExecutionHistory() {
           metadata: item.metadata || {},
           created_at: item.timestamp,
         });
-        
+
         if (!error) synced++;
       }
-      
+
       return { synced };
     } catch (err) {
-      console.error("Sync failed:", err);
+      console.error('Sync failed:', err);
       return { synced: 0, error: err };
     }
   }, [useSupabase]);

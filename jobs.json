@@ -61,9 +61,7 @@
         }
       ],
       "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721136452",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": 1000000361,
       "runner_name": "GitHub Actions 1000000361",
       "runner_group_id": 0,
@@ -113,9 +111,7 @@
         }
       ],
       "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721139095",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": 1000000364,
       "runner_name": "GitHub Actions 1000000364",
       "runner_group_id": 0,
@@ -245,9 +241,7 @@
         }
       ],
       "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721142781",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": 1000000365,
       "runner_name": "GitHub Actions 1000000365",
       "runner_group_id": 0,
@@ -297,9 +291,7 @@
         }
       ],
       "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721169209",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": 1000000368,
       "runner_name": "GitHub Actions 1000000368",
       "runner_group_id": 0,

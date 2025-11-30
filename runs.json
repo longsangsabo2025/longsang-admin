@@ -18,9 +18,7 @@
       "check_suite_node_id": "CS_kwDOQfoUzM8AAAAL5M07uw",
       "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798013098",
       "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798013098",
-      "pull_requests": [
-
-      ],
+      "pull_requests": [],
       "created_at": "2025-11-30T11:09:50Z",
       "updated_at": "2025-11-30T11:11:16Z",
       "actor": {
@@ -45,9 +43,7 @@
         "site_admin": false
       },
       "run_attempt": 1,
-      "referenced_workflows": [
-
-      ],
+      "referenced_workflows": [],
       "run_started_at": "2025-11-30T11:09:50Z",
       "triggering_actor": {
         "login": "longsangsabo2025",
@@ -246,9 +242,7 @@
       "check_suite_node_id": "CS_kwDOQfoUzM8AAAAL5M07uA",
       "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798013097",
       "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798013097",
-      "pull_requests": [
-
-      ],
+      "pull_requests": [],
       "created_at": "2025-11-30T11:09:50Z",
       "updated_at": "2025-11-30T11:10:05Z",
       "actor": {
@@ -273,9 +267,7 @@
         "site_admin": false
       },
       "run_attempt": 1,
-      "referenced_workflows": [
-
-      ],
+      "referenced_workflows": [],
       "run_started_at": "2025-11-30T11:09:50Z",
       "triggering_actor": {
         "login": "longsangsabo2025",
@@ -474,9 +466,7 @@
       "check_suite_node_id": "CS_kwDOQfoUzM8AAAAL5Mz7sA",
       "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798004996",
       "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798004996",
-      "pull_requests": [
-
-      ],
+      "pull_requests": [],
       "created_at": "2025-11-30T11:09:13Z",
       "updated_at": "2025-11-30T11:09:35Z",
       "actor": {
@@ -501,9 +491,7 @@
         "site_admin": false
       },
       "run_attempt": 1,
-      "referenced_workflows": [
-
-      ],
+      "referenced_workflows": [],
       "run_started_at": "2025-11-30T11:09:13Z",
       "triggering_actor": {
         "login": "longsangsabo2025",
@@ -702,9 +690,7 @@
       "check_suite_node_id": "CS_kwDOQfoUzM8AAAAL5Mz7pg",
       "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798004986",
       "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798004986",
-      "pull_requests": [
-
-      ],
+      "pull_requests": [],
       "created_at": "2025-11-30T11:09:13Z",
       "updated_at": "2025-11-30T11:10:45Z",
       "actor": {
@@ -729,9 +715,7 @@
         "site_admin": false
       },
       "run_attempt": 1,
-      "referenced_workflows": [
-
-      ],
+      "referenced_workflows": [],
       "run_started_at": "2025-11-30T11:09:13Z",
       "triggering_actor": {
         "login": "longsangsabo2025",
@@ -930,9 +914,7 @@
       "check_suite_node_id": "CS_kwDOQfoUzM8AAAAL5Mzk3w",
       "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798002371",
       "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798002371",
-      "pull_requests": [
-
-      ],
+      "pull_requests": [],
       "created_at": "2025-11-30T11:08:58Z",
       "updated_at": "2025-11-30T11:10:19Z",
       "actor": {
@@ -957,9 +939,7 @@
         "site_admin": false
       },
       "run_attempt": 1,
-      "referenced_workflows": [
-
-      ],
+      "referenced_workflows": [],
       "run_started_at": "2025-11-30T11:08:58Z",
       "triggering_actor": {
         "login": "longsangsabo2025",
@@ -1158,9 +1138,7 @@
       "check_suite_node_id": "CS_kwDOQfoUzM8AAAAL5Mzk1g",
       "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798002368",
       "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798002368",
-      "pull_requests": [
-
-      ],
+      "pull_requests": [],
       "created_at": "2025-11-30T11:08:58Z",
       "updated_at": "2025-11-30T11:09:16Z",
       "actor": {
@@ -1185,9 +1163,7 @@
         "site_admin": false
       },
       "run_attempt": 1,
-      "referenced_workflows": [
-
-      ],
+      "referenced_workflows": [],
       "run_started_at": "2025-11-30T11:08:58Z",
       "triggering_actor": {
         "login": "longsangsabo2025",
@@ -1386,9 +1362,7 @@
       "check_suite_node_id": "CS_kwDOQfoUzM8AAAAL5Mmt3g",
       "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19797908190",
       "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19797908190",
-      "pull_requests": [
-
-      ],
+      "pull_requests": [],
       "created_at": "2025-11-30T11:01:18Z",
       "updated_at": "2025-11-30T11:03:58Z",
       "actor": {
@@ -1413,9 +1387,7 @@
         "site_admin": false
       },
       "run_attempt": 1,
-      "referenced_workflows": [
-
-      ],
+      "referenced_workflows": [],
       "run_started_at": "2025-11-30T11:01:18Z",
       "triggering_actor": {
         "login": "longsangsabo2025",
@@ -1614,9 +1586,7 @@
       "check_suite_node_id": "CS_kwDOQfoUzM8AAAAL5Mmtzw",
       "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19797908180",
       "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19797908180",
-      "pull_requests": [
-
-      ],
+      "pull_requests": [],
       "created_at": "2025-11-30T11:01:18Z",
       "updated_at": "2025-11-30T11:02:50Z",
       "actor": {
@@ -1641,9 +1611,7 @@
         "site_admin": false
       },
       "run_attempt": 1,
-      "referenced_workflows": [
-
-      ],
+      "referenced_workflows": [],
       "run_started_at": "2025-11-30T11:01:18Z",
       "triggering_actor": {
         "login": "longsangsabo2025",
@@ -1842,9 +1810,7 @@
       "check_suite_node_id": "CS_kwDOQfoUzM8AAAAL5Mmtww",
       "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19797908172",
       "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19797908172",
-      "pull_requests": [
-
-      ],
+      "pull_requests": [],
       "created_at": "2025-11-30T11:01:18Z",
       "updated_at": "2025-11-30T11:02:30Z",
       "actor": {
@@ -1869,9 +1835,7 @@
         "site_admin": false
       },
       "run_attempt": 1,
-      "referenced_workflows": [
-
-      ],
+      "referenced_workflows": [],
       "run_started_at": "2025-11-30T11:01:18Z",
       "triggering_actor": {
         "login": "longsangsabo2025",
@@ -2070,9 +2034,7 @@
       "check_suite_node_id": "CS_kwDOQfoUzM8AAAAL5Mmtwg",
       "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19797908171",
       "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19797908171",
-      "pull_requests": [
-
-      ],
+      "pull_requests": [],
       "created_at": "2025-11-30T11:01:18Z",
       "updated_at": "2025-11-30T11:02:24Z",
       "actor": {
@@ -2097,9 +2059,7 @@
         "site_admin": false
       },
       "run_attempt": 1,
-      "referenced_workflows": [
-
-      ],
+      "referenced_workflows": [],
       "run_started_at": "2025-11-30T11:01:18Z",
       "triggering_actor": {
         "login": "longsangsabo2025",

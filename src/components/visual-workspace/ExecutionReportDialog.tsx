@@ -19,7 +19,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Download, FileText } from 'lucide-react';
 import { useExecutionHistory } from '@/hooks/useExecutionHistory';
-import { exportExecutionReport, ExecutionReportOptions } from '@/lib/visual-workspace/executionReportExporter';
+import {
+  exportExecutionReport,
+  ExecutionReportOptions,
+} from '@/lib/visual-workspace/executionReportExporter';
 import { useToast } from '@/hooks/use-toast';
 
 interface ExecutionReportDialogProps {

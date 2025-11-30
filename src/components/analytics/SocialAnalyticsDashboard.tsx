@@ -1,11 +1,11 @@
 /**
  * 📊 Social Media Analytics Dashboard
- * 
+ *
  * Displays analytics from Supabase tables:
  * - platform_analytics: Platform-level metrics
  * - content_performance: Individual post performance
  * - ai_usage: AI API usage and costs
- * 
+ *
  * @author LongSang Admin
  * @version 1.0.0
  */
@@ -102,7 +102,10 @@ const PLATFORM_COLORS: Record<string, string> = {
 const CHART_COLORS = ['#e94560', '#16213e', '#0f3460', '#533483', '#e94560'];
 
 // Platform icons
-const PlatformIcon: React.FC<{ platform: string; className?: string }> = ({ platform, className }) => {
+const PlatformIcon: React.FC<{ platform: string; className?: string }> = ({
+  platform,
+  className,
+}) => {
   switch (platform.toLowerCase()) {
     case 'facebook':
       return <Facebook className={className} />;
@@ -129,22 +132,22 @@ export const SocialAnalyticsDashboard: React.FC = () => {
 
   // Fetch analytics data
   const fetchAnalytics = async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-    
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+
     try {
       const daysAgo = state.dateRange === '7d' ? 7 : state.dateRange === '30d' ? 30 : 90;
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - daysAgo);
-      
+
       // Fetch platform analytics
       const { data: platformData, error: platformError } = await supabase
         .from('platform_analytics')
         .select('*')
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: false });
-      
+
       if (platformError) throw platformError;
-      
+
       // Fetch content performance
       const { data: contentData, error: contentError } = await supabase
         .from('content_performance')
@@ -152,19 +155,19 @@ export const SocialAnalyticsDashboard: React.FC = () => {
         .gte('posted_at', startDate.toISOString())
         .order('engagement_rate', { ascending: false })
         .limit(20);
-      
+
       if (contentError) throw contentError;
-      
+
       // Fetch AI usage
       const { data: aiData, error: aiError } = await supabase
         .from('ai_usage')
         .select('*')
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: false });
-      
+
       if (aiError) throw aiError;
-      
-      setState(prev => ({
+
+      setState((prev) => ({
         ...prev,
         platformMetrics: platformData || [],
         contentPerformance: contentData || [],
@@ -173,7 +176,7 @@ export const SocialAnalyticsDashboard: React.FC = () => {
       }));
     } catch (error: any) {
       console.error('Analytics fetch error:', error);
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         loading: false,
         error: error.message || 'Failed to load analytics',
@@ -187,18 +190,22 @@ export const SocialAnalyticsDashboard: React.FC = () => {
 
   // Calculate summary metrics
   const totalFollowers = state.platformMetrics.reduce((sum, p) => sum + (p.followers || 0), 0);
-  const avgEngagement = state.platformMetrics.length > 0
-    ? (state.platformMetrics.reduce((sum, p) => sum + (p.engagement_rate || 0), 0) / state.platformMetrics.length).toFixed(2)
-    : '0';
+  const avgEngagement =
+    state.platformMetrics.length > 0
+      ? (
+          state.platformMetrics.reduce((sum, p) => sum + (p.engagement_rate || 0), 0) /
+          state.platformMetrics.length
+        ).toFixed(2)
+      : '0';
   const totalPosts = state.platformMetrics.reduce((sum, p) => sum + (p.posts_count || 0), 0);
   const totalReach = state.platformMetrics.reduce((sum, p) => sum + (p.reach || 0), 0);
-  
+
   const totalAICost = state.aiUsage.reduce((sum, u) => sum + (u.cost_estimate || 0), 0);
   const totalTokens = state.aiUsage.reduce((sum, u) => sum + (u.tokens_used || 0), 0);
 
   // Prepare chart data
   const engagementByPlatform = state.platformMetrics.reduce((acc: any[], metric) => {
-    const existing = acc.find(p => p.platform === metric.platform);
+    const existing = acc.find((p) => p.platform === metric.platform);
     if (existing) {
       existing.engagement = Math.max(existing.engagement, metric.engagement_rate);
       existing.followers = Math.max(existing.followers, metric.followers);
@@ -247,13 +254,13 @@ export const SocialAnalyticsDashboard: React.FC = () => {
           </h1>
           <p className="text-gray-400 mt-1">Real-time performance across all platforms</p>
         </div>
-        
+
         {/* Date Range Selector */}
         <div className="flex items-center gap-2 bg-dark-surface rounded-lg p-1">
           {(['7d', '30d', '90d'] as const).map((range) => (
             <button
               key={range}
-              onClick={() => setState(prev => ({ ...prev, dateRange: range }))}
+              onClick={() => setState((prev) => ({ ...prev, dateRange: range }))}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 state.dateRange === range
                   ? 'bg-primary text-white'
@@ -283,7 +290,8 @@ export const SocialAnalyticsDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <Users className="w-8 h-8 text-blue-400" />
             <span className="text-green-400 text-sm flex items-center">
-              <TrendingUp className="w-4 h-4 mr-1" />+12%
+              <TrendingUp className="w-4 h-4 mr-1" />
+              +12%
             </span>
           </div>
           <div className="mt-3">
@@ -301,7 +309,8 @@ export const SocialAnalyticsDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <Heart className="w-8 h-8 text-pink-400" />
             <span className="text-green-400 text-sm flex items-center">
-              <TrendingUp className="w-4 h-4 mr-1" />+8%
+              <TrendingUp className="w-4 h-4 mr-1" />
+              +8%
             </span>
           </div>
           <div className="mt-3">
@@ -359,11 +368,11 @@ export const SocialAnalyticsDashboard: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="platform" stroke="#9CA3AF" />
                 <YAxis stroke="#9CA3AF" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1F2937', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1F2937',
                     border: '1px solid #374151',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
                   }}
                 />
                 <Bar dataKey="engagement" fill="#e94560" radius={[4, 4, 0, 0]} />
@@ -397,17 +406,20 @@ export const SocialAnalyticsDashboard: React.FC = () => {
                   label={({ platform, percent }) => `${platform} ${(percent * 100).toFixed(0)}%`}
                 >
                   {engagementByPlatform.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={PLATFORM_COLORS[entry.platform.toLowerCase()] || CHART_COLORS[index % CHART_COLORS.length]} 
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={
+                        PLATFORM_COLORS[entry.platform.toLowerCase()] ||
+                        CHART_COLORS[index % CHART_COLORS.length]
+                      }
                     />
                   ))}
                 </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1F2937', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1F2937',
                     border: '1px solid #374151',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
                   }}
                 />
               </PieChart>
@@ -426,7 +438,7 @@ export const SocialAnalyticsDashboard: React.FC = () => {
           <Zap className="w-5 h-5 text-primary" />
           Top Performing Content
         </h3>
-        
+
         {topContent.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             No content performance data available yet
@@ -442,10 +454,12 @@ export const SocialAnalyticsDashboard: React.FC = () => {
                   {index + 1}
                 </div>
                 <div className="flex-shrink-0">
-                  <PlatformIcon 
-                    platform={content.platform} 
+                  <PlatformIcon
+                    platform={content.platform}
                     className="w-5 h-5"
-                    style={{ color: PLATFORM_COLORS[content.platform.toLowerCase()] || '#9CA3AF' } as any}
+                    style={
+                      { color: PLATFORM_COLORS[content.platform.toLowerCase()] || '#9CA3AF' } as any
+                    }
                   />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -493,9 +507,7 @@ export const SocialAnalyticsDashboard: React.FC = () => {
           </div>
           <div className="space-y-4">
             <div>
-              <div className="text-3xl font-bold text-white">
-                ${totalAICost.toFixed(4)}
-              </div>
+              <div className="text-3xl font-bold text-white">${totalAICost.toFixed(4)}</div>
               <div className="text-gray-400 text-sm">Total estimated cost</div>
             </div>
             <div>
@@ -505,9 +517,7 @@ export const SocialAnalyticsDashboard: React.FC = () => {
               <div className="text-gray-400 text-sm">Tokens used</div>
             </div>
             <div>
-              <div className="text-lg text-gray-300">
-                {state.aiUsage.length} API calls
-              </div>
+              <div className="text-lg text-gray-300">{state.aiUsage.length} API calls</div>
               <div className="text-gray-400 text-sm">In selected period</div>
             </div>
           </div>
@@ -530,18 +540,18 @@ export const SocialAnalyticsDashboard: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="name" stroke="#9CA3AF" />
                 <YAxis stroke="#9CA3AF" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1F2937', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1F2937',
                     border: '1px solid #374151',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
                   }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="tokens" 
-                  stroke="#e94560" 
-                  fill="#e94560" 
+                <Area
+                  type="monotone"
+                  dataKey="tokens"
+                  stroke="#e94560"
+                  fill="#e94560"
                   fillOpacity={0.3}
                 />
               </AreaChart>
@@ -562,11 +572,11 @@ export const SocialAnalyticsDashboard: React.FC = () => {
             style={{ borderColor: PLATFORM_COLORS[platform.platform.toLowerCase()] + '40' }}
           >
             <div className="flex items-center gap-3 mb-4">
-              <div 
+              <div
                 className="w-10 h-10 rounded-lg flex items-center justify-center"
                 style={{ backgroundColor: PLATFORM_COLORS[platform.platform.toLowerCase()] + '20' }}
               >
-                <PlatformIcon 
+                <PlatformIcon
                   platform={platform.platform}
                   className="w-5 h-5"
                   style={{ color: PLATFORM_COLORS[platform.platform.toLowerCase()] } as any}
@@ -574,7 +584,9 @@ export const SocialAnalyticsDashboard: React.FC = () => {
               </div>
               <div>
                 <div className="font-semibold text-white capitalize">{platform.platform}</div>
-                <div className="text-gray-400 text-xs">{platform.followers.toLocaleString()} followers</div>
+                <div className="text-gray-400 text-xs">
+                  {platform.followers.toLocaleString()} followers
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -583,7 +595,9 @@ export const SocialAnalyticsDashboard: React.FC = () => {
                 <div className="text-gray-500 text-xs">Engagement</div>
               </div>
               <div>
-                <div className="text-lg font-bold text-white">{platform.reach?.toLocaleString() || 0}</div>
+                <div className="text-lg font-bold text-white">
+                  {platform.reach?.toLocaleString() || 0}
+                </div>
                 <div className="text-gray-500 text-xs">Reach</div>
               </div>
             </div>

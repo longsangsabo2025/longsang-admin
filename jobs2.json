@@ -109,9 +109,7 @@
         }
       ],
       "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721364770",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": 1000000373,
       "runner_name": "GitHub Actions 1000000373",
       "runner_group_id": 0,
@@ -134,13 +132,9 @@
       "started_at": "2025-11-30T11:18:43Z",
       "completed_at": "2025-11-30T11:18:43Z",
       "name": "🔧 Auto-Fix",
-      "steps": [
-
-      ],
+      "steps": [],
       "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721364883",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": null,
       "runner_name": null,
       "runner_group_id": null,
@@ -163,13 +157,9 @@
       "started_at": "2025-11-30T11:19:02Z",
       "completed_at": "2025-11-30T11:19:02Z",
       "name": "🏗️ Build",
-      "steps": [
-
-      ],
+      "steps": [],
       "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721371952",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": null,
       "runner_name": null,
       "runner_group_id": null,
@@ -192,13 +182,9 @@
       "started_at": "2025-11-30T11:19:02Z",
       "completed_at": "2025-11-30T11:19:02Z",
       "name": "🚀 Deploy",
-      "steps": [
-
-      ],
+      "steps": [],
       "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721372062",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": null,
       "runner_name": null,
       "runner_group_id": null,
