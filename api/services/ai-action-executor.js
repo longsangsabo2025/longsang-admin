@@ -83,6 +83,64 @@ const AVAILABLE_ACTIONS = {
     },
   },
 
+  // Facebook Events
+  'create_event': {
+    description: 'Create a Facebook event on a page',
+    params: ['page', 'name', 'description', 'startTime', 'endTime?', 'location?'],
+    executor: async (params) => {
+      const pageKey = params.page?.replace(/_/g, '-') || 'sabo-arena';
+      const page = facebookPublisher.pages[pageKey];
+      if (!page) throw new Error(`Unknown page: ${pageKey}`);
+      
+      const eventData = {
+        name: params.name,
+        description: params.description,
+        start_time: params.startTime,
+        access_token: page.token,
+      };
+      if (params.endTime) eventData.end_time = params.endTime;
+      if (params.location) eventData.place = { name: params.location };
+      
+      const response = await fetch(`https://graph.facebook.com/v18.0/${page.id}/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData),
+      });
+      const result = await response.json();
+      return { success: !result.error, eventId: result.id, ...result };
+    },
+  },
+
+  'list_pages': {
+    description: 'List all available Facebook pages',
+    params: [],
+    executor: async () => {
+      const pages = Object.entries(facebookPublisher.pages).map(([key, page]) => ({
+        key,
+        name: page.name,
+        id: page.id,
+      }));
+      return { success: true, pages };
+    },
+  },
+
+  'get_page_posts': {
+    description: 'Get recent posts from a Facebook page',
+    params: ['page', 'limit?'],
+    executor: async (params) => {
+      const pageKey = params.page?.replace(/_/g, '-') || 'sabo-arena';
+      const page = facebookPublisher.pages[pageKey];
+      if (!page) throw new Error(`Unknown page: ${pageKey}`);
+      
+      const limit = params.limit || 5;
+      const response = await fetch(
+        `https://graph.facebook.com/v18.0/${page.id}/feed?fields=message,created_time,id&limit=${limit}&access_token=${page.token}`
+      );
+      const result = await response.json();
+      return { success: !result.error, posts: result.data, ...result };
+    },
+  },
+
   // N8N Workflows
   'trigger_workflow': {
     description: 'Trigger an n8n automation workflow',

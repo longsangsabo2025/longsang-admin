@@ -13,7 +13,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseStable } from '@/lib/supabase-stable';
 
 interface MCPStatus {
   connected: boolean;
@@ -35,17 +35,9 @@ export function MCPSupabaseStatus() {
     setStatus(prev => ({ ...prev, loading: true, error: undefined }));
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://diexsbzqwsbpilsymnfb.supabase.co';
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      if (!supabaseKey) {
-        throw new Error('Supabase key chưa được cấu hình');
-      }
-
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
-      // Test 1: Basic connection
-      const { data: projects, error: projectsError } = await supabase
+      // Use stable client with retry logic
+      // Test 1: Basic connection with retry
+      const { data: projects, error: projectsError } = await supabaseStable
         .from('projects')
         .select('id, name')
         .limit(5);
@@ -60,7 +52,7 @@ export function MCPSupabaseStatus() {
 
       for (const table of tablesToCheck) {
         try {
-          const { error } = await supabase.from(table).select('id').limit(1);
+          const { error } = await supabaseStable.from(table).select('id').limit(1);
           if (!error) tableCount++;
         } catch {
           // Ignore individual table errors

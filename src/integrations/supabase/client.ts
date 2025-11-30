@@ -2,5 +2,6 @@
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export { supabase } from "@/lib/supabase";
+// Export stable client as default (with retry logic and health check)
+export { supabaseStable as supabase, supabaseStable, supabase as supabaseLegacy } from "@/lib/supabase-stable";
 export type { Database } from "./types";

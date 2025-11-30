@@ -25,7 +25,7 @@
 └─────────────────────────────────────────┘
 ```
 
-**Supabase** = PostgreSQL + API layer + Authentication + Storage + Realtime  
+**Supabase** = PostgreSQL + API layer + Authentication + Storage + Realtime
 **PostgreSQL** = Database engine bên dưới
 
 ## 🎯 Vấn Đề: Kết Nối Không Ổn Định
