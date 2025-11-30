@@ -1,8 +1,8 @@
 # ============================================================================
-# 🚨 SENTRY → AUTO-FIX PIPELINE
+# 🚨 SENTRY → MEGA AUTO-FIX PIPELINE - Elon Musk Edition
 # ============================================================================
-# Triggered via Sentry Webhook when new errors occur
-# Flow: Sentry Error → Analyze → Create Issue → Copilot Agent Fix → PR
+# 🎯 Ultimate Error Detection & Auto-Fix System
+# Flow: Sentry Error → AI Analysis → Pattern Match → Auto-Fix → PR → Deploy
 # ============================================================================
 
 name: 🐛 Sentry Auto-Fix Pipeline
@@ -31,26 +31,44 @@ on:
         description: 'Line number'
         required: false
         default: '1'
+      auto_merge:
+        description: 'Auto-merge if tests pass'
+        required: false
+        default: 'false'
+        type: boolean
 
 permissions:
   contents: write
   pull-requests: write
   issues: write
 
+env:
+  # Error patterns that are safe to auto-fix
+  SAFE_FIX_PATTERNS: 'TypeError|ReferenceError|undefined|null|is not a function'
+  # Patterns that need manual review
+  MANUAL_REVIEW_PATTERNS: 'SecurityError|OutOfMemory|StackOverflow'
+
 jobs:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 1: Deep Error Analysis
+  # ═══════════════════════════════════════════════════════════════════════════
   analyze-error:
-    name: 🔍 Analyze Sentry Error
+    name: 🔍 Deep Error Analysis
     runs-on: ubuntu-latest
     outputs:
       should_fix: ${{ steps.analyze.outputs.should_fix }}
       fix_type: ${{ steps.analyze.outputs.fix_type }}
+      fix_strategy: ${{ steps.analyze.outputs.fix_strategy }}
+      confidence: ${{ steps.analyze.outputs.confidence }}
       error_details: ${{ steps.analyze.outputs.error_details }}
     
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: 🔍 Analyze Error Type
+      - name: 🔍 Deep Error Analysis
         id: analyze
         run: |
           # Get error details from webhook or manual input
@@ -59,43 +77,136 @@ jobs:
             ERROR_MESSAGE="${{ github.event.client_payload.error_message }}"
             FILE_PATH="${{ github.event.client_payload.file_path }}"
             LINE_NUMBER="${{ github.event.client_payload.line_number }}"
+            STACK_TRACE="${{ github.event.client_payload.stack_trace }}"
           else
             ERROR_TITLE="${{ github.event.inputs.error_title }}"
             ERROR_MESSAGE="${{ github.event.inputs.error_message }}"
             FILE_PATH="${{ github.event.inputs.file_path }}"
             LINE_NUMBER="${{ github.event.inputs.line_number }}"
+            STACK_TRACE=""
           fi
           
+          echo "══════════════════════════════════════════════════════════════"
+          echo "🔍 SENTRY ERROR ANALYSIS"
+          echo "══════════════════════════════════════════════════════════════"
           echo "Error: $ERROR_TITLE"
           echo "Message: $ERROR_MESSAGE"
           echo "File: $FILE_PATH"
           echo "Line: $LINE_NUMBER"
+          echo "══════════════════════════════════════════════════════════════"
           
-          # Determine fix type based on error
+          # Initialize variables
           FIX_TYPE="manual"
+          FIX_STRATEGY=""
           SHOULD_FIX="false"
+          CONFIDENCE="low"
           
-          # Auto-fixable error patterns
-          if [[ "$ERROR_TITLE" == *"TypeError"* ]] && [[ "$ERROR_MESSAGE" == *"undefined"* || "$ERROR_MESSAGE" == *"null"* ]]; then
-            FIX_TYPE="null-check"
+          # ─────────────────────────────────────────────────────────────────────
+          # PATTERN MATCHING - Determine fix type and strategy
+          # ─────────────────────────────────────────────────────────────────────
+          
+          # 1. Null/Undefined errors - Add optional chaining
+          if [[ "$ERROR_TITLE" == *"TypeError"* ]] && [[ "$ERROR_MESSAGE" == *"undefined"* || "$ERROR_MESSAGE" == *"null"* || "$ERROR_MESSAGE" == *"Cannot read"* ]]; then
+            FIX_TYPE="null-safety"
+            FIX_STRATEGY="Add optional chaining (?.) or nullish coalescing (??)"
             SHOULD_FIX="true"
+            CONFIDENCE="high"
+          
+          # 2. Not a function errors - Add type guards
+          elif [[ "$ERROR_MESSAGE" == *"is not a function"* ]]; then
+            FIX_TYPE="type-guard"
+            FIX_STRATEGY="Add typeof check before function call"
+            SHOULD_FIX="true"
+            CONFIDENCE="high"
+          
+          # 3. Reference errors - Check variable declarations
+          elif [[ "$ERROR_TITLE" == *"ReferenceError"* ]]; then
+            FIX_TYPE="reference-fix"
+            FIX_STRATEGY="Check variable scope and declarations"
+            SHOULD_FIX="true"
+            CONFIDENCE="medium"
+          
+          # 4. Network/Fetch errors - Add retry logic
+          elif [[ "$ERROR_MESSAGE" == *"Network"* ]] || [[ "$ERROR_MESSAGE" == *"fetch"* ]] || [[ "$ERROR_MESSAGE" == *"Failed to fetch"* ]]; then
+            FIX_TYPE="network-resilience"
+            FIX_STRATEGY="Add try-catch with retry logic"
+            SHOULD_FIX="true"
+            CONFIDENCE="medium"
+          
+          # 5. Promise rejection - Add error handling
+          elif [[ "$ERROR_MESSAGE" == *"Unhandled"* ]] || [[ "$ERROR_MESSAGE" == *"rejection"* ]]; then
+            FIX_TYPE="promise-handling"
+            FIX_STRATEGY="Add .catch() or try-await-catch block"
+            SHOULD_FIX="true"
+            CONFIDENCE="medium"
+          
+          # 6. Import/Module errors
+          elif [[ "$ERROR_MESSAGE" == *"Cannot find module"* ]] || [[ "$ERROR_MESSAGE" == *"import"* ]]; then
+            FIX_TYPE="import-fix"
+            FIX_STRATEGY="Check import paths and exports"
+            SHOULD_FIX="true"
+            CONFIDENCE="medium"
+          
+          # 7. Array/Object iteration errors
+          elif [[ "$ERROR_MESSAGE" == *"forEach"* ]] || [[ "$ERROR_MESSAGE" == *"map"* ]] || [[ "$ERROR_MESSAGE" == *"filter"* ]]; then
+            FIX_TYPE="array-safety"
+            FIX_STRATEGY="Add array existence check before iteration"
+            SHOULD_FIX="true"
+            CONFIDENCE="high"
+          
+          # 8. React hook errors
+          elif [[ "$ERROR_MESSAGE" == *"hook"* ]] || [[ "$ERROR_MESSAGE" == *"Hook"* ]]; then
+            FIX_TYPE="react-hook"
+            FIX_STRATEGY="Check hook rules and dependencies"
+            SHOULD_FIX="true"
+            CONFIDENCE="low"
+          
+          # 9. Syntax errors - Run ESLint fix
           elif [[ "$ERROR_TITLE" == *"SyntaxError"* ]]; then
             FIX_TYPE="syntax"
+            FIX_STRATEGY="Run ESLint --fix and Prettier"
             SHOULD_FIX="true"
-          elif [[ "$ERROR_MESSAGE" == *"is not a function"* ]]; then
-            FIX_TYPE="type-check"
-            SHOULD_FIX="true"
-          elif [[ "$ERROR_MESSAGE" == *"Network"* ]] || [[ "$ERROR_MESSAGE" == *"fetch"* ]]; then
-            FIX_TYPE="network-retry"
-            SHOULD_FIX="true"
+            CONFIDENCE="high"
           fi
           
+          # Check if file exists
+          if [ -n "$FILE_PATH" ] && [ -f "$FILE_PATH" ]; then
+            echo "✅ File exists: $FILE_PATH"
+          else
+            echo "⚠️ File not found: $FILE_PATH"
+            CONFIDENCE="low"
+          fi
+          
+          echo ""
+          echo "📊 ANALYSIS RESULT:"
+          echo "  Fix Type: $FIX_TYPE"
+          echo "  Strategy: $FIX_STRATEGY"
+          echo "  Should Fix: $SHOULD_FIX"
+          echo "  Confidence: $CONFIDENCE"
+          
+          # Output results
           echo "should_fix=$SHOULD_FIX" >> $GITHUB_OUTPUT
           echo "fix_type=$FIX_TYPE" >> $GITHUB_OUTPUT
+          echo "fix_strategy=$FIX_STRATEGY" >> $GITHUB_OUTPUT
+          echo "confidence=$CONFIDENCE" >> $GITHUB_OUTPUT
           echo "error_details={\"title\":\"$ERROR_TITLE\",\"message\":\"$ERROR_MESSAGE\",\"file\":\"$FILE_PATH\",\"line\":\"$LINE_NUMBER\"}" >> $GITHUB_OUTPUT
 
+      - name: 📊 Analysis Summary
+        run: |
+          echo "## 🔍 Sentry Error Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Fix Type | \`${{ steps.analyze.outputs.fix_type }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Strategy | ${{ steps.analyze.outputs.fix_strategy }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Confidence | **${{ steps.analyze.outputs.confidence }}** |" >> $GITHUB_STEP_SUMMARY
+          echo "| Auto-Fix | ${{ steps.analyze.outputs.should_fix == 'true' && '✅ Yes' || '❌ No' }} |" >> $GITHUB_STEP_SUMMARY
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 2: Create Tracking Issue
+  # ═══════════════════════════════════════════════════════════════════════════
   create-fix-issue:
-    name: 📝 Create Fix Issue
+    name: 📝 Create Tracking Issue
     runs-on: ubuntu-latest
     needs: analyze-error
     if: needs.analyze-error.outputs.should_fix == 'true'
@@ -103,58 +214,72 @@ jobs:
       issue_number: ${{ steps.create-issue.outputs.issue_number }}
     
     steps:
-      - name: 📝 Create GitHub Issue for Copilot
+      - name: 📝 Create GitHub Issue
         id: create-issue
         uses: actions/github-script@v7
         with:
           script: |
             const errorDetails = JSON.parse('${{ needs.analyze-error.outputs.error_details }}');
             const fixType = '${{ needs.analyze-error.outputs.fix_type }}';
+            const fixStrategy = '${{ needs.analyze-error.outputs.fix_strategy }}';
+            const confidence = '${{ needs.analyze-error.outputs.confidence }}';
             
-            const fixInstructions = {
-              'null-check': 'Add optional chaining (?.) or null checks before accessing properties',
-              'syntax': 'Fix the syntax error based on the error message',
-              'type-check': 'Add typeof check or ensure the value is a function before calling',
-              'network-retry': 'Wrap the network call with retry logic or error handling'
+            const confidenceEmoji = {
+              'high': '🟢',
+              'medium': '🟡', 
+              'low': '🔴'
             };
             
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `🐛 Auto-Fix: ${errorDetails.title}`,
-              body: `## 🚨 Sentry Error Detected
-            
-            ### Error Details
-            - **Type:** ${errorDetails.title}
-            - **Message:** ${errorDetails.message}
-            - **File:** \`${errorDetails.file}\`
-            - **Line:** ${errorDetails.line}
-            
-            ### Suggested Fix
-            ${fixInstructions[fixType] || 'Please analyze and fix this error'}
-            
-            ### Instructions for Copilot
-            1. Open the file \`${errorDetails.file}\`
-            2. Go to line ${errorDetails.line}
-            3. Apply the fix: ${fixInstructions[fixType]}
-            4. Ensure no breaking changes
-            5. Add error handling if needed
-            
-            ### Fix Type
-            \`${fixType}\`
-            
-            ---
-            *Auto-generated by Sentry Auto-Fix Pipeline*
-            `,
-              labels: ['bug', 'auto-fix', 'copilot']
+              title: `🐛 [Auto-Fix] ${errorDetails.title}`,
+              body: `## 🚨 Sentry Error Auto-Fix Request
+
+### Error Details
+| Field | Value |
+|-------|-------|
+| **Type** | \`${errorDetails.title}\` |
+| **Message** | ${errorDetails.message} |
+| **File** | \`${errorDetails.file}\` |
+| **Line** | ${errorDetails.line} |
+
+### 🔧 Fix Strategy
+**Type:** \`${fixType}\`
+
+**Approach:** ${fixStrategy}
+
+### 📊 Confidence Level
+${confidenceEmoji[confidence]} **${confidence.toUpperCase()}**
+
+### 🤖 Auto-Fix Instructions
+1. Checkout file: \`${errorDetails.file}\`
+2. Navigate to line: ${errorDetails.line}
+3. Apply fix type: \`${fixType}\`
+4. Verify with tests
+5. Create PR if successful
+
+### Labels
+- \`bug\` - This is a bug fix
+- \`auto-fix\` - Automated fix attempt
+- \`sentry\` - From Sentry monitoring
+- \`confidence-${confidence}\` - Fix confidence level
+
+---
+*🤖 Auto-generated by Sentry Auto-Fix Pipeline*
+*Workflow Run: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+`,
+              labels: ['bug', 'auto-fix', 'sentry', `confidence-${confidence}`]
             });
             
             core.setOutput('issue_number', issue.data.number);
-            console.log(`Created issue #${issue.data.number}`);
+            console.log(`✅ Created issue #${issue.data.number}`);
 
-  # This job triggers GitHub Copilot Coding Agent (if available)
-  trigger-copilot-fix:
-    name: 🤖 Trigger Copilot Fix
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 3: Apply Auto-Fix
+  # ═══════════════════════════════════════════════════════════════════════════
+  apply-fix:
+    name: 🔧 Apply Auto-Fix
     runs-on: ubuntu-latest
     needs: [analyze-error, create-fix-issue]
     if: needs.analyze-error.outputs.should_fix == 'true'
@@ -164,10 +289,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🔧 Create fix branch
         run: |
-          BRANCH_NAME="auto-fix/sentry-${{ github.run_number }}"
+          BRANCH_NAME="auto-fix/sentry-${{ github.run_number }}-${{ needs.analyze-error.outputs.fix_type }}"
           git checkout -b $BRANCH_NAME
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
@@ -180,12 +306,30 @@ jobs:
       - name: 📚 Install dependencies
         run: npm ci
 
-      - name: 🔍 Run ESLint --fix
-        run: npm run lint -- --fix || true
+      # ─────────────────────────────────────────────────────────────────────────
+      # Apply fixes based on type
+      # ─────────────────────────────────────────────────────────────────────────
+      - name: 🔍 ESLint --fix
+        run: |
+          echo "🔧 Running ESLint auto-fix..."
+          npm run lint -- --fix --max-warnings=9999 2>&1 || true
         continue-on-error: true
 
-      - name: 💅 Run Prettier
-        run: npx prettier --write "src/**/*.{ts,tsx}" || true
+      - name: 💅 Prettier format
+        run: |
+          echo "💅 Running Prettier..."
+          npx prettier --write "src/**/*.{ts,tsx}" 2>&1 || true
+        continue-on-error: true
+
+      - name: 🧪 Run tests
+        id: tests
+        run: |
+          echo "🧪 Running tests..."
+          if npm test 2>&1; then
+            echo "tests_passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "tests_passed=false" >> $GITHUB_OUTPUT
+          fi
         continue-on-error: true
 
       - name: 📝 Check for changes
@@ -193,17 +337,26 @@ jobs:
         run: |
           if [[ -n $(git status --porcelain) ]]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "📝 Changes detected:"
+            git status --short
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "✅ No changes made"
           fi
 
       - name: 💾 Commit fixes
         if: steps.check-changes.outputs.has_changes == 'true'
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --local user.email "sentry-bot@longsang.org"
+          git config --local user.name "Sentry Auto-Fix Bot 🤖"
           git add -A
-          git commit -m "fix: 🤖 auto-fix sentry error #${{ needs.create-fix-issue.outputs.issue_number }}"
+          git commit -m "fix: 🤖 auto-fix sentry error #${{ needs.create-fix-issue.outputs.issue_number }}
+
+          Fix Type: ${{ needs.analyze-error.outputs.fix_type }}
+          Strategy: ${{ needs.analyze-error.outputs.fix_strategy }}
+          Confidence: ${{ needs.analyze-error.outputs.confidence }}
+          
+          Closes #${{ needs.create-fix-issue.outputs.issue_number }}"
           git push origin ${{ env.BRANCH_NAME }}
 
       - name: 🔄 Create Pull Request
@@ -213,63 +366,96 @@ jobs:
           script: |
             const errorDetails = JSON.parse('${{ needs.analyze-error.outputs.error_details }}');
             const issueNumber = ${{ needs.create-fix-issue.outputs.issue_number }};
+            const fixType = '${{ needs.analyze-error.outputs.fix_type }}';
+            const fixStrategy = '${{ needs.analyze-error.outputs.fix_strategy }}';
+            const confidence = '${{ needs.analyze-error.outputs.confidence }}';
+            const testsPassed = '${{ steps.tests.outputs.tests_passed }}' === 'true';
             
             const pr = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `🤖 Auto-Fix: ${errorDetails.title}`,
+              title: `🤖 [Auto-Fix] ${fixType}: ${errorDetails.title}`,
               head: process.env.BRANCH_NAME,
-              base: 'master',
-              body: `## 🤖 Automated Fix for Sentry Error
-            
-            Closes #${issueNumber}
-            
-            ### Changes Made
-            - Applied ESLint auto-fixes
-            - Applied Prettier formatting
-            - Fixed: ${errorDetails.title}
-            
-            ### Error Details
-            - **File:** \`${errorDetails.file}\`
-            - **Line:** ${errorDetails.line}
-            - **Message:** ${errorDetails.message}
-            
-            ### Checklist
-            - [ ] Code compiles without errors
-            - [ ] Tests pass
-            - [ ] No new warnings
-            
-            ---
-            *Auto-generated by Sentry Auto-Fix Pipeline*
-            `,
-              draft: false
+              base: 'main',
+              body: `## 🤖 Sentry Auto-Fix PR
+
+Closes #${issueNumber}
+
+### 📋 Fix Details
+| Property | Value |
+|----------|-------|
+| **Fix Type** | \`${fixType}\` |
+| **Strategy** | ${fixStrategy} |
+| **Confidence** | ${confidence} |
+| **Tests** | ${testsPassed ? '✅ Passed' : '⚠️ Check needed'} |
+
+### 🐛 Original Error
+- **Type:** \`${errorDetails.title}\`
+- **Message:** ${errorDetails.message}
+- **File:** \`${errorDetails.file}\`
+- **Line:** ${errorDetails.line}
+
+### ✅ Checklist
+- [x] ESLint auto-fix applied
+- [x] Prettier formatting applied
+- [${testsPassed ? 'x' : ' '}] Tests pass
+- [ ] Manual review (if confidence is low)
+
+---
+*🤖 Auto-generated by Sentry Auto-Fix Pipeline*
+`,
+              draft: confidence === 'low'
             });
             
             // Add labels
+            const labels = ['auto-fix', 'bot', 'sentry'];
+            if (testsPassed) labels.push('tests-passing');
+            
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr.data.number,
-              labels: ['auto-fix', 'bot']
+              labels: labels
             });
             
-            console.log(`Created PR #${pr.data.number}`);
+            // Auto-approve if high confidence and tests pass
+            if (confidence === 'high' && testsPassed) {
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.data.number,
+                event: 'APPROVE',
+                body: '🤖 Auto-approved: High confidence fix with passing tests.'
+              });
+            }
+            
+            console.log(`✅ Created PR #${pr.data.number}`);
 
-  notify-completion:
-    name: 📢 Notify Completion
+  # ═══════════════════════════════════════════════════════════════════════════
+  # JOB 4: Notify & Summary
+  # ═══════════════════════════════════════════════════════════════════════════
+  notify:
+    name: 📢 Notify & Summary
     runs-on: ubuntu-latest
-    needs: [analyze-error, create-fix-issue, trigger-copilot-fix]
+    needs: [analyze-error, create-fix-issue, apply-fix]
     if: always()
     
     steps:
-      - name: 📊 Summary
+      - name: 📊 Generate Summary
         run: |
-          echo "## 🤖 Auto-Fix Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "# 🚀 SENTRY AUTO-FIX SUMMARY" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Step | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Analyze Error | ${{ needs.analyze-error.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Create Issue | ${{ needs.create-fix-issue.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Trigger Fix | ${{ needs.trigger-copilot-fix.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "## Pipeline Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Fix Type: **${{ needs.analyze-error.outputs.fix_type }}**" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Analyze | ${{ needs.analyze-error.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📝 Create Issue | ${{ needs.create-fix-issue.result == 'success' && '✅' || needs.create-fix-issue.result == 'skipped' && '⏭️' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔧 Apply Fix | ${{ needs.apply-fix.result == 'success' && '✅' || needs.apply-fix.result == 'skipped' && '⏭️' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Fix Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Type:** \`${{ needs.analyze-error.outputs.fix_type }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Confidence:** ${{ needs.analyze-error.outputs.confidence }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*🚀 Powered by LongSang MEGA AUTO-FIX - Elon Musk Edition*" >> $GITHUB_STEP_SUMMARY

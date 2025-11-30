@@ -465,6 +465,88 @@ async function listTests(pageId, options = {}) {
 }
 
 module.exports = {
+  // Main API functions (aliased for routes)
+  createTest: createABTest,
+  getTests: listTests,
+  getTest: async (testId) => {
+    const { data } = await supabase.from('ab_tests').select('*').eq('id', testId).single();
+    return data;
+  },
+  analyzeResults: getTestResults,
+  trackImpression: async (testId, variantId, postId) => {
+    // Record impression in database
+    try {
+      await supabase.from('ab_test_metrics').insert({
+        test_id: testId,
+        variant_id: variantId,
+        post_id: postId,
+        event_type: 'impression',
+        created_at: new Date().toISOString(),
+      });
+      return { success: true };
+    } catch (error) {
+      console.warn('[A/B Test] Track impression failed:', error.message);
+      return { success: false, error: error.message };
+    }
+  },
+  trackEngagement: async (testId, variantId, metrics) => {
+    try {
+      await supabase.from('ab_test_metrics').insert({
+        test_id: testId,
+        variant_id: variantId,
+        event_type: 'engagement',
+        metrics: metrics,
+        created_at: new Date().toISOString(),
+      });
+      return { success: true };
+    } catch (error) {
+      console.warn('[A/B Test] Track engagement failed:', error.message);
+      return { success: false, error: error.message };
+    }
+  },
+  publishVariant: async (testId, variantId) => {
+    const facebookPublisher = require('./facebook-publisher');
+    const { data: test } = await supabase.from('ab_tests').select('*').eq('id', testId).single();
+    if (!test) return { success: false, error: 'Test not found' };
+    
+    const variant = test.variants.find(v => v.id === variantId);
+    if (!variant) return { success: false, error: 'Variant not found' };
+    
+    const result = await facebookPublisher.createPost(test.pageId, {
+      message: variant.content,
+    });
+    
+    return { success: true, postId: result.id, variant };
+  },
+  endTest: async (testId, options = {}) => {
+    const { selectWinner = true } = options;
+    
+    if (selectWinner) {
+      const results = await getTestResults(testId);
+      if (results.winner) {
+        await supabase.from('ab_tests').update({
+          status: 'completed',
+          winner_variant_id: results.winner.variantId,
+          completed_at: new Date().toISOString(),
+        }).eq('id', testId);
+        
+        return { success: true, winner: results.winner };
+      }
+    }
+    
+    await supabase.from('ab_tests').update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+    }).eq('id', testId);
+    
+    return { success: true };
+  },
+  deleteTest: async (testId) => {
+    await supabase.from('ab_tests').delete().eq('id', testId);
+    return { success: true };
+  },
+  
+  // Original exports
   createABTest,
   generateVariants,
   startTest,

@@ -6,13 +6,13 @@ import { Suspense, lazy } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { GlobalQuickCommands } from './components/GlobalQuickCommands';
+import { StatusBar } from './components/StatusBar';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { GlobalUploadWidget } from './components/ai-workspace/GlobalUploadWidget';
-import { GlobalQuickCommands } from './components/GlobalQuickCommands';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { AuthProvider } from './components/auth/AuthProvider';
 import { ThemeProvider } from './components/theme/ThemeProvider';
-import { StatusBar } from './components/StatusBar';
 import { useAnalytics } from './lib/analytics';
 
 // Loading component for suspense fallback
@@ -139,6 +139,9 @@ const DocsViewer = lazy(() => import('./pages/DocsViewer'));
 
 // Workspace AI Chat
 const WorkspaceChatPage = lazy(() => import('./pages/WorkspaceChatPage'));
+
+// Visual Workspace Builder
+const VisualWorkspace = lazy(() => import('./pages/VisualWorkspace'));
 
 // Mobile Pages
 const MobileDashboard = lazy(() => import('./pages/mobile/MobileDashboard'));
@@ -272,6 +275,7 @@ const App = () => {
                         <Route path="ai-center" element={<UnifiedAICommandCenter />} />
                         <Route path="solo-hub" element={<AICommandCenter />} />
                         <Route path="ai-workspace" element={<AIWorkspace />} />
+                        <Route path="visual-workspace" element={<VisualWorkspace />} />
                         <Route path="facebook-marketing" element={<FacebookMarketing />} />
                         <Route path="bug-system" element={<BugSystemDashboard />} />
                         <Route path="sentry" element={<SentryDashboard />} />

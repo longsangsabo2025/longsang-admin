@@ -141,6 +141,12 @@ const sentryRoutes = require('./routes/sentry');
 // Solo Hub AI Chat (Backend proxy for OpenAI/Anthropic)
 const soloHubChatRoutes = require('./routes/solo-hub-chat');
 
+// Smart Content Features
+const abTestingRoutes = require('./routes/ab-testing');
+const carouselRoutes = require('./routes/carousel');
+const schedulerRoutes = require('./routes/scheduler');
+const crossPlatformRoutes = require('./routes/cross-platform');
+
 // Fix Request API (File watcher integration for Copilot)
 const fixRequestRoutes = require('./routes/fix-request');
 
@@ -256,6 +262,12 @@ app.use('/api/sentry', sentryRoutes);
 // Solo Hub AI Chat API (Backend proxy for OpenAI/Anthropic)
 app.use('/api/solo-hub', aiLimiter, soloHubChatRoutes);
 
+// Smart Content Features API
+app.use('/api/ab-testing', aiLimiter, abTestingRoutes);
+app.use('/api/carousel', aiLimiter, carouselRoutes);
+app.use('/api/scheduler', aiLimiter, schedulerRoutes);
+app.use('/api/cross-platform', aiLimiter, crossPlatformRoutes);
+
 // GitHub API (Workflow runs, PRs, Issues - for auto-fix dashboard)
 const githubRoutes = require('./routes/github');
 app.use('/api/github', githubRoutes);
@@ -331,6 +343,24 @@ try {
 } catch (err) {
   console.warn('⚠️ Background monitor failed to start:', err.message);
   // Don't crash - continue without background monitor
+}
+
+// Start Scheduled Posts Processor (every 1 minute)
+try {
+  const postScheduler = require('./services/post-scheduler');
+  setInterval(async () => {
+    try {
+      const result = await postScheduler.processDuePosts();
+      if (result.processed > 0) {
+        console.log(`📬 [Scheduler] Processed ${result.processed} scheduled posts`);
+      }
+    } catch (err) {
+      console.warn('⚠️ Post scheduler tick failed:', err.message);
+    }
+  }, 60 * 1000); // Every 1 minute
+  console.log('📅 Scheduled Posts Processor started (every 1 min)');
+} catch (err) {
+  console.warn('⚠️ Post Scheduler failed to start:', err.message);
 }
 
 // Initialize Unified Connector (System Connection Hub)

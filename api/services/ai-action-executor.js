@@ -174,6 +174,171 @@ const AVAILABLE_ACTIONS = {
     },
   },
 
+  // A/B Testing
+  'create_ab_test': {
+    description: 'Create an A/B test with multiple content variants',
+    params: ['topic', 'page?', 'variantCount?', 'strategy?'],
+    executor: async (params) => {
+      const abTesting = require('./ab-testing');
+      const page = params.page || 'sabo_arena';
+      
+      console.log(`🧪 Creating A/B test for: "${params.topic}"`);
+      
+      const test = await abTesting.createTest({
+        name: `A/B: ${params.topic}`,
+        pageId: page,
+        topic: params.topic,
+        variantCount: params.variantCount || 3,
+        strategy: params.strategy || 'mixed',
+        duration: params.duration || 24, // hours
+      });
+      
+      return {
+        success: true,
+        testId: test.id,
+        variantCount: test.variants?.length || 0,
+        variants: test.variants?.map(v => ({
+          id: v.id,
+          name: v.name,
+          preview: v.content?.substring(0, 100) + '...',
+        })),
+        message: `A/B test created with ${test.variants?.length || 0} variants`,
+      };
+    },
+  },
+
+  'get_ab_results': {
+    description: 'Get A/B test results and winner',
+    params: ['testId'],
+    executor: async (params) => {
+      const abTesting = require('./ab-testing');
+      const results = await abTesting.analyzeResults(params.testId);
+      return {
+        success: true,
+        ...results,
+      };
+    },
+  },
+
+  'list_ab_tests': {
+    description: 'List all A/B tests for a page',
+    params: ['page?', 'status?'],
+    executor: async (params) => {
+      const abTesting = require('./ab-testing');
+      const tests = await abTesting.getTests(params.page || 'sabo_arena', {
+        status: params.status,
+      });
+      return {
+        success: true,
+        count: tests.length,
+        tests: tests.map(t => ({
+          id: t.id,
+          name: t.name,
+          status: t.status,
+          variantCount: t.variants?.length || 0,
+          winner: t.winner_variant_id,
+        })),
+      };
+    },
+  },
+
+  // Carousel Posts
+  'create_carousel': {
+    description: 'Create a carousel post with multiple images',
+    params: ['topic', 'page?', 'slideCount?', 'theme?'],
+    executor: async (params) => {
+      const carouselCreator = require('./carousel-creator');
+      const page = params.page || 'sabo_arena';
+      
+      console.log(`🎠 Creating carousel for: "${params.topic}"`);
+      
+      const carousel = await carouselCreator.createCarousel({
+        pageId: page,
+        topic: params.topic,
+        slideCount: params.slideCount || 5,
+        theme: params.theme || 'story',
+      });
+      
+      return {
+        success: true,
+        carouselId: carousel.id,
+        slideCount: carousel.slides?.length || 0,
+        slides: carousel.slides?.map((s, i) => ({
+          index: i + 1,
+          headline: s.headline,
+          hasImage: !!s.imageUrl,
+        })),
+        message: `Carousel created with ${carousel.slides?.length || 0} slides`,
+      };
+    },
+  },
+
+  'publish_carousel': {
+    description: 'Publish a carousel to Facebook',
+    params: ['carouselId', 'page?'],
+    executor: async (params) => {
+      const carouselCreator = require('./carousel-creator');
+      const result = await carouselCreator.publishCarousel(
+        params.carouselId,
+        params.page || 'sabo_arena'
+      );
+      return result;
+    },
+  },
+
+  // Cross-Platform Publishing
+  'publish_cross_platform': {
+    description: 'Publish content to multiple platforms (Facebook, Instagram, Threads, LinkedIn)',
+    params: ['topic', 'platforms?', 'page?', 'includeImage?'],
+    executor: async (params) => {
+      const crossPlatformPublisher = require('./cross-platform-publisher');
+      const page = params.page || 'sabo_arena';
+      const platforms = params.platforms || ['facebook', 'instagram'];
+      
+      console.log(`🌐 Cross-platform publish: "${params.topic}" → ${platforms.join(', ')}`);
+      
+      // First compose content
+      const composedPost = await smartPostComposer.composePost(params.topic, {
+        page,
+        includeImage: params.includeImage !== false,
+      });
+      
+      // Publish to all platforms
+      const results = await crossPlatformPublisher.publishToAll({
+        content: composedPost.content,
+        imageUrl: composedPost.imageUrl,
+        platforms,
+        pageId: page,
+      });
+      
+      return {
+        success: true,
+        platforms: results.map(r => ({
+          platform: r.platform,
+          success: r.success,
+          postId: r.postId,
+          error: r.error,
+        })),
+        composedPost: {
+          content: composedPost.content,
+          imageUrl: composedPost.imageUrl,
+        },
+      };
+    },
+  },
+
+  'get_platform_stats': {
+    description: 'Get cross-platform posting statistics',
+    params: ['page?', 'days?'],
+    executor: async (params) => {
+      const crossPlatformPublisher = require('./cross-platform-publisher');
+      return await crossPlatformPublisher.getPlatformStats(
+        params.page || 'sabo_arena',
+        params.days || 30
+      );
+    },
+  },
+
   // Facebook Ads
   'create_ad_campaign': {
     description: 'Create Facebook/Instagram ad campaign',
@@ -331,17 +496,31 @@ async function detectIntent(message) {
         content: `Bạn là AI Marketing Assistant thông minh. Nhiệm vụ: phân tích intent và tự động quyết định hành động.
 
 🎯 ACTIONS CÓ THỂ THỰC HIỆN:
+
+📱 POSTING:
 - post_facebook: Đăng bài NGAY lên Facebook (tự động kèm ảnh)
 - schedule_post: Lên lịch đăng bài vào thời điểm TỐI ƯU
 - get_suggested_times: Xem giờ đăng tốt nhất
 - list_scheduled: Xem các bài đã lên lịch
 - cancel_scheduled: Hủy bài đã lên lịch
+
+🧪 A/B TESTING:
+- create_ab_test: Tạo A/B test với nhiều biến thể nội dung
+- get_ab_results: Xem kết quả A/B test (winner, stats)
+- list_ab_tests: Liệt kê các A/B test
+
+🎠 CAROUSEL POSTS:
+- create_carousel: Tạo bài carousel nhiều ảnh (story-like)
+- publish_carousel: Đăng carousel lên Facebook
+
+🌐 CROSS-PLATFORM:
+- publish_cross_platform: Đăng lên nhiều nền tảng (FB, IG, Threads, LinkedIn)
+- get_platform_stats: Xem thống kê các nền tảng
+
+📣 ADVERTISING:
 - create_ad_campaign: Tạo chiến dịch quảng cáo
 - list_campaigns: Xem danh sách chiến dịch
-- get_campaign_stats: Xem thống kê
-- create_event: Tạo sự kiện
-- list_pages: Liệt kê các trang
-- get_page_posts: Xem bài đăng gần đây
+- get_campaign_stats: Xem thống kê chiến dịch
 
 📍 PAGES: sabo_billiards (Vũng Tàu), sabo_arena (HCM), ai_newbie (AI community), sabo_media (production)
 
@@ -349,9 +528,12 @@ async function detectIntent(message) {
 1. "Đăng bài/post/viết bài" + không nói lên lịch → post_facebook (đăng NGAY)
 2. "Lên lịch/schedule/hẹn giờ/sau này/tối/sáng mai" → schedule_post
 3. "Giờ nào tốt/best time/khi nào nên đăng" → get_suggested_times
-4. "Xem bài đã lên lịch/scheduled" → list_scheduled
-5. Nếu đề cập ảnh/hình/image → set includeImage=true
-6. Mặc định includeImage=true cho mọi bài post
+4. "A/B test/thử nghiệm/so sánh nội dung/test variants" → create_ab_test
+5. "Carousel/nhiều ảnh/slide/story" → create_carousel
+6. "Đăng lên tất cả/cross-platform/nhiều kênh/IG+FB" → publish_cross_platform
+7. "Xem kết quả test/winner/variant nào tốt" → get_ab_results
+8. Nếu đề cập ảnh/hình/image → set includeImage=true
+9. Mặc định includeImage=true cho mọi bài post
 
 🕐 SCHEDULE KEYWORDS (Vietnamese):
 - "lên lịch", "hẹn giờ", "schedule", "đăng sau", "đăng tối", "đăng sáng"
@@ -368,7 +550,12 @@ Trả về JSON:
     "includeImage": true,
     "imageHint": "gợi ý loại ảnh nếu có",
     "scheduledTime": "ISO string nếu user chỉ định giờ cụ thể",
-    "postType": "promotion|event|entertainment|educational|default"
+    "postType": "promotion|event|entertainment|educational|default",
+    "platforms": ["facebook", "instagram"],
+    "variantCount": 3,
+    "strategy": "tone|cta|length|hook|mixed",
+    "slideCount": 5,
+    "theme": "story|tips|showcase|comparison|journey|countdown"
   },
   "reasoning": "giải thích ngắn tại sao chọn action này"
 }`,

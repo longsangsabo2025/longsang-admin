@@ -428,11 +428,81 @@ function getTimeUntilPost(scheduledTime) {
 }
 
 module.exports = {
+  // Main API functions
   schedulePost,
   getScheduledPosts,
+  getScheduledPost: async (postId) => {
+    const { data } = await supabase.from('scheduled_posts').select('*').eq('id', postId).single();
+    return data;
+  },
+  updateScheduledPost: async (postId, updates) => {
+    const { data, error } = await supabase
+      .from('scheduled_posts')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', postId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return { success: true, post: data };
+  },
   cancelScheduledPost,
+  publishNow: async (postId) => {
+    const { data: post } = await supabase.from('scheduled_posts').select('*').eq('id', postId).single();
+    if (!post) return { success: false, error: 'Post not found' };
+    
+    try {
+      const postResult = await facebookPublisher.createPost(post.page_id, {
+        message: post.content,
+        imageUrl: post.image_url,
+      });
+      
+      await supabase.from('scheduled_posts').update({
+        status: 'posted',
+        posted_at: new Date().toISOString(),
+        facebook_post_id: postResult.id,
+      }).eq('id', postId);
+      
+      return { success: true, postId: postResult.id };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
   processDuePosts,
   getSuggestedTimes,
+  getAnalytics: async (pageId, days = 30) => {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    let query = supabase
+      .from('scheduled_posts')
+      .select('*')
+      .gte('created_at', startDate.toISOString());
+    
+    if (pageId) query = query.eq('page_id', pageId);
+    
+    const { data: posts } = await query;
+    
+    const stats = {
+      total: posts?.length || 0,
+      posted: posts?.filter(p => p.status === 'posted').length || 0,
+      cancelled: posts?.filter(p => p.status === 'cancelled').length || 0,
+      failed: posts?.filter(p => p.status === 'failed').length || 0,
+      pending: posts?.filter(p => p.status === 'scheduled').length || 0,
+    };
+    
+    return {
+      period: `${days} days`,
+      pageId: pageId || 'all',
+      stats,
+      successRate: stats.total > 0 ? Math.round((stats.posted / stats.total) * 100) : 0,
+    };
+  },
+  
+  // Helper functions
   calculateOptimalTime,
   formatLocalTime,
   getTimeUntilPost,

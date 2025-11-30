@@ -11,6 +11,7 @@ const aiActionExecutor = require('../services/ai-action-executor');
 const multiAgentOrchestrator = require('../services/multi-agent-orchestrator');
 const copilotPlanner = require('../services/copilot-planner');
 const copilotExecutor = require('../services/copilot-executor');
+const copilotLearner = require('../services/copilot-learner');
 
 // Agent System Prompts
 const AGENT_SYSTEM_PROMPTS = {
@@ -578,14 +579,48 @@ router.post('/chat-smart', async (req, res) => {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // LAYER 4: LEARNING & FEEDBACK (Future enhancement)
+    // LAYER 4: LEARNING & FEEDBACK
     // ═══════════════════════════════════════════════════════════
-    console.log('\n📚 [Layer 4] LEARNING - Recording for future improvement...');
+    console.log('\n📚 [Layer 4] LEARNING - Recording for improvement...');
     
-    // TODO: Integrate copilot-learner here
-    // await copilotLearner.recordInteraction({ message, result, layers });
-    layers.learning = { success: true, recorded: false, note: 'Learner integration pending' };
-    console.log('   ⏭️ Learning layer pending full integration');
+    try {
+      // Record interaction for learning
+      const feedbackData = {
+        userId: userId || 'anonymous',
+        feedbackType: 'interaction',
+        interactionType: 'chat_smart',
+        originalMessage: message,
+        aiResponse: orchestrationResult?.results?.synthesized || '',
+        context: {
+          projectId,
+          agentsUsed: orchestrationResult?.selectedAgents || [],
+          planSteps: plan?.steps?.length || 0,
+          executionSuccess: executionResult?.success,
+          totalTime,
+        },
+      };
+      
+      await copilotLearner.collectFeedback(feedbackData);
+      
+      // Recognize patterns from this session
+      if (userId) {
+        await copilotLearner.recognizePatterns(userId, {
+          message,
+          action: orchestrationResult?.selectedAgents?.[0],
+          success: orchestrationResult?.success,
+        });
+      }
+      
+      layers.learning = { 
+        success: true, 
+        recorded: true, 
+        feedbackType: 'interaction',
+      };
+      console.log('   ✅ Interaction recorded for learning');
+    } catch (learnError) {
+      console.log(`   ⚠️ Learning skipped: ${learnError.message}`);
+      layers.learning = { success: false, error: learnError.message };
+    }
 
     // ═══════════════════════════════════════════════════════════
     // FORMAT FINAL RESPONSE

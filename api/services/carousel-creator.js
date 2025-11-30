@@ -454,7 +454,106 @@ async function createFromImages(images, options = {}) {
 }
 
 module.exports = {
+  // Main API functions (aliased for routes)
   createCarousel,
+  getCarousels: async (pageId, options = {}) => {
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.SUPABASE_URL || 'https://diexsbzqwsbpilsymnfb.supabase.co',
+      process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY
+    );
+    
+    let query = supabase.from('carousels').select('*').order('created_at', { ascending: false });
+    if (pageId) query = query.eq('page_id', pageId);
+    if (options.status) query = query.eq('status', options.status);
+    if (options.limit) query = query.limit(options.limit);
+    
+    const { data } = await query;
+    return data || [];
+  },
+  getCarousel: async (carouselId) => {
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.SUPABASE_URL || 'https://diexsbzqwsbpilsymnfb.supabase.co',
+      process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY
+    );
+    const { data } = await supabase.from('carousels').select('*').eq('id', carouselId).single();
+    return data;
+  },
+  publishCarousel: async (carouselId, pageId) => {
+    const facebookPublisher = require('./facebook-publisher');
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.SUPABASE_URL || 'https://diexsbzqwsbpilsymnfb.supabase.co',
+      process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY
+    );
+    
+    const { data: carousel } = await supabase.from('carousels').select('*').eq('id', carouselId).single();
+    if (!carousel) return { success: false, error: 'Carousel not found' };
+    
+    // For Facebook, post as album with multiple photos
+    const result = await facebookPublisher.createAlbumPost(pageId || carousel.page_id, {
+      message: carousel.caption,
+      images: carousel.slides.map(s => s.imageUrl).filter(Boolean),
+    });
+    
+    await supabase.from('carousels').update({
+      status: 'published',
+      published_at: new Date().toISOString(),
+      facebook_post_id: result.id,
+    }).eq('id', carouselId);
+    
+    return { success: true, postId: result.id };
+  },
+  updateSlide: async (carouselId, slideIndex, updates) => {
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.SUPABASE_URL || 'https://diexsbzqwsbpilsymnfb.supabase.co',
+      process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY
+    );
+    
+    const { data: carousel } = await supabase.from('carousels').select('*').eq('id', carouselId).single();
+    if (!carousel) return { success: false, error: 'Carousel not found' };
+    
+    const slides = [...carousel.slides];
+    if (slideIndex < 0 || slideIndex >= slides.length) {
+      return { success: false, error: 'Invalid slide index' };
+    }
+    
+    slides[slideIndex] = { ...slides[slideIndex], ...updates };
+    
+    await supabase.from('carousels').update({ slides }).eq('id', carouselId);
+    return { success: true, slide: slides[slideIndex] };
+  },
+  regenerateImages: async (carouselId) => {
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.SUPABASE_URL || 'https://diexsbzqwsbpilsymnfb.supabase.co',
+      process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY
+    );
+    
+    const { data: carousel } = await supabase.from('carousels').select('*').eq('id', carouselId).single();
+    if (!carousel) return { success: false, error: 'Carousel not found' };
+    
+    const newSlides = await generateSlideImages(carousel.slides, {
+      style: 'modern',
+      theme: carousel.theme,
+    });
+    
+    await supabase.from('carousels').update({ slides: newSlides }).eq('id', carouselId);
+    return { success: true, slides: newSlides };
+  },
+  deleteCarousel: async (carouselId) => {
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.SUPABASE_URL || 'https://diexsbzqwsbpilsymnfb.supabase.co',
+      process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY
+    );
+    await supabase.from('carousels').delete().eq('id', carouselId);
+    return { success: true };
+  },
+  
+  // Original exports
   generateCarouselContent,
   generateSlideImages,
   generateCarouselCaption,

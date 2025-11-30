@@ -1,0 +1,168 @@
+/**
+ * Visual Canvas Component
+ * React Flow canvas for visual workspace builder
+ */
+
+import React, { useCallback, useEffect } from 'react';
+import ReactFlow, {
+  Node,
+  Edge,
+  Controls,
+  Background,
+  MiniMap,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  Connection,
+  Panel,
+  MarkerType,
+} from 'reactflow';
+import 'reactflow/dist/style.css';
+import { nodeTypes } from './ComponentNodes';
+import { Button } from '@/components/ui/button';
+import { ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react';
+
+interface VisualCanvasProps {
+  nodes: Node[];
+  edges: Edge[];
+  onNodesChange: (changes: any) => void;
+  onEdgesChange: (changes: any) => void;
+  onConnect: (connection: Connection) => void;
+  onNodeClick?: (event: React.MouseEvent, node: Node) => void;
+  className?: string;
+}
+
+export function VisualCanvas({
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
+  onNodeClick,
+  className = '',
+}: VisualCanvasProps) {
+  const [canvasNodes, setNodes, onNodesChangeInternal] = useNodesState(nodes);
+  const [canvasEdges, setEdges, onEdgesChangeInternal] = useEdgesState(edges);
+
+  // Sync external nodes/edges with internal state
+  useEffect(() => {
+    setNodes(nodes);
+    setEdges(edges);
+  }, [nodes, edges, setNodes, setEdges]);
+
+  // Handle connections
+  const handleConnect = useCallback(
+    (params: Connection) => {
+      const newEdge = addEdge(
+        {
+          ...params,
+          type: 'smoothstep',
+          animated: true,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+          },
+        },
+        canvasEdges
+      );
+      setEdges(newEdge);
+      onConnect(params);
+    },
+    [canvasEdges, setEdges, onConnect]
+  );
+
+  // Combine internal and external change handlers
+  const handleNodesChange = useCallback(
+    (changes: any) => {
+      onNodesChangeInternal(changes);
+      onNodesChange(changes);
+    },
+    [onNodesChangeInternal, onNodesChange]
+  );
+
+  const handleEdgesChange = useCallback(
+    (changes: any) => {
+      onEdgesChangeInternal(changes);
+      onEdgesChange(changes);
+    },
+    [onEdgesChangeInternal, onEdgesChange]
+  );
+
+  // Canvas controls
+  const handleZoomIn = useCallback(() => {
+    // Zoom in functionality can be added with ref
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    // Zoom out functionality can be added with ref
+  }, []);
+
+  const handleFitView = useCallback(() => {
+    // Fit view functionality can be added with ref
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setNodes([]);
+    setEdges([]);
+  }, [setNodes, setEdges]);
+
+  return (
+    <div className={`relative w-full h-full bg-slate-50 dark:bg-slate-900 ${className}`}>
+      <ReactFlow
+        nodes={canvasNodes}
+        edges={canvasEdges}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
+        onConnect={handleConnect}
+        onNodeClick={onNodeClick}
+        nodeTypes={nodeTypes}
+        fitView
+        className="bg-slate-50 dark:bg-slate-900"
+        connectionLineType="smoothstep"
+        defaultEdgeOptions={{
+          type: 'smoothstep',
+          animated: true,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+          },
+        }}
+      >
+        <Background color="#cbd5e1" gap={16} />
+        <Controls className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+        <MiniMap
+          className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+          nodeColor={(node) => {
+            switch (node.type) {
+              case 'uiComponent':
+                return '#3b82f6';
+              case 'apiService':
+                return '#22c55e';
+              case 'dataFlow':
+                return '#a855f7';
+              case 'database':
+                return '#f97316';
+              case 'customComponent':
+                return '#6366f1';
+              default:
+                return '#94a3b8';
+            }
+          }}
+        />
+        <Panel position="top-left" className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleZoomIn} title="Zoom In">
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleZoomOut} title="Zoom Out">
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleFitView} title="Fit View">
+            <Maximize2 className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleReset} title="Reset Canvas">
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+        </Panel>
+      </ReactFlow>
+    </div>
+  );
+}
+
