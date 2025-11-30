@@ -91,6 +91,89 @@ const AVAILABLE_ACTIONS = {
     },
   },
 
+  // Smart Post Scheduling - Auto-optimal times
+  'schedule_post': {
+    description: 'Schedule a post for optimal time (auto or specified)',
+    params: ['page', 'topic', 'scheduledTime?', 'postType?'],
+    executor: async (params) => {
+      const postScheduler = require('./post-scheduler');
+      const page = params.page || 'sabo_arena';
+      const topic = params.topic || params.content;
+      
+      console.log(`📅 Scheduling post for ${page}: "${topic?.substring(0, 50)}..."`);
+      
+      // First compose the post content + image
+      const composedPost = await smartPostComposer.composePost(topic, {
+        page,
+        includeImage: true,
+        imageSource: 'auto',
+      });
+      
+      // Then schedule it for optimal time
+      const scheduleResult = await postScheduler.schedulePost({
+        pageId: page,
+        content: composedPost.content,
+        imageUrl: composedPost.imageUrl,
+        postType: params.postType || composedPost.analysis?.postType || 'default',
+        preferredTime: params.scheduledTime,
+      });
+      
+      return {
+        success: true,
+        ...scheduleResult,
+        composedPost: {
+          content: composedPost.content,
+          imageUrl: composedPost.imageUrl,
+          analysis: composedPost.analysis,
+        },
+      };
+    },
+  },
+
+  'get_suggested_times': {
+    description: 'Get suggested optimal posting times for a post type',
+    params: ['postType?', 'count?'],
+    executor: async (params) => {
+      const postScheduler = require('./post-scheduler');
+      const suggestions = postScheduler.getSuggestedTimes(
+        params.postType || 'default',
+        params.count || 5
+      );
+      return {
+        success: true,
+        postType: params.postType || 'default',
+        suggestions,
+      };
+    },
+  },
+
+  'list_scheduled': {
+    description: 'List all scheduled posts for a page',
+    params: ['page?'],
+    executor: async (params) => {
+      const postScheduler = require('./post-scheduler');
+      const posts = await postScheduler.getScheduledPosts(
+        params.page || 'sabo_arena',
+        { status: 'scheduled' }
+      );
+      return {
+        success: true,
+        page: params.page || 'sabo_arena',
+        count: posts.length,
+        posts,
+      };
+    },
+  },
+
+  'cancel_scheduled': {
+    description: 'Cancel a scheduled post',
+    params: ['postId'],
+    executor: async (params) => {
+      const postScheduler = require('./post-scheduler');
+      return await postScheduler.cancelScheduledPost(params.postId);
+    },
+  },
+
   // Facebook Ads
   'create_ad_campaign': {
     description: 'Create Facebook/Instagram ad campaign',
@@ -248,8 +331,11 @@ async function detectIntent(message) {
         content: `Bạn là AI Marketing Assistant thông minh. Nhiệm vụ: phân tích intent và tự động quyết định hành động.
 
 🎯 ACTIONS CÓ THỂ THỰC HIỆN:
-- post_facebook: Đăng bài lên Facebook (tự động kèm ảnh nếu phù hợp)
-- schedule_posts: Lên lịch đăng bài
+- post_facebook: Đăng bài NGAY lên Facebook (tự động kèm ảnh)
+- schedule_post: Lên lịch đăng bài vào thời điểm TỐI ƯU
+- get_suggested_times: Xem giờ đăng tốt nhất
+- list_scheduled: Xem các bài đã lên lịch
+- cancel_scheduled: Hủy bài đã lên lịch
 - create_ad_campaign: Tạo chiến dịch quảng cáo
 - list_campaigns: Xem danh sách chiến dịch
 - get_campaign_stats: Xem thống kê
@@ -260,12 +346,17 @@ async function detectIntent(message) {
 📍 PAGES: sabo_billiards (Vũng Tàu), sabo_arena (HCM), ai_newbie (AI community), sabo_media (production)
 
 🧠 QUY TẮC THÔNG MINH:
-1. "Đăng bài/post/viết bài" + topic → post_facebook với includeImage=true
-2. "Giới thiệu/quảng bá X" → post_facebook, topic=X, includeImage=true  
-3. "Sự kiện/event/giải đấu" → có thể là create_event hoặc post_facebook
-4. Nếu đề cập ảnh/hình/image → set includeImage=true
-5. Nếu nói "không cần ảnh" → includeImage=false
-6. Mặc định includeImage=true cho mọi bài post (best practice)
+1. "Đăng bài/post/viết bài" + không nói lên lịch → post_facebook (đăng NGAY)
+2. "Lên lịch/schedule/hẹn giờ/sau này/tối/sáng mai" → schedule_post
+3. "Giờ nào tốt/best time/khi nào nên đăng" → get_suggested_times
+4. "Xem bài đã lên lịch/scheduled" → list_scheduled
+5. Nếu đề cập ảnh/hình/image → set includeImage=true
+6. Mặc định includeImage=true cho mọi bài post
+
+🕐 SCHEDULE KEYWORDS (Vietnamese):
+- "lên lịch", "hẹn giờ", "schedule", "đăng sau", "đăng tối", "đăng sáng"
+- "ngày mai", "cuối tuần", "tối nay", "lúc X giờ"
+- Nếu có từ này → dùng schedule_post thay vì post_facebook
 
 Trả về JSON:
 {
@@ -275,7 +366,9 @@ Trả về JSON:
     "page": "sabo_arena",
     "topic": "chủ đề",
     "includeImage": true,
-    "imageHint": "gợi ý loại ảnh nếu có"
+    "imageHint": "gợi ý loại ảnh nếu có",
+    "scheduledTime": "ISO string nếu user chỉ định giờ cụ thể",
+    "postType": "promotion|event|entertainment|educational|default"
   },
   "reasoning": "giải thích ngắn tại sao chọn action này"
 }`,
