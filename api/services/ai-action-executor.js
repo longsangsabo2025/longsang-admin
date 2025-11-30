@@ -8,6 +8,7 @@
 const { FacebookAdsManager } = require('./facebook-ads-manager');
 const facebookPublisher = require('./facebook-publisher');
 const n8nService = require('./n8n-service');
+const smartPostComposer = require('./smart-post-composer');
 const OpenAI = require('openai');
 
 // Create instance of FacebookAdsManager
@@ -22,41 +23,55 @@ const openai = new OpenAI({
  * Available actions that AI can execute
  */
 const AVAILABLE_ACTIONS = {
-  // Facebook/Instagram Posts
+  // Facebook/Instagram Posts - Using Smart Post Composer
   'post_facebook': {
-    description: 'Post content to Facebook page',
-    params: ['page', 'content', 'topic?', 'imageUrl?', 'scheduledTime?'],
+    description: 'Create and post intelligent content to Facebook page with auto-generated images',
+    params: ['page', 'content', 'topic?', 'imageUrl?', 'scheduledTime?', 'includeImage?'],
     executor: async (params) => {
-      let finalContent = params.content;
+      const topic = params.topic || params.content || 'general update';
+      const page = params.page || 'sabo_arena';
       
-      // Auto-generate smart content if content is too short or looks like a topic
-      const needsGeneration = !finalContent || 
-        finalContent.length < 50 || 
-        !finalContent.includes(' ') || // Single word = topic
-        finalContent.toLowerCase().startsWith('giới thiệu') ||
-        finalContent.toLowerCase().startsWith('quảng bá');
+      console.log(`🚀 Smart Post Composer activated for: "${topic}"`);
       
-      if (needsGeneration) {
-        const topic = params.topic || params.content || 'general update';
-        const pageInfo = getPageContext(params.page);
+      try {
+        // Use Smart Post Composer for intelligent content + image
+        const composedPost = await smartPostComposer.composePost(topic, {
+          page,
+          includeImage: params.includeImage !== false, // Default: include image
+          customImageUrl: params.imageUrl,
+          imageSource: params.imageUrl ? 'url' : 'auto',
+        });
         
-        console.log(`🎨 Auto-generating content for topic: "${topic}"`);
+        console.log(`📝 Content: ${composedPost.content.substring(0, 100)}...`);
+        console.log(`🖼️ Image: ${composedPost.imageUrl || 'none'} (${composedPost.metadata.imageSource})`);
         
-        try {
-          finalContent = await generateSmartContent(topic, pageInfo);
-          console.log(`✅ Generated content (${finalContent?.length} chars):`, finalContent?.substring(0, 100));
-        } catch (genError) {
-          console.error('❌ Content generation failed:', genError.message);
-          // Fallback to original content if generation fails
-          finalContent = params.content || topic;
-        }
+        // Post to Facebook with composed content and image
+        const postResult = await facebookPublisher.createPost(page, {
+          message: composedPost.content,
+          imageUrl: composedPost.imageUrl,
+          scheduledTime: params.scheduledTime,
+        });
+        
+        return {
+          ...postResult,
+          composedPost: {
+            content: composedPost.content,
+            imageUrl: composedPost.imageUrl,
+            imageSource: composedPost.metadata.imageSource,
+            analysis: composedPost.metadata.analysis,
+          }
+        };
+      } catch (error) {
+        console.error('❌ Smart compose failed, using fallback:', error.message);
+        
+        // Fallback to simple content generation
+        const fallbackContent = await generateSmartContent(topic, getPageContext(page));
+        return await facebookPublisher.createPost(page, {
+          message: fallbackContent,
+          imageUrl: params.imageUrl,
+          scheduledTime: params.scheduledTime,
+        });
       }
-      
-      return await facebookPublisher.createPost(params.page || 'sabo_billiards', {
-        message: finalContent,
-        imageUrl: params.imageUrl,
-        scheduledTime: params.scheduledTime,
-      });
     },
   },
   
@@ -230,42 +245,39 @@ async function detectIntent(message) {
     messages: [
       {
         role: 'system',
-        content: `Bạn là AI assistant phân tích intent từ tin nhắn người dùng.
-        
-Các actions có thể thực hiện:
-- post_facebook: Đăng bài lên Facebook (params: page, content, topic)
+        content: `Bạn là AI Marketing Assistant thông minh. Nhiệm vụ: phân tích intent và tự động quyết định hành động.
+
+🎯 ACTIONS CÓ THỂ THỰC HIỆN:
+- post_facebook: Đăng bài lên Facebook (tự động kèm ảnh nếu phù hợp)
 - schedule_posts: Lên lịch đăng bài
-- create_ad_campaign: Tạo chiến dịch quảng cáo Facebook
-- list_campaigns: Xem danh sách chiến dịch quảng cáo
-- get_campaign_stats: Xem thống kê chiến dịch
-- create_event: Tạo sự kiện Facebook (params: page, name, description, startTime)
-- list_pages: Liệt kê các trang Facebook
-- get_page_posts: Xem bài đăng gần đây (params: page, limit)
-- trigger_workflow: Kích hoạt workflow n8n
-- generate_and_post: Tạo nội dung và đăng
+- create_ad_campaign: Tạo chiến dịch quảng cáo
+- list_campaigns: Xem danh sách chiến dịch
+- get_campaign_stats: Xem thống kê
+- create_event: Tạo sự kiện
+- list_pages: Liệt kê các trang
+- get_page_posts: Xem bài đăng gần đây
 
-Các page có sẵn: sabo_billiards, sabo_arena, ai_newbie, sabo_media
+📍 PAGES: sabo_billiards (Vũng Tàu), sabo_arena (HCM), ai_newbie (AI community), sabo_media (production)
 
-QUAN TRỌNG - Detect intent chủ động:
-1. "Đăng bài", "post", "viết bài", "đăng lên" → post_facebook
-2. "Giới thiệu về X", "quảng bá X" → post_facebook với topic=X
-3. Nếu có đề cập tên page → set page tương ứng
-4. "Xem campaigns", "list ads" → list_campaigns
-5. "Thống kê", "báo cáo" → get_campaign_stats
+🧠 QUY TẮC THÔNG MINH:
+1. "Đăng bài/post/viết bài" + topic → post_facebook với includeImage=true
+2. "Giới thiệu/quảng bá X" → post_facebook, topic=X, includeImage=true  
+3. "Sự kiện/event/giải đấu" → có thể là create_event hoặc post_facebook
+4. Nếu đề cập ảnh/hình/image → set includeImage=true
+5. Nếu nói "không cần ảnh" → includeImage=false
+6. Mặc định includeImage=true cho mọi bài post (best practice)
 
-Nếu người dùng đề cập đến việc tạo nội dung hoặc đăng bài, LUÔN trả về action với confidence cao.
-Nếu topic được đề cập, set vào params.topic (không cần content đầy đủ).
-
-Trả về JSON với format:
+Trả về JSON:
 {
   "action": "action_name",
   "confidence": 0.0-1.0,
   "params": { 
-    "page": "detected_page hoặc mặc định sabo_arena",
-    "topic": "chủ đề được đề cập",
-    "content": "nội dung nếu có, nếu không thì null"
+    "page": "sabo_arena",
+    "topic": "chủ đề",
+    "includeImage": true,
+    "imageHint": "gợi ý loại ảnh nếu có"
   },
-  "clarification_needed": null
+  "reasoning": "giải thích ngắn tại sao chọn action này"
 }`,
       },
       {
@@ -274,10 +286,13 @@ Trả về JSON với format:
       },
     ],
     response_format: { type: 'json_object' },
+    temperature: 0.3,
   });
 
   try {
-    return JSON.parse(response.choices[0].message.content);
+    const result = JSON.parse(response.choices[0].message.content);
+    console.log(`🧠 Intent detected: ${result.action} (${result.confidence}) - ${result.reasoning || ''}`);
+    return result;
   } catch {
     return { action: 'none', confidence: 0 };
   }
