@@ -69,6 +69,7 @@ async function createABTest(options = {}) {
     } = options;
 
     console.log(`🧪 [A/B Test] Creating test for "${topic}" with ${variantCount} variants`);
+    console.log(`🧪 [A/B Test] Strategy: ${strategy}, Page: ${pageId}`);
 
     // Generate variants using AI
     const variants = await generateVariants(topic, {
@@ -76,6 +77,8 @@ async function createABTest(options = {}) {
       count: variantCount,
       pageId,
     });
+    
+    console.log(`🧪 [A/B Test] Generated ${variants?.length || 0} variants`);
 
     // Create test record
     const testId = `ab-${Date.now()}`;

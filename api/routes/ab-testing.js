@@ -26,7 +26,7 @@ router.post('/create', async (req, res) => {
       });
     }
 
-    const test = await abTesting.createTest({
+    const result = await abTesting.createTest({
       name: name || `A/B: ${topic.substring(0, 50)}`,
       pageId: pageId || 'sabo_arena',
       topic,
@@ -35,11 +35,14 @@ router.post('/create', async (req, res) => {
       duration: duration || 24,
     });
 
+    // createTest returns { success, test, message }
+    const test = result.test;
+
     res.json({
       success: true,
       test: {
         id: test.id,
-        name: test.name,
+        name: test.name || `A/B: ${topic}`,
         status: test.status,
         variantCount: test.variants?.length || 0,
         variants: test.variants?.map(v => ({

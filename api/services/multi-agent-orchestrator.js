@@ -564,11 +564,11 @@ async function synthesizeResults(results, options = {}) {
     messages: [
       {
         role: 'system',
-        content: 'Bạn là AI synthesis system. Tổng hợp kết quả từ nhiều agents thành một kết quả coherent và hữu ích.',
+        content: 'Bạn là AI synthesis system. Tổng hợp kết quả từ nhiều agents thành một kết quả coherent và hữu ích. Trả về JSON format.',
       },
       {
         role: 'user',
-        content: `Tổng hợp các kết quả sau:\n\n${resultsSummary}\n\nTạo summary và final result.`,
+        content: `Tổng hợp các kết quả sau và trả về JSON:\n\n${resultsSummary}\n\nTạo summary và final result dạng JSON.`,
       },
     ],
     temperature: 0.5,

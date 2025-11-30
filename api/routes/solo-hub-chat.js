@@ -583,6 +583,9 @@ router.post('/chat-smart', async (req, res) => {
     // ═══════════════════════════════════════════════════════════
     console.log('\n📚 [Layer 4] LEARNING - Recording for improvement...');
     
+    // Calculate total time before learning layer
+    const totalTime = Date.now() - startTime;
+    
     try {
       // Record interaction for learning
       const feedbackData = {
@@ -625,7 +628,6 @@ router.post('/chat-smart', async (req, res) => {
     // ═══════════════════════════════════════════════════════════
     // FORMAT FINAL RESPONSE
     // ═══════════════════════════════════════════════════════════
-    const totalTime = Date.now() - startTime;
     console.log(`\n${'='.repeat(60)}`);
     console.log(`✅ [COMPLETE] Total time: ${totalTime}ms`);
     console.log(`${'='.repeat(60)}\n`);
