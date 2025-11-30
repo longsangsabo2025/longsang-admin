@@ -153,4 +153,32 @@ export default function AICommandCenter() {
                   key={agent.id}
                   variant={selectedChatAgent === agent.id ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setSelectedChatAgent(agent.i
+                  onClick={() => setSelectedChatAgent(agent.id)}
+                >
+                  {agent.label}
+                </Button>
+              ))}
+            </div>
+            <AIChatPanel 
+              agentRole={selectedChatAgent} 
+              height="h-[600px]"
+              showStats={true}
+            />
+          </TabsContent>
+
+          <TabsContent value="agents" className="space-y-4">
+            <AgentOrchestrator />
+          </TabsContent>
+
+          <TabsContent value="decisions" className="space-y-4">
+            <DecisionQueue />
+          </TabsContent>
+
+          <TabsContent value="memory" className="space-y-4">
+            <AgentMemory />
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
+}
