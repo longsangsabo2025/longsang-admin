@@ -195,9 +195,7 @@ export function ComponentLibrary({ onComponentSelect, className = '' }: Componen
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-sm text-white">{template.name}</div>
-                  <div className="text-xs text-gray-500 truncate">
-                    {template.description}
-                  </div>
+                  <div className="text-xs text-gray-500 truncate">{template.description}</div>
                 </div>
               </div>
             );

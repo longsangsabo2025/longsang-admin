@@ -70,7 +70,7 @@ export default function VisualWorkspace() {
       }
       if (e.key === 'F11') {
         e.preventDefault();
-        setIsFullView(prev => !prev);
+        setIsFullView((prev) => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -339,16 +339,20 @@ export default function VisualWorkspace() {
 
   // Full View Content - extracted for reuse
   const workspaceContent = (
-    <div className={isFullView ? "h-screen w-screen bg-[#0a0a0a] flex flex-col" : "h-[calc(100vh-4rem)] flex flex-col"}>
+    <div
+      className={
+        isFullView
+          ? 'h-screen w-screen bg-[#0a0a0a] flex flex-col'
+          : 'h-[calc(100vh-4rem)] flex flex-col'
+      }
+    >
       {/* Header */}
       <div className="shrink-0 px-4 py-3 border-b border-[#2a2a2a] bg-[#0a0a0a] flex items-center justify-between">
         <div>
           <h1 className={`font-bold ${isFullView ? 'text-xl text-white' : 'text-2xl'}`}>
             Visual Workspace Builder
           </h1>
-          <p className="text-sm text-gray-500">
-            Build applications visually with AI assistance
-          </p>
+          <p className="text-sm text-gray-500">Build applications visually with AI assistance</p>
         </div>
         <div className="flex gap-2 items-center">
           {isExecuting && (
@@ -393,9 +397,12 @@ export default function VisualWorkspace() {
                   className="h-full bg-[#0f0f0f]"
                 />
               </ResizablePanel>
-              
-              <ResizableHandle withHandle className="bg-[#2a2a2a] hover:bg-purple-600 transition-colors" />
-              
+
+              <ResizableHandle
+                withHandle
+                className="bg-[#2a2a2a] hover:bg-purple-600 transition-colors"
+              />
+
               {/* Component Library - Now resizable! */}
               <ResizablePanel defaultSize={40} minSize={20}>
                 <ComponentLibrary onComponentSelect={handleComponentSelect} className="h-full" />
@@ -403,7 +410,10 @@ export default function VisualWorkspace() {
             </ResizablePanelGroup>
           </ResizablePanel>
 
-          <ResizableHandle withHandle className="bg-[#2a2a2a] hover:bg-purple-600 transition-colors" />
+          <ResizableHandle
+            withHandle
+            className="bg-[#2a2a2a] hover:bg-purple-600 transition-colors"
+          />
 
           {/* Canvas Panel */}
           <ResizablePanel defaultSize={50} minSize={30}>
@@ -429,7 +439,10 @@ export default function VisualWorkspace() {
             />
           </ResizablePanel>
 
-          <ResizableHandle withHandle className="bg-[#2a2a2a] hover:bg-purple-600 transition-colors" />
+          <ResizableHandle
+            withHandle
+            className="bg-[#2a2a2a] hover:bg-purple-600 transition-colors"
+          />
 
           {/* Preview Panel */}
           <ResizablePanel defaultSize={25} minSize={15} maxSize={40}>
@@ -442,16 +455,8 @@ export default function VisualWorkspace() {
 
   // Full view mode - render without Layout wrapper
   if (isFullView) {
-    return (
-      <div className="fixed inset-0 z-50">
-        {workspaceContent}
-      </div>
-    );
+    return <div className="fixed inset-0 z-50">{workspaceContent}</div>;
   }
 
-  return (
-    <Layout>
-      {workspaceContent}
-    </Layout>
-  );
+  return <Layout>{workspaceContent}</Layout>;
 }
