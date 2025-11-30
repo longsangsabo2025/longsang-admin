@@ -1,0 +1,309 @@
+{
+  "total_count": 4,
+  "jobs": [
+    {
+      "id": 56721136452,
+      "run_id": 19798013098,
+      "workflow_name": "🐛 Sentry Auto-Fix",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798013098",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOQfoUzM8AAAANNNfbRA",
+      "head_sha": "f20ef1a407264dee7e9b91e2f6fba942f1551093",
+      "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/jobs/56721136452",
+      "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798013098/job/56721136452",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2025-11-30T11:09:50Z",
+      "started_at": "2025-11-30T11:09:53Z",
+      "completed_at": "2025-11-30T11:09:58Z",
+      "name": "🔍 Analyze Error",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2025-11-30T11:09:54Z",
+          "completed_at": "2025-11-30T11:09:55Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2025-11-30T11:09:55Z",
+          "completed_at": "2025-11-30T11:09:56Z"
+        },
+        {
+          "name": "🔍 Analyze Error Pattern",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2025-11-30T11:09:56Z",
+          "completed_at": "2025-11-30T11:09:56Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2025-11-30T11:09:56Z",
+          "completed_at": "2025-11-30T11:09:57Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2025-11-30T11:09:57Z",
+          "completed_at": "2025-11-30T11:09:57Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721136452",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000361,
+      "runner_name": "GitHub Actions 1000000361",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 56721139095,
+      "run_id": 19798013098,
+      "workflow_name": "🐛 Sentry Auto-Fix",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798013098",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOQfoUzM8AAAANNNfllw",
+      "head_sha": "f20ef1a407264dee7e9b91e2f6fba942f1551093",
+      "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/jobs/56721139095",
+      "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798013098/job/56721139095",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2025-11-30T11:09:58Z",
+      "started_at": "2025-11-30T11:10:01Z",
+      "completed_at": "2025-11-30T11:10:07Z",
+      "name": "📝 Create Issue",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2025-11-30T11:10:02Z",
+          "completed_at": "2025-11-30T11:10:04Z"
+        },
+        {
+          "name": "📝 Create GitHub Issue",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2025-11-30T11:10:04Z",
+          "completed_at": "2025-11-30T11:10:04Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2025-11-30T11:10:04Z",
+          "completed_at": "2025-11-30T11:10:04Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721139095",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000364,
+      "runner_name": "GitHub Actions 1000000364",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 56721142781,
+      "run_id": 19798013098,
+      "workflow_name": "🐛 Sentry Auto-Fix",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798013098",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOQfoUzM8AAAANNNfz_Q",
+      "head_sha": "f20ef1a407264dee7e9b91e2f6fba942f1551093",
+      "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/jobs/56721142781",
+      "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798013098/job/56721142781",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2025-11-30T11:10:07Z",
+      "started_at": "2025-11-30T11:10:10Z",
+      "completed_at": "2025-11-30T11:11:08Z",
+      "name": "🔧 Apply Fix",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2025-11-30T11:10:10Z",
+          "completed_at": "2025-11-30T11:10:12Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2025-11-30T11:10:12Z",
+          "completed_at": "2025-11-30T11:10:13Z"
+        },
+        {
+          "name": "🔧 Create branch",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2025-11-30T11:10:13Z",
+          "completed_at": "2025-11-30T11:10:13Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2025-11-30T11:10:13Z",
+          "completed_at": "2025-11-30T11:10:17Z"
+        },
+        {
+          "name": "📚 Install",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2025-11-30T11:10:17Z",
+          "completed_at": "2025-11-30T11:10:41Z"
+        },
+        {
+          "name": "🔍 ESLint Fix",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2025-11-30T11:10:41Z",
+          "completed_at": "2025-11-30T11:10:54Z"
+        },
+        {
+          "name": "💅 Prettier",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2025-11-30T11:10:54Z",
+          "completed_at": "2025-11-30T11:11:07Z"
+        },
+        {
+          "name": "📝 Check changes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2025-11-30T11:11:07Z",
+          "completed_at": "2025-11-30T11:11:07Z"
+        },
+        {
+          "name": "💾 Commit",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9,
+          "started_at": "2025-11-30T11:11:07Z",
+          "completed_at": "2025-11-30T11:11:07Z"
+        },
+        {
+          "name": "🔄 Create PR",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10,
+          "started_at": "2025-11-30T11:11:07Z",
+          "completed_at": "2025-11-30T11:11:07Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2025-11-30T11:11:07Z",
+          "completed_at": "2025-11-30T11:11:07Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20,
+          "started_at": "2025-11-30T11:11:07Z",
+          "completed_at": "2025-11-30T11:11:07Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21,
+          "started_at": "2025-11-30T11:11:07Z",
+          "completed_at": "2025-11-30T11:11:07Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721142781",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000365,
+      "runner_name": "GitHub Actions 1000000365",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 56721169209,
+      "run_id": 19798013098,
+      "workflow_name": "🐛 Sentry Auto-Fix",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798013098",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOQfoUzM8AAAANNNhbOQ",
+      "head_sha": "f20ef1a407264dee7e9b91e2f6fba942f1551093",
+      "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/jobs/56721169209",
+      "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798013098/job/56721169209",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2025-11-30T11:11:09Z",
+      "started_at": "2025-11-30T11:11:12Z",
+      "completed_at": "2025-11-30T11:11:16Z",
+      "name": "📊 Summary",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2025-11-30T11:11:13Z",
+          "completed_at": "2025-11-30T11:11:13Z"
+        },
+        {
+          "name": "📊 Summary",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2025-11-30T11:11:13Z",
+          "completed_at": "2025-11-30T11:11:13Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2025-11-30T11:11:13Z",
+          "completed_at": "2025-11-30T11:11:13Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721169209",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000368,
+      "runner_name": "GitHub Actions 1000000368",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

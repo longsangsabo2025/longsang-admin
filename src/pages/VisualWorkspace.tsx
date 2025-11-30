@@ -4,16 +4,20 @@
  * Inspired by Lovable and Google AI Studio
  */
 
-import { useState, useCallback } from 'react';
 import { Layout } from '@/components/Layout';
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { VisualCanvas } from '@/components/visual-workspace/VisualCanvas';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { ChatPanel } from '@/components/visual-workspace/ChatPanel';
+import { ComponentLibrary } from '@/components/visual-workspace/ComponentLibrary';
+import { ExecutionReportDialog } from '@/components/visual-workspace/ExecutionReportDialog';
 import { PreviewPanel } from '@/components/visual-workspace/PreviewPanel';
-import { useVisualWorkspace, ComponentDefinition } from '@/hooks/useVisualWorkspace';
-import { parseAICommand } from '@/lib/visual-workspace/aiParser';
-import { Node, Edge, Connection } from 'reactflow';
+import { VisualCanvas } from '@/components/visual-workspace/VisualCanvas';
 import { useToast } from '@/hooks/use-toast';
+import { useExecutionHistory } from '@/hooks/useExecutionHistory';
+import { ExecutionEvent, useExecutionSteps } from '@/hooks/useExecutionSteps';
+import { ComponentDefinition, useVisualWorkspace } from '@/hooks/useVisualWorkspace';
+import { parseAICommand } from '@/lib/visual-workspace/aiParser';
+import { useCallback, useMemo } from 'react';
+import { Connection, Node } from 'reactflow';
 
 export default function VisualWorkspace() {
   const {
@@ -27,55 +31,178 @@ export default function VisualWorkspace() {
     handleNodesChange,
     handleEdgesChange,
     setSelectedNode,
+    setNodes,
+    setEdges,
   } = useVisualWorkspace();
 
+  // Execution steps hook
+  const {
+    nodes: executionNodes,
+    edges: executionEdges,
+    isExecuting,
+    processEvent,
+    clearSteps,
+    steps,
+  } = useExecutionSteps();
+
+  // Execution history hook
+  const { addExecution } = useExecutionHistory();
+
   const { toast } = useToast();
+
+  // Merge execution nodes with regular nodes
+  const allNodes = useMemo(() => {
+    if (isExecuting && executionNodes.length > 0) {
+      // When executing, show execution steps
+      return executionNodes;
+    }
+    return nodes;
+  }, [nodes, executionNodes, isExecuting]);
+
+  const allEdges = useMemo(() => {
+    if (isExecuting && executionEdges.length > 0) {
+      return executionEdges;
+    }
+    return edges;
+  }, [edges, executionEdges, isExecuting]);
 
   // Handle AI command from chat
   const handleSendMessage = useCallback(
     async (message: string) => {
       setIsGenerating(true);
+      clearSteps(); // Clear previous execution steps
 
       try {
-        // Parse command
-        const parsed = await parseAICommand(message);
+        // Check if command is for execution (contains keywords)
+        const lowerMessage = message.toLowerCase();
+        const isExecutionCommand =
+          lowerMessage.includes('tạo') ||
+          lowerMessage.includes('generate') ||
+          lowerMessage.includes('build') ||
+          lowerMessage.includes('thực hiện') ||
+          lowerMessage.includes('execute');
 
-        // Add components to canvas
-        const newNodes: Node[] = [];
-        for (const component of parsed.components) {
-          // Calculate position to avoid overlap
-          const x = newNodes.length * 250 + 50;
-          const y = Math.floor(newNodes.length / 3) * 200 + 50;
+        // If execution command, show execution steps
+        if (isExecutionCommand) {
+          // Create execution plan
+          const plan: ExecutionEvent = {
+            type: 'plan',
+            plan: {
+              steps: [
+                {
+                  id: 'step-1',
+                  name: 'Planning',
+                  description: 'Đang phân tích yêu cầu...',
+                  type: 'planning',
+                },
+                {
+                  id: 'step-2',
+                  name: 'Generation',
+                  description: 'Đang tạo components...',
+                  type: 'generation',
+                },
+                {
+                  id: 'step-3',
+                  name: 'Review',
+                  description: 'Đang kiểm tra...',
+                  type: 'review',
+                },
+                {
+                  id: 'step-4',
+                  name: 'Execution',
+                  description: 'Đang thực thi...',
+                  type: 'execution',
+                },
+              ],
+            },
+          };
 
-          const node = addNode(component, { x, y });
-          newNodes.push(node);
-        }
+          processEvent(plan);
 
-        // Add connections if specified
-        if (parsed.connections) {
-          // Connections will be handled by React Flow
-          toast({
-            title: 'Components created',
-            description: `Created ${parsed.components.length} component(s)`,
-          });
+          // Simulate execution steps
+          setTimeout(() => {
+            processEvent({ type: 'step_start', stepId: 'step-1' });
+          }, 500);
+
+          setTimeout(() => {
+            processEvent({ type: 'step_complete', stepId: 'step-1' });
+            processEvent({ type: 'step_start', stepId: 'step-2' });
+          }, 2000);
+
+          setTimeout(() => {
+            processEvent({ type: 'step_complete', stepId: 'step-2' });
+            processEvent({ type: 'step_start', stepId: 'step-3' });
+          }, 4000);
+
+          setTimeout(() => {
+            processEvent({ type: 'step_complete', stepId: 'step-3' });
+            processEvent({ type: 'step_start', stepId: 'step-4' });
+          }, 5500);
+
+          setTimeout(() => {
+            // Parse command and add components
+            parseAICommand(message).then((parsed) => {
+              const newNodes: Node[] = [];
+              for (const component of parsed.components) {
+                const x = newNodes.length * 250 + 50;
+                const y = Math.floor(newNodes.length / 3) * 200 + 50;
+                const node = addNode(component, { x, y });
+                newNodes.push(node);
+              }
+
+              processEvent({ type: 'step_complete', stepId: 'step-4' });
+
+              // Calculate total duration
+              const startTime = Date.now() - 7000; // Approximate start time
+              const totalDuration = Date.now() - startTime;
+
+              // Save to execution history
+              addExecution({
+                command: message,
+                steps: steps,
+                duration: totalDuration,
+                status: 'completed',
+              });
+
+              processEvent({ type: 'complete' });
+
+              toast({
+                title: 'Hoàn thành',
+                description: `Đã tạo ${parsed.components.length} component(s)`,
+              });
+              setIsGenerating(false);
+            });
+          }, 7000);
         } else {
+          // Regular command - just parse and add components
+          const parsed = await parseAICommand(message);
+
+          const newNodes: Node[] = [];
+          for (const component of parsed.components) {
+            const x = newNodes.length * 250 + 50;
+            const y = Math.floor(newNodes.length / 3) * 200 + 50;
+            const node = addNode(component, { x, y });
+            newNodes.push(node);
+          }
+
           toast({
             title: 'Components created',
             description: `Created ${parsed.components.length} component(s) on canvas`,
           });
+          setIsGenerating(false);
         }
       } catch (error) {
         console.error('Error parsing command:', error);
+        processEvent({ type: 'error', error: 'Could not parse command' });
         toast({
           title: 'Error',
           description: 'Could not parse command. Please try again.',
           variant: 'destructive',
         });
-      } finally {
         setIsGenerating(false);
       }
     },
-    [addNode, setIsGenerating, toast]
+    [addNode, setIsGenerating, toast, processEvent, clearSteps, steps, addExecution]
   );
 
   // Handle canvas connections
@@ -108,11 +235,16 @@ export default function VisualWorkspace() {
     <Layout>
       <div className="h-[calc(100vh-4rem)] flex flex-col">
         {/* Header */}
-        <div className="shrink-0 p-4 border-b">
-          <h1 className="text-2xl font-bold">Visual Workspace Builder</h1>
-          <p className="text-sm text-muted-foreground">
-            Build applications visually with AI assistance
-          </p>
+        <div className="shrink-0 p-4 border-b flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Visual Workspace Builder</h1>
+            <p className="text-sm text-muted-foreground">
+              Build applications visually with AI assistance
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <ExecutionReportDialog />
+          </div>
         </div>
 
         {/* Main workspace area with 3 panels */}
@@ -139,10 +271,18 @@ export default function VisualWorkspace() {
             {/* Canvas Panel */}
             <ResizablePanel defaultSize={50} minSize={30}>
               <VisualCanvas
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={handleNodesChange}
-                onEdgesChange={handleEdgesChange}
+                nodes={allNodes}
+                edges={allEdges}
+                onNodesChange={(changes) => {
+                  if (!isExecuting) {
+                    handleNodesChange(changes);
+                  }
+                }}
+                onEdgesChange={(changes) => {
+                  if (!isExecuting) {
+                    handleEdgesChange(changes);
+                  }
+                }}
                 onConnect={handleConnect}
                 onNodeClick={(event, node) => {
                   handleNodeClick(event, node);

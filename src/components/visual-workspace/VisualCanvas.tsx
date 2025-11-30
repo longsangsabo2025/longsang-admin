@@ -142,6 +142,13 @@ export function VisualCanvas({
                 return '#f97316';
               case 'customComponent':
                 return '#6366f1';
+              case 'executionStep':
+                // Color based on status
+                const status = node.data?.status;
+                if (status === 'completed') return '#10b981';
+                if (status === 'running') return '#3b82f6';
+                if (status === 'failed') return '#ef4444';
+                return '#94a3b8';
               default:
                 return '#94a3b8';
             }

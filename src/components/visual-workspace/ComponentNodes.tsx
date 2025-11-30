@@ -17,6 +17,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { Handle, NodeProps, Position } from 'reactflow';
+import { ExecutionStepNode } from './ExecutionStepNodes';
 
 // Base node style
 const baseNodeStyle = 'px-4 py-3 rounded-xl text-white shadow-lg border-2 min-w-[140px]';
@@ -164,4 +165,8 @@ export const nodeTypes = {
   dataFlow: DataFlowNode,
   database: DatabaseNode,
   customComponent: CustomComponentNode,
+  executionStep: ExecutionStepNode,
 };
+
+// Re-export ExecutionStepNode types
+export type { ExecutionStepStatus, ExecutionStepData } from './ExecutionStepNodes';
