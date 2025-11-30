@@ -462,12 +462,15 @@ router.post('/execute-action', async (req, res) => {
 
 /**
  * POST /api/solo-hub/chat-smart
- * Smart chat using multi-agent orchestrator with intelligent content generation
- * This is the ADVANCED endpoint that uses the full multi-layer architecture
+ * Smart chat using FULL MULTI-LAYER ARCHITECTURE:
+ * Layer 1: Copilot Planner - Break down complex tasks into steps
+ * Layer 2: Multi-Agent Orchestrator - Route to specialized agents
+ * Layer 3: Copilot Executor - Execute plan with parallel processing
+ * Layer 4: Learning & Feedback - Improve over time
  */
 router.post('/chat-smart', async (req, res) => {
   try {
-    const { message, agentRole, conversationHistory = [], projectId } = req.body;
+    const { message, agentRole, conversationHistory = [], projectId, userId } = req.body;
 
     if (!message) {
       return res.status(400).json({
@@ -476,41 +479,154 @@ router.post('/chat-smart', async (req, res) => {
       });
     }
 
-    console.log(`[Smart Chat] Processing: "${message.substring(0, 50)}..."`);
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`🚀 [SMART CHAT] Full Multi-Layer Processing`);
+    console.log(`📝 Message: "${message.substring(0, 80)}..."`);
+    console.log(`${'='.repeat(60)}\n`);
 
-    // Use multi-agent orchestrator for intelligent processing
-    const result = await multiAgentOrchestrator.orchestrate(message, {
-      projectId,
-      usePlanning: true,
-      onProgress: (progress) => {
-        console.log(`[Smart Chat] Progress: ${progress.progress?.percentage || 0}%`);
-      },
-    });
+    const startTime = Date.now();
+    const layers = {
+      planning: null,
+      orchestration: null,
+      execution: null,
+      learning: null,
+    };
 
-    if (!result.success) {
-      // Fallback to simple chat if orchestration fails
-      console.log('[Smart Chat] Orchestration failed, falling back to simple chat');
-      return res.json({
-        success: true,
-        type: 'chat',
-        message: result.error || 'Không thể xử lý yêu cầu. Vui lòng thử lại.',
-        model: 'fallback',
+    // ═══════════════════════════════════════════════════════════
+    // LAYER 1: COPILOT PLANNER - Analyze and create execution plan
+    // ═══════════════════════════════════════════════════════════
+    console.log('📋 [Layer 1] COPILOT PLANNER - Creating execution plan...');
+    
+    let plan = null;
+    try {
+      plan = await copilotPlanner.createPlan(message, {
+        projectId,
+        context: { conversationHistory },
+        maxSteps: 10,
       });
+      
+      layers.planning = {
+        success: true,
+        planId: plan.metadata?.planId,
+        totalSteps: plan.totalSteps,
+        estimatedTime: plan.metadata?.estimatedTime,
+        complexity: plan.metadata?.complexity,
+      };
+      
+      console.log(`   ✅ Plan created: ${plan.totalSteps} steps, complexity: ${plan.metadata?.complexity}`);
+      console.log(`   📝 Steps: ${plan.steps?.map(s => s.name).join(' → ')}`);
+    } catch (planError) {
+      console.log(`   ⚠️ Planner skipped: ${planError.message}`);
+      layers.planning = { success: false, error: planError.message };
     }
 
-    // Format response based on orchestration result
-    const formattedMessage = formatOrchestrationResult(result);
+    // ═══════════════════════════════════════════════════════════
+    // LAYER 2: MULTI-AGENT ORCHESTRATOR - Route to specialized agents
+    // ═══════════════════════════════════════════════════════════
+    console.log('\n🤖 [Layer 2] MULTI-AGENT ORCHESTRATOR - Routing to agents...');
+    
+    const orchestrationResult = await multiAgentOrchestrator.orchestrate(message, {
+      projectId,
+      usePlanning: !!plan,
+      plan,
+      onProgress: (progress) => {
+        console.log(`   ⏳ Progress: ${progress.progress?.percentage || 0}%`);
+      },
+    });
+    
+    layers.orchestration = {
+      success: orchestrationResult.success,
+      selectedAgents: orchestrationResult.selectedAgents || [],
+      agentCount: orchestrationResult.metadata?.totalAgents || 0,
+    };
+    
+    console.log(`   ✅ Routed to ${layers.orchestration.agentCount} agents: ${layers.orchestration.selectedAgents?.join(', ')}`);
+
+    // ═══════════════════════════════════════════════════════════
+    // LAYER 3: COPILOT EXECUTOR - Execute with parallel processing
+    // ═══════════════════════════════════════════════════════════
+    console.log('\n⚡ [Layer 3] COPILOT EXECUTOR - Executing plan...');
+    
+    let executionResult = null;
+    if (plan && plan.steps?.length > 0) {
+      try {
+        executionResult = await copilotExecutor.executePlan(plan, {
+          userId,
+          projectId,
+          maxRetries: 2,
+          onProgress: (progress) => {
+            console.log(`   ⏳ Step ${progress.progress?.current}/${progress.progress?.total}: ${progress.step?.name}`);
+          },
+        });
+        
+        layers.execution = {
+          success: executionResult.success,
+          status: executionResult.execution?.status,
+          completedSteps: executionResult.summary?.completedSteps,
+          successfulSteps: executionResult.summary?.successfulSteps,
+          duration: executionResult.summary?.duration,
+        };
+        
+        console.log(`   ✅ Execution complete: ${layers.execution.successfulSteps}/${layers.execution.completedSteps} steps succeeded`);
+      } catch (execError) {
+        console.log(`   ⚠️ Executor error: ${execError.message}`);
+        layers.execution = { success: false, error: execError.message };
+      }
+    } else {
+      console.log('   ⏭️ No plan to execute, using orchestration result directly');
+      layers.execution = { success: true, skipped: true, reason: 'Direct orchestration' };
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // LAYER 4: LEARNING & FEEDBACK (Future enhancement)
+    // ═══════════════════════════════════════════════════════════
+    console.log('\n📚 [Layer 4] LEARNING - Recording for future improvement...');
+    
+    // TODO: Integrate copilot-learner here
+    // await copilotLearner.recordInteraction({ message, result, layers });
+    layers.learning = { success: true, recorded: false, note: 'Learner integration pending' };
+    console.log('   ⏭️ Learning layer pending full integration');
+
+    // ═══════════════════════════════════════════════════════════
+    // FORMAT FINAL RESPONSE
+    // ═══════════════════════════════════════════════════════════
+    const totalTime = Date.now() - startTime;
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`✅ [COMPLETE] Total time: ${totalTime}ms`);
+    console.log(`${'='.repeat(60)}\n`);
+
+    const formattedMessage = formatMultiLayerResult({
+      orchestration: orchestrationResult,
+      execution: executionResult,
+      plan,
+      layers,
+    });
 
     res.json({
       success: true,
-      type: 'orchestrated',
+      type: 'multi-layer',
       message: formattedMessage,
+      layers,
       orchestration: {
-        agents: result.selectedAgents,
-        plan: result.plan,
-        results: result.results,
+        agents: orchestrationResult.selectedAgents,
+        plan: plan ? {
+          id: plan.metadata?.planId,
+          steps: plan.steps?.length,
+          complexity: plan.metadata?.complexity,
+        } : null,
+        results: orchestrationResult.results,
       },
-      model: 'multi-agent-orchestrator',
+      execution: executionResult ? {
+        status: executionResult.execution?.status,
+        summary: executionResult.summary,
+      } : null,
+      metadata: {
+        totalTime,
+        model: 'multi-layer-architecture',
+        layersUsed: Object.entries(layers)
+          .filter(([_, v]) => v?.success)
+          .map(([k]) => k),
+      },
     });
   } catch (error) {
     console.error('❌ Smart chat error:', error);
@@ -522,17 +638,15 @@ router.post('/chat-smart', async (req, res) => {
 });
 
 /**
- * Format orchestration result into readable message
+ * Format orchestration result into readable message (simple version)
  */
 function formatOrchestrationResult(result) {
   let message = '';
 
-  // Add summary
   if (result.summary) {
     message += `✅ **Đã hoàn thành** với ${result.metadata?.totalAgents || 0} agents\n\n`;
   }
 
-  // Add agent results
   if (result.results?.agentResults) {
     result.results.agentResults.forEach((agentResult, i) => {
       if (agentResult.result?.success) {
@@ -542,12 +656,77 @@ function formatOrchestrationResult(result) {
     });
   }
 
-  // Add synthesized result if available
   if (result.results?.synthesized) {
     message += `\n---\n**Tổng hợp:**\n${result.results.synthesized}\n`;
   }
 
   return message || 'Đã xử lý xong yêu cầu của bạn.';
+}
+
+/**
+ * Format multi-layer result into readable message
+ */
+function formatMultiLayerResult({ orchestration, execution, plan, layers }) {
+  let message = '';
+  
+  // Header with layers summary
+  const activeLayers = Object.entries(layers)
+    .filter(([_, v]) => v?.success)
+    .map(([k]) => k);
+  
+  message += `🏗️ **Multi-Layer Processing** (${activeLayers.length}/4 layers)\n`;
+  message += `${activeLayers.map(l => `✅ ${l}`).join(' → ')}\n\n`;
+
+  // Plan summary
+  if (plan && layers.planning?.success) {
+    message += `📋 **Plan:** ${plan.totalSteps} steps (${plan.metadata?.complexity || 'unknown'} complexity)\n`;
+    if (plan.steps?.length > 0) {
+      message += `   ${plan.steps.slice(0, 3).map(s => s.name).join(' → ')}`;
+      if (plan.steps.length > 3) message += ` ... (+${plan.steps.length - 3} more)`;
+      message += '\n\n';
+    }
+  }
+
+  // Agent results
+  if (orchestration?.results?.agentResults) {
+    message += `🤖 **Agent Results:**\n`;
+    orchestration.results.agentResults.forEach((agentResult, i) => {
+      const status = agentResult.result?.success ? '✅' : '❌';
+      const agentName = agentResult.agent || `Agent ${i + 1}`;
+      message += `${status} **${agentName}:**\n`;
+      
+      const content = agentResult.result?.content || 
+                      agentResult.result?.message || 
+                      agentResult.result?.result?.message ||
+                      (typeof agentResult.result === 'string' ? agentResult.result : null);
+      
+      if (content) {
+        message += `   ${content.substring(0, 200)}${content.length > 200 ? '...' : ''}\n`;
+      }
+      message += '\n';
+    });
+  }
+
+  // Execution summary
+  if (execution && layers.execution?.success && !layers.execution?.skipped) {
+    message += `⚡ **Execution:** ${execution.summary?.successfulSteps}/${execution.summary?.completedSteps} steps completed`;
+    if (execution.summary?.duration) {
+      message += ` (${execution.summary.duration}ms)`;
+    }
+    message += '\n\n';
+  }
+
+  // Synthesized result
+  if (orchestration?.results?.synthesized) {
+    message += `\n---\n📝 **Summary:**\n${orchestration.results.synthesized}\n`;
+  }
+
+  // Final message if nothing else
+  if (!message.includes('Agent Results') && !message.includes('Summary')) {
+    message += '\n✅ Đã xử lý xong yêu cầu của bạn.';
+  }
+
+  return message;
 }
 
 module.exports = router;

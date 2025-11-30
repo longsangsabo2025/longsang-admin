@@ -9,8 +9,6 @@ node_modules
 .env
 .env.local
 *.log
-*.backup
-*.ts.backup
 electron/
 tests/
 scripts/
