@@ -56,5 +56,3 @@ export interface DailyUserActivity {
   event_type: string;
   event_count: number;
 }
-
-

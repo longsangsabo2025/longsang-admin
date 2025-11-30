@@ -2,11 +2,14 @@
 
 ## Overview
 
-AI Second Brain is a personal knowledge management system powered by AI. It allows you to store, organize, and search your knowledge using semantic vector search.
+AI Second Brain is a personal knowledge management system powered by AI. It
+allows you to store, organize, and search your knowledge using semantic vector
+search.
 
 ## Architecture
 
 ### Database Layer
+
 - **pgvector**: PostgreSQL extension for vector similarity search
 - **Tables**:
   - `brain_domains`: Knowledge categories/domains
@@ -16,6 +19,7 @@ AI Second Brain is a personal knowledge management system powered by AI. It allo
   - `brain_query_history`: Query tracking for learning
 
 ### Backend API
+
 - **Services**:
   - `embedding-service.js`: Generates embeddings using OpenAI
   - `retrieval-service.js`: Performs vector similarity search
@@ -26,6 +30,7 @@ AI Second Brain is a personal knowledge management system powered by AI. It allo
   - `/api/brain/knowledge/search`: Search knowledge by text query
 
 ### Frontend
+
 - **Components**:
   - `BrainDashboard`: Main dashboard with tabs
   - `DomainManager`: Domain CRUD interface
@@ -41,17 +46,18 @@ AI Second Brain is a personal knowledge management system powered by AI. It allo
 
 ### 1. Create a Domain
 
-Domains are categories for organizing your knowledge. Each domain can contain multiple knowledge items.
+Domains are categories for organizing your knowledge. Each domain can contain
+multiple knowledge items.
 
 ```typescript
-import { useCreateDomain } from "@/brain/hooks/useDomains";
+import { useCreateDomain } from '@/brain/hooks/useDomains';
 
 const createDomain = useCreateDomain();
 await createDomain.mutateAsync({
-  name: "Business",
-  description: "Business-related knowledge",
-  color: "#3B82F6",
-  icon: "briefcase"
+  name: 'Business',
+  description: 'Business-related knowledge',
+  color: '#3B82F6',
+  icon: 'briefcase',
 });
 ```
 
@@ -60,15 +66,15 @@ await createDomain.mutateAsync({
 Add knowledge to a domain. The system will automatically generate embeddings.
 
 ```typescript
-import { useIngestKnowledge } from "@/brain/hooks/useKnowledge";
+import { useIngestKnowledge } from '@/brain/hooks/useKnowledge';
 
 const ingestKnowledge = useIngestKnowledge();
 await ingestKnowledge.mutateAsync({
-  domainId: "domain-uuid",
-  title: "Meeting Notes: Q4 Planning",
-  content: "We discussed the Q4 roadmap...",
-  contentType: "note",
-  tags: ["meeting", "planning"]
+  domainId: 'domain-uuid',
+  title: 'Meeting Notes: Q4 Planning',
+  content: 'We discussed the Q4 roadmap...',
+  contentType: 'note',
+  tags: ['meeting', 'planning'],
 });
 ```
 
@@ -77,16 +83,13 @@ await ingestKnowledge.mutateAsync({
 Search your knowledge base using natural language.
 
 ```typescript
-import { useSearchKnowledge } from "@/brain/hooks/useKnowledge";
+import { useSearchKnowledge } from '@/brain/hooks/useKnowledge';
 
-const { data: results } = useSearchKnowledge(
-  "What did we discuss about Q4?",
-  {
-    domainId: "domain-uuid", // optional
-    matchThreshold: 0.7,
-    matchCount: 10
-  }
-);
+const { data: results } = useSearchKnowledge('What did we discuss about Q4?', {
+  domainId: 'domain-uuid', // optional
+  matchThreshold: 0.7,
+  matchCount: 10,
+});
 ```
 
 ## API Endpoints
@@ -108,7 +111,8 @@ const { data: results } = useSearchKnowledge(
 
 ### Environment Variables
 
-- `OPENAI_API_KEY`: Required for generating embeddings (uses `text-embedding-3-small` model - 1536 dimensions)
+- `OPENAI_API_KEY`: Required for generating embeddings (uses
+  `text-embedding-3-small` model - 1536 dimensions)
 - `VITE_SUPABASE_URL`: Supabase project URL
 - `VITE_SUPABASE_ANON_KEY`: Supabase anon key
 - `SUPABASE_SERVICE_ROLE_KEY`: Service role key (for RPC calls)
@@ -116,6 +120,7 @@ const { data: results } = useSearchKnowledge(
 ### Database Migrations
 
 Run migrations in order:
+
 1. `001_enable_pgvector.sql` - Enable pgvector extension
 2. `002_brain_tables.sql` - Create brain tables
 3. `003_vector_search_function.sql` - Create vector search function
@@ -155,16 +160,19 @@ Run migrations in order:
 ## Troubleshooting
 
 ### Embeddings not generating
+
 - Check `OPENAI_API_KEY` is set
 - Verify API key is valid
 - Check API rate limits
 
 ### Search returns no results
+
 - Verify knowledge has embeddings (check database)
 - Lower the `matchThreshold` (default 0.7)
 - Ensure domain filter is correct
 
 ### RLS errors
+
 - Verify user is authenticated
 - Check RLS policies are enabled
 - Ensure `user_id` is set correctly
@@ -172,4 +180,3 @@ Run migrations in order:
 ## License
 
 MIT
-

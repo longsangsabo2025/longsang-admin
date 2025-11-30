@@ -1,7 +1,7 @@
-import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "./AuthProvider";
-import { ProtectedRoute } from "./ProtectedRoute";
+import { ReactNode } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from './AuthProvider';
+import { ProtectedRoute } from './ProtectedRoute';
 
 interface AdminRouteProps {
   readonly children: ReactNode;
@@ -26,7 +26,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
 
   // Check if user has admin role
   const userRole = user?.user_metadata?.role as string | undefined;
-  const isAdmin = userRole === "admin";
+  const isAdmin = userRole === 'admin';
 
   if (!isAdmin) {
     // Redirect non-admin users to user dashboard

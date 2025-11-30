@@ -11,9 +11,7 @@ export default function ConsultationBooking() {
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">
-            Đặt lịch tư vấn miễn phí
-          </h1>
+          <h1 className="text-4xl font-bold mb-4">Đặt lịch tư vấn miễn phí</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Để chúng tôi giúp bạn tìm ra giải pháp tối ưu cho doanh nghiệp
           </p>
@@ -27,9 +25,7 @@ export default function ConsultationBooking() {
               <CardTitle className="text-base">Linh hoạt</CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription>
-                Chọn ngày giờ phù hợp với lịch của bạn
-              </CardDescription>
+              <CardDescription>Chọn ngày giờ phù hợp với lịch của bạn</CardDescription>
             </CardContent>
           </Card>
 
@@ -39,9 +35,7 @@ export default function ConsultationBooking() {
               <CardTitle className="text-base">Nhanh chóng</CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription>
-                Chỉ mất 30-60 phút để hiểu rõ nhu cầu
-              </CardDescription>
+              <CardDescription>Chỉ mất 30-60 phút để hiểu rõ nhu cầu</CardDescription>
             </CardContent>
           </Card>
 
@@ -51,9 +45,7 @@ export default function ConsultationBooking() {
               <CardTitle className="text-base">Chuyên nghiệp</CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription>
-                Đội ngũ chuyên gia giàu kinh nghiệm
-              </CardDescription>
+              <CardDescription>Đội ngũ chuyên gia giàu kinh nghiệm</CardDescription>
             </CardContent>
           </Card>
 
@@ -63,9 +55,7 @@ export default function ConsultationBooking() {
               <CardTitle className="text-base">Tư vấn miễn phí</CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription>
-                100% miễn phí, không ràng buộc
-              </CardDescription>
+              <CardDescription>100% miễn phí, không ràng buộc</CardDescription>
             </CardContent>
           </Card>
         </div>
@@ -89,13 +79,15 @@ export default function ConsultationBooking() {
               <div>
                 <h3 className="font-semibold mb-2">Tư vấn có mất phí không?</h3>
                 <p className="text-muted-foreground">
-                  Hoàn toàn miễn phí. Chúng tôi muốn hiểu rõ nhu cầu của bạn trước khi đưa ra giải pháp phù hợp.
+                  Hoàn toàn miễn phí. Chúng tôi muốn hiểu rõ nhu cầu của bạn trước khi đưa ra giải
+                  pháp phù hợp.
                 </p>
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Tôi cần chuẩn bị gì?</h3>
                 <p className="text-muted-foreground">
-                  Chỉ cần chia sẻ về doanh nghiệp và những thách thức bạn đang gặp phải. Chúng tôi sẽ lắng nghe và tư vấn.
+                  Chỉ cần chia sẻ về doanh nghiệp và những thách thức bạn đang gặp phải. Chúng tôi
+                  sẽ lắng nghe và tư vấn.
                 </p>
               </div>
               <div>

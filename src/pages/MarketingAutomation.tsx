@@ -1,13 +1,13 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
-import { n8nMarketing as n8nService } from "@/services/n8n";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
+import { n8nMarketing as n8nService } from '@/services/n8n';
 import {
   BarChart3,
   Calendar,
@@ -20,8 +20,8 @@ import {
   Users,
   XCircle,
   Zap,
-} from "lucide-react";
-import { useEffect, useState } from "react";
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface Campaign {
   id: string;
@@ -39,9 +39,9 @@ export function MarketingAutomation() {
   const { toast } = useToast();
 
   // Form state for social media campaign
-  const [socialContent, setSocialContent] = useState("");
+  const [socialContent, setSocialContent] = useState('');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [scheduledTime, setScheduledTime] = useState("");
+  const [scheduledTime, setScheduledTime] = useState('');
 
   useEffect(() => {
     loadCampaigns();
@@ -50,24 +50,24 @@ export function MarketingAutomation() {
   async function loadCampaigns() {
     try {
       const { data, error } = await supabase
-        .from("marketing_campaigns")
-        .select("*")
-        .order("created_at", { ascending: false })
+        .from('marketing_campaigns')
+        .select('*')
+        .order('created_at', { ascending: false })
         .limit(10);
 
       if (error) throw error;
       setCampaigns(data || []);
     } catch (error) {
-      console.error("Error loading campaigns:", error);
+      console.error('Error loading campaigns:', error);
     }
   }
 
   async function handleSocialMediaCampaign() {
     if (!socialContent || selectedPlatforms.length === 0) {
       toast({
-        title: "Missing Information",
-        description: "Please provide content and select at least one platform",
-        variant: "destructive",
+        title: 'Missing Information',
+        description: 'Please provide content and select at least one platform',
+        variant: 'destructive',
       });
       return;
     }
@@ -77,11 +77,11 @@ export function MarketingAutomation() {
     try {
       // Create campaign in database
       const { data: campaign, error: dbError } = await supabase
-        .from("marketing_campaigns")
+        .from('marketing_campaigns')
         .insert({
           name: `Social Campaign - ${new Date().toLocaleDateString()}`,
-          type: "social_media",
-          status: scheduledTime ? "scheduled" : "running",
+          type: 'social_media',
+          status: scheduledTime ? 'scheduled' : 'running',
           content: socialContent,
           platforms: selectedPlatforms,
           scheduled_at: scheduledTime || null,
@@ -100,35 +100,35 @@ export function MarketingAutomation() {
 
       if (result.success) {
         toast({
-          title: "🚀 Campaign Launched!",
-          description: `Your content is being posted to ${selectedPlatforms.join(", ")}`,
+          title: '🚀 Campaign Launched!',
+          description: `Your content is being posted to ${selectedPlatforms.join(', ')}`,
         });
 
         // Update campaign with n8n execution ID
         await supabase
-          .from("marketing_campaigns")
+          .from('marketing_campaigns')
           .update({
             n8n_execution_id: result.data?.executionId,
-            status: "running",
+            status: 'running',
           })
-          .eq("id", campaign.id);
+          .eq('id', campaign.id);
 
         // Reload campaigns
         loadCampaigns();
 
         // Reset form
-        setSocialContent("");
+        setSocialContent('');
         setSelectedPlatforms([]);
-        setScheduledTime("");
+        setScheduledTime('');
       } else {
-        throw new Error(result.error || "Failed to launch campaign");
+        throw new Error(result.error || 'Failed to launch campaign');
       }
     } catch (error) {
-      console.error("Error creating campaign:", error);
+      console.error('Error creating campaign:', error);
       toast({
-        title: "Campaign Failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        title: 'Campaign Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -143,11 +143,11 @@ export function MarketingAutomation() {
 
   function getStatusIcon(status: string) {
     switch (status) {
-      case "completed":
+      case 'completed':
         return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-      case "failed":
+      case 'failed':
         return <XCircle className="h-4 w-4 text-red-500" />;
-      case "running":
+      case 'running':
         return <Zap className="h-4 w-4 text-yellow-500 animate-pulse" />;
       default:
         return <Clock className="h-4 w-4 text-gray-500" />;
@@ -156,16 +156,16 @@ export function MarketingAutomation() {
 
   function getStatusColor(status: string) {
     switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "failed":
-        return "bg-red-100 text-red-800";
-      case "running":
-        return "bg-yellow-100 text-yellow-800";
-      case "scheduled":
-        return "bg-blue-100 text-blue-800";
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+      case 'running':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'scheduled':
+        return 'bg-blue-100 text-blue-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   }
 
@@ -206,7 +206,7 @@ export function MarketingAutomation() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {campaigns.filter((c) => c.status === "running").length}
+              {campaigns.filter((c) => c.status === 'running').length}
             </div>
           </CardContent>
         </Card>
@@ -246,7 +246,7 @@ export function MarketingAutomation() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {campaigns.filter((c) => c.status === "scheduled").length}
+              {campaigns.filter((c) => c.status === 'scheduled').length}
             </div>
           </CardContent>
         </Card>
@@ -291,10 +291,10 @@ export function MarketingAutomation() {
               <div className="space-y-2">
                 <Label>Platforms</Label>
                 <div className="flex gap-2 flex-wrap">
-                  {["linkedin", "facebook", "twitter", "instagram"].map((platform) => (
+                  {['linkedin', 'facebook', 'twitter', 'instagram'].map((platform) => (
                     <Button
                       key={platform}
-                      variant={selectedPlatforms.includes(platform) ? "default" : "outline"}
+                      variant={selectedPlatforms.includes(platform) ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => togglePlatform(platform)}
                     >
@@ -410,7 +410,7 @@ export function MarketingAutomation() {
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Platforms: {campaign.platforms.join(", ")}
+                          Platforms: {campaign.platforms.join(', ')}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                           Created: {new Date(campaign.created_at).toLocaleString()}

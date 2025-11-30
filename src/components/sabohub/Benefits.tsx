@@ -1,31 +1,31 @@
-import { motion } from "framer-motion";
-import performanceChart from "@/assets/performance-chart.png";
-import costSavings from "@/assets/cost-savings.png";
-import customerSatisfaction from "@/assets/customer-satisfaction.png";
-import scalabilityMap from "@/assets/scalability-map.png";
+import { motion } from 'framer-motion';
+import performanceChart from '@/assets/performance-chart.png';
+import costSavings from '@/assets/cost-savings.png';
+import customerSatisfaction from '@/assets/customer-satisfaction.png';
+import scalabilityMap from '@/assets/scalability-map.png';
 
 const benefits = [
   {
-    title: "Tăng 70% Hiệu Quả Vận Hành",
-    description: "Tự động hóa quy trình, giảm thời gian quản lý, tăng năng suất làm việc",
+    title: 'Tăng 70% Hiệu Quả Vận Hành',
+    description: 'Tự động hóa quy trình, giảm thời gian quản lý, tăng năng suất làm việc',
     image: performanceChart,
     reverse: false,
   },
   {
-    title: "Tiết Kiệm Chi Phí Đáng Kể",
-    description: "Giảm chi phí vận hành, tối ưu nguồn lực, ROI cao trong 6 tháng đầu",
+    title: 'Tiết Kiệm Chi Phí Đáng Kể',
+    description: 'Giảm chi phí vận hành, tối ưu nguồn lực, ROI cao trong 6 tháng đầu',
     image: costSavings,
     reverse: true,
   },
   {
-    title: "Trải Nghiệm Khách Hàng Vượt Trội",
-    description: "Phục vụ nhanh chóng, theo dõi đơn hàng real-time, tăng sự hài lòng",
+    title: 'Trải Nghiệm Khách Hàng Vượt Trội',
+    description: 'Phục vụ nhanh chóng, theo dõi đơn hàng real-time, tăng sự hài lòng',
     image: customerSatisfaction,
     reverse: false,
   },
   {
-    title: "Sẵn Sàng Mở Rộng",
-    description: "Dễ dàng mở thêm chi nhánh, quản lý đa địa điểm, mở rộng quy mô không giới hạn",
+    title: 'Sẵn Sàng Mở Rộng',
+    description: 'Dễ dàng mở thêm chi nhánh, quản lý đa địa điểm, mở rộng quy mô không giới hạn',
     image: scalabilityMap,
     reverse: true,
   },
@@ -69,8 +69,8 @@ export const Benefits = () => {
               </div>
               <div className="flex-1">
                 <div className="glass-card p-6 rounded-2xl glow-cyan">
-                  <img 
-                    src={benefit.image} 
+                  <img
+                    src={benefit.image}
                     alt={benefit.title}
                     className="w-full rounded-lg"
                     loading="lazy"

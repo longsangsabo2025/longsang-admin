@@ -1,11 +1,17 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import AgentExecutor from "@/components/agent-center/AgentExecutor";
-import { getAllAgentsWithStats } from "@/lib/services/agentExecutionService";
-import { ArrowLeft, Bot } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import AgentExecutor from '@/components/agent-center/AgentExecutor';
+import { getAllAgentsWithStats } from '@/lib/services/agentExecutionService';
+import { ArrowLeft, Bot } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Agent {
   id: string;
@@ -16,7 +22,7 @@ interface Agent {
 
 export default function AgentTest() {
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [selectedAgentId, setSelectedAgentId] = useState<string>("");
+  const [selectedAgentId, setSelectedAgentId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -38,7 +44,7 @@ export default function AgentTest() {
     }
   };
 
-  const selectedAgent = agents.find(a => a.id === selectedAgentId);
+  const selectedAgent = agents.find((a) => a.id === selectedAgentId);
 
   if (loading) {
     return (
@@ -77,9 +83,7 @@ export default function AgentTest() {
               <p className="text-sm text-muted-foreground mb-4">
                 Create some agents first in the Agent Center
               </p>
-              <Button onClick={() => navigate('/agent-center')}>
-                Go to Agent Center
-              </Button>
+              <Button onClick={() => navigate('/agent-center')}>Go to Agent Center</Button>
             </div>
           ) : (
             <>
@@ -110,7 +114,9 @@ export default function AgentTest() {
                       </div>
                       <div>
                         <span className="text-muted-foreground">Type:</span>
-                        <p className="font-medium">{selectedAgent.agent_type || selectedAgent.type}</p>
+                        <p className="font-medium">
+                          {selectedAgent.agent_type || selectedAgent.type}
+                        </p>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Total Executions:</span>
@@ -118,7 +124,9 @@ export default function AgentTest() {
                       </div>
                       <div>
                         <span className="text-muted-foreground">Total Cost:</span>
-                        <p className="font-medium">${selectedAgent.total_cost_usd?.toFixed(4) || '0.0000'}</p>
+                        <p className="font-medium">
+                          ${selectedAgent.total_cost_usd?.toFixed(4) || '0.0000'}
+                        </p>
                       </div>
                     </div>
                     {selectedAgent.description && (
@@ -133,10 +141,7 @@ export default function AgentTest() {
 
               {/* Agent Executor */}
               {selectedAgent && (
-                <AgentExecutor 
-                  agentId={selectedAgent.id} 
-                  agentName={selectedAgent.name}
-                />
+                <AgentExecutor agentId={selectedAgent.id} agentName={selectedAgent.name} />
               )}
             </>
           )}

@@ -3,15 +3,21 @@
  * Interface for triggering and managing core logic distillation
  */
 
-import { useDistillCoreLogic, useCoreLogicVersions } from "@/brain/hooks/useCoreLogic";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Loader2, History } from "lucide-react";
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { useDistillCoreLogic, useCoreLogicVersions } from '@/brain/hooks/useCoreLogic';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Sparkles, Loader2, History } from 'lucide-react';
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 
 interface CoreLogicDistillationProps {
   domainId: string;
@@ -21,7 +27,7 @@ export function CoreLogicDistillation({ domainId }: CoreLogicDistillationProps) 
   const distillMutation = useDistillCoreLogic();
   const { data: versions } = useCoreLogicVersions(domainId);
   const [options, setOptions] = useState({
-    model: "gpt-4o-mini",
+    model: 'gpt-4o-mini',
     temperature: 0.7,
     maxTokens: 4000,
   });
@@ -37,7 +43,7 @@ export function CoreLogicDistillation({ domainId }: CoreLogicDistillationProps) 
         },
       });
     } catch (error) {
-      console.error("Distillation error:", error);
+      console.error('Distillation error:', error);
     }
   };
 
@@ -46,7 +52,8 @@ export function CoreLogicDistillation({ domainId }: CoreLogicDistillationProps) 
       <div>
         <h2 className="text-2xl font-bold">Core Logic Distillation</h2>
         <p className="text-muted-foreground">
-          Extract first principles, mental models, decision rules, and anti-patterns from your knowledge
+          Extract first principles, mental models, decision rules, and anti-patterns from your
+          knowledge
         </p>
       </div>
 
@@ -65,7 +72,10 @@ export function CoreLogicDistillation({ domainId }: CoreLogicDistillationProps) 
           <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="model">Model</Label>
-              <Select value={options.model} onValueChange={(value) => setOptions({ ...options, model: value })}>
+              <Select
+                value={options.model}
+                onValueChange={(value) => setOptions({ ...options, model: value })}
+              >
                 <SelectTrigger id="model">
                   <SelectValue />
                 </SelectTrigger>
@@ -149,14 +159,14 @@ export function CoreLogicDistillation({ domainId }: CoreLogicDistillationProps) 
                   <div>
                     <p className="font-semibold">Version {version.version}</p>
                     <p className="text-sm text-muted-foreground">
-                      {version.changeSummary || "No summary"}
+                      {version.changeSummary || 'No summary'}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(version.lastDistilledAt).toLocaleString()}
                     </p>
                   </div>
-                  <Badge variant={version.isActive ? "default" : "secondary"}>
-                    {version.isActive ? "Active" : "Inactive"}
+                  <Badge variant={version.isActive ? 'default' : 'secondary'}>
+                    {version.isActive ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
               ))}
@@ -167,4 +177,3 @@ export function CoreLogicDistillation({ domainId }: CoreLogicDistillationProps) 
     </div>
   );
 }
-

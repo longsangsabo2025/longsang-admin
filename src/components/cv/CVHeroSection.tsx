@@ -1,21 +1,27 @@
-import { ArrowDown, Linkedin, Mail, Phone, Clock, Droplet, Briefcase } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowDown, Linkedin, Mail, Phone, Clock, Droplet, Briefcase } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const CVHeroSection = () => {
   const scrollToAbout = () => {
-    const element = document.querySelector("#about");
-    element?.scrollIntoView({ behavior: "smooth" });
+    const element = document.querySelector('#about');
+    element?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section
+      id="home"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+    >
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background-secondary to-background">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/30 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/30 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
+          <div
+            className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/30 rounded-full blur-3xl animate-float"
+            style={{ animationDelay: '1s' }}
+          />
         </div>
-        
+
         {/* Grid Pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem]" />
       </div>
@@ -37,14 +43,12 @@ const CVHeroSection = () => {
               <h2 className="text-xl md:text-2xl font-heading font-semibold text-primary">
                 Petroleum Refining Engineer
               </h2>
-              <h3 className="text-lg md:text-xl text-secondary">
-                Business Development Specialist
-              </h3>
+              <h3 className="text-lg md:text-xl text-secondary">Business Development Specialist</h3>
             </div>
 
             <p className="text-lg text-foreground-secondary leading-relaxed max-w-xl">
-              Innovating energy solutions with technical excellence and business acumen. 
-              5+ years of experience transforming challenges into opportunities.
+              Innovating energy solutions with technical excellence and business acumen. 5+ years of
+              experience transforming challenges into opportunities.
             </p>
 
             {/* CTA Buttons */}
@@ -52,7 +56,9 @@ const CVHeroSection = () => {
               <Button
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-glow"
-                onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })}
+                onClick={() =>
+                  document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })
+                }
               >
                 Contact Me
               </Button>
@@ -60,7 +66,9 @@ const CVHeroSection = () => {
                 size="lg"
                 variant="outline"
                 className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                onClick={() => document.querySelector("#experience")?.scrollIntoView({ behavior: "smooth" })}
+                onClick={() =>
+                  document.querySelector('#experience')?.scrollIntoView({ behavior: 'smooth' })
+                }
               >
                 View My Work
               </Button>
@@ -105,7 +113,10 @@ const CVHeroSection = () => {
                 </div>
               </div>
 
-              <div className="absolute top-1/2 -right-6 bg-card border border-secondary/20 rounded-2xl px-6 py-3 shadow-card animate-float z-10 flex items-center gap-3" style={{ animationDelay: "0.5s" }}>
+              <div
+                className="absolute top-1/2 -right-6 bg-card border border-secondary/20 rounded-2xl px-6 py-3 shadow-card animate-float z-10 flex items-center gap-3"
+                style={{ animationDelay: '0.5s' }}
+              >
                 <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center">
                   <Droplet className="w-5 h-5 text-secondary" />
                 </div>
@@ -115,7 +126,10 @@ const CVHeroSection = () => {
                 </div>
               </div>
 
-              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-card border border-accent/20 rounded-2xl px-6 py-3 shadow-card animate-float z-10 flex items-center gap-3" style={{ animationDelay: "1s" }}>
+              <div
+                className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-card border border-accent/20 rounded-2xl px-6 py-3 shadow-card animate-float z-10 flex items-center gap-3"
+                style={{ animationDelay: '1s' }}
+              >
                 <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
                   <Briefcase className="w-5 h-5 text-accent" />
                 </div>

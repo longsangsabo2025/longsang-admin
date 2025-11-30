@@ -1,4 +1,8 @@
-import { useLearningMetrics, useRoutingAccuracy, useRoutingWeights } from '@/brain/hooks/useLearning';
+import {
+  useLearningMetrics,
+  useRoutingAccuracy,
+  useRoutingWeights,
+} from '@/brain/hooks/useLearning';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, TrendingUp, Target, BarChart3 } from 'lucide-react';
@@ -49,7 +53,10 @@ export function LearningInsights() {
           {weights && weights.length > 0 ? (
             <div className="space-y-2">
               {weights.slice(0, 5).map((weight) => (
-                <div key={weight.domain_id} className="flex items-center justify-between p-2 border rounded">
+                <div
+                  key={weight.domain_id}
+                  className="flex items-center justify-between p-2 border rounded"
+                >
                   <span className="text-sm">Domain: {weight.domain_id.substring(0, 8)}...</span>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">Weight: {weight.weight.toFixed(2)}</Badge>
@@ -77,7 +84,10 @@ export function LearningInsights() {
           {metrics && metrics.length > 0 ? (
             <div className="space-y-2">
               {metrics.slice(0, 10).map((metric) => (
-                <div key={metric.id} className="flex items-center justify-between p-2 border rounded text-sm">
+                <div
+                  key={metric.id}
+                  className="flex items-center justify-between p-2 border rounded text-sm"
+                >
                   <span>{metric.metric_type}</span>
                   <Badge>{metric.metric_value.toFixed(2)}</Badge>
                 </div>
@@ -91,5 +101,3 @@ export function LearningInsights() {
     </div>
   );
 }
-
-

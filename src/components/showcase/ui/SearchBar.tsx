@@ -1,11 +1,11 @@
-import { Search } from "lucide-react";
-import { motion } from "framer-motion";
+import { Search } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface SearchBarProps {
   placeholder?: string;
 }
 
-export const SearchBar = ({ placeholder = "Search destinations..." }: SearchBarProps) => {
+export const SearchBar = ({ placeholder = 'Search destinations...' }: SearchBarProps) => {
   return (
     <div className="relative flex items-center bg-white rounded-full h-14 px-1 shadow-lg">
       <input

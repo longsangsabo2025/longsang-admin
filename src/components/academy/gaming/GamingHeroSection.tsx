@@ -1,6 +1,6 @@
-import { Play, ShoppingCart, Share2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Play, ShoppingCart, Share2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface GamingHeroSectionProps {
   image: string;
@@ -21,7 +21,7 @@ interface GamingHeroSectionProps {
 
 export const GamingHeroSection = ({
   image,
-  badgeText = "🔥 TRENDING THIS WEEK",
+  badgeText = '🔥 TRENDING THIS WEEK',
   title,
   subtitle,
   instructor,
@@ -39,9 +39,9 @@ export const GamingHeroSection = ({
     <div className="relative overflow-hidden rounded-2xl h-[500px] glass-card group">
       {/* Background Image */}
       <div className="absolute inset-0">
-        <img 
-          src={image} 
-          alt={title} 
+        <img
+          src={image}
+          alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
@@ -55,14 +55,10 @@ export const GamingHeroSection = ({
         </Badge>
 
         {/* Title */}
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 max-w-3xl">
-          {title}
-        </h1>
+        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 max-w-3xl">{title}</h1>
 
         {/* Subtitle */}
-        <p className="text-lg text-gray-200 mb-6 max-w-2xl">
-          {subtitle}
-        </p>
+        <p className="text-lg text-gray-200 mb-6 max-w-2xl">{subtitle}</p>
 
         {/* Instructor Info */}
         <div className="flex items-center gap-4 mb-6">
@@ -73,7 +69,9 @@ export const GamingHeroSection = ({
             <div>
               <p className="text-sm text-white font-medium">{instructor} ✓</p>
               <div className="flex items-center gap-3 text-xs text-gray-300">
-                <span>⭐ {rating} ({reviews.toLocaleString()})</span>
+                <span>
+                  ⭐ {rating} ({reviews.toLocaleString()})
+                </span>
                 <span>👥 {students} students</span>
                 <span>🎓 {completionRate}% completion</span>
               </div>
@@ -84,10 +82,10 @@ export const GamingHeroSection = ({
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4 mb-6 max-w-2xl">
           {[
-            { label: "Modules", value: modules.toString() },
-            { label: "Lessons", value: lessons.toString() },
-            { label: "Duration", value: duration },
-            { label: "Projects", value: projects.toString() },
+            { label: 'Modules', value: modules.toString() },
+            { label: 'Lessons', value: lessons.toString() },
+            { label: 'Duration', value: duration },
+            { label: 'Projects', value: projects.toString() },
           ].map((stat) => (
             <div key={stat.label} className="text-center p-3 rounded-lg glass-card">
               <p className="text-2xl font-bold text-white">{stat.value}</p>
@@ -98,15 +96,15 @@ export const GamingHeroSection = ({
 
         {/* CTAs */}
         <div className="flex flex-wrap gap-4">
-          <Button 
-            className="bg-gradient-to-r from-gaming-purple to-gaming-cyan hover:shadow-[0_0_30px_hsl(260,60%,60%/0.6)] text-white font-bold" 
+          <Button
+            className="bg-gradient-to-r from-gaming-purple to-gaming-cyan hover:shadow-[0_0_30px_hsl(260,60%,60%/0.6)] text-white font-bold"
             size="lg"
           >
             Enroll Now - ${price}
             <ShoppingCart className="h-5 w-5 ml-2" />
           </Button>
-          <Button 
-            className="glass-card hover:bg-white/20 text-white border-white/20" 
+          <Button
+            className="glass-card hover:bg-white/20 text-white border-white/20"
             variant="outline"
             size="lg"
           >

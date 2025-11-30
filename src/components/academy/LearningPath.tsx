@@ -223,11 +223,7 @@ export function LearningPath() {
                       variant={step.isCurrent ? 'default' : 'outline'}
                       disabled={!step.isUnlocked}
                     >
-                      {step.isCompleted
-                        ? 'Review'
-                        : step.isCurrent
-                          ? 'Continue Learning'
-                          : 'Start'}
+                      {step.isCompleted ? 'Review' : step.isCurrent ? 'Continue Learning' : 'Start'}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   )}

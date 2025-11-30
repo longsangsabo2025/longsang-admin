@@ -55,5 +55,3 @@ export interface ImprovementSuggestion {
   type: 'recency' | 'usage' | 'feedback';
   message: string;
 }
-
-

@@ -6,7 +6,13 @@
  */
 
 // Main app store
-export { useAppStore, useActiveAdminTab, useActiveAITab, useSidebarCollapsed, useLastVisitedPage } from './appStore';
+export {
+  useAppStore,
+  useActiveAdminTab,
+  useActiveAITab,
+  useSidebarCollapsed,
+  useLastVisitedPage,
+} from './appStore';
 
 // AI Workspace store
 export {

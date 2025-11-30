@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { Button } from '@/components/ui/button';
+import { ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const HeroSection = () => {
   const { t } = useTranslation();
@@ -8,7 +8,7 @@ export const HeroSection = () => {
   const scrollToSection = (sectionId: string) => {
     const element = document.querySelector(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -23,22 +23,22 @@ export const HeroSection = () => {
         style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
                            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: "50px 50px",
+          backgroundSize: '50px 50px',
         }}
       />
 
       {/* Animated Gradient Orbs */}
       <div
         className="absolute top-1/4 -left-48 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse"
-        style={{ animationDuration: "8s" }}
+        style={{ animationDuration: '8s' }}
       />
       <div
         className="absolute bottom-1/4 -right-48 w-96 h-96 bg-accent/20 rounded-full blur-[120px] animate-pulse"
-        style={{ animationDuration: "10s", animationDelay: "2s" }}
+        style={{ animationDuration: '10s', animationDelay: '2s' }}
       />
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-secondary/10 rounded-full blur-[100px] animate-pulse"
-        style={{ animationDuration: "12s", animationDelay: "4s" }}
+        style={{ animationDuration: '12s', animationDelay: '4s' }}
       />
 
       {/* Content Container - Increased width */}
@@ -48,46 +48,46 @@ export const HeroSection = () => {
           <div className="space-y-8 animate-slide-up">
             {/* Greeting */}
             <p className="text-2xl font-medium text-muted-foreground tracking-wide animate-slide-up animate-delay-100">
-              {t("hero.greeting")}
+              {t('hero.greeting')}
             </p>
 
             {/* Main Headline */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight text-foreground animate-slide-up animate-delay-200">
-              {t("hero.headline1")}
+              {t('hero.headline1')}
               <br />
               <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                {t("hero.headline2")}
+                {t('hero.headline2')}
               </span>
               <br />
-              {t("hero.headline3")}
+              {t('hero.headline3')}
             </h1>
 
             {/* Subheadline */}
             <p className="text-xl text-muted-foreground animate-slide-up animate-delay-300">
-              {t("hero.subheadline")}
+              {t('hero.subheadline')}
             </p>
 
             {/* Tagline */}
             <p className="text-lg font-medium text-muted-foreground/80 animate-slide-up animate-delay-300">
-              {t("hero.tagline")}
+              {t('hero.tagline')}
             </p>
 
             {/* Latest Work Badge - Now clickable */}
             <button
-              onClick={() => scrollToSection("#projects")}
+              onClick={() => scrollToSection('#projects')}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-sm font-medium text-primary hover:scale-105 hover:shadow-[0_0_20px_rgba(14,165,233,0.3)] transition-all duration-200 animate-slide-up animate-delay-400"
             >
-              {t("hero.latestBadge")}
+              {t('hero.latestBadge')}
             </button>
 
             {/* CTA Buttons - Reduced from 3 to 2 for better UX */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4 animate-slide-up animate-delay-500">
               <Button
-                onClick={() => scrollToSection("#contact")}
+                onClick={() => scrollToSection('#contact')}
                 size="lg"
                 className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground px-8 py-6 rounded-xl text-lg font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                {t("hero.cta2")}
+                {t('hero.cta2')}
               </Button>
             </div>
           </div>
@@ -101,11 +101,11 @@ export const HeroSection = () => {
                 className="w-full h-full object-cover object-center"
                 onError={(e) => {
                   // Fallback to icon if image not found
-                  e.currentTarget.style.display = "none";
+                  e.currentTarget.style.display = 'none';
                   e.currentTarget.parentElement?.classList.add(
-                    "flex",
-                    "items-center",
-                    "justify-center"
+                    'flex',
+                    'items-center',
+                    'justify-center'
                   );
                 }}
               />
@@ -116,11 +116,11 @@ export const HeroSection = () => {
 
         {/* Scroll Indicator */}
         <button
-          onClick={() => scrollToSection("#services")}
+          onClick={() => scrollToSection('#services')}
           className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group animate-slide-up animate-delay-500"
         >
           <ChevronDown className="w-8 h-8 animate-pulse-soft group-hover:scale-110 transition-transform" />
-          <span className="text-sm font-medium">{t("hero.scrollText")}</span>
+          <span className="text-sm font-medium">{t('hero.scrollText')}</span>
         </button>
       </div>
     </section>

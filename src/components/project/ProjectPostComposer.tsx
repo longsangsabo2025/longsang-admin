@@ -6,8 +6,8 @@
  * media accounts linked to a specific project.
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -15,16 +15,16 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import type { ProjectSocialAccount } from "@/lib/projects";
-import { ImagePicker, AutoUploadTextarea } from "@/components/media";
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import type { ProjectSocialAccount } from '@/lib/projects';
+import { ImagePicker, AutoUploadTextarea } from '@/components/media';
 import {
   CheckCircle2,
   Image,
@@ -36,8 +36,8 @@ import {
   Calendar,
   Clock,
   Sparkles,
-} from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface ProjectPostComposerProps {
   projectId: string;
@@ -54,45 +54,102 @@ interface PostResult {
 }
 
 // Platform configurations
-const PLATFORM_CONFIG: Record<string, { 
-  name: string; 
-  icon: string; 
-  limit: number;
-  color: string;
-  bgColor: string;
-}> = {
-  facebook: { name: "Facebook", icon: "f", limit: 63206, color: "text-blue-500", bgColor: "bg-blue-500/10" },
-  instagram: { name: "Instagram", icon: "IG", limit: 2200, color: "text-pink-500", bgColor: "bg-pink-500/10" },
-  youtube: { name: "YouTube", icon: "YT", limit: 5000, color: "text-red-500", bgColor: "bg-red-500/10" },
-  linkedin: { name: "LinkedIn", icon: "in", limit: 3000, color: "text-blue-600", bgColor: "bg-blue-600/10" },
-  twitter: { name: "X (Twitter)", icon: "X", limit: 280, color: "text-gray-800 dark:text-white", bgColor: "bg-gray-500/10" },
-  threads: { name: "Threads", icon: "@", limit: 500, color: "text-gray-800 dark:text-white", bgColor: "bg-gray-500/10" },
-  tiktok: { name: "TikTok", icon: "TT", limit: 2200, color: "text-black dark:text-white", bgColor: "bg-gradient-to-r from-cyan-500/10 to-pink-500/10" },
-  telegram: { name: "Telegram", icon: "TG", limit: 4096, color: "text-sky-500", bgColor: "bg-sky-500/10" },
-  discord: { name: "Discord", icon: "DC", limit: 2000, color: "text-indigo-500", bgColor: "bg-indigo-500/10" },
+const PLATFORM_CONFIG: Record<
+  string,
+  {
+    name: string;
+    icon: string;
+    limit: number;
+    color: string;
+    bgColor: string;
+  }
+> = {
+  facebook: {
+    name: 'Facebook',
+    icon: 'f',
+    limit: 63206,
+    color: 'text-blue-500',
+    bgColor: 'bg-blue-500/10',
+  },
+  instagram: {
+    name: 'Instagram',
+    icon: 'IG',
+    limit: 2200,
+    color: 'text-pink-500',
+    bgColor: 'bg-pink-500/10',
+  },
+  youtube: {
+    name: 'YouTube',
+    icon: 'YT',
+    limit: 5000,
+    color: 'text-red-500',
+    bgColor: 'bg-red-500/10',
+  },
+  linkedin: {
+    name: 'LinkedIn',
+    icon: 'in',
+    limit: 3000,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-600/10',
+  },
+  twitter: {
+    name: 'X (Twitter)',
+    icon: 'X',
+    limit: 280,
+    color: 'text-gray-800 dark:text-white',
+    bgColor: 'bg-gray-500/10',
+  },
+  threads: {
+    name: 'Threads',
+    icon: '@',
+    limit: 500,
+    color: 'text-gray-800 dark:text-white',
+    bgColor: 'bg-gray-500/10',
+  },
+  tiktok: {
+    name: 'TikTok',
+    icon: 'TT',
+    limit: 2200,
+    color: 'text-black dark:text-white',
+    bgColor: 'bg-gradient-to-r from-cyan-500/10 to-pink-500/10',
+  },
+  telegram: {
+    name: 'Telegram',
+    icon: 'TG',
+    limit: 4096,
+    color: 'text-sky-500',
+    bgColor: 'bg-sky-500/10',
+  },
+  discord: {
+    name: 'Discord',
+    icon: 'DC',
+    limit: 2000,
+    color: 'text-indigo-500',
+    bgColor: 'bg-indigo-500/10',
+  },
 };
 
-export function ProjectPostComposer({ 
-  projectId, 
+export function ProjectPostComposer({
+  projectId,
   projectName,
-  onPostSuccess 
+  onPostSuccess,
 }: Readonly<ProjectPostComposerProps>) {
   const { toast } = useToast();
-  
+
   // State
   const [accounts, setAccounts] = useState<ProjectSocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [selectedAccounts, setSelectedAccounts] = useState<Set<string>>(new Set());
   const [results, setResults] = useState<PostResult[]>([]);
-  
+
   // Form state
-  const [content, setContent] = useState("");
-  const [hashtags, setHashtags] = useState("");
-  const [linkUrl, setLinkUrl] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [scheduleDate, setScheduleDate] = useState("");
-  const [scheduleTime, setScheduleTime] = useState("");
+  const [content, setContent] = useState('');
+  const [hashtags, setHashtags] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
 
   // Load project's social accounts
   const loadAccounts = useCallback(async () => {
@@ -105,21 +162,19 @@ export function ProjectPostComposer({
         .eq('is_active', true);
 
       if (error) throw error;
-      
+
       const accountsList = (data || []) as ProjectSocialAccount[];
       setAccounts(accountsList);
-      
+
       // Auto-select accounts with auto_post enabled
-      const autoPostAccounts = accountsList
-        .filter(a => a.auto_post_enabled)
-        .map(a => a.id);
+      const autoPostAccounts = accountsList.filter((a) => a.auto_post_enabled).map((a) => a.id);
       setSelectedAccounts(new Set(autoPostAccounts));
     } catch (error) {
       console.error('Failed to load accounts:', error);
       toast({
-        title: "Error",
-        description: "Failed to load social accounts",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load social accounts',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -143,7 +198,7 @@ export function ProjectPostComposer({
 
   // Select/Deselect all
   const selectAll = () => {
-    setSelectedAccounts(new Set(accounts.map(a => a.id)));
+    setSelectedAccounts(new Set(accounts.map((a) => a.id)));
   };
 
   const deselectAll = () => {
@@ -153,41 +208,44 @@ export function ProjectPostComposer({
   // Get character limit (minimum of selected platforms)
   const getMinCharLimit = () => {
     if (selectedAccounts.size === 0) return 0;
-    
+
     const selectedPlatforms = accounts
-      .filter(a => selectedAccounts.has(a.id))
-      .map(a => a.platform);
-    
-    const limits = selectedPlatforms.map(p => PLATFORM_CONFIG[p]?.limit || 5000);
+      .filter((a) => selectedAccounts.has(a.id))
+      .map((a) => a.platform);
+
+    const limits = selectedPlatforms.map((p) => PLATFORM_CONFIG[p]?.limit || 5000);
     return Math.min(...limits);
   };
 
   // Group accounts by platform
-  const groupedAccounts = accounts.reduce((acc, account) => {
-    const platform = account.platform;
-    if (!acc[platform]) {
-      acc[platform] = [];
-    }
-    acc[platform].push(account);
-    return acc;
-  }, {} as Record<string, ProjectSocialAccount[]>);
+  const groupedAccounts = accounts.reduce(
+    (acc, account) => {
+      const platform = account.platform;
+      if (!acc[platform]) {
+        acc[platform] = [];
+      }
+      acc[platform].push(account);
+      return acc;
+    },
+    {} as Record<string, ProjectSocialAccount[]>
+  );
 
   // Handle post
   const handlePost = async () => {
     if (selectedAccounts.size === 0) {
       toast({
-        title: "Select Accounts",
-        description: "Please select at least one account to post to",
-        variant: "destructive",
+        title: 'Select Accounts',
+        description: 'Please select at least one account to post to',
+        variant: 'destructive',
       });
       return;
     }
 
     if (!content.trim()) {
       toast({
-        title: "Add Content",
-        description: "Please enter some content to post",
-        variant: "destructive",
+        title: 'Add Content',
+        description: 'Please enter some content to post',
+        variant: 'destructive',
       });
       return;
     }
@@ -196,22 +254,22 @@ export function ProjectPostComposer({
     setResults([]);
 
     const postResults: PostResult[] = [];
-    const selectedAccountsList = accounts.filter(a => selectedAccounts.has(a.id));
+    const selectedAccountsList = accounts.filter((a) => selectedAccounts.has(a.id));
 
     // Parse hashtags
     const hashtagArray = hashtags
       .split(/[,\s]+/)
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0)
-      .map(tag => tag.replace(/^#/, ""));
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
+      .map((tag) => tag.replace(/^#/, ''));
 
     // Build full content
     let fullContent = content.trim();
     if (hashtagArray.length > 0) {
-      fullContent += "\n\n" + hashtagArray.map(tag => `#${tag}`).join(" ");
+      fullContent += '\n\n' + hashtagArray.map((tag) => `#${tag}`).join(' ');
     }
     if (linkUrl) {
-      fullContent += "\n\n" + linkUrl;
+      fullContent += '\n\n' + linkUrl;
     }
 
     // Post to each selected account
@@ -232,7 +290,7 @@ export function ProjectPostComposer({
         });
 
         const result = await response.json();
-        
+
         postResults.push({
           platform: account.platform,
           accountName: account.account_name,
@@ -269,29 +327,29 @@ export function ProjectPostComposer({
     setPosting(false);
 
     // Show summary
-    const successCount = postResults.filter(r => r.success).length;
-    const failCount = postResults.filter(r => !r.success).length;
+    const successCount = postResults.filter((r) => r.success).length;
+    const failCount = postResults.filter((r) => !r.success).length;
 
     if (successCount > 0) {
       toast({
         title: `✅ Posted to ${successCount} account(s)`,
-        description: failCount > 0 ? `${failCount} failed` : "All posts successful!",
+        description: failCount > 0 ? `${failCount} failed` : 'All posts successful!',
       });
       onPostSuccess?.(postResults);
 
       // Clear form on full success
       if (failCount === 0) {
-        setContent("");
-        setHashtags("");
-        setLinkUrl("");
-        setImageUrl("");
+        setContent('');
+        setHashtags('');
+        setLinkUrl('');
+        setImageUrl('');
         setSelectedAccounts(new Set());
       }
     } else {
       toast({
-        title: "❌ All posts failed",
-        description: "Check the results for details",
-        variant: "destructive",
+        title: '❌ All posts failed',
+        description: 'Check the results for details',
+        variant: 'destructive',
       });
     }
   };
@@ -332,7 +390,7 @@ export function ProjectPostComposer({
         <div>
           <h2 className="text-xl font-bold flex items-center gap-2">
             <Send className="w-5 h-5" />
-            Post to {projectName || "Project"}
+            Post to {projectName || 'Project'}
           </h2>
           <p className="text-sm text-muted-foreground">
             Compose and publish to multiple platforms at once
@@ -364,15 +422,20 @@ export function ProjectPostComposer({
           </CardHeader>
           <CardContent className="space-y-4">
             {Object.entries(groupedAccounts).map(([platform, platformAccounts]) => {
-              const config = PLATFORM_CONFIG[platform] || { name: platform, icon: "🌐", color: "text-gray-500", bgColor: "bg-gray-500/10" };
-              
+              const config = PLATFORM_CONFIG[platform] || {
+                name: platform,
+                icon: '🌐',
+                color: 'text-gray-500',
+                bgColor: 'bg-gray-500/10',
+              };
+
               return (
                 <div key={platform} className="space-y-2">
                   <div className={`flex items-center gap-2 text-sm font-medium ${config.color}`}>
                     <span>{config.icon}</span>
                     {config.name}
                   </div>
-                  {platformAccounts.map(account => (
+                  {platformAccounts.map((account) => (
                     <label
                       key={account.id}
                       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -386,9 +449,7 @@ export function ProjectPostComposer({
                         onCheckedChange={() => toggleAccount(account.id)}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {account.account_name}
-                        </p>
+                        <p className="text-sm font-medium truncate">{account.account_name}</p>
                         {account.account_username && (
                           <p className="text-xs text-muted-foreground truncate">
                             @{account.account_username}
@@ -415,7 +476,7 @@ export function ProjectPostComposer({
             <CardTitle className="text-base">Compose Post</CardTitle>
             <CardDescription>
               {charLimit > 0 && (
-                <span className={isOverLimit ? "text-red-500" : ""}>
+                <span className={isOverLimit ? 'text-red-500' : ''}>
                   {content.length} / {charLimit} characters
                 </span>
               )}
@@ -430,7 +491,7 @@ export function ProjectPostComposer({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={6}
-                className={`bg-slate-800/50 border-slate-600 ${isOverLimit ? "border-red-500" : ""}`}
+                className={`bg-slate-800/50 border-slate-600 ${isOverLimit ? 'border-red-500' : ''}`}
                 onImageUpload={(url) => {
                   // Auto set image URL khi paste ảnh
                   setImageUrl(url);
@@ -471,7 +532,7 @@ export function ProjectPostComposer({
                 </Label>
                 <ImagePicker
                   value={imageUrl}
-                  onChange={(url) => setImageUrl(url || "")}
+                  onChange={(url) => setImageUrl(url || '')}
                   placeholder="Chọn hoặc upload ảnh từ Drive"
                   aspect="video"
                 />
@@ -546,12 +607,17 @@ export function ProjectPostComposer({
           <CardContent>
             <div className="space-y-2">
               {results.map((result, index) => {
-                const config = PLATFORM_CONFIG[result.platform] || { icon: "🌐", name: result.platform };
+                const config = PLATFORM_CONFIG[result.platform] || {
+                  icon: '🌐',
+                  name: result.platform,
+                };
                 return (
                   <div
                     key={index}
                     className={`flex items-center justify-between p-3 rounded-lg ${
-                      result.success ? 'bg-green-500/10 border border-green-500/30' : 'bg-red-500/10 border border-red-500/30'
+                      result.success
+                        ? 'bg-green-500/10 border border-green-500/30'
+                        : 'bg-red-500/10 border border-red-500/30'
                     }`}
                   >
                     <div className="flex items-center gap-3">

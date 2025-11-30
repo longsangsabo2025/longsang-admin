@@ -42,7 +42,13 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -60,42 +66,125 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 // Document priority levels based on importance
-const DOC_PRIORITY: Record<string, { level: number; label: string; color: string; icon: React.ReactNode }> = {
-  'INVESTOR': { level: 1, label: 'Investor', color: 'bg-yellow-500', icon: <Crown className="w-3 h-3" /> },
-  'README': { level: 2, label: 'Overview', color: 'bg-blue-500', icon: <BookOpen className="w-3 h-3" /> },
-  'START-HERE': { level: 2, label: 'Start Here', color: 'bg-green-500', icon: <Rocket className="w-3 h-3" /> },
-  'ARCHITECTURE': { level: 3, label: 'Architecture', color: 'bg-purple-500', icon: <Settings className="w-3 h-3" /> },
-  'FEATURES': { level: 4, label: 'Features', color: 'bg-cyan-500', icon: <Code className="w-3 h-3" /> },
-  'QUICK_START': { level: 5, label: 'Quick Start', color: 'bg-green-400', icon: <Rocket className="w-3 h-3" /> },
-  'API': { level: 6, label: 'API', color: 'bg-orange-500', icon: <Database className="w-3 h-3" /> },
-  'DATABASE': { level: 7, label: 'Database', color: 'bg-indigo-500', icon: <Database className="w-3 h-3" /> },
-  'DEPLOYMENT': { level: 8, label: 'Deployment', color: 'bg-red-500', icon: <Rocket className="w-3 h-3" /> },
-  'GUIDE': { level: 9, label: 'Guide', color: 'bg-teal-500', icon: <Book className="w-3 h-3" /> },
-  'REPORT': { level: 10, label: 'Report', color: 'bg-gray-500', icon: <BarChart className="w-3 h-3" /> },
-  'OTHER': { level: 99, label: 'Other', color: 'bg-slate-400', icon: <FileText className="w-3 h-3" /> },
+const DOC_PRIORITY: Record<
+  string,
+  { level: number; label: string; color: string; icon: React.ReactNode }
+> = {
+  INVESTOR: {
+    level: 1,
+    label: 'Investor',
+    color: 'bg-yellow-500',
+    icon: <Crown className="w-3 h-3" />,
+  },
+  README: {
+    level: 2,
+    label: 'Overview',
+    color: 'bg-blue-500',
+    icon: <BookOpen className="w-3 h-3" />,
+  },
+  'START-HERE': {
+    level: 2,
+    label: 'Start Here',
+    color: 'bg-green-500',
+    icon: <Rocket className="w-3 h-3" />,
+  },
+  ARCHITECTURE: {
+    level: 3,
+    label: 'Architecture',
+    color: 'bg-purple-500',
+    icon: <Settings className="w-3 h-3" />,
+  },
+  FEATURES: {
+    level: 4,
+    label: 'Features',
+    color: 'bg-cyan-500',
+    icon: <Code className="w-3 h-3" />,
+  },
+  QUICK_START: {
+    level: 5,
+    label: 'Quick Start',
+    color: 'bg-green-400',
+    icon: <Rocket className="w-3 h-3" />,
+  },
+  API: { level: 6, label: 'API', color: 'bg-orange-500', icon: <Database className="w-3 h-3" /> },
+  DATABASE: {
+    level: 7,
+    label: 'Database',
+    color: 'bg-indigo-500',
+    icon: <Database className="w-3 h-3" />,
+  },
+  DEPLOYMENT: {
+    level: 8,
+    label: 'Deployment',
+    color: 'bg-red-500',
+    icon: <Rocket className="w-3 h-3" />,
+  },
+  GUIDE: { level: 9, label: 'Guide', color: 'bg-teal-500', icon: <Book className="w-3 h-3" /> },
+  REPORT: {
+    level: 10,
+    label: 'Report',
+    color: 'bg-gray-500',
+    icon: <BarChart className="w-3 h-3" />,
+  },
+  OTHER: {
+    level: 99,
+    label: 'Other',
+    color: 'bg-slate-400',
+    icon: <FileText className="w-3 h-3" />,
+  },
 };
 
 // Project definitions with display info
 const KNOWN_PROJECTS: Record<string, { name: string; icon: React.ReactNode; color: string }> = {
-  'longsang-admin': { name: 'LongSang Admin', icon: <Crown className="w-4 h-4" />, color: 'bg-yellow-500' },
-  'sabo-arena': { name: 'SABO Arena', icon: <TrendingUp className="w-4 h-4" />, color: 'bg-purple-500' },
+  'longsang-admin': {
+    name: 'LongSang Admin',
+    icon: <Crown className="w-4 h-4" />,
+    color: 'bg-yellow-500',
+  },
+  'sabo-arena': {
+    name: 'SABO Arena',
+    icon: <TrendingUp className="w-4 h-4" />,
+    color: 'bg-purple-500',
+  },
   'sabo-hub': { name: 'SABO Hub', icon: <Building2 className="w-4 h-4" />, color: 'bg-blue-500' },
-  'ai_secretary': { name: 'AI Secretary', icon: <Settings className="w-4 h-4" />, color: 'bg-green-500' },
-  'ainewbie-web': { name: 'AI Newbie Web', icon: <BookOpen className="w-4 h-4" />, color: 'bg-cyan-500' },
-  'music-video-app': { name: 'Music Video App', icon: <Code className="w-4 h-4" />, color: 'bg-pink-500' },
-  'long-sang-forge': { name: 'Long Sang Forge', icon: <Rocket className="w-4 h-4" />, color: 'bg-orange-500' },
-  'vungtau-dream-homes': { name: 'Vũng Tàu Dream Homes', icon: <Home className="w-4 h-4" />, color: 'bg-teal-500' },
+  ai_secretary: {
+    name: 'AI Secretary',
+    icon: <Settings className="w-4 h-4" />,
+    color: 'bg-green-500',
+  },
+  'ainewbie-web': {
+    name: 'AI Newbie Web',
+    icon: <BookOpen className="w-4 h-4" />,
+    color: 'bg-cyan-500',
+  },
+  'music-video-app': {
+    name: 'Music Video App',
+    icon: <Code className="w-4 h-4" />,
+    color: 'bg-pink-500',
+  },
+  'long-sang-forge': {
+    name: 'Long Sang Forge',
+    icon: <Rocket className="w-4 h-4" />,
+    color: 'bg-orange-500',
+  },
+  'vungtau-dream-homes': {
+    name: 'Vũng Tàu Dream Homes',
+    icon: <Home className="w-4 h-4" />,
+    color: 'bg-teal-500',
+  },
 };
 
 // Get priority info for a document
-function getDocPriority(docName: string): typeof DOC_PRIORITY[string] {
+function getDocPriority(docName: string): (typeof DOC_PRIORITY)[string] {
   const upperName = docName.toUpperCase();
   if (upperName.includes('INVESTOR')) return DOC_PRIORITY['INVESTOR'];
   if (upperName.includes('README')) return DOC_PRIORITY['README'];
-  if (upperName.includes('START-HERE') || upperName.includes('START_HERE')) return DOC_PRIORITY['START-HERE'];
+  if (upperName.includes('START-HERE') || upperName.includes('START_HERE'))
+    return DOC_PRIORITY['START-HERE'];
   if (upperName.includes('ARCHITECTURE')) return DOC_PRIORITY['ARCHITECTURE'];
   if (upperName.includes('FEATURE')) return DOC_PRIORITY['FEATURES'];
-  if (upperName.includes('QUICK_START') || upperName.includes('QUICK-START')) return DOC_PRIORITY['QUICK_START'];
+  if (upperName.includes('QUICK_START') || upperName.includes('QUICK-START'))
+    return DOC_PRIORITY['QUICK_START'];
   if (upperName.includes('API')) return DOC_PRIORITY['API'];
   if (upperName.includes('DATABASE') || upperName.includes('DB_')) return DOC_PRIORITY['DATABASE'];
   if (upperName.includes('DEPLOY')) return DOC_PRIORITY['DEPLOYMENT'];
@@ -144,10 +233,8 @@ export default function DocsViewer() {
   const [contentLoading, setContentLoading] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [copied, setCopied] = useState(false);
-  const [projectPath, setProjectPath] = useState<string>(
-    searchParams.get('project') || ''
-  );
-  
+  const [projectPath, setProjectPath] = useState<string>(searchParams.get('project') || '');
+
   // New state for enhanced features
   const [projects, setProjects] = useState<ProjectInfo[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>('all');
@@ -178,7 +265,7 @@ export default function DocsViewer() {
         fetch(`${API_BASE}/api/docs/scan${params}`),
         fetch(`${API_BASE}/api/docs/stats${params}`),
       ]);
-      
+
       if (docsRes.ok) {
         const data = await docsRes.json();
         // Map API response to DocFile interface and add project info
@@ -197,7 +284,7 @@ export default function DocsViewer() {
         const categories = new Set(docsWithProject.map((d: DocFile) => d.category) || []);
         setExpandedCategories(categories);
       }
-      
+
       if (statsRes.ok) {
         const data = await statsRes.json();
         setStats(data);
@@ -213,15 +300,17 @@ export default function DocsViewer() {
   // Fetch docs from all projects
   const fetchAllProjectsDocs = useCallback(async () => {
     if (projects.length === 0) return;
-    
+
     setLoading(true);
     const allDocs = new Map<string, DocFile[]>();
-    
+
     try {
       await Promise.all(
         projects.map(async (project) => {
           try {
-            const res = await fetch(`${API_BASE}/api/docs/scan?projectPath=${encodeURIComponent(project.path)}`);
+            const res = await fetch(
+              `${API_BASE}/api/docs/scan?projectPath=${encodeURIComponent(project.path)}`
+            );
             if (res.ok) {
               const data = await res.json();
               const docsWithProject = (data.docs || data.documents || []).map((doc: any) => ({
@@ -241,7 +330,7 @@ export default function DocsViewer() {
           }
         })
       );
-      
+
       setAllProjectDocs(allDocs);
     } catch (error) {
       console.error('Failed to fetch all project docs:', error);
@@ -251,24 +340,29 @@ export default function DocsViewer() {
   }, [projects]);
 
   // Fetch doc content
-  const fetchDocContent = useCallback(async (docId: string) => {
-    setContentLoading(true);
-    try {
-      const params = projectPath ? `?projectPath=${encodeURIComponent(projectPath)}` : '';
-      const res = await fetch(`${API_BASE}/api/docs/content/${encodeURIComponent(docId)}${params}`);
-      if (res.ok) {
-        const data = await res.json();
-        setDocContent(data.content || '');
-        setSelectedDoc(docId);
-        setSearchParams({ doc: docId, ...(projectPath ? { project: projectPath } : {}) });
+  const fetchDocContent = useCallback(
+    async (docId: string) => {
+      setContentLoading(true);
+      try {
+        const params = projectPath ? `?projectPath=${encodeURIComponent(projectPath)}` : '';
+        const res = await fetch(
+          `${API_BASE}/api/docs/content/${encodeURIComponent(docId)}${params}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setDocContent(data.content || '');
+          setSelectedDoc(docId);
+          setSearchParams({ doc: docId, ...(projectPath ? { project: projectPath } : {}) });
+        }
+      } catch (error) {
+        console.error('Failed to fetch doc content:', error);
+        toast.error('Failed to load document');
+      } finally {
+        setContentLoading(false);
       }
-    } catch (error) {
-      console.error('Failed to fetch doc content:', error);
-      toast.error('Failed to load document');
-    } finally {
-      setContentLoading(false);
-    }
-  }, [projectPath, setSearchParams]);
+    },
+    [projectPath, setSearchParams]
+  );
 
   // Initial load
   useEffect(() => {
@@ -299,12 +393,15 @@ export default function DocsViewer() {
   }, [searchParams, selectedDoc, fetchDocContent]);
 
   // Group docs by category
-  const groupedDocs = docs.reduce((acc, doc) => {
-    const category = doc.category || 'UNCATEGORIZED';
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(doc);
-    return acc;
-  }, {} as Record<string, DocFile[]>);
+  const groupedDocs = docs.reduce(
+    (acc, doc) => {
+      const category = doc.category || 'UNCATEGORIZED';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(doc);
+      return acc;
+    },
+    {} as Record<string, DocFile[]>
+  );
 
   // Get combined docs from all projects or selected project
   const combinedDocs = useMemo(() => {
@@ -321,7 +418,7 @@ export default function DocsViewer() {
   // Sort docs by priority
   const sortedDocs = useMemo(() => {
     const sorted = [...combinedDocs];
-    
+
     switch (sortMode) {
       case 'priority':
         sorted.sort((a, b) => {
@@ -340,7 +437,7 @@ export default function DocsViewer() {
         sorted.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
         break;
     }
-    
+
     return sorted;
   }, [combinedDocs, sortMode]);
 
@@ -401,15 +498,23 @@ export default function DocsViewer() {
   const quickStartDocs = [
     { name: '00-START-HERE.md', label: '👔 Giới thiệu', icon: <Home className="w-4 h-4" /> },
     { name: 'HOW_TO_READ_DOCS.md', label: '📖 Hướng dẫn', icon: <Book className="w-4 h-4" /> },
-    { name: '05-GUIDES/QUICK_START.md', label: '⚡ Quick Start', icon: <Rocket className="w-4 h-4" /> },
-    { name: '05-GUIDES/DOCS_VIEWER_USER_GUIDE.md', label: '❓ Hướng dẫn Viewer', icon: <HelpCircle className="w-4 h-4" /> },
+    {
+      name: '05-GUIDES/QUICK_START.md',
+      label: '⚡ Quick Start',
+      icon: <Rocket className="w-4 h-4" />,
+    },
+    {
+      name: '05-GUIDES/DOCS_VIEWER_USER_GUIDE.md',
+      label: '❓ Hướng dẫn Viewer',
+      icon: <HelpCircle className="w-4 h-4" />,
+    },
   ];
 
   // Handle project selection change
   const handleProjectChange = (value: string) => {
     setSelectedProject(value);
     if (value !== 'all') {
-      const project = projects.find(p => p.name === value);
+      const project = projects.find((p) => p.name === value);
       if (project) {
         setProjectPath(project.path);
       }
@@ -437,7 +542,7 @@ export default function DocsViewer() {
         key={doc.id}
         onClick={() => {
           if (doc.project && doc.project !== 'longsang-admin') {
-            const project = projects.find(p => p.name === doc.project);
+            const project = projects.find((p) => p.name === doc.project);
             if (project) {
               setProjectPath(project.path);
             }
@@ -563,7 +668,7 @@ export default function DocsViewer() {
               <SelectItem value="category">Theo Danh Mục</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
             <SelectTrigger className="h-8 text-xs flex-1">
               <Filter className="w-3 h-3 mr-1" />
@@ -664,12 +769,14 @@ export default function DocsViewer() {
                       doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                       doc.relativePath.toLowerCase().includes(searchQuery.toLowerCase())
                   );
-                  
+
                   if (filteredProjectDocs.length === 0) return null;
-                  
+
                   return (
                     <div key={projectName} className="border rounded-lg overflow-hidden">
-                      <div className={`px-3 py-2 ${projectInfo?.color || 'bg-slate-500'} bg-opacity-20 flex items-center gap-2`}>
+                      <div
+                        className={`px-3 py-2 ${projectInfo?.color || 'bg-slate-500'} bg-opacity-20 flex items-center gap-2`}
+                      >
                         {projectInfo?.icon || <FolderOpen className="w-4 h-4" />}
                         <span className="font-medium text-sm">
                           {projectInfo?.name || projectName}
@@ -700,9 +807,7 @@ export default function DocsViewer() {
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
                 <FileCheck className="w-3 h-3" />
-                {selectedProject === 'all' 
-                  ? combinedDocs.length 
-                  : docs.length} docs
+                {selectedProject === 'all' ? combinedDocs.length : docs.length} docs
               </span>
               {stats && (
                 <span className="flex items-center gap-1">

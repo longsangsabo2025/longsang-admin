@@ -42,8 +42,8 @@ class N8nWebhookService {
       data: {
         automation_level: 'full',
         enable_monitoring: true,
-        enable_optimization: true
-      }
+        enable_optimization: true,
+      },
     };
 
     return this.makeWebhookRequest('master-orchestrator', payload);
@@ -53,15 +53,19 @@ class N8nWebhookService {
    * Trigger Smart Workflow Router
    * Route specific events to appropriate workflows
    */
-  async triggerSmartRouter(eventType: string, eventData: any, userId: string): Promise<N8nWebhookResponse> {
+  async triggerSmartRouter(
+    eventType: string,
+    eventData: any,
+    userId: string
+  ): Promise<N8nWebhookResponse> {
     const payload: WorkflowTriggerPayload = {
       action: 'route_workflow',
       user_id: userId,
       data: {
         event_type: eventType,
         event_data: eventData,
-        routing_strategy: 'ai_powered'
-      }
+        routing_strategy: 'ai_powered',
+      },
     };
 
     return this.makeWebhookRequest('smart-workflow-router', payload);
@@ -78,8 +82,8 @@ class N8nWebhookService {
       data: {
         content_specifications: contentSpecs,
         production_lines: ['blog', 'social', 'email'],
-        quality_control: true
-      }
+        quality_control: true,
+      },
     };
 
     return this.makeWebhookRequest('content-production-factory', payload);
@@ -94,9 +98,9 @@ class N8nWebhookService {
       const response = await fetch(`${this.baseUrl}/status/${executionId}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.webhookSecret}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${this.webhookSecret}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
@@ -108,7 +112,7 @@ class N8nWebhookService {
       console.error('Error fetching workflow status:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -121,7 +125,7 @@ class N8nWebhookService {
     const payload: WorkflowTriggerPayload = {
       action: 'emergency_stop',
       user_id: userId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return this.makeWebhookRequest('master-orchestrator', payload);
@@ -134,7 +138,7 @@ class N8nWebhookService {
   async getMetrics(userId: string): Promise<N8nWebhookResponse> {
     const payload: WorkflowTriggerPayload = {
       action: 'get_metrics',
-      user_id: userId
+      user_id: userId,
     };
 
     return this.makeWebhookRequest('master-orchestrator', payload);
@@ -145,20 +149,20 @@ class N8nWebhookService {
    * Generic method for all webhook calls
    */
   private async makeWebhookRequest(
-    workflowName: string, 
+    workflowName: string,
     payload: WorkflowTriggerPayload
   ): Promise<N8nWebhookResponse> {
     try {
       const url = `${this.baseUrl}/${workflowName}`;
-      
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.webhookSecret}`,
-          'X-Webhook-Source': 'long-sang-automation'
+          Authorization: `Bearer ${this.webhookSecret}`,
+          'X-Webhook-Source': 'long-sang-automation',
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -166,18 +170,18 @@ class N8nWebhookService {
       }
 
       const result = await response.json();
-      
+
       return {
         success: true,
         data: result,
         execution_id: result.execution_id,
-        workflow_id: result.workflow_id
+        workflow_id: result.workflow_id,
       };
     } catch (error) {
       console.error(`Error triggering ${workflowName}:`, error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -191,10 +195,10 @@ class N8nWebhookService {
       const response = await fetch(`${this.baseUrl}/health`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.webhookSecret}`
-        }
+          Authorization: `Bearer ${this.webhookSecret}`,
+        },
       });
-      
+
       return response.ok;
     } catch (error) {
       console.error('Webhook connection test failed:', error);

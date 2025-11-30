@@ -5,7 +5,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Loader2, Sparkles, TrendingUp, FileText, Link2, CheckCircle2 } from 'lucide-react';
@@ -36,14 +41,14 @@ export function AIAutoSEO() {
     try {
       // Progress simulation
       const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 10, 90));
+        setProgress((prev) => Math.min(prev + 10, 90));
       }, 500);
 
       toast.info('🤖 AI đang phân tích website...');
-      
+
       const result = await analyzeDomain(domain, {
         language,
-        country: language === 'vi' ? 'Vietnam' : undefined
+        country: language === 'vi' ? 'Vietnam' : undefined,
       });
 
       clearInterval(progressInterval);
@@ -54,7 +59,6 @@ export function AIAutoSEO() {
       setPages(result.pages);
 
       toast.success(`✅ Đã tạo ${result.keywords.totalKeywords} keywords và kế hoạch SEO!`);
-
     } catch (error) {
       console.error('Analysis error:', error);
       toast.error(error instanceof Error ? error.message : 'Lỗi phân tích domain');
@@ -76,14 +80,14 @@ export function AIAutoSEO() {
       toast.info('🚀 Đang khởi chạy SEO automation...');
 
       const result = await executeSEOAutomation(domain, keywords, plan, {
-        autoIndex: true
+        autoIndex: true,
       });
 
       toast.success(
         `✅ ${result.message}\n` +
-        `📊 Keywords: ${result.keywordsAdded}\n` +
-        `🔗 Pages: ${result.pagesQueued}\n` +
-        `🤖 Auto-indexing: ${result.autoIndexing ? 'Bật' : 'Tắt'}`
+          `📊 Keywords: ${result.keywordsAdded}\n` +
+          `🔗 Pages: ${result.pagesQueued}\n` +
+          `🤖 Auto-indexing: ${result.autoIndexing ? 'Bật' : 'Tắt'}`
       );
 
       // Reset form
@@ -91,7 +95,6 @@ export function AIAutoSEO() {
       setKeywords(null);
       setPlan(null);
       setPages([]);
-
     } catch (error) {
       console.error('Execution error:', error);
       toast.error(error instanceof Error ? error.message : 'Lỗi khởi chạy SEO');
@@ -198,8 +201,8 @@ export function AIAutoSEO() {
               <CardHeader>
                 <CardTitle>📊 Keywords đã tạo</CardTitle>
                 <CardDescription>
-                  Tổng {keywords.totalKeywords} keywords | 
-                  Trung bình {keywords.avgSearchVolume.toLocaleString()} searches/tháng
+                  Tổng {keywords.totalKeywords} keywords | Trung bình{' '}
+                  {keywords.avgSearchVolume.toLocaleString()} searches/tháng
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -219,15 +222,23 @@ export function AIAutoSEO() {
                   {/* Primary Keywords */}
                   <TabsContent value="primary" className="space-y-2">
                     {keywords.primaryKeywords.map((kw, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
                         <div>
                           <p className="font-medium">{kw.keyword}</p>
                           <div className="flex gap-2 mt-1">
                             <Badge variant="outline">{kw.searchVolume.toLocaleString()}/mo</Badge>
-                            <Badge variant={
-                              kw.competition === 'low' ? 'default' :
-                              kw.competition === 'medium' ? 'secondary' : 'destructive'
-                            }>
+                            <Badge
+                              variant={
+                                kw.competition === 'low'
+                                  ? 'default'
+                                  : kw.competition === 'medium'
+                                    ? 'secondary'
+                                    : 'destructive'
+                              }
+                            >
                               {kw.competition}
                             </Badge>
                             <Badge variant="outline">{kw.intent}</Badge>
@@ -250,7 +261,9 @@ export function AIAutoSEO() {
                           <Badge variant="outline" className="text-xs">
                             {kw.searchVolume.toLocaleString()}
                           </Badge>
-                          <Badge variant="outline" className="text-xs">{kw.competition}</Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {kw.competition}
+                          </Badge>
                         </div>
                       </div>
                     ))}
@@ -309,7 +322,9 @@ export function AIAutoSEO() {
                   <AccordionItem value="summary">
                     <AccordionTrigger>📊 Tổng quan</AccordionTrigger>
                     <AccordionContent className="space-y-2">
-                      <p><strong>Hiện trạng:</strong> {plan.summary.currentState}</p>
+                      <p>
+                        <strong>Hiện trạng:</strong> {plan.summary.currentState}
+                      </p>
                       <div>
                         <strong>Mục tiêu:</strong>
                         <ul className="list-disc list-inside mt-1">
@@ -318,7 +333,9 @@ export function AIAutoSEO() {
                           ))}
                         </ul>
                       </div>
-                      <p><strong>Thời gian dự kiến:</strong> {plan.summary.estimatedTimeToResults}</p>
+                      <p>
+                        <strong>Thời gian dự kiến:</strong> {plan.summary.estimatedTimeToResults}
+                      </p>
                     </AccordionContent>
                   </AccordionItem>
 
@@ -331,11 +348,17 @@ export function AIAutoSEO() {
                       <div className="space-y-2">
                         {plan.technicalSEO.slice(0, 10).map((task, i) => (
                           <div key={i} className="flex items-start gap-2 p-2 border rounded">
-                            <Badge variant={
-                              task.priority === 'critical' ? 'destructive' :
-                              task.priority === 'high' ? 'default' :
-                              task.priority === 'medium' ? 'secondary' : 'outline'
-                            }>
+                            <Badge
+                              variant={
+                                task.priority === 'critical'
+                                  ? 'destructive'
+                                  : task.priority === 'high'
+                                    ? 'default'
+                                    : task.priority === 'medium'
+                                      ? 'secondary'
+                                      : 'outline'
+                              }
+                            >
                               {task.priority}
                             </Badge>
                             <div className="flex-1">
@@ -352,20 +375,22 @@ export function AIAutoSEO() {
 
                   {/* Content Strategy */}
                   <AccordionItem value="content">
-                    <AccordionTrigger>
-                      ✍️ Content Strategy
-                    </AccordionTrigger>
+                    <AccordionTrigger>✍️ Content Strategy</AccordionTrigger>
                     <AccordionContent className="space-y-4">
                       <p>{plan.contentStrategy.overview}</p>
                       <div>
                         <strong>Content Pillars:</strong>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {plan.contentStrategy.contentPillars.map((pillar, i) => (
-                            <Badge key={i} variant="secondary">{pillar}</Badge>
+                            <Badge key={i} variant="secondary">
+                              {pillar}
+                            </Badge>
                           ))}
                         </div>
                       </div>
-                      <p><strong>Tần suất:</strong> {plan.contentStrategy.publishingFrequency}</p>
+                      <p>
+                        <strong>Tần suất:</strong> {plan.contentStrategy.publishingFrequency}
+                      </p>
                     </AccordionContent>
                   </AccordionItem>
 
@@ -377,7 +402,9 @@ export function AIAutoSEO() {
                         <h4 className="font-semibold mb-2">Week 1</h4>
                         <ul className="list-disc list-inside space-y-1">
                           {plan.timeline.week1.map((task, i) => (
-                            <li key={i} className="text-sm">{task.task}</li>
+                            <li key={i} className="text-sm">
+                              {task.task}
+                            </li>
                           ))}
                         </ul>
                       </div>
@@ -385,7 +412,9 @@ export function AIAutoSEO() {
                         <h4 className="font-semibold mb-2">Month 1</h4>
                         <ul className="list-disc list-inside space-y-1">
                           {plan.timeline.month1.slice(0, 5).map((task, i) => (
-                            <li key={i} className="text-sm">{task.task}</li>
+                            <li key={i} className="text-sm">
+                              {task.task}
+                            </li>
                           ))}
                         </ul>
                       </div>

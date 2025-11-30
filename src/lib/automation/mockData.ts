@@ -107,11 +107,11 @@ const mockStats: DashboardStats = {
 // Check if we should use mock data
 export const shouldUseMockData = () => {
   if (!isDev) return false;
-  
+
   // Check if there's a network error flag
   const hasNetworkError = localStorage.getItem('supabase-network-error') === 'true';
   const useMockData = localStorage.getItem('use-mock-data') === 'true';
-  
+
   return hasNetworkError || useMockData;
 };
 
@@ -138,7 +138,7 @@ export const mockApi = {
 
   getAgent: async (id: string): Promise<AIAgent> => {
     await delay(300);
-    const agent = mockAgents.find(a => a.id === id);
+    const agent = mockAgents.find((a) => a.id === id);
     if (!agent) throw new Error('Agent not found');
     return agent;
   },
@@ -161,9 +161,9 @@ export const mockApi = {
 
   updateAgent: async (id: string, updates: Partial<AIAgent>): Promise<AIAgent> => {
     await delay(300);
-    const index = mockAgents.findIndex(a => a.id === id);
+    const index = mockAgents.findIndex((a) => a.id === id);
     if (index === -1) throw new Error('Agent not found');
-    
+
     mockAgents[index] = {
       ...mockAgents[index],
       ...updates,
@@ -174,7 +174,7 @@ export const mockApi = {
 
   deleteAgent: async (id: string): Promise<void> => {
     await delay(300);
-    const index = mockAgents.findIndex(a => a.id === id);
+    const index = mockAgents.findIndex((a) => a.id === id);
     if (index !== -1) {
       mockAgents.splice(index, 1);
     }
@@ -226,7 +226,7 @@ export const mockApi = {
 
 // Helper function to simulate network delay
 function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // Export mock data for testing

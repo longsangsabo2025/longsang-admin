@@ -3,7 +3,7 @@
  *
  * Captures, logs, and reports errors to Sentry and Supabase
  * Integrates with existing logger service
- * 
+ *
  * Enhanced with:
  * - Real-time alerts (Slack/Discord/Telegram)
  * - AI-powered fix suggestions
@@ -60,7 +60,9 @@ class ErrorHandler {
 
     try {
       // Get current user if authenticated
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (user) {
         Sentry.setUser({ id: user.id, email: user.email || undefined });
@@ -78,10 +80,7 @@ class ErrorHandler {
   /**
    * Capture and handle an error
    */
-  async capture(
-    error: Error | unknown,
-    context: ErrorContext = {}
-  ): Promise<string | null> {
+  async capture(error: Error | unknown, context: ErrorContext = {}): Promise<string | null> {
     try {
       // Ensure initialized
       await this.initialize();
@@ -110,14 +109,14 @@ class ErrorHandler {
 
       // Send real-time alert for critical/high severity errors
       if (severity === 'critical' || severity === 'high') {
-        this.sendAlert(normalizedError, severity, errorLogId, context).catch(err =>
+        this.sendAlert(normalizedError, severity, errorLogId, context).catch((err) =>
           logger.debug('Failed to send alert', err, 'ErrorHandler')
         );
       }
 
       // Get AI fix suggestions for errors (async, don't wait)
       if (errorLogId) {
-        this.getAISuggestions(errorLogId, normalizedError, context).catch(err =>
+        this.getAISuggestions(errorLogId, normalizedError, context).catch((err) =>
           logger.debug('Failed to get AI suggestions', err, 'ErrorHandler')
         );
       }
@@ -141,10 +140,13 @@ class ErrorHandler {
   ): Promise<string | undefined> {
     try {
       const sentrySeverity: Sentry.SeverityLevel =
-        severity === 'critical' ? 'fatal' :
-        severity === 'high' ? 'error' :
-        severity === 'medium' ? 'warning' :
-        'info';
+        severity === 'critical'
+          ? 'fatal'
+          : severity === 'high'
+            ? 'error'
+            : severity === 'medium'
+              ? 'warning'
+              : 'info';
 
       const eventId = Sentry.captureException(error, {
         level: sentrySeverity,
@@ -182,7 +184,9 @@ class ErrorHandler {
   ): Promise<string | null> {
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       const errorLog: Omit<ErrorLog, 'id' | 'created_at'> = {
         error_type: error.name || 'Error',
@@ -210,7 +214,7 @@ class ErrorHandler {
       }
 
       // Trigger bug report creation (async, don't wait)
-      this.createBugReport(data.id).catch(err =>
+      this.createBugReport(data.id).catch((err) =>
         logger.debug('Failed to create bug report', err, 'ErrorHandler')
       );
 
@@ -280,11 +284,7 @@ class ErrorHandler {
     }
 
     // Low severity errors
-    if (
-      name.includes('warning') ||
-      message.includes('validation') ||
-      context.severity === 'low'
-    ) {
+    if (name.includes('warning') || message.includes('validation') || context.severity === 'low') {
       return 'low';
     }
 
@@ -387,10 +387,7 @@ class ErrorHandler {
 export const errorHandler = new ErrorHandler();
 
 // Export convenience function
-export const captureError = (
-  error: unknown,
-  context?: ErrorContext
-) => errorHandler.capture(error, context);
+export const captureError = (error: unknown, context?: ErrorContext) =>
+  errorHandler.capture(error, context);
 
 export default errorHandler;
-

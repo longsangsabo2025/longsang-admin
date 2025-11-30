@@ -13,14 +13,14 @@ import {
   PlatformSettings,
   SocialPostRequest,
   SocialPostResponse,
-} from "@/types/social-media";
-import { BaseSocialPlatform } from "./BaseSocialPlatform";
+} from '@/types/social-media';
+import { BaseSocialPlatform } from './BaseSocialPlatform';
 
 export class YouTubePlatform extends BaseSocialPlatform {
-  private readonly API_BASE = "https://www.googleapis.com/youtube/v3";
+  private readonly API_BASE = 'https://www.googleapis.com/youtube/v3';
 
   constructor(credentials: PlatformCredentials, settings?: PlatformSettings) {
-    super("youtube", credentials, settings);
+    super('youtube', credentials, settings);
   }
 
   async authenticate(): Promise<boolean> {
@@ -50,8 +50,8 @@ export class YouTubePlatform extends BaseSocialPlatform {
       this.validatePost(request);
 
       // YouTube requires video for posts
-      if (!request.media || request.media.length === 0 || request.media[0].type !== "video") {
-        throw new Error("YouTube posts require a video");
+      if (!request.media || request.media.length === 0 || request.media[0].type !== 'video') {
+        throw new Error('YouTube posts require a video');
       }
 
       const video = request.media[0];
@@ -61,19 +61,19 @@ export class YouTubePlatform extends BaseSocialPlatform {
 
       if (this.settings.autoHashtags && request.hashtags && request.hashtags.length > 0) {
         const hashtags = this.formatHashtags(request.hashtags).slice(0, 15); // YouTube limit
-        description = `${description}\n\n${hashtags.join(" ")}`;
+        description = `${description}\n\n${hashtags.join(' ')}`;
       }
 
       // Prepare video metadata
       const metadata = {
         snippet: {
-          title: request.text.split("\n")[0].slice(0, 100), // First line as title
+          title: request.text.split('\n')[0].slice(0, 100), // First line as title
           description: description,
           tags: request.options?.youtubeTags || request.hashtags || [],
-          categoryId: request.options?.youtubeCategory || "22", // People & Blogs
+          categoryId: request.options?.youtubeCategory || '22', // People & Blogs
         },
         status: {
-          privacyStatus: request.options?.youtubePrivacy || "public",
+          privacyStatus: request.options?.youtubePrivacy || 'public',
           selfDeclaredMadeForKids: false,
         },
       };
@@ -81,37 +81,37 @@ export class YouTubePlatform extends BaseSocialPlatform {
       // Note: Actual video upload requires resumable upload protocol
       // This is a simplified version - production needs proper implementation
       const response = await fetch(`${this.API_BASE}/videos?part=snippet,status`, {
-        method: "POST",
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${this.credentials.accessToken}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(metadata),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(`YouTube API error: ${error.error?.message || "Upload failed"}`);
+        throw new Error(`YouTube API error: ${error.error?.message || 'Upload failed'}`);
       }
 
       const data = (await response.json()) as { id: string };
 
       return {
-        platform: "youtube",
+        platform: 'youtube',
         success: true,
         postId: data.id,
         postUrl: `https://www.youtube.com/watch?v=${data.id}`,
-        status: "published",
+        status: 'published',
         publishedAt: new Date(),
       };
     } catch (error) {
       return {
-        platform: "youtube",
+        platform: 'youtube',
         success: false,
-        status: "failed",
+        status: 'failed',
         error: {
-          code: "POST_FAILED",
-          message: error instanceof Error ? error.message : "Unknown error",
+          code: 'POST_FAILED',
+          message: error instanceof Error ? error.message : 'Unknown error',
           details: error,
         },
       };
@@ -164,18 +164,18 @@ export class YouTubePlatform extends BaseSocialPlatform {
           }
         }
       } catch (error) {
-        console.error("Failed to get YouTube channel info:", error);
+        console.error('Failed to get YouTube channel info:', error);
       }
     }
 
     return {
-      platform: "youtube",
+      platform: 'youtube',
       connected: isHealthy,
       accountInfo,
       health: {
-        status: isHealthy ? "healthy" : "error",
+        status: isHealthy ? 'healthy' : 'error',
         lastChecked: new Date(),
-        message: isHealthy ? "Connected" : "Authentication failed",
+        message: isHealthy ? 'Connected' : 'Authentication failed',
       },
       credentials: this.credentials,
       settings: this.settings,
@@ -184,7 +184,7 @@ export class YouTubePlatform extends BaseSocialPlatform {
 
   getCapabilities(): PlatformCapabilities {
     return {
-      platform: "youtube",
+      platform: 'youtube',
       features: {
         textPosts: false, // YouTube is video-first
         imagePosts: false,

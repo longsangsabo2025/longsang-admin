@@ -1,7 +1,17 @@
-import { motion } from "framer-motion";
-import { GlowCard } from "./GlowCard";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-import { ProjectData } from "@/data/projects-data";
+import { motion } from 'framer-motion';
+import { GlowCard } from './GlowCard';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+} from 'recharts';
+import { ProjectData } from '@/data/projects-data';
 
 interface StatsChartProps {
   project: ProjectData;
@@ -16,9 +26,7 @@ export const StatsChart = ({ project }: StatsChartProps) => {
       transition={{ duration: 0.6 }}
       className="py-12"
     >
-      <h2 className="font-display text-3xl font-bold mb-6 glow-text">
-        THỐNG KÊ & HIỆU SUẤT
-      </h2>
+      <h2 className="font-display text-3xl font-bold mb-6 glow-text">THỐNG KÊ & HIỆU SUẤT</h2>
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -34,9 +42,7 @@ export const StatsChart = ({ project }: StatsChartProps) => {
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
                 {metric.label}
               </p>
-              <p className="font-display text-2xl font-bold text-neon-cyan mb-1">
-                {metric.value}
-              </p>
+              <p className="font-display text-2xl font-bold text-neon-cyan mb-1">{metric.value}</p>
               <p className="text-xs text-muted-foreground">{metric.unit}</p>
               <p className="text-xs text-neon-green mt-2">{metric.trend}</p>
             </GlowCard>
@@ -57,9 +63,9 @@ export const StatsChart = ({ project }: StatsChartProps) => {
               <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(var(--dark-surface))",
-                  border: "1px solid hsl(var(--neon-cyan))",
-                  borderRadius: "8px",
+                  backgroundColor: 'hsl(var(--dark-surface))',
+                  border: '1px solid hsl(var(--neon-cyan))',
+                  borderRadius: '8px',
                 }}
               />
               <Bar dataKey="value" fill="hsl(var(--neon-cyan))" radius={[8, 8, 0, 0]} />
@@ -79,9 +85,9 @@ export const StatsChart = ({ project }: StatsChartProps) => {
               <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(var(--dark-surface))",
-                  border: "1px solid hsl(var(--neon-green))",
-                  borderRadius: "8px",
+                  backgroundColor: 'hsl(var(--dark-surface))',
+                  border: '1px solid hsl(var(--neon-green))',
+                  borderRadius: '8px',
                 }}
               />
               <Line
@@ -89,14 +95,14 @@ export const StatsChart = ({ project }: StatsChartProps) => {
                 dataKey="users"
                 stroke="hsl(var(--neon-green))"
                 strokeWidth={2}
-                dot={{ fill: "hsl(var(--neon-green))", r: 4 }}
+                dot={{ fill: 'hsl(var(--neon-green))', r: 4 }}
               />
               <Line
                 type="monotone"
                 dataKey="performance"
                 stroke="hsl(var(--neon-cyan))"
                 strokeWidth={2}
-                dot={{ fill: "hsl(var(--neon-cyan))", r: 4 }}
+                dot={{ fill: 'hsl(var(--neon-cyan))', r: 4 }}
               />
             </LineChart>
           </ResponsiveContainer>

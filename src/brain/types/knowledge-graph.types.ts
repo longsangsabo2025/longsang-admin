@@ -7,7 +7,7 @@
  */
 export interface KnowledgeNode {
   id: string;
-  nodeType: "concept" | "knowledge" | "domain" | "principle" | "model" | "rule" | "pattern";
+  nodeType: 'concept' | 'knowledge' | 'domain' | 'principle' | 'model' | 'rule' | 'pattern';
   nodeId?: string;
   nodeLabel: string;
   nodeDescription?: string;
@@ -26,13 +26,13 @@ export interface KnowledgeEdge {
   sourceNodeId: string;
   targetNodeId: string;
   edgeType:
-    | "related_to"
-    | "similar_to"
-    | "depends_on"
-    | "contradicts"
-    | "supports"
-    | "part_of"
-    | "instance_of";
+    | 'related_to'
+    | 'similar_to'
+    | 'depends_on'
+    | 'contradicts'
+    | 'supports'
+    | 'part_of'
+    | 'instance_of';
   edgeLabel?: string;
   edgeWeight: number;
   properties: Record<string, any>;
@@ -82,7 +82,7 @@ export interface GraphTraversalResult {
 export interface GraphStatistics {
   nodeCount: number;
   edgeCount: number;
-  domainId: string | "all";
+  domainId: string | 'all';
 }
 
 /**
@@ -117,4 +117,3 @@ export interface TraverseGraphRequest {
   startNodeId: string;
   maxDepth?: number;
 }
-

@@ -14,7 +14,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2, Plus, Edit, Trash2, CheckCircle, Flag, CalendarDays } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -100,7 +106,6 @@ export function TaskList() {
   };
 
   const handleDeleteTask = async (id: string) => {
-     
     if (window.confirm('Are you sure you want to delete this task?')) {
       await deleteTaskMutation.mutateAsync(id);
     }
@@ -181,7 +186,12 @@ export function TaskList() {
       </div>
       <div>
         <Label htmlFor="task-due-date">Due Date</Label>
-        <Input id="task-due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+        <Input
+          id="task-due-date"
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+        />
       </div>
     </div>
   );
@@ -193,7 +203,9 @@ export function TaskList() {
           <CardTitle className="flex items-center gap-2">
             <Flag className="h-5 w-5" /> Your Tasks
           </CardTitle>
-          <CardDescription>Manage your personal tasks, created manually or by AI workflows.</CardDescription>
+          <CardDescription>
+            Manage your personal tasks, created manually or by AI workflows.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -212,7 +224,10 @@ export function TaskList() {
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateTask} disabled={createTaskMutation.isPending || !title.trim()}>
+                <Button
+                  onClick={handleCreateTask}
+                  disabled={createTaskMutation.isPending || !title.trim()}
+                >
                   {createTaskMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : (
@@ -239,7 +254,10 @@ export function TaskList() {
                       <h4 className="font-bold">{task.title}</h4>
                       <div className="flex items-center gap-2">
                         <Badge variant={getStatusBadgeVariant(task.status)}>{task.status}</Badge>
-                        <Badge variant={getPriorityBadgeVariant(task.priority)} className="flex items-center gap-1">
+                        <Badge
+                          variant={getPriorityBadgeVariant(task.priority)}
+                          className="flex items-center gap-1"
+                        >
                           <Flag className="h-3 w-3" /> {task.priority}
                         </Badge>
                         <Dialog
@@ -258,7 +276,9 @@ export function TaskList() {
                           <DialogContent className="max-w-md">
                             <DialogHeader>
                               <DialogTitle>Edit Task</DialogTitle>
-                              <DialogDescription>Modify the details of your task.</DialogDescription>
+                              <DialogDescription>
+                                Modify the details of your task.
+                              </DialogDescription>
                             </DialogHeader>
                             {renderTaskForm()}
                             <DialogFooter>
@@ -297,7 +317,8 @@ export function TaskList() {
                     <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
                     {task.due_date && (
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <CalendarDays className="h-3 w-3" /> Due: {format(parseISO(task.due_date), 'MMM dd, yyyy')}
+                        <CalendarDays className="h-3 w-3" /> Due:{' '}
+                        {format(parseISO(task.due_date), 'MMM dd, yyyy')}
                       </p>
                     )}
                   </Card>
@@ -312,4 +333,3 @@ export function TaskList() {
     </div>
   );
 }
-

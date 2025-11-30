@@ -53,12 +53,12 @@ export async function createCalendarEvent(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ calendarEmail, event }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to create calendar event');
   }
-  
+
   const data = await response.json();
   return {
     status: 'success',
@@ -79,12 +79,12 @@ export async function updateCalendarEvent(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ calendarEmail, eventId, updates }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to update calendar event');
   }
-  
+
   const data = await response.json();
   return {
     status: 'success',
@@ -104,12 +104,12 @@ export async function cancelCalendarEvent(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ calendarEmail, eventId }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to cancel calendar event');
   }
-  
+
   return {
     status: 'success',
     eventId,
@@ -118,40 +118,33 @@ export async function cancelCalendarEvent(
   };
 }
 
-export async function listUpcomingEvents(
-  calendarEmail: string,
-  maxResults: number = 10
-) {
+export async function listUpcomingEvents(calendarEmail: string, maxResults: number = 10) {
   const response = await fetch(`${API_BASE}/upcoming-events`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ calendarEmail, maxResults }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to list events');
   }
-  
+
   return response.json();
 }
 
-export async function checkFreeBusy(
-  calendarEmail: string,
-  timeMin: string,
-  timeMax: string
-) {
+export async function checkFreeBusy(calendarEmail: string, timeMin: string, timeMax: string) {
   const response = await fetch(`${API_BASE}/free-busy`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ calendarEmail, timeMin, timeMax }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to check free/busy');
   }
-  
+
   return response.json();
 }
 
@@ -176,9 +169,7 @@ export async function getCalendarStats(days: number = 30) {
     if (error) throw error;
 
     const total = data?.length || 0;
-    const upcoming = data?.filter(event => 
-      new Date(event.start_time) > new Date()
-    ).length || 0;
+    const upcoming = data?.filter((event) => new Date(event.start_time) > new Date()).length || 0;
     const past = total - upcoming;
 
     return {

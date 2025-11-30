@@ -1,14 +1,25 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Workflow, MoreVertical, Play, Edit, Copy, Trash2, GitBranch, Clock, TrendingUp, Zap } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/dropdown-menu';
+import {
+  Workflow,
+  MoreVertical,
+  Play,
+  Edit,
+  Copy,
+  Trash2,
+  GitBranch,
+  Clock,
+  TrendingUp,
+  Zap,
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface WorkflowCardProps {
   workflow: {
@@ -32,34 +43,46 @@ const WorkflowCard = ({ workflow, onUpdate }: WorkflowCardProps) => {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'sequential': return <GitBranch className="w-4 h-4" />;
-      case 'parallel': return <Zap className="w-4 h-4" />;
-      case 'conditional': return <GitBranch className="w-4 h-4" />;
-      default: return <Workflow className="w-4 h-4" />;
+      case 'sequential':
+        return <GitBranch className="w-4 h-4" />;
+      case 'parallel':
+        return <Zap className="w-4 h-4" />;
+      case 'conditional':
+        return <GitBranch className="w-4 h-4" />;
+      default:
+        return <Workflow className="w-4 h-4" />;
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'sequential': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'parallel': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      case 'conditional': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+      case 'sequential':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'parallel':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      case 'conditional':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'draft': return 'bg-yellow-500';
-      case 'archived': return 'bg-gray-500';
-      default: return 'bg-blue-500';
+      case 'active':
+        return 'bg-green-500';
+      case 'draft':
+        return 'bg-yellow-500';
+      case 'archived':
+        return 'bg-gray-500';
+      default:
+        return 'bg-blue-500';
     }
   };
 
   const handleExecute = async () => {
     toast({
-      title: "Executing Workflow",
+      title: 'Executing Workflow',
       description: `Starting ${workflow.name}...`,
     });
     // TODO: Implement workflow execution
@@ -67,7 +90,7 @@ const WorkflowCard = ({ workflow, onUpdate }: WorkflowCardProps) => {
 
   const handleDuplicate = async () => {
     toast({
-      title: "Workflow Duplicated",
+      title: 'Workflow Duplicated',
       description: `Created a copy of ${workflow.name}`,
     });
     onUpdate();
@@ -76,7 +99,7 @@ const WorkflowCard = ({ workflow, onUpdate }: WorkflowCardProps) => {
   const handleDelete = async () => {
     if (confirm(`Are you sure you want to delete ${workflow.name}?`)) {
       toast({
-        title: "Workflow Deleted",
+        title: 'Workflow Deleted',
         description: `${workflow.name} has been removed`,
       });
       onUpdate();
@@ -111,12 +134,19 @@ const WorkflowCard = ({ workflow, onUpdate }: WorkflowCardProps) => {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+              >
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700">
-              <DropdownMenuItem onClick={handleExecute} className="text-slate-300 hover:bg-slate-800">
+              <DropdownMenuItem
+                onClick={handleExecute}
+                className="text-slate-300 hover:bg-slate-800"
+              >
                 <Play className="w-4 h-4 mr-2" />
                 Execute
               </DropdownMenuItem>
@@ -124,7 +154,10 @@ const WorkflowCard = ({ workflow, onUpdate }: WorkflowCardProps) => {
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDuplicate} className="text-slate-300 hover:bg-slate-800">
+              <DropdownMenuItem
+                onClick={handleDuplicate}
+                className="text-slate-300 hover:bg-slate-800"
+              >
                 <Copy className="w-4 h-4 mr-2" />
                 Duplicate
               </DropdownMenuItem>
@@ -138,14 +171,16 @@ const WorkflowCard = ({ workflow, onUpdate }: WorkflowCardProps) => {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Description */}
-        <p className="text-sm text-slate-400 line-clamp-2">
-          {workflow.description}
-        </p>
+        <p className="text-sm text-slate-400 line-clamp-2">{workflow.description}</p>
 
         {/* Tags */}
         <div className="flex flex-wrap gap-1">
           {workflow.tags.slice(0, 4).map((tag, idx) => (
-            <Badge key={idx} variant="secondary" className="text-xs border-slate-600 text-slate-300">
+            <Badge
+              key={idx}
+              variant="secondary"
+              className="text-xs border-slate-600 text-slate-300"
+            >
               {tag}
             </Badge>
           ))}
@@ -170,7 +205,9 @@ const WorkflowCard = ({ workflow, onUpdate }: WorkflowCardProps) => {
               <TrendingUp className="w-3 h-3" />
               Success
             </div>
-            <div className="text-lg font-semibold text-green-400">{workflow.success_rate.toFixed(1)}%</div>
+            <div className="text-lg font-semibold text-green-400">
+              {workflow.success_rate.toFixed(1)}%
+            </div>
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1 text-xs text-slate-400">
@@ -191,7 +228,11 @@ const WorkflowCard = ({ workflow, onUpdate }: WorkflowCardProps) => {
         )}
 
         {/* Execute Button */}
-        <Button onClick={handleExecute} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white" variant="default">
+        <Button
+          onClick={handleExecute}
+          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+          variant="default"
+        >
           <Play className="w-4 h-4 mr-2" />
           Execute Workflow
         </Button>

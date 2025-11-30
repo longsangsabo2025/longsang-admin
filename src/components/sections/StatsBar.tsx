@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const useCountUp = (end: number, shouldStart: boolean, duration: number = 2000) => {
   const [count, setCount] = useState(0);
@@ -39,12 +39,12 @@ export const StatsBar = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   const stats = [
-    { value: 50, labelKey: "stats.projects", suffix: "+" },
-    { value: 100000, labelKey: "stats.linesOfCode", suffix: "+" },
-    { value: 8, labelKey: "stats.technologies", suffix: "+" },
-    { value: 5, labelKey: "stats.experience", suffix: ` ${t("stats.years")}` },
-    { value: 99.9, labelKey: "stats.reliability", suffix: "%" },
-    { value: 24, labelKey: "stats.support", suffix: "/7" },
+    { value: 50, labelKey: 'stats.projects', suffix: '+' },
+    { value: 100000, labelKey: 'stats.linesOfCode', suffix: '+' },
+    { value: 8, labelKey: 'stats.technologies', suffix: '+' },
+    { value: 5, labelKey: 'stats.experience', suffix: ` ${t('stats.years')}` },
+    { value: 99.9, labelKey: 'stats.reliability', suffix: '%' },
+    { value: 24, labelKey: 'stats.support', suffix: '/7' },
   ];
 
   useEffect(() => {
@@ -100,7 +100,7 @@ const StatItem = ({ stat, shouldAnimate, delay, t }: StatItemProps) => {
     if (stat.value >= 100000) {
       return Math.floor(num).toLocaleString();
     }
-    if (stat.labelKey.includes("reliability")) {
+    if (stat.labelKey.includes('reliability')) {
       return num.toFixed(1);
     }
     return Math.floor(num);

@@ -60,7 +60,7 @@ export class ErrorBoundary extends Component<Props, State> {
       },
     };
 
-    errorHandler.capture(error, context).catch(err => {
+    errorHandler.capture(error, context).catch((err) => {
       logger.warn('Failed to capture error in ErrorBoundary', err as Error, 'ErrorBoundary');
     });
 
@@ -110,7 +110,7 @@ export class ErrorBoundary extends Component<Props, State> {
               )}
               <div className="flex gap-2">
                 <Button onClick={this.handleReset}>Try Again</Button>
-                <Button variant="outline" onClick={() => globalThis.location.href = '/'}>
+                <Button variant="outline" onClick={() => (globalThis.location.href = '/')}>
                   Go Home
                 </Button>
               </div>

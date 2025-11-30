@@ -97,27 +97,37 @@ export function CopilotChat({
   const { toast } = useToast();
 
   const { settings } = useAISettings();
-  const { messages, input, handleInputChange, submit, isLoading, isThinking, error, stop, clear, conversationId: currentConvId } =
-    useAssistant({
-      assistantType: activeAssistant,
-      userId,
-      conversationId,
-      settings,
-      onError: (error) => {
-        toast({
-          title: '❌ Lỗi',
-          description: error.message || 'Không thể kết nối với AI',
-          variant: 'destructive',
-        });
-      },
-      onConversationCreated: (newConvId) => {
-        onConversationCreated?.(newConvId);
-        toast({
-          title: '💬 Cuộc trò chuyện mới',
-          description: 'Đã lưu vào lịch sử',
-        });
-      },
-    });
+  const {
+    messages,
+    input,
+    handleInputChange,
+    submit,
+    isLoading,
+    isThinking,
+    error,
+    stop,
+    clear,
+    conversationId: currentConvId,
+  } = useAssistant({
+    assistantType: activeAssistant,
+    userId,
+    conversationId,
+    settings,
+    onError: (error) => {
+      toast({
+        title: '❌ Lỗi',
+        description: error.message || 'Không thể kết nối với AI',
+        variant: 'destructive',
+      });
+    },
+    onConversationCreated: (newConvId) => {
+      onConversationCreated?.(newConvId);
+      toast({
+        title: '💬 Cuộc trò chuyện mới',
+        description: 'Đã lưu vào lịch sử',
+      });
+    },
+  });
 
   // Clear conversation when assistant changes
   useEffect(() => {

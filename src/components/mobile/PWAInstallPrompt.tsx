@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { Download, X, Share, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { isIOS, isPWA, hasInstallPrompt, promptInstall } from "@/lib/pwa";
+import { useState, useEffect } from 'react';
+import { Download, X, Share, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { isIOS, isPWA, hasInstallPrompt, promptInstall } from '@/lib/pwa';
 
 export function PWAInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -12,10 +12,10 @@ export function PWAInstallPrompt() {
     if (isPWA()) return;
 
     // Check if on mobile route
-    if (!window.location.pathname.startsWith("/mobile")) return;
+    if (!window.location.pathname.startsWith('/mobile')) return;
 
     // Check if dismissed recently (24 hours)
-    const dismissed = localStorage.getItem("pwa-prompt-dismissed");
+    const dismissed = localStorage.getItem('pwa-prompt-dismissed');
     if (dismissed) {
       const dismissedTime = parseInt(dismissed);
       if (Date.now() - dismissedTime < 24 * 60 * 60 * 1000) return;
@@ -28,18 +28,18 @@ export function PWAInstallPrompt() {
 
     // Listen for install available event (Android)
     const handleInstallAvailable = () => setShowPrompt(true);
-    window.addEventListener("pwa-install-available", handleInstallAvailable);
+    window.addEventListener('pwa-install-available', handleInstallAvailable);
 
     return () => {
       clearTimeout(timer);
-      window.removeEventListener("pwa-install-available", handleInstallAvailable);
+      window.removeEventListener('pwa-install-available', handleInstallAvailable);
     };
   }, []);
 
   const handleDismiss = () => {
     setShowPrompt(false);
     setShowIOSGuide(false);
-    localStorage.setItem("pwa-prompt-dismissed", Date.now().toString());
+    localStorage.setItem('pwa-prompt-dismissed', Date.now().toString());
   };
 
   const handleInstall = async () => {
@@ -66,7 +66,7 @@ export function PWAInstallPrompt() {
               <X className="w-5 h-5" />
             </Button>
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex items-start gap-4 p-4 bg-gray-800 rounded-xl">
               <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
@@ -74,7 +74,10 @@ export function PWAInstallPrompt() {
               </div>
               <div>
                 <p className="font-medium text-white">Bước 1</p>
-                <p className="text-sm text-gray-400">Nhấn nút <span className="text-blue-400">Share</span> (chia sẻ) ở thanh dưới Safari</p>
+                <p className="text-sm text-gray-400">
+                  Nhấn nút <span className="text-blue-400">Share</span> (chia sẻ) ở thanh dưới
+                  Safari
+                </p>
               </div>
             </div>
 
@@ -84,7 +87,10 @@ export function PWAInstallPrompt() {
               </div>
               <div>
                 <p className="font-medium text-white">Bước 2</p>
-                <p className="text-sm text-gray-400">Chọn <span className="text-green-400">"Add to Home Screen"</span> (Thêm vào Màn hình chính)</p>
+                <p className="text-sm text-gray-400">
+                  Chọn <span className="text-green-400">"Add to Home Screen"</span> (Thêm vào Màn
+                  hình chính)
+                </p>
               </div>
             </div>
 
@@ -94,15 +100,14 @@ export function PWAInstallPrompt() {
               </div>
               <div>
                 <p className="font-medium text-white">Bước 3</p>
-                <p className="text-sm text-gray-400">Nhấn <span className="text-purple-400">"Add"</span> để cài đặt app</p>
+                <p className="text-sm text-gray-400">
+                  Nhấn <span className="text-purple-400">"Add"</span> để cài đặt app
+                </p>
               </div>
             </div>
           </div>
 
-          <Button 
-            className="w-full mt-6 bg-blue-500 hover:bg-blue-600"
-            onClick={handleDismiss}
-          >
+          <Button className="w-full mt-6 bg-blue-500 hover:bg-blue-600" onClick={handleDismiss}>
             Đã hiểu
           </Button>
         </div>

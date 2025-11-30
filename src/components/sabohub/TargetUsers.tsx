@@ -1,24 +1,24 @@
-import { motion } from "framer-motion";
-import { Crown, Users, User } from "lucide-react";
+import { motion } from 'framer-motion';
+import { Crown, Users, User } from 'lucide-react';
 
 const users = [
   {
     icon: Crown,
-    title: "CEO/Chủ Doanh Nghiệp",
-    features: ["Theo dõi real-time", "Quản lý nhân viên", "Giám sát doanh thu"],
-    gradient: "from-primary to-purple",
+    title: 'CEO/Chủ Doanh Nghiệp',
+    features: ['Theo dõi real-time', 'Quản lý nhân viên', 'Giám sát doanh thu'],
+    gradient: 'from-primary to-purple',
   },
   {
     icon: Users,
-    title: "Manager/Quản Lý",
-    features: ["Quản lý đội ngũ", "Phân công công việc", "Xử lý đơn hàng"],
-    gradient: "from-purple to-secondary",
+    title: 'Manager/Quản Lý',
+    features: ['Quản lý đội ngũ', 'Phân công công việc', 'Xử lý đơn hàng'],
+    gradient: 'from-purple to-secondary',
   },
   {
     icon: User,
-    title: "Staff/Nhân Viên",
-    features: ["Chấm công GPS", "Nhận nhiệm vụ", "Theo dõi lịch"],
-    gradient: "from-secondary to-cyan",
+    title: 'Staff/Nhân Viên',
+    features: ['Chấm công GPS', 'Nhận nhiệm vụ', 'Theo dõi lịch'],
+    gradient: 'from-secondary to-cyan',
   },
 ];
 
@@ -50,7 +50,9 @@ export const TargetUsers = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${user.gradient} flex items-center justify-center mb-6 mx-auto`}>
+              <div
+                className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${user.gradient} flex items-center justify-center mb-6 mx-auto`}
+              >
                 <user.icon className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-bold mb-6 text-center text-foreground">{user.title}</h3>

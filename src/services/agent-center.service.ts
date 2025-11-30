@@ -1,18 +1,18 @@
 /**
  * 🎯 AI Command Center - API Service
- * 
+ *
  * Theo tài liệu: docs/ai-command-center/09-API-REFERENCE.md
- * 
+ *
  * @author LongSang Admin
  * @version 2.0.0
- * 
+ *
  * @ts-nocheck - Temporarily disable type checking until Supabase types are regenerated
  * TODO: Remove @ts-nocheck after running `npx supabase gen types typescript`
  */
 
 // @ts-nocheck
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 // Type-safe table accessors (bypass generated types for now)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,7 +42,7 @@ import {
   TriggerType,
   DEFAULT_AGENT_CONFIG,
   CHART_COLORS,
-} from "@/types/agent-center.types";
+} from '@/types/agent-center.types';
 
 // ============================================================
 // TRANSFORMERS
@@ -276,10 +276,7 @@ export const agentsApi = {
    * Hard delete agent (no deleted_at column)
    */
   async delete(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('ai_agents')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('ai_agents').delete().eq('id', id);
 
     if (error) throw error;
   },
@@ -303,7 +300,7 @@ export const agentsApi = {
 
     const agents = data || [];
     const totalAgents = agents.length;
-    const activeAgents = agents.filter(a => a.status === 'active').length;
+    const activeAgents = agents.filter((a) => a.status === 'active').length;
     const totalExecutions = agents.reduce((sum, a) => sum + (a.total_runs || 0), 0);
     const totalSuccessful = agents.reduce((sum, a) => sum + (a.successful_runs || 0), 0);
     const successRate = totalExecutions > 0 ? (totalSuccessful / totalExecutions) * 100 : 0;
@@ -407,10 +404,7 @@ export const workflowsApi = {
    * Delete workflow
    */
   async delete(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('workflows')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('workflows').delete().eq('id', id);
 
     if (error) throw error;
   },
@@ -434,7 +428,7 @@ export const workflowsApi = {
 
     const workflows = data || [];
     const totalWorkflows = workflows.length;
-    const activeWorkflows = workflows.filter(w => w.status === 'active').length;
+    const activeWorkflows = workflows.filter((w) => w.status === 'active').length;
     const totalRuns = workflows.reduce((sum, w) => sum + (w.total_runs || 0), 0);
     const totalSuccessful = workflows.reduce((sum, w) => sum + (w.successful_runs || 0), 0);
     const successRate = totalRuns > 0 ? (totalSuccessful / totalRuns) * 100 : 0;
@@ -517,7 +511,11 @@ export const executionsApi = {
   /**
    * Create execution (trigger workflow)
    */
-  async create(workflowId: string, agentId?: string, inputData?: Record<string, unknown>): Promise<WorkflowExecution> {
+  async create(
+    workflowId: string,
+    agentId?: string,
+    inputData?: Record<string, unknown>
+  ): Promise<WorkflowExecution> {
     const { data, error } = await supabase
       .from('workflow_executions')
       .insert({
@@ -593,11 +591,12 @@ export const executionsApi = {
 
     const executions = data || [];
     const total = executions.length;
-    const completed = executions.filter(e => e.status === 'completed').length;
-    const running = executions.filter(e => e.status === 'running').length;
-    const failed = executions.filter(e => e.status === 'failed').length;
+    const completed = executions.filter((e) => e.status === 'completed').length;
+    const running = executions.filter((e) => e.status === 'running').length;
+    const failed = executions.filter((e) => e.status === 'failed').length;
     const totalCost = executions.reduce((sum, e) => sum + Number.parseFloat(e.cost_usd || '0'), 0);
-    const avgTime = executions.reduce((sum, e) => sum + (e.execution_time_ms || 0), 0) / (total || 1);
+    const avgTime =
+      executions.reduce((sum, e) => sum + (e.execution_time_ms || 0), 0) / (total || 1);
 
     return {
       total,
@@ -649,11 +648,7 @@ export const toolsApi = {
    * Get tool by ID
    */
   async getById(id: string): Promise<AITool | null> {
-    const { data, error } = await supabase
-      .from('ai_tools')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('ai_tools').select('*').eq('id', id).single();
 
     if (error) throw error;
     return data ? transformTool(data) : null;
@@ -671,7 +666,7 @@ export const toolsApi = {
 
     const tools = data || [];
     const totalTools = tools.length;
-    const availableTools = tools.filter(t => t.status === 'available').length;
+    const availableTools = tools.filter((t) => t.status === 'available').length;
     const totalCalls = tools.reduce((sum, t) => sum + (t.total_calls || 0), 0);
     const totalSuccessful = tools.reduce((sum, t) => sum + (t.successful_calls || 0), 0);
     const successRate = totalCalls > 0 ? (totalSuccessful / totalCalls) * 100 : 0;
@@ -700,11 +695,12 @@ export const analyticsApi = {
     ]);
 
     // Calculate trend (mock for now - would need historical data)
-    const mockTrend = (value: number) => ({
-      value: Math.round(value * 0.1),
-      percent: Math.round(Math.random() * 20 - 5),
-      direction: Math.random() > 0.5 ? 'up' : 'down',
-    } as const);
+    const mockTrend = (value: number) =>
+      ({
+        value: Math.round(value * 0.1),
+        percent: Math.round(Math.random() * 20 - 5),
+        direction: Math.random() > 0.5 ? 'up' : 'down',
+      }) as const;
 
     return {
       executions: {
@@ -716,9 +712,8 @@ export const analyticsApi = {
       },
       costs: {
         total: executionStats.totalCost,
-        avgPerExecution: executionStats.total > 0 
-          ? executionStats.totalCost / executionStats.total 
-          : 0,
+        avgPerExecution:
+          executionStats.total > 0 ? executionStats.totalCost / executionStats.total : 0,
         change: mockTrend(executionStats.totalCost),
       },
       performance: {
@@ -749,16 +744,19 @@ export const analyticsApi = {
     if (error) throw error;
 
     // Group by date
-    const grouped = (data || []).reduce((acc, item) => {
-      const date = new Date(item.created_at).toLocaleDateString('en-US', { weekday: 'short' });
-      if (!acc[date]) {
-        acc[date] = { total: 0, success: 0, failed: 0 };
-      }
-      acc[date].total++;
-      if (item.status === 'completed') acc[date].success++;
-      if (item.status === 'failed') acc[date].failed++;
-      return acc;
-    }, {} as Record<string, { total: number; success: number; failed: number }>);
+    const grouped = (data || []).reduce(
+      (acc, item) => {
+        const date = new Date(item.created_at).toLocaleDateString('en-US', { weekday: 'short' });
+        if (!acc[date]) {
+          acc[date] = { total: 0, success: 0, failed: 0 };
+        }
+        acc[date].total++;
+        if (item.status === 'completed') acc[date].success++;
+        if (item.status === 'failed') acc[date].failed++;
+        return acc;
+      },
+      {} as Record<string, { total: number; success: number; failed: number }>
+    );
 
     return Object.entries(grouped).map(([date, stats]) => ({
       date,
@@ -782,14 +780,17 @@ export const analyticsApi = {
     if (error) throw error;
 
     // Group by date
-    const grouped = (data || []).reduce((acc, item) => {
-      const date = new Date(item.created_at).toLocaleDateString('en-US', { weekday: 'short' });
-      if (!acc[date]) {
-        acc[date] = 0;
-      }
-      acc[date] += Number.parseFloat(item.cost_usd || '0');
-      return acc;
-    }, {} as Record<string, number>);
+    const grouped = (data || []).reduce(
+      (acc, item) => {
+        const date = new Date(item.created_at).toLocaleDateString('en-US', { weekday: 'short' });
+        if (!acc[date]) {
+          acc[date] = 0;
+        }
+        acc[date] += Number.parseFloat(item.cost_usd || '0');
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     return Object.entries(grouped).map(([date, cost]) => ({
       date,
@@ -840,9 +841,8 @@ export const analyticsApi = {
       toolId: tool.id,
       name: tool.name,
       calls: tool.total_calls || 0,
-      successRate: tool.total_calls > 0 
-        ? ((tool.successful_calls || 0) / tool.total_calls) * 100 
-        : 0,
+      successRate:
+        tool.total_calls > 0 ? ((tool.successful_calls || 0) / tool.total_calls) * 100 : 0,
       avgTimeMs: tool.avg_execution_time_ms || 0,
     }));
   },

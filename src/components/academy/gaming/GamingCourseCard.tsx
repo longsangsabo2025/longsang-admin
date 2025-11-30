@@ -1,8 +1,8 @@
-import { Star, Users, Clock, TrendingUp } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Star, Users, Clock, TrendingUp } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 
 interface GamingCourseCardProps {
   image: string;
@@ -17,23 +17,23 @@ interface GamingCourseCardProps {
   progress?: number;
   badge?: {
     text: string;
-    variant: "bestseller" | "new" | "trending" | "premium";
+    variant: 'bestseller' | 'new' | 'trending' | 'premium';
   };
   level?: string;
 }
 
 const badgeStyles = {
-  bestseller: "bg-gaming-warning text-black",
-  new: "bg-gaming-cyan text-black",
-  trending: "bg-primary text-primary-foreground",
-  premium: "bg-gaming-purple text-white",
+  bestseller: 'bg-gaming-warning text-black',
+  new: 'bg-gaming-cyan text-black',
+  trending: 'bg-primary text-primary-foreground',
+  premium: 'bg-gaming-purple text-white',
 };
 
 const badgeIcons = {
-  bestseller: "🔥",
-  new: "🆕",
-  trending: "⚡",
-  premium: "💎",
+  bestseller: '🔥',
+  new: '🆕',
+  trending: '⚡',
+  premium: '💎',
 };
 
 export const GamingCourseCard = ({
@@ -48,14 +48,14 @@ export const GamingCourseCard = ({
   enrolled = false,
   progress = 0,
   badge,
-  level = "Intermediate",
+  level = 'Intermediate',
 }: GamingCourseCardProps) => {
   return (
     <Card className="glass-card overflow-hidden hover-lift group cursor-pointer border border-border/50 hover:border-primary/50">
       {/* Thumbnail */}
       <div className="relative aspect-video overflow-hidden">
-        <img 
-          src={image} 
+        <img
+          src={image}
           alt={title}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
@@ -74,11 +74,11 @@ export const GamingCourseCard = ({
           </div>
         )}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <Button 
-            className="bg-gaming-cyan hover:bg-gaming-cyan/80 text-black shadow-[0_0_20px_hsl(180,100%,50%/0.5)]" 
+          <Button
+            className="bg-gaming-cyan hover:bg-gaming-cyan/80 text-black shadow-[0_0_20px_hsl(180,100%,50%/0.5)]"
             size="lg"
           >
-            {enrolled ? "Continue Lesson" : "Preview Course"}
+            {enrolled ? 'Continue Lesson' : 'Preview Course'}
           </Button>
         </div>
       </div>
@@ -88,7 +88,7 @@ export const GamingCourseCard = ({
         <h3 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
           {title}
         </h3>
-        
+
         <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
           <span>👤</span>
           <span>{instructor}</span>
@@ -121,16 +121,14 @@ export const GamingCourseCard = ({
               📚 ENROLLED
             </Badge>
           ) : (
-            <p className="text-xl font-bold text-foreground">
-              ${price}
-            </p>
+            <p className="text-xl font-bold text-foreground">${price}</p>
           )}
-          <Button 
-            className={enrolled ? "bg-gaming-purple hover:bg-gaming-purple/80 text-white" : ""} 
-            variant={enrolled ? "default" : "outline"}
+          <Button
+            className={enrolled ? 'bg-gaming-purple hover:bg-gaming-purple/80 text-white' : ''}
+            variant={enrolled ? 'default' : 'outline'}
             size="sm"
           >
-            {enrolled ? "Continue" : "Enroll"}
+            {enrolled ? 'Continue' : 'Enroll'}
           </Button>
         </div>
       </div>

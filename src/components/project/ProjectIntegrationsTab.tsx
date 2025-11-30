@@ -1,34 +1,26 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  RefreshCw, 
-  Plug,
-  ExternalLink,
-  Trash2,
-  Check,
-  X
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useEffect, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Plus, RefreshCw, Plug, ExternalLink, Trash2, Check, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface Integration {
   id: string;
@@ -49,10 +41,10 @@ export function ProjectIntegrationsTab({ projectId }: ProjectIntegrationsTabProp
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newIntegration, setNewIntegration] = useState({
-    platform: "vercel",
-    integration_type: "hosting",
+    platform: 'vercel',
+    integration_type: 'hosting',
     is_active: true,
-    notes: ""
+    notes: '',
   });
 
   useEffect(() => {
@@ -63,16 +55,16 @@ export function ProjectIntegrationsTab({ projectId }: ProjectIntegrationsTabProp
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("project_integrations")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("platform", { ascending: true });
+        .from('project_integrations')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('platform', { ascending: true });
 
       if (error) throw error;
       setIntegrations(data || []);
     } catch (error: any) {
-      console.error("Error fetching integrations:", error);
-      toast.error("Không thể tải integrations");
+      console.error('Error fetching integrations:', error);
+      toast.error('Không thể tải integrations');
     } finally {
       setLoading(false);
     }
@@ -80,62 +72,57 @@ export function ProjectIntegrationsTab({ projectId }: ProjectIntegrationsTabProp
 
   const addIntegration = async () => {
     try {
-      const { error } = await supabase
-        .from("project_integrations")
-        .insert({
-          ...newIntegration,
-          project_id: projectId,
-          config: {}
-        });
+      const { error } = await supabase.from('project_integrations').insert({
+        ...newIntegration,
+        project_id: projectId,
+        config: {},
+      });
 
       if (error) throw error;
-      
-      toast.success("Đã thêm integration!");
+
+      toast.success('Đã thêm integration!');
       setShowAddDialog(false);
       setNewIntegration({
-        platform: "vercel",
-        integration_type: "hosting",
+        platform: 'vercel',
+        integration_type: 'hosting',
         is_active: true,
-        notes: ""
+        notes: '',
       });
       fetchIntegrations();
     } catch (error: any) {
-      console.error("Error adding integration:", error);
-      toast.error("Không thể thêm integration");
+      console.error('Error adding integration:', error);
+      toast.error('Không thể thêm integration');
     }
   };
 
   const deleteIntegration = async (id: string) => {
-    if (!confirm("Bạn có chắc muốn xóa?")) return;
-    
+    if (!confirm('Bạn có chắc muốn xóa?')) return;
+
     try {
-      const { error } = await supabase
-        .from("project_integrations")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from('project_integrations').delete().eq('id', id);
 
       if (error) throw error;
-      toast.success("Đã xóa!");
+      toast.success('Đã xóa!');
       fetchIntegrations();
     } catch (error: any) {
-      console.error("Error deleting integration:", error);
-      toast.error("Không thể xóa");
+      console.error('Error deleting integration:', error);
+      toast.error('Không thể xóa');
     }
   };
 
   const toggleActive = async (id: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
-        .from("project_integrations")
+        .from('project_integrations')
         .update({ is_active: !currentStatus })
-        .eq("id", id);
+        .eq('id', id);
 
       if (error) throw error;
-      toast.success(currentStatus ? "Đã tắt" : "Đã bật");
+      toast.success(currentStatus ? 'Đã tắt' : 'Đã bật');
       fetchIntegrations();
     } catch (error: any) {
-      console.error("Error toggling integration:", error);
-      toast.error("Không thể cập nhật");
+      console.error('Error toggling integration:', error);
+      toast.error('Không thể cập nhật');
     }
   };
 
@@ -153,9 +140,7 @@ export function ProjectIntegrationsTab({ projectId }: ProjectIntegrationsTabProp
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Integrations</h3>
-          <p className="text-sm text-muted-foreground">
-            Kết nối với các platform bên ngoài
-          </p>
+          <p className="text-sm text-muted-foreground">Kết nối với các platform bên ngoài</p>
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
@@ -171,9 +156,9 @@ export function ProjectIntegrationsTab({ projectId }: ProjectIntegrationsTabProp
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Platform</Label>
-                <Select 
+                <Select
                   value={newIntegration.platform}
-                  onValueChange={(v) => setNewIntegration({...newIntegration, platform: v})}
+                  onValueChange={(v) => setNewIntegration({ ...newIntegration, platform: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -192,9 +177,11 @@ export function ProjectIntegrationsTab({ projectId }: ProjectIntegrationsTabProp
               </div>
               <div className="space-y-2">
                 <Label>Type</Label>
-                <Select 
+                <Select
                   value={newIntegration.integration_type}
-                  onValueChange={(v) => setNewIntegration({...newIntegration, integration_type: v})}
+                  onValueChange={(v) =>
+                    setNewIntegration({ ...newIntegration, integration_type: v })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -212,20 +199,22 @@ export function ProjectIntegrationsTab({ projectId }: ProjectIntegrationsTabProp
                 </Select>
               </div>
               <div className="flex items-center gap-2">
-                <input 
+                <input
                   type="checkbox"
                   id="is_active"
                   checked={newIntegration.is_active}
-                  onChange={(e) => setNewIntegration({...newIntegration, is_active: e.target.checked})}
+                  onChange={(e) =>
+                    setNewIntegration({ ...newIntegration, is_active: e.target.checked })
+                  }
                 />
                 <Label htmlFor="is_active">Active</Label>
               </div>
               <div className="space-y-2">
                 <Label>Ghi chú</Label>
-                <Input 
+                <Input
                   placeholder="Mô tả thêm..."
                   value={newIntegration.notes}
-                  onChange={(e) => setNewIntegration({...newIntegration, notes: e.target.value})}
+                  onChange={(e) => setNewIntegration({ ...newIntegration, notes: e.target.value })}
                 />
               </div>
               <Button onClick={addIntegration} className="w-full">
@@ -255,33 +244,33 @@ export function ProjectIntegrationsTab({ projectId }: ProjectIntegrationsTabProp
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${
-                      item.is_active ? "bg-green-500/10" : "bg-gray-500/10"
-                    }`}>
-                      <Plug className={`h-5 w-5 ${
-                        item.is_active ? "text-green-500" : "text-gray-500"
-                      }`} />
+                    <div
+                      className={`p-2 rounded-lg ${
+                        item.is_active ? 'bg-green-500/10' : 'bg-gray-500/10'
+                      }`}
+                    >
+                      <Plug
+                        className={`h-5 w-5 ${item.is_active ? 'text-green-500' : 'text-gray-500'}`}
+                      />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-medium capitalize">{item.platform}</span>
-                        <Badge variant={item.is_active ? "default" : "secondary"}>
-                          {item.is_active ? "Active" : "Inactive"}
+                        <Badge variant={item.is_active ? 'default' : 'secondary'}>
+                          {item.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </div>
                       <Badge variant="outline" className="mt-1 capitalize">
-                        {item.integration_type.replace(/_/g, " ")}
+                        {item.integration_type.replace(/_/g, ' ')}
                       </Badge>
                       {item.notes && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {item.notes}
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">{item.notes}</p>
                       )}
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="icon"
                       onClick={() => toggleActive(item.id, item.is_active)}
                     >

@@ -3,12 +3,7 @@
 // ================================================
 
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  createActivityLog, 
-  createContentItem, 
-  updateAgent,
-  getAgent 
-} from './api';
+import { createActivityLog, createContentItem, updateAgent, getAgent } from './api';
 import {
   extractTopicFromMessage,
   generateBlogPost,
@@ -35,7 +30,7 @@ export async function executeContentWriterWorkflow(contactId: string, agentId: s
   try {
     // 1. Get agent config
     agent = await getAgent(agentId);
-    
+
     // 2. Get contact data
     const { data: contact, error: contactError } = await supabase
       .from('contacts')
@@ -59,10 +54,7 @@ export async function executeContentWriterWorkflow(contactId: string, agentId: s
     });
 
     // 3. Extract topic from contact message
-    const topic = await extractTopicFromMessage(
-      contact.message,
-      { model: agent.config.ai_model }
-    );
+    const topic = await extractTopicFromMessage(contact.message, { model: agent.config.ai_model });
 
     await createActivityLog({
       agent_id: agentId,
@@ -126,10 +118,9 @@ export async function executeContentWriterWorkflow(contactId: string, agentId: s
     });
 
     return { success: true, blogPost };
-
   } catch (error: any) {
     const duration = Date.now() - startTime;
-    
+
     await createActivityLog({
       agent_id: agentId,
       action: 'Content Writer workflow failed',
@@ -179,16 +170,13 @@ export async function executeLeadNurtureWorkflow(contactId: string, agentId: str
     }
 
     // Generate personalized follow-up email
-    const email = await generateFollowUpEmail(
-      contact.name,
-      contact.service,
-      contact.message,
-      { model: agent.config.ai_model }
-    );
+    const email = await generateFollowUpEmail(contact.name, contact.service, contact.message, {
+      model: agent.config.ai_model,
+    });
 
     // Send email immediately or add to queue based on config
     const sendNow = agent.config.send_immediately !== false;
-    
+
     if (sendNow) {
       // Send email directly
       const emailResult = await sendFollowUpEmail(
@@ -232,7 +220,9 @@ export async function executeLeadNurtureWorkflow(contactId: string, agentId: str
         },
         status: 'pending',
         priority: 8,
-        scheduled_for: new Date(Date.now() + (agent.config.follow_up_delay_hours || 24) * 60 * 60 * 1000).toISOString(),
+        scheduled_for: new Date(
+          Date.now() + (agent.config.follow_up_delay_hours || 24) * 60 * 60 * 1000
+        ).toISOString(),
       });
     }
 
@@ -256,7 +246,6 @@ export async function executeLeadNurtureWorkflow(contactId: string, agentId: str
     });
 
     return { success: true, email };
-
   } catch (error: any) {
     const duration = Date.now() - startTime;
 
@@ -317,11 +306,11 @@ export async function executeSocialMediaWorkflow(contentId: string, agentId: str
 
     // Publish immediately or add to queue based on config
     const publishNow = agent.config.publish_immediately === true;
-    
+
     if (publishNow) {
       // Publish directly to social media
       const publishResults = [];
-      
+
       for (const [platform, post] of Object.entries(socialPosts)) {
         try {
           const result = await postToSocialMedia({
@@ -401,7 +390,6 @@ export async function executeSocialMediaWorkflow(contentId: string, agentId: str
     });
 
     return { success: true, socialPosts };
-
   } catch (error: any) {
     const duration = Date.now() - startTime;
 

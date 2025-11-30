@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from "react";
-import { AISupportBot } from "@/lib/ai-support-bot";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, X, Send } from "lucide-react";
+import { useState, useEffect, useRef } from 'react';
+import { AISupportBot } from '@/lib/ai-support-bot';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { MessageCircle, X, Send } from 'lucide-react';
 
 interface Message {
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
 }
@@ -20,7 +20,7 @@ interface AISupportChatProps {
 export function AISupportChat({ bot, productName }: AISupportChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -31,7 +31,7 @@ export function AISupportChat({ bot, productName }: AISupportChatProps) {
         setIsInitialized(true);
         setMessages([
           {
-            role: "assistant",
+            role: 'assistant',
             content: `Hi! I'm the ${productName} support assistant. How can I help you today?`,
             timestamp: new Date(),
           },
@@ -50,17 +50,17 @@ export function AISupportChat({ bot, productName }: AISupportChatProps) {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = {
-      role: "user",
+      role: 'user',
       content: input,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput("");
+    setInput('');
     setIsLoading(true);
 
     try {
-      let assistantResponse = "";
+      let assistantResponse = '';
 
       await bot.streamMessage(input, (chunk) => {
         assistantResponse += chunk;
@@ -68,11 +68,11 @@ export function AISupportChat({ bot, productName }: AISupportChatProps) {
           const newMessages = [...prev];
           const lastMessage = newMessages[newMessages.length - 1];
 
-          if (lastMessage?.role === "assistant" && !lastMessage.content.includes("...")) {
+          if (lastMessage?.role === 'assistant' && !lastMessage.content.includes('...')) {
             lastMessage.content = assistantResponse;
           } else {
             newMessages.push({
-              role: "assistant",
+              role: 'assistant',
               content: assistantResponse,
               timestamp: new Date(),
             });
@@ -85,8 +85,8 @@ export function AISupportChat({ bot, productName }: AISupportChatProps) {
       setMessages((prev) => [
         ...prev,
         {
-          role: "assistant",
-          content: "Sorry, I encountered an error. Please try again or contact support.",
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again or contact support.',
           timestamp: new Date(),
         },
       ]);
@@ -124,11 +124,11 @@ export function AISupportChat({ bot, productName }: AISupportChatProps) {
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
                 className={`max-w-[80%] rounded-lg p-3 ${
-                  message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
+                  message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>

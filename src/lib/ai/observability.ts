@@ -154,7 +154,10 @@ export class AIObservability {
   /**
    * Calculate token costs
    */
-  static calculateCost(tokens: { input: number; output: number }, model: string = 'gpt-4o'): number {
+  static calculateCost(
+    tokens: { input: number; output: number },
+    model: string = 'gpt-4o'
+  ): number {
     // Pricing per 1K tokens (as of 2025)
     const pricing: Record<string, { input: number; output: number }> = {
       'gpt-4o': { input: 0.005, output: 0.015 },
@@ -294,8 +297,7 @@ export class AIObservability {
       return {
         current_runs: total,
         success_rate_24h: (successful / total) * 100,
-        average_latency_24h:
-          (metrics24h?.reduce((sum, m) => sum + m.latency_ms, 0) || 0) / total,
+        average_latency_24h: (metrics24h?.reduce((sum, m) => sum + m.latency_ms, 0) || 0) / total,
         cost_today: metricsToday?.reduce((sum, m) => sum + m.cost_usd, 0) || 0,
         active_agents,
         recent_errors:
@@ -384,19 +386,14 @@ export const aiObservability = new AIObservability();
  * Decorator for tracing functions
  */
 export function trace(agentName: string, model: string = 'gpt-4o') {
-  return function (
-    _target: unknown,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+  return function (_target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: unknown[]) {
-      return aiObservability.traceOperation(
-        propertyKey,
-        () => originalMethod.apply(this, args),
-        { agent: agentName, model }
-      );
+      return aiObservability.traceOperation(propertyKey, () => originalMethod.apply(this, args), {
+        agent: agentName,
+        model,
+      });
     };
 
     return descriptor;

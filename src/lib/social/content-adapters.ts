@@ -6,12 +6,12 @@
  * the platform's style, tone, and character limits.
  */
 
-export type SocialPlatform = 
-  | 'facebook' 
-  | 'instagram' 
-  | 'linkedin' 
-  | 'twitter' 
-  | 'threads' 
+export type SocialPlatform =
+  | 'facebook'
+  | 'instagram'
+  | 'linkedin'
+  | 'twitter'
+  | 'threads'
   | 'tiktok'
   | 'youtube'
   | 'telegram';
@@ -41,7 +41,7 @@ export interface AdaptedContent {
 }
 
 // Available AI models
-export type AIModel = 
+export type AIModel =
   | 'gpt-4o'
   | 'gpt-4o-mini'
   | 'gpt-4-turbo'
@@ -60,7 +60,7 @@ export const AI_MODELS: { id: AIModel; name: string; description: string }[] = [
   { id: 'claude-3-opus', name: 'Claude 3 Opus', description: 'Most intelligent' },
   { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet', description: 'Balanced performance' },
   { id: 'claude-3-haiku', name: 'Claude 3 Haiku', description: 'Fast and compact' },
-  { id: 'gemini-pro', name: 'Gemini Pro', description: 'Google\'s best' },
+  { id: 'gemini-pro', name: 'Gemini Pro', description: "Google's best" },
   { id: 'gemini-flash', name: 'Gemini Flash', description: 'Fast Gemini model' },
 ];
 
@@ -90,8 +90,8 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
       'Stories and personal experiences',
       'Questions to drive engagement',
       'Tag relevant pages/people',
-      'Use line breaks for readability'
-    ]
+      'Use line breaks for readability',
+    ],
   },
   instagram: {
     name: 'Instagram',
@@ -105,8 +105,8 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
       'Use 20-30 relevant hashtags',
       'Emoji-rich content',
       'Call-to-action in bio link',
-      'Aesthetic and visual language'
-    ]
+      'Aesthetic and visual language',
+    ],
   },
   linkedin: {
     name: 'LinkedIn',
@@ -120,8 +120,8 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
       'Share industry insights',
       'Professional achievements',
       'Use 3-5 relevant hashtags',
-      'End with a question or CTA'
-    ]
+      'End with a question or CTA',
+    ],
   },
   twitter: {
     name: 'X (Twitter)',
@@ -135,8 +135,8 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
       'Use trending hashtags',
       'Thread for longer content',
       'Engage with replies',
-      'Timing is crucial'
-    ]
+      'Timing is crucial',
+    ],
   },
   threads: {
     name: 'Threads',
@@ -150,8 +150,8 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
       'Personal opinions welcome',
       'No hashtags needed',
       'Reply to build threads',
-      'Authentic voice'
-    ]
+      'Authentic voice',
+    ],
   },
   tiktok: {
     name: 'TikTok',
@@ -165,8 +165,8 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
       'Trending sounds/hashtags',
       'Gen-Z language and slang',
       'Challenge-based content',
-      'Educational entertainment'
-    ]
+      'Educational entertainment',
+    ],
   },
   youtube: {
     name: 'YouTube',
@@ -180,8 +180,8 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
       'Timestamps for longer videos',
       'Call to subscribe',
       'Link to related content',
-      'Keywords in first 2 lines'
-    ]
+      'Keywords in first 2 lines',
+    ],
   },
   telegram: {
     name: 'Telegram',
@@ -195,9 +195,9 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
       'Formatting with Markdown',
       'Pin important messages',
       'Use polls for engagement',
-      'Share exclusive content'
-    ]
-  }
+      'Share exclusive content',
+    ],
+  },
 };
 
 // AI Prompts for each platform
@@ -271,7 +271,7 @@ export const PLATFORM_PROMPTS: Record<SocialPlatform, string> = {
 - Be community-focused
 - Add relevant emojis
 - Keep it clear and actionable
-- Maximum ${PLATFORM_CONFIGS.telegram.charLimit} characters`
+- Maximum ${PLATFORM_CONFIGS.telegram.charLimit} characters`,
 };
 
 /**
@@ -283,19 +283,15 @@ export async function adaptContentForPlatforms(
   // Process all platforms in parallel
   const promises = request.platforms.map(async (platform) => {
     try {
-      const adapted = await adaptContentForPlatform(
-        request.originalContent,
-        platform,
-        {
-          context: request.context,
-          targetAudience: request.targetAudience,
-          callToAction: request.callToAction,
-          includeEmoji: request.includeEmoji,
-          language: request.language,
-          customPrompt: request.customPrompts?.[platform],
-          model: request.model,
-        }
-      );
+      const adapted = await adaptContentForPlatform(request.originalContent, platform, {
+        context: request.context,
+        targetAudience: request.targetAudience,
+        callToAction: request.callToAction,
+        includeEmoji: request.includeEmoji,
+        language: request.language,
+        customPrompt: request.customPrompts?.[platform],
+        model: request.model,
+      });
       return adapted;
     } catch (error) {
       console.error(`Failed to adapt for ${platform}:`, error);
@@ -307,7 +303,7 @@ export async function adaptContentForPlatforms(
         hashtags: [],
         characterCount: request.originalContent.length,
         isWithinLimit: request.originalContent.length <= PLATFORM_CONFIGS[platform].charLimit,
-        suggestions: ['AI adaptation failed, using original content']
+        suggestions: ['AI adaptation failed, using original content'],
       };
     }
   });
@@ -344,7 +340,7 @@ export async function adaptContentForPlatform(
 
   // Extract hashtags
   const hashtags = extractHashtags(adaptedText);
-  
+
   // Clean content (remove duplicate hashtags from body if they're at the end)
   const cleanedContent = cleanHashtagsFromBody(adaptedText, hashtags);
 
@@ -355,9 +351,12 @@ export async function adaptContentForPlatform(
     hashtags,
     characterCount: cleanedContent.length,
     isWithinLimit: cleanedContent.length <= config.charLimit,
-    suggestions: cleanedContent.length > config.charLimit 
-      ? [`Content exceeds ${config.charLimit} character limit by ${cleanedContent.length - config.charLimit} characters`]
-      : undefined
+    suggestions:
+      cleanedContent.length > config.charLimit
+        ? [
+            `Content exceeds ${config.charLimit} character limit by ${cleanedContent.length - config.charLimit} characters`,
+          ]
+        : undefined,
   };
 }
 
@@ -374,7 +373,7 @@ function buildAdaptPrompt(
   }
 ): string {
   let prompt = basePrompt + '\n\n';
-  
+
   if (options?.context) {
     prompt += `Context: ${options.context}\n`;
   }
@@ -398,7 +397,11 @@ function buildAdaptPrompt(
   return prompt;
 }
 
-async function callAIForAdaptation(prompt: string, platform: SocialPlatform, model?: AIModel): Promise<string> {
+async function callAIForAdaptation(
+  prompt: string,
+  platform: SocialPlatform,
+  model?: AIModel
+): Promise<string> {
   try {
     // Try to call our AI API
     const response = await fetch('/api/ai-assistant/generate', {
@@ -411,8 +414,8 @@ async function callAIForAdaptation(prompt: string, platform: SocialPlatform, mod
         temperature: 0.7,
         systemPrompt: `You are a social media content specialist for ${PLATFORM_CONFIGS[platform].name}. 
           Your job is to adapt content to match the platform's style and best practices.
-          Always respond with ONLY the adapted content, no explanations.`
-      })
+          Always respond with ONLY the adapted content, no explanations.`,
+      }),
     });
 
     if (response.ok) {
@@ -464,7 +467,7 @@ function simpleAdapt(content: string, platform: SocialPlatform): string {
 function extractHashtags(text: string): string[] {
   const hashtagRegex = /#[\w\u00C0-\u024F]+/g;
   const matches = text.match(hashtagRegex) || [];
-  return [...new Set(matches.map(tag => tag.substring(1)))]; // Remove # and dedupe
+  return [...new Set(matches.map((tag) => tag.substring(1)))]; // Remove # and dedupe
 }
 
 function cleanHashtagsFromBody(text: string, _hashtags: string[]): string {
@@ -477,5 +480,5 @@ export default {
   adaptContentForPlatforms,
   adaptContentForPlatform,
   PLATFORM_CONFIGS,
-  PLATFORM_PROMPTS
+  PLATFORM_PROMPTS,
 };

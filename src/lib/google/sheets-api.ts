@@ -10,7 +10,7 @@
 // Khởi tạo JWT credentials
 const getServiceAccountAuth = () => {
   const credentials = JSON.parse(import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_JSON || '{}');
-  
+
   return new JWT({
     email: credentials.client_email,
     key: credentials.private_key,
@@ -27,7 +27,7 @@ const getServiceAccountAuth = () => {
 export async function createSpreadsheet(title: string) {
   const auth = getServiceAccountAuth();
   const doc = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title });
-  
+
   return {
     spreadsheetId: doc.spreadsheetId,
     spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${doc.spreadsheetId}`,
@@ -42,21 +42,17 @@ export async function openSpreadsheet(spreadsheetId: string) {
   const auth = getServiceAccountAuth();
   const doc = new GoogleSpreadsheet(spreadsheetId, auth);
   await doc.loadInfo();
-  
+
   return doc;
 }
 
 /**
  * Thêm sheet mới vào spreadsheet
  */
-export async function addSheet(
-  spreadsheetId: string,
-  sheetTitle: string,
-  headerValues: string[]
-) {
+export async function addSheet(spreadsheetId: string, sheetTitle: string, headerValues: string[]) {
   const doc = await openSpreadsheet(spreadsheetId);
   const sheet = await doc.addSheet({ title: sheetTitle, headerValues });
-  
+
   return sheet;
 }
 
@@ -76,7 +72,7 @@ export async function writeSEOData(
   }[]
 ) {
   const doc = await openSpreadsheet(spreadsheetId);
-  
+
   // Tìm hoặc tạo sheet "SEO Data"
   let sheet = doc.sheetsByTitle['SEO Data'];
   if (!sheet) {
@@ -87,7 +83,7 @@ export async function writeSEOData(
   }
 
   // Ghi data
-  const rows = data.map(item => ({
+  const rows = data.map((item) => ({
     Date: item.date,
     URL: item.url,
     Clicks: item.clicks,
@@ -98,7 +94,7 @@ export async function writeSEOData(
   }));
 
   await sheet.addRows(rows);
-  
+
   const sheetUrl = `https://docs.google.com/spreadsheets/d/${doc.spreadsheetId}`;
   return { rowsAdded: rows.length, sheetUrl };
 }
@@ -119,7 +115,7 @@ export async function writeAnalyticsData(
   }[]
 ) {
   const doc = await openSpreadsheet(spreadsheetId);
-  
+
   // Tìm hoặc tạo sheet "Analytics"
   let sheet = doc.sheetsByTitle['Analytics'];
   if (!sheet) {
@@ -137,7 +133,7 @@ export async function writeAnalyticsData(
     });
   }
 
-  const rows = data.map(item => ({
+  const rows = data.map((item) => ({
     Date: item.date,
     Sessions: item.sessions,
     Users: item.users,
@@ -148,10 +144,10 @@ export async function writeAnalyticsData(
   }));
 
   await sheet.addRows(rows);
-  
-  return { 
-    rowsAdded: rows.length, 
-    sheetUrl: `https://docs.google.com/spreadsheets/d/${doc.spreadsheetId}` 
+
+  return {
+    rowsAdded: rows.length,
+    sheetUrl: `https://docs.google.com/spreadsheets/d/${doc.spreadsheetId}`,
   };
 }
 
@@ -171,7 +167,7 @@ export async function createDashboardSheet(
   }
 ) {
   const doc = await openSpreadsheet(spreadsheetId);
-  
+
   // Xóa sheet Dashboard cũ nếu có
   const oldSheet = doc.sheetsByTitle['Dashboard'];
   if (oldSheet) {
@@ -183,12 +179,12 @@ export async function createDashboardSheet(
 
   // Header
   await sheet.loadCells('A1:D20');
-  
+
   // Title
   const titleCell = sheet.getCellByA1('A1');
   titleCell.value = 'SEO & Analytics Dashboard';
   titleCell.textFormat = { bold: true, fontSize: 18 };
-  
+
   const dateCell = sheet.getCellByA1('A2');
   dateCell.value = `Date Range: ${config.dateRange}`;
   dateCell.textFormat = { italic: true };
@@ -205,11 +201,11 @@ export async function createDashboardSheet(
   for (const metric of metrics) {
     const labelCell = sheet.getCell(row, 0);
     const valueCell = sheet.getCell(row, 1);
-    
+
     labelCell.value = metric.label;
     labelCell.textFormat = { bold: true };
     valueCell.value = metric.value;
-    
+
     row++;
   }
 
@@ -223,10 +219,10 @@ export async function createDashboardSheet(
   for (const page of config.topPages.slice(0, 10)) {
     const pageCell = sheet.getCell(row, 0);
     const viewsCell = sheet.getCell(row, 1);
-    
+
     pageCell.value = page.page;
     viewsCell.value = page.views;
-    
+
     row++;
   }
 
@@ -241,17 +237,17 @@ export async function createDashboardSheet(
   for (const keyword of config.topKeywords.slice(0, 10)) {
     const keywordCell = sheet.getCell(row, keywordCol);
     const clicksCell = sheet.getCell(row, keywordCol + 1);
-    
+
     keywordCell.value = keyword.keyword;
     clicksCell.value = keyword.clicks;
-    
+
     row++;
   }
 
   await sheet.saveUpdatedCells();
-  
-  return { 
-    sheetUrl: `https://docs.google.com/spreadsheets/d/${doc.spreadsheetId}` 
+
+  return {
+    sheetUrl: `https://docs.google.com/spreadsheets/d/${doc.spreadsheetId}`,
   };
 }
 
@@ -264,31 +260,28 @@ export async function readSheetData<T = Record<string, unknown>>(
 ): Promise<T[]> {
   const doc = await openSpreadsheet(spreadsheetId);
   const sheet = doc.sheetsByTitle[sheetTitle];
-  
+
   if (!sheet) {
     throw new Error(`Sheet "${sheetTitle}" not found`);
   }
 
   const rows = await sheet.getRows();
-  return rows.map(row => row.toObject()) as T[];
+  return rows.map((row) => row.toObject()) as T[];
 }
 
 /**
  * Xóa tất cả rows trong sheet (giữ header)
  */
-export async function clearSheetData(
-  spreadsheetId: string,
-  sheetTitle: string
-) {
+export async function clearSheetData(spreadsheetId: string, sheetTitle: string) {
   const doc = await openSpreadsheet(spreadsheetId);
   const sheet = doc.sheetsByTitle[sheetTitle];
-  
+
   if (!sheet) {
     throw new Error(`Sheet "${sheetTitle}" not found`);
   }
 
   await sheet.clear();
-  
+
   return { cleared: true };
 }
 
@@ -301,13 +294,13 @@ export async function shareSpreadsheet(
   _role: 'reader' | 'writer' | 'owner' = 'reader'
 ) {
   const doc = await openSpreadsheet(spreadsheetId);
-  
+
   // Note: Cần quyền Drive API để share
   // Sẽ implement bằng Drive API riêng
-  
-  return { 
+
+  return {
     message: `Share functionality requires Drive API`,
-    spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${doc.spreadsheetId}`
+    spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${doc.spreadsheetId}`,
   };
 }
 
@@ -325,7 +318,7 @@ export async function exportSpreadsheet(
   };
 
   const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=${format}`;
-  
+
   return {
     exportUrl,
     mimeType: formatMap[format],
@@ -347,7 +340,7 @@ export async function batchUpdateSheets(
 
   for (const update of updates) {
     let sheet = doc.sheetsByTitle[update.sheetTitle];
-    
+
     if (!sheet) {
       // Auto-create sheet if not exists
       const headers = Object.keys(update.data[0] || {});

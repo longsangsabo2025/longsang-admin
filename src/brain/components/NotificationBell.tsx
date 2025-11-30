@@ -1,15 +1,34 @@
-import { useNotifications, useMarkNotificationAsRead, useDeleteNotification } from '@/brain/hooks/useNotifications';
+import {
+  useNotifications,
+  useMarkNotificationAsRead,
+  useDeleteNotification,
+} from '@/brain/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bell, MailOpen, Trash2, Loader2, Info, AlertTriangle, XCircle, CheckCircle, Lightbulb } from 'lucide-react';
+import {
+  Bell,
+  MailOpen,
+  Trash2,
+  Loader2,
+  Info,
+  AlertTriangle,
+  XCircle,
+  CheckCircle,
+  Lightbulb,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: notifications, isLoading: isLoadingNotifications } = useNotifications(false, undefined, 10, isOpen);
+  const { data: notifications, isLoading: isLoadingNotifications } = useNotifications(
+    false,
+    undefined,
+    10,
+    isOpen
+  );
   const markAsReadMutation = useMarkNotificationAsRead();
   const deleteNotificationMutation = useDeleteNotification();
 
@@ -119,4 +138,3 @@ export function NotificationBell() {
     </Popover>
   );
 }
-

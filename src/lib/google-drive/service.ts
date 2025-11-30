@@ -58,21 +58,21 @@ class GoogleDriveService {
   private initializeAuth() {
     try {
       const credentialsJson = import.meta.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-      
+
       if (!credentialsJson) {
         logger.warn('GOOGLE_SERVICE_ACCOUNT_JSON not found in environment');
         return;
       }
 
       const credentials: GoogleDriveConfig = JSON.parse(credentialsJson);
-      
+
       this.auth = new google.auth.GoogleAuth({
         credentials,
         scopes: [
           'https://www.googleapis.com/auth/drive',
           'https://www.googleapis.com/auth/drive.file',
-          'https://www.googleapis.com/auth/documents'
-        ]
+          'https://www.googleapis.com/auth/documents',
+        ],
       });
 
       this.drive = google.drive({ version: 'v3', auth: this.auth });
@@ -99,8 +99,9 @@ class GoogleDriveService {
       const response = await this.drive.files.list({
         pageSize,
         q: query,
-        fields: 'nextPageToken, files(id, name, mimeType, size, modifiedTime, owners, starred, thumbnailLink, webViewLink)',
-        orderBy: 'modifiedTime desc'
+        fields:
+          'nextPageToken, files(id, name, mimeType, size, modifiedTime, owners, starred, thumbnailLink, webViewLink)',
+        orderBy: 'modifiedTime desc',
       });
 
       return response.data.files || [];
@@ -134,9 +135,9 @@ class GoogleDriveService {
         resource: metadata,
         media: {
           mimeType: file.type,
-          body: Buffer.from(buffer)
+          body: Buffer.from(buffer),
         },
-        fields: 'id, name, mimeType, size'
+        fields: 'id, name, mimeType, size',
       });
 
       toast.success(`File "${file.name}" uploaded successfully`);
@@ -157,7 +158,7 @@ class GoogleDriveService {
     try {
       const metadata: FileMetadata = {
         name,
-        mimeType: 'application/vnd.google-apps.folder'
+        mimeType: 'application/vnd.google-apps.folder',
       };
 
       if (parentId) {
@@ -166,7 +167,7 @@ class GoogleDriveService {
 
       const response = await this.drive.files.create({
         resource: metadata,
-        fields: 'id, name'
+        fields: 'id, name',
       });
 
       toast.success(`Folder "${name}" created successfully`);
@@ -203,7 +204,7 @@ class GoogleDriveService {
     try {
       const response = await this.drive.files.get({
         fileId,
-        alt: 'media'
+        alt: 'media',
       });
 
       return new Blob([response.data]);
@@ -215,7 +216,11 @@ class GoogleDriveService {
   }
 
   // Share file
-  async shareFile(fileId: string, email: string, role: 'reader' | 'writer' = 'reader'): Promise<void> {
+  async shareFile(
+    fileId: string,
+    email: string,
+    role: 'reader' | 'writer' = 'reader'
+  ): Promise<void> {
     if (!this.isAvailable()) {
       throw new Error('Google Drive service not available');
     }
@@ -226,8 +231,8 @@ class GoogleDriveService {
         resource: {
           role,
           type: 'user',
-          emailAddress: email
-        }
+          emailAddress: email,
+        },
       });
 
       toast.success(`File shared with ${email}`);
@@ -247,7 +252,7 @@ class GoogleDriveService {
     try {
       await this.drive.files.update({
         fileId,
-        resource: { starred }
+        resource: { starred },
       });
 
       toast.success(starred ? 'File starred' : 'File unstarred');
@@ -267,7 +272,7 @@ class GoogleDriveService {
     try {
       // Create the document
       const docResponse = await this.docs.documents.create({
-        resource: { title }
+        resource: { title },
       });
 
       const documentId = docResponse.data.documentId;
@@ -277,7 +282,7 @@ class GoogleDriveService {
         await this.drive.files.update({
           fileId: documentId,
           addParents: folderId,
-          fields: 'id, parents'
+          fields: 'id, parents',
         });
       }
 
@@ -299,7 +304,7 @@ class GoogleDriveService {
     try {
       await this.docs.documents.batchUpdate({
         documentId,
-        resource: { requests }
+        resource: { requests },
       });
 
       toast.success('Document updated successfully');
@@ -341,7 +346,7 @@ class GoogleDriveService {
     try {
       const response = await this.drive.files.get({
         fileId,
-        fields: '*'
+        fields: '*',
       });
 
       return response.data;

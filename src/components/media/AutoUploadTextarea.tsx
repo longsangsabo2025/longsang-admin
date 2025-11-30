@@ -3,7 +3,7 @@
  * AUTO UPLOAD TEXTAREA
  * =================================================================
  * Textarea với tính năng auto-upload khi paste ảnh
- * 
+ *
  * Usage:
  *   <AutoUploadTextarea
  *     value={content}
@@ -13,11 +13,11 @@
  *   />
  */
 
-import { useRef, useState, forwardRef } from "react";
-import { Textarea } from "@/components/ui/textarea";
-import { useClipboardUpload } from "@/hooks/useClipboardUpload";
-import { Loader2, Image, CheckCircle2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useRef, useState, forwardRef } from 'react';
+import { Textarea } from '@/components/ui/textarea';
+import { useClipboardUpload } from '@/hooks/useClipboardUpload';
+import { Loader2, Image, CheckCircle2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface AutoUploadTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   /** Called when image is uploaded */
@@ -31,16 +31,19 @@ interface AutoUploadTextareaProps extends React.TextareaHTMLAttributes<HTMLTextA
 }
 
 export const AutoUploadTextarea = forwardRef<HTMLTextAreaElement, AutoUploadTextareaProps>(
-  ({ 
-    onImageUpload, 
-    folderId, 
-    showStatus = true,
-    insertUrlIntoContent = false,
-    className,
-    onChange,
-    value,
-    ...props 
-  }, ref) => {
+  (
+    {
+      onImageUpload,
+      folderId,
+      showStatus = true,
+      insertUrlIntoContent = false,
+      className,
+      onChange,
+      value,
+      ...props
+    },
+    ref
+  ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const [showUploadSuccess, setShowUploadSuccess] = useState(false);
@@ -55,13 +58,12 @@ export const AutoUploadTextarea = forwardRef<HTMLTextAreaElement, AutoUploadText
           const start = textarea.selectionStart;
           const end = textarea.selectionEnd;
           const currentValue = String(value || '');
-          const newValue = currentValue.substring(0, start) + 
-                          `\n![image](${url})\n` + 
-                          currentValue.substring(end);
-          
+          const newValue =
+            currentValue.substring(0, start) + `\n![image](${url})\n` + currentValue.substring(end);
+
           // Trigger onChange
           const event = {
-            target: { value: newValue }
+            target: { value: newValue },
           } as React.ChangeEvent<HTMLTextAreaElement>;
           onChange?.(event);
         }
@@ -91,9 +93,9 @@ export const AutoUploadTextarea = forwardRef<HTMLTextAreaElement, AutoUploadText
           value={value}
           onChange={onChange}
           className={cn(
-            "transition-all",
-            uploading && "border-blue-500 bg-blue-500/5",
-            showUploadSuccess && "border-green-500 bg-green-500/5",
+            'transition-all',
+            uploading && 'border-blue-500 bg-blue-500/5',
+            showUploadSuccess && 'border-green-500 bg-green-500/5',
             className
           )}
           {...props}
@@ -104,9 +106,7 @@ export const AutoUploadTextarea = forwardRef<HTMLTextAreaElement, AutoUploadText
           <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-md">
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-              <span className="text-sm text-muted-foreground">
-                Đang upload... {progress}%
-              </span>
+              <span className="text-sm text-muted-foreground">Đang upload... {progress}%</span>
             </div>
           </div>
         )}
@@ -139,6 +139,6 @@ export const AutoUploadTextarea = forwardRef<HTMLTextAreaElement, AutoUploadText
   }
 );
 
-AutoUploadTextarea.displayName = "AutoUploadTextarea";
+AutoUploadTextarea.displayName = 'AutoUploadTextarea';
 
 export default AutoUploadTextarea;

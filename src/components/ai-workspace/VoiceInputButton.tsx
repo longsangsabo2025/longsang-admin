@@ -1,6 +1,6 @@
 /**
  * 🎤 VoiceInputButton Component
- * 
+ *
  * Beautiful voice input button with visual feedback
  * Press and hold to record, release to stop
  */
@@ -10,12 +10,7 @@ import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface VoiceInputButtonProps {
   onTranscript: (text: string) => void;
@@ -32,19 +27,16 @@ export function VoiceInputButton({
 }: VoiceInputButtonProps) {
   const [showPulse, setShowPulse] = useState(false);
 
-  const handleResult = useCallback((text: string, isFinal: boolean) => {
-    if (isFinal && text.trim()) {
-      onTranscript(text.trim());
-    }
-  }, [onTranscript]);
+  const handleResult = useCallback(
+    (text: string, isFinal: boolean) => {
+      if (isFinal && text.trim()) {
+        onTranscript(text.trim());
+      }
+    },
+    [onTranscript]
+  );
 
-  const {
-    isListening,
-    isSupported,
-    interimTranscript,
-    error,
-    toggleListening,
-  } = useVoiceInput({
+  const { isListening, isSupported, interimTranscript, error, toggleListening } = useVoiceInput({
     language,
     continuous: false,
     interimResults: true,
@@ -53,7 +45,9 @@ export function VoiceInputButton({
 
   const handleClick = useCallback(() => {
     if (!isSupported) {
-      alert('Trình duyệt của bạn không hỗ trợ nhận dạng giọng nói. Vui lòng sử dụng Chrome hoặc Edge.');
+      alert(
+        'Trình duyệt của bạn không hỗ trợ nhận dạng giọng nói. Vui lòng sử dụng Chrome hoặc Edge.'
+      );
       return;
     }
     toggleListening();
@@ -65,12 +59,7 @@ export function VoiceInputButton({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled
-              className={cn('opacity-50', className)}
-            >
+            <Button variant="ghost" size="icon" disabled className={cn('opacity-50', className)}>
               <MicOff className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -94,7 +83,7 @@ export function VoiceInputButton({
                 <span className="absolute inset-0 rounded-full bg-red-500 animate-pulse opacity-50" />
               </>
             )}
-            
+
             <Button
               variant={isListening ? 'destructive' : 'ghost'}
               size="icon"
@@ -119,9 +108,7 @@ export function VoiceInputButton({
           {interimTranscript && (
             <p className="text-xs text-muted-foreground mt-1">"{interimTranscript}"</p>
           )}
-          {error && (
-            <p className="text-xs text-red-400 mt-1">{error}</p>
-          )}
+          {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

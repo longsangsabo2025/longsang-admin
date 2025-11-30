@@ -1,55 +1,55 @@
-import { 
-  BookOpen, 
-  Flag, 
-  Star, 
-  Bookmark, 
-  Trophy, 
-  BarChart3, 
-  Search, 
-  Cpu, 
-  Code, 
-  Palette, 
-  Database, 
-  Link, 
-  Smartphone, 
-  Rocket, 
-  Mail, 
-  Users, 
-  MessageSquare, 
-  Gift, 
-  Settings, 
-  HelpCircle, 
-  GraduationCap 
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+import {
+  BookOpen,
+  Flag,
+  Star,
+  Bookmark,
+  Trophy,
+  BarChart3,
+  Search,
+  Cpu,
+  Code,
+  Palette,
+  Database,
+  Link,
+  Smartphone,
+  Rocket,
+  Mail,
+  Users,
+  MessageSquare,
+  Gift,
+  Settings,
+  HelpCircle,
+  GraduationCap,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 const myLearningItems = [
-  { icon: Flag, label: "In Progress", badge: "3", active: true },
-  { icon: Star, label: "Completed", badge: "12" },
-  { icon: Bookmark, label: "Saved Courses" },
-  { icon: Trophy, label: "My Certificates" },
-  { icon: BarChart3, label: "Learning Stats" },
+  { icon: Flag, label: 'In Progress', badge: '3', active: true },
+  { icon: Star, label: 'Completed', badge: '12' },
+  { icon: Bookmark, label: 'Saved Courses' },
+  { icon: Trophy, label: 'My Certificates' },
+  { icon: BarChart3, label: 'Learning Stats' },
 ];
 
 const categories = [
-  { icon: Cpu, label: "AI & Machine Learning", badge: "🔥" },
-  { icon: Code, label: "Web Development", badge: "📈" },
-  { icon: Palette, label: "UI/UX Design", badge: "⚡" },
-  { icon: Database, label: "Data Science", badge: "🆕" },
-  { icon: Link, label: "Blockchain & Web3", badge: "💎" },
-  { icon: Smartphone, label: "Mobile Development", badge: "✨" },
-  { icon: Rocket, label: "Game Development", badge: "🎯" },
-  { icon: Mail, label: "Digital Marketing", badge: "💼" },
+  { icon: Cpu, label: 'AI & Machine Learning', badge: '🔥' },
+  { icon: Code, label: 'Web Development', badge: '📈' },
+  { icon: Palette, label: 'UI/UX Design', badge: '⚡' },
+  { icon: Database, label: 'Data Science', badge: '🆕' },
+  { icon: Link, label: 'Blockchain & Web3', badge: '💎' },
+  { icon: Smartphone, label: 'Mobile Development', badge: '✨' },
+  { icon: Rocket, label: 'Game Development', badge: '🎯' },
+  { icon: Mail, label: 'Digital Marketing', badge: '💼' },
 ];
 
 const communityItems = [
-  { icon: MessageSquare, label: "Discussions", badge: "234 online" },
-  { icon: Trophy, label: "Leaderboard" },
-  { icon: Users, label: "Study Groups" },
-  { icon: Flag, label: "Challenges" },
-  { icon: Gift, label: "Rewards Shop" },
+  { icon: MessageSquare, label: 'Discussions', badge: '234 online' },
+  { icon: Trophy, label: 'Leaderboard' },
+  { icon: Users, label: 'Study Groups' },
+  { icon: Flag, label: 'Challenges' },
+  { icon: Gift, label: 'Rewards Shop' },
 ];
 
 export const GamingSidebar = () => {
@@ -67,7 +67,7 @@ export const GamingSidebar = () => {
               {myLearningItems.map((item) => (
                 <Button
                   key={item.label}
-                  variant={item.active ? "gaming" : "ghost"}
+                  variant={item.active ? 'gaming' : 'ghost'}
                   className="w-full justify-start text-sm"
                   size="sm"
                 >
@@ -104,7 +104,11 @@ export const GamingSidebar = () => {
                   <span className="text-xs">{item.badge}</span>
                 </Button>
               ))}
-              <Button variant="ghost" className="w-full justify-start text-sm text-primary" size="sm">
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-sm text-primary"
+                size="sm"
+              >
                 + View All Categories
               </Button>
             </div>
@@ -129,9 +133,7 @@ export const GamingSidebar = () => {
                   <item.icon className="h-4 w-4 mr-2" />
                   {item.label}
                   {item.badge && (
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {item.badge}
-                    </span>
+                    <span className="ml-auto text-xs text-muted-foreground">{item.badge}</span>
                   )}
                 </Button>
               ))}

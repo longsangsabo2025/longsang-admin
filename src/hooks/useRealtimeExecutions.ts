@@ -1,6 +1,6 @@
 /**
  * Real-time Executions Hook
- * 
+ *
  * Subscribes to workflow execution updates via Supabase real-time
  */
 
@@ -39,31 +39,27 @@ export const useRealtimeExecutions = () => {
         {
           event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
           schema: 'public',
-          table: 'workflow_executions'
+          table: 'workflow_executions',
         },
         (payload) => {
           console.log('Real-time update received:', payload);
-          
+
           switch (payload.eventType) {
             case 'INSERT':
               // Add new execution
-              setExecutions(prev => [payload.new as Execution, ...prev]);
+              setExecutions((prev) => [payload.new as Execution, ...prev]);
               break;
-            
+
             case 'UPDATE':
               // Update existing execution
-              setExecutions(prev => 
-                prev.map(exec => 
-                  exec.id === payload.new.id ? payload.new as Execution : exec
-                )
+              setExecutions((prev) =>
+                prev.map((exec) => (exec.id === payload.new.id ? (payload.new as Execution) : exec))
               );
               break;
-            
+
             case 'DELETE':
               // Remove deleted execution
-              setExecutions(prev => 
-                prev.filter(exec => exec.id !== payload.old.id)
-              );
+              setExecutions((prev) => prev.filter((exec) => exec.id !== payload.old.id));
               break;
           }
         }
@@ -81,25 +77,28 @@ export const useRealtimeExecutions = () => {
   const fetchExecutions = async () => {
     try {
       setLoading(true);
-      
+
       const { data, error: fetchError } = await supabase
         .from('workflow_executions')
-        .select(`
+        .select(
+          `
           *,
           workflows:workflow_id (
             name
           )
-        `)
+        `
+        )
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (fetchError) throw fetchError;
 
       // Transform data to include workflow name
-      const transformedData = data?.map(exec => ({
-        ...exec,
-        workflow_name: exec.workflows?.name || 'Unknown Workflow'
-      })) || [];
+      const transformedData =
+        data?.map((exec) => ({
+          ...exec,
+          workflow_name: exec.workflows?.name || 'Unknown Workflow',
+        })) || [];
 
       setExecutions(transformedData);
       setError(null);
@@ -119,7 +118,7 @@ export const useRealtimeExecutions = () => {
     executions,
     loading,
     error,
-    refetch
+    refetch,
   };
 };
 
@@ -156,7 +155,7 @@ export const useExecutionSubscription = (executionId: string) => {
           event: 'UPDATE',
           schema: 'public',
           table: 'workflow_executions',
-          filter: `id=eq.${executionId}`
+          filter: `id=eq.${executionId}`,
         },
         (payload) => {
           setExecution(payload.new as Execution);

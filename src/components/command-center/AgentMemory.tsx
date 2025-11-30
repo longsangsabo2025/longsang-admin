@@ -13,7 +13,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import {
   Brain,
   Search,
@@ -127,7 +135,8 @@ const mockMemoryItems: MemoryItem[] = [
     type: 'preference',
     category: 'Communication',
     title: 'Email Tone',
-    content: 'Professional nhưng friendly, không quá formal. Dùng emoji moderate. Luôn có CTA rõ ràng.',
+    content:
+      'Professional nhưng friendly, không quá formal. Dùng emoji moderate. Luôn có CTA rõ ràng.',
     tags: ['email', 'tone', 'communication'],
     importance: 'high',
     source: 'manual',
@@ -140,7 +149,8 @@ const mockMemoryItems: MemoryItem[] = [
     type: 'preference',
     category: 'Content',
     title: 'Blog Writing Style',
-    content: 'Conversational, data-driven, với real examples. Avoid fluff, go straight to the point. Vietnamese hoặc English.',
+    content:
+      'Conversational, data-driven, với real examples. Avoid fluff, go straight to the point. Vietnamese hoặc English.',
     tags: ['content', 'blog', 'writing'],
     importance: 'high',
     source: 'manual',
@@ -153,7 +163,8 @@ const mockMemoryItems: MemoryItem[] = [
     type: 'preference',
     category: 'Technical',
     title: 'Tech Stack',
-    content: 'React + TypeScript + Vite, Supabase, TailwindCSS, shadcn/ui. Prefer simple over complex.',
+    content:
+      'React + TypeScript + Vite, Supabase, TailwindCSS, shadcn/ui. Prefer simple over complex.',
     tags: ['tech', 'stack', 'development'],
     importance: 'high',
     source: 'auto',
@@ -224,7 +235,8 @@ const mockMemoryItems: MemoryItem[] = [
     type: 'learning',
     category: 'Marketing',
     title: 'LinkedIn > Twitter for B2B',
-    content: 'A/B test showed LinkedIn posts get 3x engagement vs Twitter cho target audience. Focus more on LinkedIn.',
+    content:
+      'A/B test showed LinkedIn posts get 3x engagement vs Twitter cho target audience. Focus more on LinkedIn.',
     tags: ['linkedin', 'twitter', 'social', 'learning'],
     importance: 'medium',
     source: 'auto',
@@ -268,10 +280,14 @@ export function AgentMemory() {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingMemory, setEditingMemory] = useState<MemoryItem | null>(null);
-  
+
   // Real data hooks
-  const { data: memoriesData, isLoading, refetch } = useMemories({
-    memory_type: selectedType !== 'all' ? selectedType as MemoryItem['type'] : undefined,
+  const {
+    data: memoriesData,
+    isLoading,
+    refetch,
+  } = useMemories({
+    memory_type: selectedType !== 'all' ? (selectedType as MemoryItem['type']) : undefined,
     search: searchQuery || undefined,
   });
   const createMemory = useCreateMemory();
@@ -284,7 +300,7 @@ export function AgentMemory() {
     }
     return mockMemoryItems;
   }, [memoriesData]);
-  
+
   // New memory form state
   const [newMemory, setNewMemory] = useState({
     type: 'fact' as MemoryItem['type'],
@@ -296,23 +312,27 @@ export function AgentMemory() {
   });
 
   // Filter memories (already filtered by hook, but keep for local filtering)
-  const filteredMemories = memories.filter(m => {
-    const matchesSearch = searchQuery === '' || 
+  const filteredMemories = memories.filter((m) => {
+    const matchesSearch =
+      searchQuery === '' ||
       m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      m.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesType = selectedType === 'all' || m.type === selectedType;
     return matchesSearch && matchesType;
   });
 
   // Stats
   const totalMemories = memories.length;
-  const criticalCount = memories.filter(m => m.importance === 'critical').length;
-  const recentlyUsed = memories.filter(m => m.usedCount > 50).length;
-  const byType = memories.reduce((acc, m) => {
-    acc[m.type] = (acc[m.type] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const criticalCount = memories.filter((m) => m.importance === 'critical').length;
+  const recentlyUsed = memories.filter((m) => m.usedCount > 50).length;
+  const byType = memories.reduce(
+    (acc, m) => {
+      acc[m.type] = (acc[m.type] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   const handleAddMemory = async () => {
     const input: CreateMemoryInput = {
@@ -320,11 +340,14 @@ export function AgentMemory() {
       category: newMemory.category,
       title: newMemory.title,
       content: newMemory.content,
-      tags: newMemory.tags.split(',').map(t => t.trim()).filter(Boolean),
+      tags: newMemory.tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
       importance: newMemory.importance,
       source: 'manual',
     };
-    
+
     await createMemory.mutateAsync(input);
     setIsAddDialogOpen(false);
     setNewMemory({
@@ -350,9 +373,7 @@ export function AgentMemory() {
             <Brain className="h-6 w-6 text-purple-500" />
             Agent Memory
           </h1>
-          <p className="text-muted-foreground">
-            Shared context và knowledge cho tất cả AI Agents
-          </p>
+          <p className="text-muted-foreground">Shared context và knowledge cho tất cả AI Agents</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
@@ -364,18 +385,21 @@ export function AgentMemory() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add New Memory</DialogTitle>
-              <DialogDescription>
-                Thêm thông tin mới vào agent memory
-              </DialogDescription>
+              <DialogDescription>Thêm thông tin mới vào agent memory</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Type</label>
-                  <select 
+                  <select
                     className="w-full mt-1 p-2 border rounded-md"
                     value={newMemory.type}
-                    onChange={(e) => setNewMemory(prev => ({ ...prev, type: e.target.value as MemoryItem['type'] }))}
+                    onChange={(e) =>
+                      setNewMemory((prev) => ({
+                        ...prev,
+                        type: e.target.value as MemoryItem['type'],
+                      }))
+                    }
                   >
                     <option value="fact">Fact</option>
                     <option value="preference">Preference</option>
@@ -387,10 +411,15 @@ export function AgentMemory() {
                 </div>
                 <div>
                   <label className="text-sm font-medium">Importance</label>
-                  <select 
+                  <select
                     className="w-full mt-1 p-2 border rounded-md"
                     value={newMemory.importance}
-                    onChange={(e) => setNewMemory(prev => ({ ...prev, importance: e.target.value as MemoryItem['importance'] }))}
+                    onChange={(e) =>
+                      setNewMemory((prev) => ({
+                        ...prev,
+                        importance: e.target.value as MemoryItem['importance'],
+                      }))
+                    }
                   >
                     <option value="critical">Critical</option>
                     <option value="high">High</option>
@@ -401,40 +430,42 @@ export function AgentMemory() {
               </div>
               <div>
                 <label className="text-sm font-medium">Category</label>
-                <Input 
+                <Input
                   placeholder="e.g., Business, Marketing, Technical"
                   value={newMemory.category}
-                  onChange={(e) => setNewMemory(prev => ({ ...prev, category: e.target.value }))}
+                  onChange={(e) => setNewMemory((prev) => ({ ...prev, category: e.target.value }))}
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Title</label>
-                <Input 
+                <Input
                   placeholder="Brief title for this memory"
                   value={newMemory.title}
-                  onChange={(e) => setNewMemory(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) => setNewMemory((prev) => ({ ...prev, title: e.target.value }))}
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Content</label>
-                <Textarea 
+                <Textarea
                   placeholder="The actual information/knowledge"
                   value={newMemory.content}
-                  onChange={(e) => setNewMemory(prev => ({ ...prev, content: e.target.value }))}
+                  onChange={(e) => setNewMemory((prev) => ({ ...prev, content: e.target.value }))}
                   className="min-h-[100px]"
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Tags (comma-separated)</label>
-                <Input 
+                <Input
                   placeholder="tag1, tag2, tag3"
                   value={newMemory.tags}
-                  onChange={(e) => setNewMemory(prev => ({ ...prev, tags: e.target.value }))}
+                  onChange={(e) => setNewMemory((prev) => ({ ...prev, tags: e.target.value }))}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Cancel
+              </Button>
               <Button onClick={handleAddMemory}>Add Memory</Button>
             </DialogFooter>
           </DialogContent>
@@ -523,9 +554,7 @@ export function AgentMemory() {
       <Card>
         <CardHeader>
           <CardTitle>Memory Bank</CardTitle>
-          <CardDescription>
-            {filteredMemories.length} memories found
-          </CardDescription>
+          <CardDescription>{filteredMemories.length} memories found</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[500px] pr-4">
@@ -594,7 +623,12 @@ function MemoryCard({
           <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onEdit}>
             <Edit className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-600" onClick={onDelete}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+            onClick={onDelete}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>

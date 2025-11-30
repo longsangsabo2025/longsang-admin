@@ -1,18 +1,24 @@
-import { useState, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { googleDriveAPI, DriveFile, DriveFolder } from "@/lib/api/google-drive-http";
-import { 
-  Upload, 
-  Folder, 
-  File, 
-  Image, 
-  FileText, 
-  Video, 
-  Music, 
+import { useState, useCallback } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { googleDriveAPI, DriveFile, DriveFolder } from '@/lib/api/google-drive-http';
+import {
+  Upload,
+  Folder,
+  File,
+  Image,
+  FileText,
+  Video,
+  Music,
   Search,
   Grid3X3,
   List,
@@ -21,9 +27,9 @@ import {
   Check,
   X,
   ChevronLeft,
-  FolderOpen
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+  FolderOpen,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface MediaFile {
   id: string;
@@ -42,7 +48,7 @@ interface MediaLibraryProps {
   /** Allow multiple file selection */
   multiple?: boolean;
   /** Filter by file types */
-  accept?: "image" | "video" | "audio" | "document" | "all";
+  accept?: 'image' | 'video' | 'audio' | 'document' | 'all';
   /** Default folder to open */
   defaultFolder?: string;
   /** Max number of files to select */
@@ -55,7 +61,8 @@ const getFileIcon = (mimeType: string) => {
   if (mimeType?.startsWith('image/')) return <Image className="h-8 w-8 text-green-500" />;
   if (mimeType?.startsWith('video/')) return <Video className="h-8 w-8 text-purple-500" />;
   if (mimeType?.startsWith('audio/')) return <Music className="h-8 w-8 text-pink-500" />;
-  if (mimeType?.includes('pdf') || mimeType?.includes('document')) return <FileText className="h-8 w-8 text-red-500" />;
+  if (mimeType?.includes('pdf') || mimeType?.includes('document'))
+    return <FileText className="h-8 w-8 text-red-500" />;
   return <File className="h-8 w-8 text-gray-500" />;
 };
 
@@ -70,14 +77,21 @@ const formatFileSize = (bytes?: string): string => {
 
 const filterByType = (files: DriveFile[], accept: string): DriveFile[] => {
   if (accept === 'all') return files;
-  return files.filter(file => {
+  return files.filter((file) => {
     const mimeType = file.mimeType || '';
     switch (accept) {
-      case 'image': return mimeType.startsWith('image/');
-      case 'video': return mimeType.startsWith('video/');
-      case 'audio': return mimeType.startsWith('audio/');
-      case 'document': return mimeType.includes('pdf') || mimeType.includes('document') || mimeType.includes('text');
-      default: return true;
+      case 'image':
+        return mimeType.startsWith('image/');
+      case 'video':
+        return mimeType.startsWith('video/');
+      case 'audio':
+        return mimeType.startsWith('audio/');
+      case 'document':
+        return (
+          mimeType.includes('pdf') || mimeType.includes('document') || mimeType.includes('text')
+        );
+      default:
+        return true;
     }
   });
 };
@@ -86,42 +100,47 @@ export const MediaLibrary = ({
   trigger,
   onSelect,
   multiple = false,
-  accept = "all",
-  defaultFolder = "root",
+  accept = 'all',
+  defaultFolder = 'root',
   maxFiles = 10,
-  title = "Chọn File"
+  title = 'Chọn File',
 }: MediaLibraryProps) => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
   const [currentFolder, setCurrentFolder] = useState(defaultFolder);
-  const [folderStack, setFolderStack] = useState<{ id: string; name: string }[]>([{ id: "root", name: "My Drive" }]);
+  const [folderStack, setFolderStack] = useState<{ id: string; name: string }[]>([
+    { id: 'root', name: 'My Drive' },
+  ]);
   const [files, setFiles] = useState<DriveFile[]>([]);
   const [folders, setFolders] = useState<DriveFolder[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<MediaFile[]>([]);
-  const [activeTab, setActiveTab] = useState<"browse" | "upload">("browse");
+  const [activeTab, setActiveTab] = useState<'browse' | 'upload'>('browse');
 
   // Load files when dialog opens or folder changes
-  const loadFiles = useCallback(async (folderId: string) => {
-    setLoading(true);
-    try {
-      const result = await googleDriveAPI.listFiles(folderId);
-      setFiles(filterByType(result.files || [], accept));
-      setFolders(result.folders || []);
-    } catch (error) {
-      console.error('Error loading files:', error);
-      toast({
-        title: "Lỗi",
-        description: "Không thể tải danh sách file",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [accept, toast]);
+  const loadFiles = useCallback(
+    async (folderId: string) => {
+      setLoading(true);
+      try {
+        const result = await googleDriveAPI.listFiles(folderId);
+        setFiles(filterByType(result.files || [], accept));
+        setFolders(result.folders || []);
+      } catch (error) {
+        console.error('Error loading files:', error);
+        toast({
+          title: 'Lỗi',
+          description: 'Không thể tải danh sách file',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [accept, toast]
+  );
 
   // Handle dialog open
   const handleOpenChange = (isOpen: boolean) => {
@@ -131,14 +150,14 @@ export const MediaLibrary = ({
     } else {
       // Reset state when closing
       setSelectedFiles([]);
-      setSearchQuery("");
+      setSearchQuery('');
     }
   };
 
   // Navigate to folder
   const navigateToFolder = (folder: DriveFolder) => {
     setCurrentFolder(folder.id);
-    setFolderStack(prev => [...prev, { id: folder.id, name: folder.name }]);
+    setFolderStack((prev) => [...prev, { id: folder.id, name: folder.name }]);
     loadFiles(folder.id);
   };
 
@@ -161,23 +180,26 @@ export const MediaLibrary = ({
     const mediaFile: MediaFile = {
       id: file.id,
       name: file.name,
-      url: file.webViewLink || file.webContentLink || `https://drive.google.com/file/d/${file.id}/view`,
+      url:
+        file.webViewLink ||
+        file.webContentLink ||
+        `https://drive.google.com/file/d/${file.id}/view`,
       mimeType: file.mimeType,
       size: file.size,
-      thumbnail: file.thumbnailLink
+      thumbnail: file.thumbnailLink,
     };
 
     if (multiple) {
-      setSelectedFiles(prev => {
-        const exists = prev.find(f => f.id === file.id);
+      setSelectedFiles((prev) => {
+        const exists = prev.find((f) => f.id === file.id);
         if (exists) {
-          return prev.filter(f => f.id !== file.id);
+          return prev.filter((f) => f.id !== file.id);
         }
         if (prev.length >= maxFiles) {
           toast({
-            title: "Giới hạn",
+            title: 'Giới hạn',
             description: `Chỉ có thể chọn tối đa ${maxFiles} files`,
-            variant: "destructive"
+            variant: 'destructive',
           });
           return prev;
         }
@@ -203,26 +225,26 @@ export const MediaLibrary = ({
 
     setUploading(true);
     try {
-      const uploadPromises = Array.from(uploadedFiles).map(file => 
+      const uploadPromises = Array.from(uploadedFiles).map((file) =>
         googleDriveAPI.uploadFile(file, currentFolder)
       );
-      
+
       const results = await Promise.all(uploadPromises);
-      
+
       toast({
-        title: "Thành công!",
+        title: 'Thành công!',
         description: `Đã upload ${results.length} file(s)`,
       });
-      
+
       // Reload files
       loadFiles(currentFolder);
-      setActiveTab("browse");
+      setActiveTab('browse');
     } catch (error) {
       console.error('Upload error:', error);
       toast({
-        title: "Lỗi upload",
-        description: "Không thể upload file",
-        variant: "destructive"
+        title: 'Lỗi upload',
+        description: 'Không thể upload file',
+        variant: 'destructive',
       });
     } finally {
       setUploading(false);
@@ -230,20 +252,24 @@ export const MediaLibrary = ({
   };
 
   // Filter files by search query
-  const filteredFiles = files.filter(file => 
+  const filteredFiles = files.filter((file) =>
     file.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredFolders = folders.filter(folder =>
+  const filteredFolders = folders.filter((folder) =>
     folder.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        {trigger || <Button variant="outline"><FolderOpen className="mr-2 h-4 w-4" /> Media Library</Button>}
+        {trigger || (
+          <Button variant="outline">
+            <FolderOpen className="mr-2 h-4 w-4" /> Media Library
+          </Button>
+        )}
       </DialogTrigger>
-      
+
       <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -252,7 +278,11 @@ export const MediaLibrary = ({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "browse" | "upload")} className="flex-1 flex flex-col">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as 'browse' | 'upload')}
+          className="flex-1 flex flex-col"
+        >
           <div className="flex items-center justify-between gap-4 mb-4">
             <TabsList>
               <TabsTrigger value="browse">
@@ -278,9 +308,13 @@ export const MediaLibrary = ({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
               >
-                {viewMode === "grid" ? <List className="h-4 w-4" /> : <Grid3X3 className="h-4 w-4" />}
+                {viewMode === 'grid' ? (
+                  <List className="h-4 w-4" />
+                ) : (
+                  <Grid3X3 className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
@@ -296,9 +330,11 @@ export const MediaLibrary = ({
               {folderStack.map((folder, index) => (
                 <span key={folder.id} className="flex items-center">
                   {index > 0 && <span className="mx-1 text-muted-foreground">/</span>}
-                  <span className={cn(
-                    index === folderStack.length - 1 ? "font-medium" : "text-muted-foreground"
-                  )}>
+                  <span
+                    className={cn(
+                      index === folderStack.length - 1 ? 'font-medium' : 'text-muted-foreground'
+                    )}
+                  >
                     {folder.name}
                   </span>
                 </span>
@@ -312,18 +348,18 @@ export const MediaLibrary = ({
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <div className={cn(
-                  viewMode === "grid" 
-                    ? "grid grid-cols-4 gap-3" 
-                    : "flex flex-col gap-2"
-                )}>
+                <div
+                  className={cn(
+                    viewMode === 'grid' ? 'grid grid-cols-4 gap-3' : 'flex flex-col gap-2'
+                  )}
+                >
                   {/* Folders */}
                   {filteredFolders.map((folder) => (
                     <div
                       key={folder.id}
                       className={cn(
-                        "cursor-pointer rounded-lg border p-3 hover:bg-accent transition-colors",
-                        viewMode === "list" && "flex items-center gap-3"
+                        'cursor-pointer rounded-lg border p-3 hover:bg-accent transition-colors',
+                        viewMode === 'list' && 'flex items-center gap-3'
                       )}
                       onClick={() => navigateToFolder(folder)}
                     >
@@ -334,14 +370,14 @@ export const MediaLibrary = ({
 
                   {/* Files */}
                   {filteredFiles.map((file) => {
-                    const isSelected = selectedFiles.some(f => f.id === file.id);
+                    const isSelected = selectedFiles.some((f) => f.id === file.id);
                     return (
                       <div
                         key={file.id}
                         className={cn(
-                          "cursor-pointer rounded-lg border p-3 transition-colors relative",
-                          viewMode === "list" && "flex items-center gap-3",
-                          isSelected ? "border-primary bg-primary/10" : "hover:bg-accent"
+                          'cursor-pointer rounded-lg border p-3 transition-colors relative',
+                          viewMode === 'list' && 'flex items-center gap-3',
+                          isSelected ? 'border-primary bg-primary/10' : 'hover:bg-accent'
                         )}
                         onClick={() => toggleFileSelection(file)}
                       >
@@ -350,24 +386,26 @@ export const MediaLibrary = ({
                             <Check className="h-3 w-3 text-white" />
                           </div>
                         )}
-                        
+
                         {file.thumbnailLink ? (
-                          <img 
-                            src={file.thumbnailLink} 
+                          <img
+                            src={file.thumbnailLink}
                             alt={file.name}
                             className={cn(
-                              "object-cover rounded",
-                              viewMode === "grid" ? "w-full h-20 mb-2" : "w-12 h-12"
+                              'object-cover rounded',
+                              viewMode === 'grid' ? 'w-full h-20 mb-2' : 'w-12 h-12'
                             )}
                           />
                         ) : (
                           getFileIcon(file.mimeType)
                         )}
-                        
-                        <div className={cn(viewMode === "list" && "flex-1")}>
+
+                        <div className={cn(viewMode === 'list' && 'flex-1')}>
                           <span className="text-sm font-medium truncate block">{file.name}</span>
                           {file.size && (
-                            <span className="text-xs text-muted-foreground">{formatFileSize(file.size)}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatFileSize(file.size)}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -395,9 +433,15 @@ export const MediaLibrary = ({
                   multiple
                   className="hidden"
                   onChange={handleUpload}
-                  accept={accept === "image" ? "image/*" : 
-                         accept === "video" ? "video/*" :
-                         accept === "audio" ? "audio/*" : undefined}
+                  accept={
+                    accept === 'image'
+                      ? 'image/*'
+                      : accept === 'video'
+                        ? 'video/*'
+                        : accept === 'audio'
+                          ? 'audio/*'
+                          : undefined
+                  }
                 />
                 <Button disabled={uploading} asChild>
                   <span>
@@ -423,9 +467,11 @@ export const MediaLibrary = ({
         <div className="flex items-center justify-between pt-4 border-t">
           <div className="text-sm text-muted-foreground">
             {selectedFiles.length > 0 ? (
-              <>Đã chọn: <strong>{selectedFiles.length}</strong> file(s)</>
+              <>
+                Đã chọn: <strong>{selectedFiles.length}</strong> file(s)
+              </>
             ) : (
-              "Chưa chọn file nào"
+              'Chưa chọn file nào'
             )}
           </div>
           <div className="flex gap-2">
@@ -433,10 +479,7 @@ export const MediaLibrary = ({
               <X className="mr-2 h-4 w-4" />
               Hủy
             </Button>
-            <Button 
-              onClick={confirmSelection} 
-              disabled={selectedFiles.length === 0}
-            >
+            <Button onClick={confirmSelection} disabled={selectedFiles.length === 0}>
               <Check className="mr-2 h-4 w-4" />
               Chọn ({selectedFiles.length})
             </Button>

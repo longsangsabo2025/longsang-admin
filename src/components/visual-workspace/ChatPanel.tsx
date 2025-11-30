@@ -29,7 +29,8 @@ export function ChatPanel({ onSendMessage, isGenerating = false, className = '' 
     {
       id: '1',
       role: 'assistant',
-      content: 'Xin chào! Tôi có thể giúp bạn build applications trực quan. Hãy mô tả những gì bạn muốn tạo.',
+      content:
+        'Xin chào! Tôi có thể giúp bạn build applications trực quan. Hãy mô tả những gì bạn muốn tạo.',
       timestamp: new Date(),
     },
   ]);
@@ -86,7 +87,8 @@ export function ChatPanel({ onSendMessage, isGenerating = false, className = '' 
           msg.id === loadingMessageId
             ? {
                 ...msg,
-                content: 'Đã tạo components trên canvas. Bạn có thể chỉnh sửa chúng bằng cách click vào.',
+                content:
+                  'Đã tạo components trên canvas. Bạn có thể chỉnh sửa chúng bằng cách click vào.',
               }
             : msg
         )
@@ -140,14 +142,13 @@ export function ChatPanel({ onSendMessage, isGenerating = false, className = '' 
                 <div
                   className={cn(
                     'rounded-lg px-4 py-2 max-w-[80%]',
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
+                    message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
                   )}
                 >
-                  {message.content || (isGenerating && message.id === messages[messages.length - 1]?.id && (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ))}
+                  {message.content ||
+                    (isGenerating && message.id === messages[messages.length - 1]?.id && (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ))}
                 </div>
                 {message.role === 'user' && (
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
@@ -189,4 +190,3 @@ export function ChatPanel({ onSendMessage, isGenerating = false, className = '' 
     </Card>
   );
 }
-

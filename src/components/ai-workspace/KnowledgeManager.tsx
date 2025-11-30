@@ -24,7 +24,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PromptDebugger } from './PromptDebugger';
 import {
@@ -41,7 +47,7 @@ import {
   Search,
   Loader2,
   Building2,
-  Bug
+  Bug,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -141,20 +147,20 @@ export function KnowledgeManager() {
         fetch(`${API_BASE}/api/knowledge/businesses`, { headers }),
       ]);
 
-      const [profileData, projectsData, goalsData, knowledgeData, businessesData] = await Promise.all([
-        profileRes.json(),
-        projectsRes.json(),
-        goalsRes.json(),
-        knowledgeRes.json(),
-        businessesRes.json(),
-      ]);
+      const [profileData, projectsData, goalsData, knowledgeData, businessesData] =
+        await Promise.all([
+          profileRes.json(),
+          projectsRes.json(),
+          goalsRes.json(),
+          knowledgeRes.json(),
+          businessesRes.json(),
+        ]);
 
       if (profileData.success) setProfile(profileData.profile);
       if (projectsData.success) setProjects(projectsData.projects || []);
       if (goalsData.success) setGoals(goalsData.goals || []);
       if (knowledgeData.success) setKnowledge(knowledgeData.entries || []);
       if (businessesData.success) setBusinesses(businessesData.businesses || []);
-
     } catch (error) {
       // Use centralized error handler
       const { captureError } = await import('@/lib/bug-system');
@@ -181,7 +187,7 @@ export function KnowledgeManager() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': 'default-longsang-user'
+          'x-user-id': 'default-longsang-user',
         },
         body: JSON.stringify(profile),
       });
@@ -213,7 +219,7 @@ export function KnowledgeManager() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': 'default-longsang-user'
+          'x-user-id': 'default-longsang-user',
         },
         body: JSON.stringify(editingProject),
       });
@@ -248,7 +254,7 @@ export function KnowledgeManager() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': 'default-longsang-user'
+          'x-user-id': 'default-longsang-user',
         },
         body: JSON.stringify(editingGoal),
       });
@@ -283,7 +289,7 @@ export function KnowledgeManager() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': 'default-longsang-user'
+          'x-user-id': 'default-longsang-user',
         },
         body: JSON.stringify(editingKnowledge),
       });
@@ -348,30 +354,42 @@ export function KnowledgeManager() {
   };
 
   // Filter knowledge by search
-  const filteredKnowledge = knowledge.filter(k =>
-    k.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    k.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    k.category.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredKnowledge = knowledge.filter(
+    (k) =>
+      k.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      k.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      k.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'planning': return 'bg-yellow-500';
-      case 'completed': return 'bg-blue-500';
-      case 'paused': return 'bg-gray-500';
-      case 'live': return 'bg-purple-500';
-      default: return 'bg-gray-400';
+      case 'active':
+        return 'bg-green-500';
+      case 'planning':
+        return 'bg-yellow-500';
+      case 'completed':
+        return 'bg-blue-500';
+      case 'paused':
+        return 'bg-gray-500';
+      case 'live':
+        return 'bg-purple-500';
+      default:
+        return 'bg-gray-400';
     }
   };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'personal': return <User className="h-4 w-4" />;
-      case 'business': return <Building2 className="h-4 w-4" />;
-      case 'project': return <FolderKanban className="h-4 w-4" />;
-      case 'technical': return <Search className="h-4 w-4" />;
-      default: return <BookOpen className="h-4 w-4" />;
+      case 'personal':
+        return <User className="h-4 w-4" />;
+      case 'business':
+        return <Building2 className="h-4 w-4" />;
+      case 'project':
+        return <FolderKanban className="h-4 w-4" />;
+      case 'technical':
+        return <Search className="h-4 w-4" />;
+      default:
+        return <BookOpen className="h-4 w-4" />;
     }
   };
 
@@ -438,9 +456,7 @@ export function KnowledgeManager() {
                 <User className="h-5 w-5" />
                 Admin Profile
               </CardTitle>
-              <CardDescription>
-                Thông tin cá nhân để AI hiểu bạn hơn
-              </CardDescription>
+              <CardDescription>Thông tin cá nhân để AI hiểu bạn hơn</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {profile && (
@@ -450,14 +466,14 @@ export function KnowledgeManager() {
                       <Label>Họ tên</Label>
                       <Input
                         value={profile.full_name}
-                        onChange={(e) => setProfile({...profile, full_name: e.target.value})}
+                        onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Vai trò</Label>
                       <Input
                         value={profile.role}
-                        onChange={(e) => setProfile({...profile, role: e.target.value})}
+                        onChange={(e) => setProfile({ ...profile, role: e.target.value })}
                       />
                     </div>
                   </div>
@@ -467,7 +483,7 @@ export function KnowledgeManager() {
                       <Label>Phong cách giao tiếp</Label>
                       <Select
                         value={profile.communication_style}
-                        onValueChange={(v) => setProfile({...profile, communication_style: v})}
+                        onValueChange={(v) => setProfile({ ...profile, communication_style: v })}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -484,7 +500,7 @@ export function KnowledgeManager() {
                       <Label>Ngôn ngữ ưa thích</Label>
                       <Select
                         value={profile.preferred_language}
-                        onValueChange={(v) => setProfile({...profile, preferred_language: v})}
+                        onValueChange={(v) => setProfile({ ...profile, preferred_language: v })}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -503,7 +519,7 @@ export function KnowledgeManager() {
                       <Label>Trình độ chuyên môn</Label>
                       <Select
                         value={profile.expertise_level}
-                        onValueChange={(v) => setProfile({...profile, expertise_level: v})}
+                        onValueChange={(v) => setProfile({ ...profile, expertise_level: v })}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -520,7 +536,7 @@ export function KnowledgeManager() {
                       <Label>Độ dài câu trả lời AI</Label>
                       <Select
                         value={profile.ai_verbosity}
-                        onValueChange={(v) => setProfile({...profile, ai_verbosity: v})}
+                        onValueChange={(v) => setProfile({ ...profile, ai_verbosity: v })}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -536,7 +552,11 @@ export function KnowledgeManager() {
 
                   <div className="pt-4">
                     <Button onClick={saveProfile} disabled={saving}>
-                      {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                      {saving ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Save className="h-4 w-4 mr-2" />
+                      )}
                       Lưu Profile
                     </Button>
                   </div>
@@ -560,7 +580,12 @@ export function KnowledgeManager() {
                     Các dự án bạn đang thực hiện - AI sẽ biết để hỗ trợ tốt hơn
                   </CardDescription>
                 </div>
-                <Button onClick={() => { setEditingProject({}); setProjectDialogOpen(true); }}>
+                <Button
+                  onClick={() => {
+                    setEditingProject({});
+                    setProjectDialogOpen(true);
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Thêm Project
                 </Button>
@@ -570,22 +595,35 @@ export function KnowledgeManager() {
               <ScrollArea className="h-[400px]">
                 <div className="space-y-3">
                   {projects.map((project) => (
-                    <div key={project.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div
+                      key={project.id}
+                      className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <h4 className="font-semibold">{project.name}</h4>
-                            <Badge variant="outline" className={`${getStatusColor(project.status)} text-white`}>
+                            <Badge
+                              variant="outline"
+                              className={`${getStatusColor(project.status)} text-white`}
+                            >
                               {project.status}
                             </Badge>
                             <Badge variant="secondary">{project.type}</Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {project.description}
+                          </p>
                           {project.urls && Object.keys(project.urls).length > 0 && (
                             <div className="flex gap-2 mt-2">
                               {Object.entries(project.urls).map(([key, url]) => (
-                                <a key={key} href={url} target="_blank" rel="noopener noreferrer"
-                                   className="text-xs text-blue-500 hover:underline">
+                                <a
+                                  key={key}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-500 hover:underline"
+                                >
                                   {key}
                                 </a>
                               ))}
@@ -593,10 +631,21 @@ export function KnowledgeManager() {
                           )}
                         </div>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => { setEditingProject(project); setProjectDialogOpen(true); }}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setEditingProject(project);
+                              setProjectDialogOpen(true);
+                            }}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => deleteProject(project.id)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteProject(project.id)}
+                          >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
@@ -628,7 +677,12 @@ export function KnowledgeManager() {
                     Mục tiêu và lộ trình - AI sẽ nhắc nhở và hỗ trợ bạn đạt được
                   </CardDescription>
                 </div>
-                <Button onClick={() => { setEditingGoal({}); setGoalDialogOpen(true); }}>
+                <Button
+                  onClick={() => {
+                    setEditingGoal({});
+                    setGoalDialogOpen(true);
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Thêm Goal
                 </Button>
@@ -638,12 +692,18 @@ export function KnowledgeManager() {
               <ScrollArea className="h-[400px]">
                 <div className="space-y-3">
                   {goals.map((goal) => (
-                    <div key={goal.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div
+                      key={goal.id}
+                      className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <h4 className="font-semibold">{goal.title}</h4>
-                            <Badge variant="outline" className={`${getStatusColor(goal.status)} text-white`}>
+                            <Badge
+                              variant="outline"
+                              className={`${getStatusColor(goal.status)} text-white`}
+                            >
                               {goal.status}
                             </Badge>
                             <Badge variant="secondary">{goal.timeframe}</Badge>
@@ -660,7 +720,14 @@ export function KnowledgeManager() {
                           </div>
                         </div>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => { setEditingGoal(goal); setGoalDialogOpen(true); }}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setEditingGoal(goal);
+                              setGoalDialogOpen(true);
+                            }}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => deleteGoal(goal.id)}>
@@ -705,7 +772,12 @@ export function KnowledgeManager() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
-                  <Button onClick={() => { setEditingKnowledge({}); setKnowledgeDialogOpen(true); }}>
+                  <Button
+                    onClick={() => {
+                      setEditingKnowledge({});
+                      setKnowledgeDialogOpen(true);
+                    }}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Thêm Kiến thức
                   </Button>
@@ -716,7 +788,10 @@ export function KnowledgeManager() {
               <ScrollArea className="h-[400px]">
                 <div className="space-y-3">
                   {filteredKnowledge.map((entry) => (
-                    <div key={entry.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div
+                      key={entry.id}
+                      className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
@@ -725,20 +800,35 @@ export function KnowledgeManager() {
                             <Badge variant="secondary">{entry.category}</Badge>
                             <Badge variant="outline">Độ quan trọng: {entry.importance}/10</Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{entry.content}</p>
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                            {entry.content}
+                          </p>
                           {entry.tags && entry.tags.length > 0 && (
                             <div className="flex gap-1 mt-2">
                               {entry.tags.map((tag, i) => (
-                                <Badge key={i} variant="outline" className="text-xs">{tag}</Badge>
+                                <Badge key={i} variant="outline" className="text-xs">
+                                  {tag}
+                                </Badge>
                               ))}
                             </div>
                           )}
                         </div>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => { setEditingKnowledge(entry); setKnowledgeDialogOpen(true); }}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setEditingKnowledge(entry);
+                              setKnowledgeDialogOpen(true);
+                            }}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => deleteKnowledge(entry.id)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteKnowledge(entry.id)}
+                          >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
@@ -747,7 +837,9 @@ export function KnowledgeManager() {
                   ))}
                   {filteredKnowledge.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
-                      {searchQuery ? 'Không tìm thấy kết quả.' : 'Chưa có kiến thức nào. Thêm để AI học hỏi!'}
+                      {searchQuery
+                        ? 'Không tìm thấy kết quả.'
+                        : 'Chưa có kiến thức nào. Thêm để AI học hỏi!'}
                     </div>
                   )}
                 </div>
@@ -766,11 +858,14 @@ export function KnowledgeManager() {
                     <Building2 className="h-5 w-5" />
                     Business Entities
                   </CardTitle>
-                  <CardDescription>
-                    Các công ty/doanh nghiệp của bạn
-                  </CardDescription>
+                  <CardDescription>Các công ty/doanh nghiệp của bạn</CardDescription>
                 </div>
-                <Button onClick={() => { setEditingBusiness({}); setBusinessDialogOpen(true); }}>
+                <Button
+                  onClick={() => {
+                    setEditingBusiness({});
+                    setBusinessDialogOpen(true);
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Thêm Business
                 </Button>
@@ -780,18 +875,26 @@ export function KnowledgeManager() {
               <ScrollArea className="h-[400px]">
                 <div className="space-y-3">
                   {businesses.map((business) => (
-                    <div key={business.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div
+                      key={business.id}
+                      className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <Building2 className="h-4 w-4" />
                             <h4 className="font-semibold">{business.name}</h4>
-                            <Badge variant="outline" className={`${getStatusColor(business.status)} text-white`}>
+                            <Badge
+                              variant="outline"
+                              className={`${getStatusColor(business.status)} text-white`}
+                            >
                               {business.status}
                             </Badge>
                             <Badge variant="secondary">{business.type}</Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1">{business.description}</p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {business.description}
+                          </p>
                         </div>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon">
@@ -835,7 +938,7 @@ export function KnowledgeManager() {
               <Label>Tên Project *</Label>
               <Input
                 value={editingProject?.name || ''}
-                onChange={(e) => setEditingProject({...editingProject, name: e.target.value})}
+                onChange={(e) => setEditingProject({ ...editingProject, name: e.target.value })}
                 placeholder="VD: AI Newbie Platform"
               />
             </div>
@@ -844,7 +947,7 @@ export function KnowledgeManager() {
                 <Label>Loại</Label>
                 <Select
                   value={editingProject?.type || 'webapp'}
-                  onValueChange={(v) => setEditingProject({...editingProject, type: v})}
+                  onValueChange={(v) => setEditingProject({ ...editingProject, type: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -862,7 +965,7 @@ export function KnowledgeManager() {
                 <Label>Trạng thái</Label>
                 <Select
                   value={editingProject?.status || 'active'}
-                  onValueChange={(v) => setEditingProject({...editingProject, status: v})}
+                  onValueChange={(v) => setEditingProject({ ...editingProject, status: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -881,16 +984,24 @@ export function KnowledgeManager() {
               <Label>Mô tả</Label>
               <Textarea
                 value={editingProject?.description || ''}
-                onChange={(e) => setEditingProject({...editingProject, description: e.target.value})}
+                onChange={(e) =>
+                  setEditingProject({ ...editingProject, description: e.target.value })
+                }
                 placeholder="Mô tả ngắn về project..."
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setProjectDialogOpen(false)}>Hủy</Button>
+            <Button variant="outline" onClick={() => setProjectDialogOpen(false)}>
+              Hủy
+            </Button>
             <Button onClick={saveProject} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               Lưu
             </Button>
           </DialogFooter>
@@ -902,16 +1013,14 @@ export function KnowledgeManager() {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>{editingGoal?.id ? 'Sửa Goal' : 'Thêm Goal mới'}</DialogTitle>
-            <DialogDescription>
-              Mục tiêu để AI theo dõi và nhắc nhở bạn
-            </DialogDescription>
+            <DialogDescription>Mục tiêu để AI theo dõi và nhắc nhở bạn</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Tiêu đề Goal *</Label>
               <Input
                 value={editingGoal?.title || ''}
-                onChange={(e) => setEditingGoal({...editingGoal, title: e.target.value})}
+                onChange={(e) => setEditingGoal({ ...editingGoal, title: e.target.value })}
                 placeholder="VD: Launch AI Newbie MVP"
               />
             </div>
@@ -920,7 +1029,7 @@ export function KnowledgeManager() {
                 <Label>Timeframe</Label>
                 <Select
                   value={editingGoal?.timeframe || 'Q1 2025'}
-                  onValueChange={(v) => setEditingGoal({...editingGoal, timeframe: v})}
+                  onValueChange={(v) => setEditingGoal({ ...editingGoal, timeframe: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -941,7 +1050,12 @@ export function KnowledgeManager() {
                   min="0"
                   max="100"
                   value={editingGoal?.progress_percent || 0}
-                  onChange={(e) => setEditingGoal({...editingGoal, progress_percent: parseInt(e.target.value) || 0})}
+                  onChange={(e) =>
+                    setEditingGoal({
+                      ...editingGoal,
+                      progress_percent: parseInt(e.target.value) || 0,
+                    })
+                  }
                 />
               </div>
             </div>
@@ -949,16 +1063,22 @@ export function KnowledgeManager() {
               <Label>Mô tả</Label>
               <Textarea
                 value={editingGoal?.description || ''}
-                onChange={(e) => setEditingGoal({...editingGoal, description: e.target.value})}
+                onChange={(e) => setEditingGoal({ ...editingGoal, description: e.target.value })}
                 placeholder="Chi tiết về mục tiêu..."
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setGoalDialogOpen(false)}>Hủy</Button>
+            <Button variant="outline" onClick={() => setGoalDialogOpen(false)}>
+              Hủy
+            </Button>
             <Button onClick={saveGoal} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               Lưu
             </Button>
           </DialogFooter>
@@ -969,7 +1089,9 @@ export function KnowledgeManager() {
       <Dialog open={knowledgeDialogOpen} onOpenChange={setKnowledgeDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>{editingKnowledge?.id ? 'Sửa Kiến thức' : 'Thêm Kiến thức mới'}</DialogTitle>
+            <DialogTitle>
+              {editingKnowledge?.id ? 'Sửa Kiến thức' : 'Thêm Kiến thức mới'}
+            </DialogTitle>
             <DialogDescription>
               Kiến thức này sẽ được AI sử dụng khi trả lời câu hỏi của bạn
             </DialogDescription>
@@ -979,7 +1101,9 @@ export function KnowledgeManager() {
               <Label>Tiêu đề *</Label>
               <Input
                 value={editingKnowledge?.title || ''}
-                onChange={(e) => setEditingKnowledge({...editingKnowledge, title: e.target.value})}
+                onChange={(e) =>
+                  setEditingKnowledge({ ...editingKnowledge, title: e.target.value })
+                }
                 placeholder="VD: Quy trình deploy website"
               />
             </div>
@@ -988,7 +1112,7 @@ export function KnowledgeManager() {
                 <Label>Danh mục</Label>
                 <Select
                   value={editingKnowledge?.category || 'technical'}
-                  onValueChange={(v) => setEditingKnowledge({...editingKnowledge, category: v})}
+                  onValueChange={(v) => setEditingKnowledge({ ...editingKnowledge, category: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -1010,7 +1134,12 @@ export function KnowledgeManager() {
                   min="1"
                   max="10"
                   value={editingKnowledge?.importance || 5}
-                  onChange={(e) => setEditingKnowledge({...editingKnowledge, importance: parseInt(e.target.value) || 5})}
+                  onChange={(e) =>
+                    setEditingKnowledge({
+                      ...editingKnowledge,
+                      importance: parseInt(e.target.value) || 5,
+                    })
+                  }
                 />
               </div>
             </div>
@@ -1018,7 +1147,9 @@ export function KnowledgeManager() {
               <Label>Nội dung *</Label>
               <Textarea
                 value={editingKnowledge?.content || ''}
-                onChange={(e) => setEditingKnowledge({...editingKnowledge, content: e.target.value})}
+                onChange={(e) =>
+                  setEditingKnowledge({ ...editingKnowledge, content: e.target.value })
+                }
                 placeholder="Nội dung chi tiết..."
                 rows={6}
               />
@@ -1027,18 +1158,29 @@ export function KnowledgeManager() {
               <Label>Tags (cách nhau bằng dấu phẩy)</Label>
               <Input
                 value={(editingKnowledge?.tags || []).join(', ')}
-                onChange={(e) => setEditingKnowledge({
-                  ...editingKnowledge,
-                  tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)
-                })}
+                onChange={(e) =>
+                  setEditingKnowledge({
+                    ...editingKnowledge,
+                    tags: e.target.value
+                      .split(',')
+                      .map((t) => t.trim())
+                      .filter(Boolean),
+                  })
+                }
                 placeholder="deploy, vercel, nextjs"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setKnowledgeDialogOpen(false)}>Hủy</Button>
+            <Button variant="outline" onClick={() => setKnowledgeDialogOpen(false)}>
+              Hủy
+            </Button>
             <Button onClick={saveKnowledge} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               Lưu
             </Button>
           </DialogFooter>

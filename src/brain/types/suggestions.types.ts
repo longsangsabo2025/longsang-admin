@@ -58,5 +58,3 @@ export interface DomainGrowthForecast {
   projectedNextMonth?: number;
   trend?: 'increasing' | 'decreasing' | 'stable';
 }
-
-

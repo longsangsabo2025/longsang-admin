@@ -1,5 +1,11 @@
 import { brainAPI } from '@/brain/lib/services/brain-api';
-import type { FeedbackInput, LearningMetric, RoutingWeight, KnowledgeQualityScore, ImprovementSuggestion } from '@/brain/types/learning.types';
+import type {
+  FeedbackInput,
+  LearningMetric,
+  RoutingWeight,
+  KnowledgeQualityScore,
+  ImprovementSuggestion,
+} from '@/brain/types/learning.types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -26,7 +32,11 @@ export function useSubmitFeedback() {
 /**
  * Hook to get learning metrics
  */
-export function useLearningMetrics(metricType?: string, limit: number = 50, enabled: boolean = true) {
+export function useLearningMetrics(
+  metricType?: string,
+  limit: number = 50,
+  enabled: boolean = true
+) {
   return useQuery<LearningMetric[]>({
     queryKey: [...QUERY_KEY_LEARNING, 'metrics', metricType, limit],
     queryFn: () => brainAPI.getLearningMetrics(metricType, limit),
@@ -88,5 +98,3 @@ export function useImprovementSuggestions(knowledgeId: string | null, enabled: b
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
-
-

@@ -1,6 +1,6 @@
 /**
  * AI Agent Center API Client
- * 
+ *
  * Provides type-safe API calls to the Agent Center backend
  */
 
@@ -101,7 +101,7 @@ export const agentCenterAPI = {
   // ============================================
   // AGENTS
   // ============================================
-  
+
   /**
    * Get all agents
    */
@@ -272,9 +272,7 @@ export const agentCenterAPI = {
    * Get all tools
    */
   getTools: async (category?: string): Promise<{ total: number; tools: Record<string, any> }> => {
-    const url = category 
-      ? `${API_BASE}/tools?category=${category}`
-      : `${API_BASE}/tools`;
+    const url = category ? `${API_BASE}/tools?category=${category}` : `${API_BASE}/tools`;
     const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch tools');
     return response.json();

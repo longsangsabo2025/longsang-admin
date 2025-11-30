@@ -37,7 +37,7 @@ async function sendViaResend(request: EmailRequest): Promise<EmailResponse> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
         from: request.from || 'noreply@longsang.org',
@@ -77,13 +77,13 @@ async function sendViaSendGrid(request: EmailRequest): Promise<EmailResponse> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SENDGRID_API_KEY}`,
+        Authorization: `Bearer ${SENDGRID_API_KEY}`,
       },
       body: JSON.stringify({
         personalizations: [
           {
-            to: Array.isArray(request.to) 
-              ? request.to.map(email => ({ email }))
+            to: Array.isArray(request.to)
+              ? request.to.map((email) => ({ email }))
               : [{ email: request.to }],
             subject: request.subject,
           },
@@ -133,7 +133,7 @@ export async function sendEmail(
       subject: request.subject,
       preview: request.text?.substring(0, 100) || request.html?.substring(0, 100),
     });
-    
+
     return {
       success: true,
       messageId: `mock-${Date.now()}`,
@@ -180,7 +180,10 @@ export async function sendFollowUpEmail(
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2>Hi ${name},</h2>
       <div style="line-height: 1.6;">
-        ${body.split('\n').map(p => `<p>${p}</p>`).join('')}
+        ${body
+          .split('\n')
+          .map((p) => `<p>${p}</p>`)
+          .join('')}
       </div>
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
       <p style="color: #666; font-size: 12px;">
@@ -209,9 +212,7 @@ export async function sendBatchEmails(
   requests: EmailRequest[],
   config?: EmailConfig
 ): Promise<EmailResponse[]> {
-  const results = await Promise.allSettled(
-    requests.map(request => sendEmail(request, config))
-  );
+  const results = await Promise.allSettled(requests.map((request) => sendEmail(request, config)));
 
   return results.map((result, index) => {
     if (result.status === 'fulfilled') {

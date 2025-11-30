@@ -1,7 +1,7 @@
-import { ReactNode } from "react";
-import { useAuth } from "./AuthProvider";
-import { ForbiddenPage } from "./ForbiddenPage";
-import { ProtectedRoute } from "./ProtectedRoute";
+import { ReactNode } from 'react';
+import { useAuth } from './AuthProvider';
+import { ForbiddenPage } from './ForbiddenPage';
+import { ProtectedRoute } from './ProtectedRoute';
 
 interface UserRouteProps {
   readonly children: ReactNode;
@@ -26,7 +26,7 @@ export function UserRoute({ children }: UserRouteProps) {
 
   // Check if user has user role (not admin)
   const userRole = user?.user_metadata?.role as string | undefined;
-  const isUser = userRole === "user" || !userRole; // Default to user if no role set
+  const isUser = userRole === 'user' || !userRole; // Default to user if no role set
 
   if (!isUser) {
     // Show forbidden page for admin users trying to access user-only content

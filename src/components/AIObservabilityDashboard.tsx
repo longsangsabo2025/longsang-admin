@@ -256,8 +256,7 @@ export function AgentMetrics({ agentName }: AgentMetricsProps) {
   const successful = metrics.filter((m: { success: boolean }) => m.success).length;
   const total = metrics.length;
   const avgLatency =
-    metrics.reduce((sum: number, m: { latency_ms: number }) => sum + m.latency_ms, 0) / total ||
-    0;
+    metrics.reduce((sum: number, m: { latency_ms: number }) => sum + m.latency_ms, 0) / total || 0;
   const totalCost =
     metrics.reduce((sum: number, m: { cost_usd: number }) => sum + m.cost_usd, 0) || 0;
 

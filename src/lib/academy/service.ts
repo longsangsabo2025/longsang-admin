@@ -59,9 +59,7 @@ export class AcademyService {
         query = query.eq('instructor_id', filters.instructor_id);
       }
       if (filters.search) {
-        query = query.or(
-          `title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
-        );
+        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
       if (filters.tags && filters.tags.length > 0) {
         query = query.contains('tags', filters.tags);
@@ -126,7 +124,9 @@ export class AcademyService {
       if (error) throw error;
 
       // Get user enrollment if authenticated
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user && course) {
         const { data: enrollment } = await supabase
           .from('course_enrollments')
@@ -153,7 +153,9 @@ export class AcademyService {
    */
   static async enrollCourse(request: EnrollCourseRequest): Promise<CourseEnrollment> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -180,7 +182,9 @@ export class AcademyService {
    */
   static async getUserEnrollments(): Promise<EnrollmentWithCourse[]> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -209,7 +213,9 @@ export class AcademyService {
    */
   static async updateLessonProgress(request: UpdateProgressRequest): Promise<LessonProgress> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       // Get enrollment ID
@@ -277,7 +283,9 @@ export class AcademyService {
    */
   static async createReview(request: CreateReviewRequest): Promise<CourseReview> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       // Check enrollment
@@ -317,7 +325,9 @@ export class AcademyService {
    */
   static async markReviewHelpful(reviewId: string): Promise<void> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { error } = await supabase.from('review_helpful_votes').insert({
@@ -342,7 +352,9 @@ export class AcademyService {
    */
   static async createDiscussion(request: CreateDiscussionRequest): Promise<CourseDiscussion> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -401,7 +413,9 @@ export class AcademyService {
    */
   static async replyToDiscussion(request: CreateReplyRequest): Promise<void> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { error } = await supabase.from('discussion_replies').insert({
@@ -453,7 +467,9 @@ export class AcademyService {
    */
   static async getUserPathProgress(): Promise<UserLearningPathProgress[]> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -480,7 +496,9 @@ export class AcademyService {
     certificates_earned: number;
   }> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { data: enrollments } = await supabase
@@ -496,8 +514,7 @@ export class AcademyService {
       const totalEnrollments = enrollments?.length || 0;
       const completedCourses = enrollments?.filter((e) => e.completed_at).length || 0;
       const totalWatchTime = progress?.reduce((sum, p) => sum + p.watch_time_seconds, 0) || 0;
-      const certificatesEarned =
-        enrollments?.filter((e) => e.certificate_issued).length || 0;
+      const certificatesEarned = enrollments?.filter((e) => e.certificate_issued).length || 0;
 
       return {
         total_enrollments: totalEnrollments,

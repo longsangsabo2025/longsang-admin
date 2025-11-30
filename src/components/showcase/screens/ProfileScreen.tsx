@@ -1,4 +1,4 @@
-import { TrendingUp, Trophy, Target, Award } from "lucide-react";
+import { TrendingUp, Trophy, Target, Award } from 'lucide-react';
 
 export const ProfileScreen = () => {
   return (

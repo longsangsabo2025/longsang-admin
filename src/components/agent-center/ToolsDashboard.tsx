@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wrench, Search, Plus, TrendingUp, DollarSign } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { agentCenterApi } from "@/services/agent-center.service";
-import { AITool, ToolCategory } from "@/types/agent-center.types";
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Wrench, Search, Plus, TrendingUp, DollarSign } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { agentCenterApi } from '@/services/agent-center.service';
+import { AITool, ToolCategory } from '@/types/agent-center.types';
 
 const ToolsDashboard = () => {
   const [tools, setTools] = useState<AITool[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<ToolCategory | "all">("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<ToolCategory | 'all'>('all');
   const { toast } = useToast();
 
   const fetchTools = useCallback(async () => {
@@ -22,11 +22,11 @@ const ToolsDashboard = () => {
       const data = await agentCenterApi.tools.list();
       setTools(data);
     } catch (error) {
-      console.error("Error fetching tools:", error);
+      console.error('Error fetching tools:', error);
       toast({
-        title: "Error",
-        description: "Failed to load tools",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load tools',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -37,25 +37,27 @@ const ToolsDashboard = () => {
     fetchTools();
   }, [fetchTools]);
 
-  const categories = ["all", ...new Set(tools.map(t => t.category))];
+  const categories = ['all', ...new Set(tools.map((t) => t.category))];
 
-  const filteredTools = tools.filter(tool => {
-    const matchesSearch = tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         tool.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         tool.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = selectedCategory === "all" || tool.category === selectedCategory;
+  const filteredTools = tools.filter((tool) => {
+    const matchesSearch =
+      tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tool.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tool.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesCategory = selectedCategory === 'all' || tool.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   const calculateStats = () => {
     const totalCalls = tools.reduce((sum, t) => sum + t.total_calls, 0);
-    const totalCost = tools.reduce((sum, t) => sum + (t.cost_per_use * t.total_calls), 0);
-    const avgSuccessRate = tools.length > 0
-      ? tools.reduce((sum, t) => {
-          const rate = t.total_calls > 0 ? (t.successful_calls / t.total_calls) * 100 : 0;
-          return sum + rate;
-        }, 0) / tools.length
-      : 0;
+    const totalCost = tools.reduce((sum, t) => sum + t.cost_per_use * t.total_calls, 0);
+    const avgSuccessRate =
+      tools.length > 0
+        ? tools.reduce((sum, t) => {
+            const rate = t.total_calls > 0 ? (t.successful_calls / t.total_calls) * 100 : 0;
+            return sum + rate;
+          }, 0) / tools.length
+        : 0;
 
     return { totalCalls, totalCost, avgSuccessRate };
   };
@@ -82,7 +84,7 @@ const ToolsDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold text-white">{tools.length}</div>
             <p className="text-xs text-slate-400">
-              {tools.filter(t => t.is_builtin).length} built-in
+              {tools.filter((t) => t.is_builtin).length} built-in
             </p>
           </CardContent>
         </Card>
@@ -94,9 +96,7 @@ const ToolsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.totalCalls.toLocaleString()}</div>
-            <p className="text-xs text-slate-400">
-              Across all tools
-            </p>
+            <p className="text-xs text-slate-400">Across all tools</p>
           </CardContent>
         </Card>
 
@@ -107,9 +107,7 @@ const ToolsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.avgSuccessRate.toFixed(1)}%</div>
-            <p className="text-xs text-slate-400">
-              Average
-            </p>
+            <p className="text-xs text-slate-400">Average</p>
           </CardContent>
         </Card>
 
@@ -120,9 +118,7 @@ const ToolsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">${stats.totalCost.toFixed(2)}</div>
-            <p className="text-xs text-slate-400">
-              Lifetime usage
-            </p>
+            <p className="text-xs text-slate-400">Lifetime usage</p>
           </CardContent>
         </Card>
       </div>
@@ -131,9 +127,7 @@ const ToolsDashboard = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-100">Tools Registry</h2>
-          <p className="text-sm text-slate-400">
-            Browse and manage available tools
-          </p>
+          <p className="text-sm text-slate-400">Browse and manage available tools</p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
@@ -155,8 +149,12 @@ const ToolsDashboard = () => {
       {/* Category Tabs */}
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="w-full justify-start overflow-x-auto bg-slate-900 border-slate-700">
-          {categories.map(category => (
-            <TabsTrigger key={category} value={category} className="capitalize data-[state=active]:bg-slate-800 data-[state=active]:text-slate-100">
+          {categories.map((category) => (
+            <TabsTrigger
+              key={category}
+              value={category}
+              className="capitalize data-[state=active]:bg-slate-800 data-[state=active]:text-slate-100"
+            >
               {category.replace('_', ' ')}
             </TabsTrigger>
           ))}
@@ -169,15 +167,16 @@ const ToolsDashboard = () => {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Wrench className="w-16 h-16 text-slate-500 mb-4" />
             <h3 className="text-lg font-semibold mb-2 text-slate-200">No tools found</h3>
-            <p className="text-sm text-slate-400 mb-4">
-              Try adjusting your search or filters
-            </p>
+            <p className="text-sm text-slate-400 mb-4">Try adjusting your search or filters</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTools.map((tool) => (
-            <Card key={tool.id} className="bg-slate-900 border-slate-700 hover:border-orange-500 hover:shadow-xl hover:shadow-orange-500/10 transition-all">
+            <Card
+              key={tool.id}
+              className="bg-slate-900 border-slate-700 hover:border-orange-500 hover:shadow-xl hover:shadow-orange-500/10 transition-all"
+            >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -187,11 +186,17 @@ const ToolsDashboard = () => {
                     <div>
                       <CardTitle className="text-lg text-slate-100">{tool.name}</CardTitle>
                       <CardDescription className="flex items-center gap-2 mt-1 text-slate-400">
-                        <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
+                        <Badge
+                          variant="outline"
+                          className="text-xs border-slate-600 text-slate-300"
+                        >
                           {tool.category}
                         </Badge>
                         {tool.is_builtin && (
-                          <Badge variant="secondary" className="text-xs border-slate-600 text-slate-300">
+                          <Badge
+                            variant="secondary"
+                            className="text-xs border-slate-600 text-slate-300"
+                          >
                             Built-in
                           </Badge>
                         )}
@@ -201,13 +206,15 @@ const ToolsDashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-slate-400 line-clamp-2">
-                  {tool.description}
-                </p>
+                <p className="text-sm text-slate-400 line-clamp-2">{tool.description}</p>
 
                 <div className="flex flex-wrap gap-1">
                   {tool.tags.slice(0, 3).map((tag) => (
-                    <Badge key={`${tool.id}-${tag}`} variant="outline" className="text-xs border-slate-600 text-slate-300">
+                    <Badge
+                      key={`${tool.id}-${tag}`}
+                      variant="outline"
+                      className="text-xs border-slate-600 text-slate-300"
+                    >
                       {tag}
                     </Badge>
                   ))}
@@ -226,9 +233,10 @@ const ToolsDashboard = () => {
                   <div className="space-y-1">
                     <div className="text-xs text-slate-400">Success</div>
                     <div className="font-semibold text-green-400">
-                      {tool.total_calls > 0 
+                      {tool.total_calls > 0
                         ? ((tool.successful_calls / tool.total_calls) * 100).toFixed(0)
-                        : 0}%
+                        : 0}
+                      %
                     </div>
                   </div>
                   <div className="space-y-1">

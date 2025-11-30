@@ -3,13 +3,13 @@
  * Weekly workshops calendar with registration
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
-import { Calendar, Clock, Users, Video } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { supabase } from '@/lib/supabase';
+import { Calendar, Clock, Users, Video } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface LiveSession {
   id: string;
@@ -34,30 +34,30 @@ export function LiveSessions({ userId }: { userId: string }) {
 
   const loadSessions = async () => {
     const { data } = await supabase
-      .from("live_sessions")
-      .select("*")
-      .gte("scheduled_at", new Date().toISOString())
-      .order("scheduled_at");
+      .from('live_sessions')
+      .select('*')
+      .gte('scheduled_at', new Date().toISOString())
+      .order('scheduled_at');
 
     setSessions(data || []);
   };
 
   const loadRegistrations = async () => {
     const { data } = await supabase
-      .from("live_session_attendees")
-      .select("session_id")
-      .eq("user_id", userId);
+      .from('live_session_attendees')
+      .select('session_id')
+      .eq('user_id', userId);
 
     setRegistered(new Set(data?.map((d) => d.session_id) || []));
   };
 
   const register = async (sessionId: string) => {
     const { error } = await supabase
-      .from("live_session_attendees")
+      .from('live_session_attendees')
       .insert({ session_id: sessionId, user_id: userId });
 
     if (!error) {
-      toast.success("Registered for session!");
+      toast.success('Registered for session!');
       loadRegistrations();
     }
   };

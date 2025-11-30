@@ -1,7 +1,7 @@
 /**
  * FileUpload Component - Elon Musk Edition 🚀
  * Upload documents for RAG indexing
- * 
+ *
  * Now uses global UploadManager - uploads persist across tab switches!
  */
 
@@ -21,23 +21,18 @@ interface FileUploadProps {
   showStatusPanel?: boolean;
 }
 
-export function FileUpload({ 
-  assistantType, 
-  userId, 
+export function FileUpload({
+  assistantType,
+  userId,
   className,
-  showStatusPanel = true 
+  showStatusPanel = true,
 }: FileUploadProps) {
-  const { 
-    uploadFile, 
-    uploadFiles,
-    hasActiveUploads,
-    activeTasks 
-  } = useUploadManager({
+  const { uploadFile, uploadFiles, hasActiveUploads, activeTasks } = useUploadManager({
     userId,
     assistantType,
     showToasts: true,
   });
-  
+
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
 
@@ -139,10 +134,7 @@ export function FileUpload({
           id="file-upload"
           multiple
         />
-        <Button
-          asChild
-          variant="outline"
-        >
+        <Button asChild variant="outline">
           <label htmlFor="file-upload" className="cursor-pointer">
             {hasActiveUploads ? (
               <>

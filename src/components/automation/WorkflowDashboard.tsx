@@ -3,26 +3,38 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { n8nService } from '@/lib/automation/n8n-service';
-import { 
-  Play, 
-  Pause, 
-  Edit, 
-  Trash2, 
-  Plus, 
-  Activity, 
-  Clock, 
-  CheckCircle, 
+import {
+  Play,
+  Pause,
+  Edit,
+  Trash2,
+  Plus,
+  Activity,
+  Clock,
+  CheckCircle,
   XCircle,
   Zap,
   Workflow as WorkflowIcon,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react';
 
 interface WorkflowDashboardProps {
@@ -49,9 +61,9 @@ export const WorkflowDashboard = ({ agentId }: WorkflowDashboardProps) => {
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       toast({
-        title: "Error",
-        description: "Failed to load workflow data",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load workflow data',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -62,15 +74,15 @@ export const WorkflowDashboard = ({ agentId }: WorkflowDashboardProps) => {
     try {
       await n8nService.activateWorkflow(workflowId);
       toast({
-        title: "Success",
-        description: "Workflow activated successfully",
+        title: 'Success',
+        description: 'Workflow activated successfully',
       });
       loadDashboardData();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to activate workflow",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to activate workflow',
+        variant: 'destructive',
       });
     }
   };
@@ -79,15 +91,15 @@ export const WorkflowDashboard = ({ agentId }: WorkflowDashboardProps) => {
     try {
       await n8nService.deactivateWorkflow(workflowId);
       toast({
-        title: "Success",
-        description: "Workflow deactivated successfully",
+        title: 'Success',
+        description: 'Workflow deactivated successfully',
       });
       loadDashboardData();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to deactivate workflow",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to deactivate workflow',
+        variant: 'destructive',
       });
     }
   };
@@ -96,15 +108,15 @@ export const WorkflowDashboard = ({ agentId }: WorkflowDashboardProps) => {
     try {
       await n8nService.executeWorkflow(workflowId, {});
       toast({
-        title: "Success",
-        description: "Workflow execution started",
+        title: 'Success',
+        description: 'Workflow execution started',
       });
       setTimeout(loadDashboardData, 2000); // Reload after 2 seconds
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to execute workflow",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to execute workflow',
+        variant: 'destructive',
       });
     }
   };
@@ -124,7 +136,7 @@ export const WorkflowDashboard = ({ agentId }: WorkflowDashboardProps) => {
     );
   }
 
-  const workflows = agentId 
+  const workflows = agentId
     ? dashboardData?.workflows?.filter((w: any) => w.agent_id === agentId) || []
     : dashboardData?.workflows || [];
 
@@ -171,9 +183,14 @@ export const WorkflowDashboard = ({ agentId }: WorkflowDashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {dashboardData?.stats?.totalExecutions > 0 
-                ? Math.round((dashboardData.stats.successfulExecutions / dashboardData.stats.totalExecutions) * 100)
-                : 0}%
+              {dashboardData?.stats?.totalExecutions > 0
+                ? Math.round(
+                    (dashboardData.stats.successfulExecutions /
+                      dashboardData.stats.totalExecutions) *
+                      100
+                  )
+                : 0}
+              %
             </div>
           </CardContent>
         </Card>
@@ -192,7 +209,7 @@ export const WorkflowDashboard = ({ agentId }: WorkflowDashboardProps) => {
             <DialogHeader>
               <DialogTitle>Create New Workflow</DialogTitle>
             </DialogHeader>
-            <CreateWorkflowForm 
+            <CreateWorkflowForm
               templates={dashboardData?.templates || []}
               onSuccess={() => {
                 setCreateModalOpen(false);
@@ -253,9 +270,7 @@ export const WorkflowDashboard = ({ agentId }: WorkflowDashboardProps) => {
             </CardHeader>
             <CardContent>
               {dashboardData?.executions?.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">
-                  No executions found
-                </p>
+                <p className="text-muted-foreground text-center py-4">No executions found</p>
               ) : (
                 <div className="space-y-2">
                   {dashboardData?.executions?.map((execution: any) => (
@@ -290,10 +305,14 @@ export const WorkflowDashboard = ({ agentId }: WorkflowDashboardProps) => {
 const WorkflowCard = ({ workflow, onActivate, onDeactivate, onExecute }: any) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'paused': return 'bg-yellow-100 text-yellow-800';
-      case 'error': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'paused':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'error':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -303,13 +322,9 @@ const WorkflowCard = ({ workflow, onActivate, onDeactivate, onExecute }: any) =>
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="text-lg">{workflow.name}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              {workflow.ai_agents?.name}
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">{workflow.ai_agents?.name}</p>
           </div>
-          <Badge className={getStatusColor(workflow.status)}>
-            {workflow.status}
-          </Badge>
+          <Badge className={getStatusColor(workflow.status)}>{workflow.status}</Badge>
         </div>
       </CardHeader>
       <CardContent>
@@ -317,14 +332,13 @@ const WorkflowCard = ({ workflow, onActivate, onDeactivate, onExecute }: any) =>
           <p className="text-sm text-muted-foreground">
             {workflow.description || 'No description'}
           </p>
-          
+
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{workflow.total_executions || 0} executions</span>
             <span>
-              {workflow.last_execution 
+              {workflow.last_execution
                 ? new Date(workflow.last_execution).toLocaleDateString()
-                : 'Never run'
-              }
+                : 'Never run'}
             </span>
           </div>
 
@@ -340,7 +354,7 @@ const WorkflowCard = ({ workflow, onActivate, onDeactivate, onExecute }: any) =>
                 Activate
               </Button>
             )}
-            
+
             <Button size="sm" variant="outline" onClick={onExecute}>
               <Zap className="h-3 w-3 mr-1" />
               Run
@@ -356,19 +370,27 @@ const WorkflowCard = ({ workflow, onActivate, onDeactivate, onExecute }: any) =>
 const ExecutionItem = ({ execution }: any) => {
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'success': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'error': return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'running': return <Activity className="h-4 w-4 text-blue-600 animate-pulse" />;
-      default: return <Clock className="h-4 w-4 text-yellow-600" />;
+      case 'success':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'error':
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      case 'running':
+        return <Activity className="h-4 w-4 text-blue-600 animate-pulse" />;
+      default:
+        return <Clock className="h-4 w-4 text-yellow-600" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'success': return 'text-green-600';
-      case 'error': return 'text-red-600';
-      case 'running': return 'text-blue-600';
-      default: return 'text-yellow-600';
+      case 'success':
+        return 'text-green-600';
+      case 'error':
+        return 'text-red-600';
+      case 'running':
+        return 'text-blue-600';
+      default:
+        return 'text-yellow-600';
     }
   };
 
@@ -388,9 +410,7 @@ const ExecutionItem = ({ execution }: any) => {
           {execution.status}
         </p>
         {execution.duration_ms && (
-          <p className="text-xs text-muted-foreground">
-            {execution.duration_ms}ms
-          </p>
+          <p className="text-xs text-muted-foreground">{execution.duration_ms}ms</p>
         )}
       </div>
     </div>
@@ -400,7 +420,10 @@ const ExecutionItem = ({ execution }: any) => {
 // Template Card Component
 const TemplateCard = ({ template, onUse }: any) => {
   return (
-    <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => onUse(template)}>
+    <Card
+      className="hover:shadow-md transition-shadow cursor-pointer"
+      onClick={() => onUse(template)}
+    >
       <CardHeader>
         <CardTitle className="text-lg">{template.name}</CardTitle>
         <div className="flex gap-2">
@@ -409,9 +432,7 @@ const TemplateCard = ({ template, onUse }: any) => {
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground mb-3">
-          {template.description}
-        </p>
+        <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
         <div className="flex flex-wrap gap-1">
           {template.tags?.map((tag: string) => (
             <Badge key={tag} variant="outline" className="text-xs">
@@ -448,38 +469,37 @@ const CreateWorkflowForm = ({ templates, onSuccess }: any) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (!formData.templateId || !formData.agentId) {
         toast({
-          title: "Error",
-          description: "Please select both template and agent",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Please select both template and agent',
+          variant: 'destructive',
         });
         return;
       }
 
-      await n8nService.createWorkflowFromTemplate(
-        formData.templateId,
-        formData.agentId,
-        {
-          name: formData.name,
-          description: formData.description,
-          tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
-        }
-      );
+      await n8nService.createWorkflowFromTemplate(formData.templateId, formData.agentId, {
+        name: formData.name,
+        description: formData.description,
+        tags: formData.tags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean),
+      });
 
       toast({
-        title: "Success",
-        description: "Workflow created successfully",
+        title: 'Success',
+        description: 'Workflow created successfully',
       });
-      
+
       onSuccess();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to create workflow",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create workflow',
+        variant: 'destructive',
       });
     }
   };
@@ -488,7 +508,10 @@ const CreateWorkflowForm = ({ templates, onSuccess }: any) => {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="template">Template</Label>
-        <Select value={formData.templateId} onValueChange={(value) => setFormData(prev => ({ ...prev, templateId: value }))}>
+        <Select
+          value={formData.templateId}
+          onValueChange={(value) => setFormData((prev) => ({ ...prev, templateId: value }))}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select a template" />
           </SelectTrigger>
@@ -504,7 +527,10 @@ const CreateWorkflowForm = ({ templates, onSuccess }: any) => {
 
       <div>
         <Label htmlFor="agent">Agent</Label>
-        <Select value={formData.agentId} onValueChange={(value) => setFormData(prev => ({ ...prev, agentId: value }))}>
+        <Select
+          value={formData.agentId}
+          onValueChange={(value) => setFormData((prev) => ({ ...prev, agentId: value }))}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select an agent" />
           </SelectTrigger>
@@ -523,7 +549,7 @@ const CreateWorkflowForm = ({ templates, onSuccess }: any) => {
         <Input
           id="name"
           value={formData.name}
-          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
           placeholder="Enter workflow name"
         />
       </div>
@@ -533,7 +559,7 @@ const CreateWorkflowForm = ({ templates, onSuccess }: any) => {
         <Textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
           placeholder="Enter workflow description"
         />
       </div>
@@ -543,7 +569,7 @@ const CreateWorkflowForm = ({ templates, onSuccess }: any) => {
         <Input
           id="tags"
           value={formData.tags}
-          onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+          onChange={(e) => setFormData((prev) => ({ ...prev, tags: e.target.value }))}
           placeholder="automation, email, ai"
         />
       </div>

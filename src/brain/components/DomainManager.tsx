@@ -8,8 +8,8 @@ import {
   useDeleteDomain,
   useDomains,
   useUpdateDomain,
-} from "@/brain/hooks/useDomains";
-import type { CreateDomainInput, Domain } from "@/brain/types/brain.types";
+} from '@/brain/hooks/useDomains';
+import type { CreateDomainInput, Domain } from '@/brain/types/brain.types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,8 +19,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -29,14 +29,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Edit, FolderOpen, Plus, Trash2, BarChart3, Bot, ExternalLink } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useDomainStats } from "@/brain/hooks/useDomainStats";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Edit, FolderOpen, Plus, Trash2, BarChart3, Bot, ExternalLink } from 'lucide-react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useDomainStats } from '@/brain/hooks/useDomainStats';
 
 interface DomainManagerProps {
   readonly onDomainSelect?: (domainId: string | null) => void;
@@ -53,17 +53,17 @@ export function DomainManager({ onDomainSelect, selectedDomainId }: DomainManage
   const [editingDomain, setEditingDomain] = useState<Domain | null>(null);
   const [deletingDomain, setDeletingDomain] = useState<Domain | null>(null);
   const [formData, setFormData] = useState<CreateDomainInput>({
-    name: "",
-    description: "",
-    color: "#3B82F6",
-    icon: "folder",
+    name: '',
+    description: '',
+    color: '#3B82F6',
+    icon: 'folder',
   });
 
   const handleCreate = async () => {
     try {
       await createDomain.mutateAsync(formData);
       setIsCreateOpen(false);
-      setFormData({ name: "", description: "", color: "#3B82F6", icon: "folder" });
+      setFormData({ name: '', description: '', color: '#3B82F6', icon: 'folder' });
     } catch {
       // Error handled by hook
     }
@@ -74,7 +74,7 @@ export function DomainManager({ onDomainSelect, selectedDomainId }: DomainManage
     try {
       await updateDomain.mutateAsync({ id: editingDomain.id, input: formData });
       setEditingDomain(null);
-      setFormData({ name: "", description: "", color: "#3B82F6", icon: "folder" });
+      setFormData({ name: '', description: '', color: '#3B82F6', icon: 'folder' });
     } catch {
       // Error handled by hook
     }
@@ -94,9 +94,9 @@ export function DomainManager({ onDomainSelect, selectedDomainId }: DomainManage
     setEditingDomain(domain);
     setFormData({
       name: domain.name,
-      description: domain.description || "",
-      color: domain.color || "#3B82F6",
-      icon: domain.icon || "folder",
+      description: domain.description || '',
+      color: domain.color || '#3B82F6',
+      icon: domain.icon || 'folder',
     });
   };
 
@@ -157,7 +157,7 @@ export function DomainManager({ onDomainSelect, selectedDomainId }: DomainManage
               Cancel
             </Button>
             <Button onClick={handleCreate} disabled={!formData.name || createDomain.isPending}>
-              {createDomain.isPending ? "Creating..." : "Create"}
+              {createDomain.isPending ? 'Creating...' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -204,7 +204,7 @@ export function DomainManager({ onDomainSelect, selectedDomainId }: DomainManage
               Cancel
             </Button>
             <Button onClick={handleUpdate} disabled={!formData.name || updateDomain.isPending}>
-              {updateDomain.isPending ? "Updating..." : "Update"}
+              {updateDomain.isPending ? 'Updating...' : 'Update'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -280,12 +280,12 @@ function DomainCard({
   return (
     <div
       className={`p-4 border rounded-lg transition-colors ${
-        selectedDomainId === domain.id ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+        selectedDomainId === domain.id ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
       }`}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2 flex-1">
-          <FolderOpen className="h-5 w-5" style={{ color: domain.color || "#3B82F6" }} />
+          <FolderOpen className="h-5 w-5" style={{ color: domain.color || '#3B82F6' }} />
           <div className="flex-1">
             <h3 className="font-semibold">{domain.name}</h3>
             {domain.description && (

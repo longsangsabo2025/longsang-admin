@@ -12,7 +12,7 @@ export function useTasks(
   status?: Task['status'],
   priority?: Task['priority'],
   limit: number = 50,
-  enabled: boolean = true,
+  enabled: boolean = true
 ) {
   return useQuery<Task[]>({
     queryKey: [...QUERY_KEY_TASKS, status, priority, limit],
@@ -89,4 +89,3 @@ export function useDeleteTask() {
     },
   });
 }
-

@@ -3,16 +3,16 @@
  * Manages knowledge graph operations
  */
 
-import { brainAPI } from "@/brain/lib/services/brain-api";
+import { brainAPI } from '@/brain/lib/services/brain-api';
 import type {
   BuildGraphResponse,
   GraphPath,
   RelatedConcept,
   GraphTraversalResult,
   GraphStatistics,
-} from "@/brain/types/knowledge-graph.types";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+} from '@/brain/types/knowledge-graph.types';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 /**
  * Hook to build knowledge graph
@@ -51,9 +51,9 @@ export function useFindPaths() {
  */
 export function useRelatedConcepts(nodeId: string | null, maxResults: number = 10) {
   return useQuery<RelatedConcept[]>({
-    queryKey: ["brain", "related-concepts", nodeId, maxResults],
+    queryKey: ['brain', 'related-concepts', nodeId, maxResults],
     queryFn: () => {
-      if (!nodeId) throw new Error("Node ID is required");
+      if (!nodeId) throw new Error('Node ID is required');
       return brainAPI.getRelatedConcepts(nodeId, maxResults);
     },
     enabled: !!nodeId,
@@ -65,11 +65,7 @@ export function useRelatedConcepts(nodeId: string | null, maxResults: number = 1
  * Hook to traverse graph
  */
 export function useTraverseGraph() {
-  return useMutation<
-    GraphTraversalResult[],
-    Error,
-    { startNodeId: string; maxDepth?: number }
-  >({
+  return useMutation<GraphTraversalResult[], Error, { startNodeId: string; maxDepth?: number }>({
     mutationFn: ({ startNodeId, maxDepth }) => brainAPI.traverseGraph(startNodeId, maxDepth),
     onError: (error) => {
       toast.error(`Failed to traverse graph: ${error.message}`);
@@ -82,11 +78,10 @@ export function useTraverseGraph() {
  */
 export function useGraphStatistics(domainId: string | null) {
   return useQuery<GraphStatistics>({
-    queryKey: ["brain", "graph-statistics", domainId],
+    queryKey: ['brain', 'graph-statistics', domainId],
     queryFn: () => {
       return brainAPI.getGraphStatistics(domainId || undefined);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
-

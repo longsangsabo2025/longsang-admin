@@ -149,11 +149,7 @@ export function ConsultationManager({ consultantId }: ConsultationManagerProps) 
     };
 
     const variant = variants[status] || variants.pending;
-    return (
-      <Badge className={variant.color}>
-        {variant.label}
-      </Badge>
-    );
+    return <Badge className={variant.color}>{variant.label}</Badge>;
   };
 
   if (loading) {
@@ -166,9 +162,7 @@ export function ConsultationManager({ consultantId }: ConsultationManagerProps) 
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Quản lý lịch tư vấn</h2>
-          <p className="text-muted-foreground">
-            Xem và quản lý các cuộc tư vấn sắp tới
-          </p>
+          <p className="text-muted-foreground">Xem và quản lý các cuộc tư vấn sắp tới</p>
         </div>
         <Dialog open={showAvailabilityDialog} onOpenChange={setShowAvailabilityDialog}>
           <DialogTrigger asChild>
@@ -185,8 +179,8 @@ export function ConsultationManager({ consultantId }: ConsultationManagerProps) 
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              {[0, 1, 2, 3, 4, 5, 6].map(day => {
-                const daySettings = availabilitySettings.filter(s => s.day_of_week === day);
+              {[0, 1, 2, 3, 4, 5, 6].map((day) => {
+                const daySettings = availabilitySettings.filter((s) => s.day_of_week === day);
                 return (
                   <Card key={day}>
                     <CardHeader className="pb-3">
@@ -203,13 +197,17 @@ export function ConsultationManager({ consultantId }: ConsultationManagerProps) 
                               <Input
                                 type="time"
                                 value={setting.start_time}
-                                onChange={(e) => updateTimeSlot(globalIndex, { start_time: e.target.value })}
+                                onChange={(e) =>
+                                  updateTimeSlot(globalIndex, { start_time: e.target.value })
+                                }
                               />
                               <span>-</span>
                               <Input
                                 type="time"
                                 value={setting.end_time}
-                                onChange={(e) => updateTimeSlot(globalIndex, { end_time: e.target.value })}
+                                onChange={(e) =>
+                                  updateTimeSlot(globalIndex, { end_time: e.target.value })
+                                }
                               />
                               <Button
                                 variant="ghost"
@@ -222,11 +220,7 @@ export function ConsultationManager({ consultantId }: ConsultationManagerProps) 
                           );
                         })
                       )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addTimeSlot(day)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => addTimeSlot(day)}>
                         Thêm khung giờ
                       </Button>
                     </CardContent>
@@ -245,15 +239,11 @@ export function ConsultationManager({ consultantId }: ConsultationManagerProps) 
       <Card>
         <CardHeader>
           <CardTitle>Danh sách cuộc tư vấn</CardTitle>
-          <CardDescription>
-            Tất cả các cuộc tư vấn từ hôm nay trở đi
-          </CardDescription>
+          <CardDescription>Tất cả các cuộc tư vấn từ hôm nay trở đi</CardDescription>
         </CardHeader>
         <CardContent>
           {consultations.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Chưa có lịch tư vấn nào
-            </div>
+            <div className="text-center py-8 text-muted-foreground">Chưa có lịch tư vấn nào</div>
           ) : (
             <Table>
               <TableHeader>
@@ -280,7 +270,8 @@ export function ConsultationManager({ consultantId }: ConsultationManagerProps) 
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">
-                            {formatTime(consultation.start_time)} - {formatTime(consultation.end_time)}
+                            {formatTime(consultation.start_time)} -{' '}
+                            {formatTime(consultation.end_time)}
                           </span>
                         </div>
                       </div>

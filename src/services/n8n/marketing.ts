@@ -1,6 +1,6 @@
 /**
  * n8n Marketing Automation Service
- * 
+ *
  * High-level business logic for marketing campaigns via n8n workflows
  */
 
@@ -26,9 +26,8 @@ class N8NMarketingService {
   private readonly webhookBaseUrl: string;
 
   constructor() {
-    this.baseUrl = import.meta.env.VITE_N8N_URL || 
-                   import.meta.env.VITE_N8N_BASE_URL || 
-                   "http://localhost:5678";
+    this.baseUrl =
+      import.meta.env.VITE_N8N_URL || import.meta.env.VITE_N8N_BASE_URL || 'http://localhost:5678';
     this.webhookBaseUrl = `${this.baseUrl}/webhook`;
   }
 
@@ -41,14 +40,14 @@ class N8NMarketingService {
   ): Promise<WorkflowResponse> {
     try {
       const response = await fetch(`${this.webhookBaseUrl}/${workflowId}`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           ...data,
           timestamp: new Date().toISOString(),
-          source: "longsang-platform",
+          source: 'longsang-platform',
         }),
       });
 
@@ -65,7 +64,7 @@ class N8NMarketingService {
       console.error(`Error triggering workflow ${workflowId}:`, error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -74,7 +73,7 @@ class N8NMarketingService {
    * Multi-Platform Social Media Campaign
    */
   async createSocialMediaCampaign(campaign: SocialMediaCampaign): Promise<WorkflowResponse> {
-    return this.triggerWorkflow("social-media-campaign", {
+    return this.triggerWorkflow('social-media-campaign', {
       content: campaign.content,
       platforms: campaign.platforms,
       scheduledTime: campaign.scheduledTime,
@@ -89,7 +88,7 @@ class N8NMarketingService {
    * Email Marketing Campaign via Mautic
    */
   async createEmailCampaign(campaign: EmailCampaign): Promise<WorkflowResponse> {
-    return this.triggerWorkflow("email-campaign", {
+    return this.triggerWorkflow('email-campaign', {
       subject: campaign.subject,
       content: campaign.content,
       recipients: campaign.recipients,
@@ -109,7 +108,7 @@ class N8NMarketingService {
    * Content Repurposing - One content to multiple formats
    */
   async repurposeContent(job: ContentRepurposingJob): Promise<WorkflowResponse> {
-    return this.triggerWorkflow("content-repurposing", {
+    return this.triggerWorkflow('content-repurposing', {
       sourceType: job.sourceType,
       sourceUrl: job.sourceUrl,
       targetFormats: job.targetFormats,
@@ -121,9 +120,9 @@ class N8NMarketingService {
    * Lead Nurturing - Automated drip campaigns
    */
   async startLeadNurturing(leadData: LeadNurturingData): Promise<WorkflowResponse> {
-    return this.triggerWorkflow("lead-nurturing", {
+    return this.triggerWorkflow('lead-nurturing', {
       ...leadData,
-      campaignType: "welcome-series",
+      campaignType: 'welcome-series',
     });
   }
 
@@ -131,7 +130,7 @@ class N8NMarketingService {
    * Social Media Engagement Bot
    */
   async startEngagementBot(settings: EngagementBotSettings): Promise<WorkflowResponse> {
-    return this.triggerWorkflow("engagement-bot", {
+    return this.triggerWorkflow('engagement-bot', {
       ...settings,
       aiGenerated: true,
     });
@@ -141,10 +140,10 @@ class N8NMarketingService {
    * Analytics Aggregator - Collect metrics from all platforms
    */
   async syncAnalytics(platforms: string[]): Promise<WorkflowResponse> {
-    return this.triggerWorkflow("analytics-sync", {
+    return this.triggerWorkflow('analytics-sync', {
       platforms,
-      metrics: ["impressions", "reach", "engagement", "clicks", "conversions", "revenue"],
-      timeRange: "7d",
+      metrics: ['impressions', 'reach', 'engagement', 'clicks', 'conversions', 'revenue'],
+      timeRange: '7d',
     });
   }
 
@@ -152,14 +151,14 @@ class N8NMarketingService {
    * Get Optimal Posting Times based on audience data
    */
   async getOptimalPostingTimes(platform: string): Promise<WorkflowResponse> {
-    return this.triggerWorkflow("optimal-timing", { platform });
+    return this.triggerWorkflow('optimal-timing', { platform });
   }
 
   /**
    * Bulk Social Media Posting
    */
   async scheduleBulkPosts(posts: BulkPost[]): Promise<WorkflowResponse> {
-    return this.triggerWorkflow("bulk-schedule", {
+    return this.triggerWorkflow('bulk-schedule', {
       posts,
       validateSchedule: true,
       optimizeContent: true,
@@ -170,7 +169,7 @@ class N8NMarketingService {
    * WhatsApp Bulk Messaging
    */
   async sendWhatsAppCampaign(campaign: WhatsAppCampaign): Promise<WorkflowResponse> {
-    return this.triggerWorkflow("whatsapp-campaign", {
+    return this.triggerWorkflow('whatsapp-campaign', {
       ...campaign,
       compliance: {
         optInVerified: true,
@@ -183,7 +182,7 @@ class N8NMarketingService {
    * A/B Test Manager
    */
   async startABTest(test: ABTest): Promise<WorkflowResponse> {
-    return this.triggerWorkflow("ab-test", test);
+    return this.triggerWorkflow('ab-test', test);
   }
 
   /**
@@ -193,7 +192,7 @@ class N8NMarketingService {
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/executions/${executionId}`, {
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       });
 
@@ -207,10 +206,10 @@ class N8NMarketingService {
         data: result,
       };
     } catch (error) {
-      console.error("Error getting execution status:", error);
+      console.error('Error getting execution status:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -222,7 +221,7 @@ class N8NMarketingService {
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/workflows`, {
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       });
 
@@ -236,10 +235,10 @@ class N8NMarketingService {
         data: result,
       };
     } catch (error) {
-      console.error("Error listing workflows:", error);
+      console.error('Error listing workflows:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }

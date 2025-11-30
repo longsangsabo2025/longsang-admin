@@ -4,8 +4,8 @@
  * =================================================================
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -13,15 +13,15 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { getSocialMediaManager } from "@/lib/social";
-import { getSocialCredentialsService } from "@/lib/social/credentials-service";
-import type { PlatformConnection, PlatformCredentials, SocialPlatform } from "@/types/social-media";
-import { CheckCircle2, ExternalLink, Loader2, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { getSocialMediaManager } from '@/lib/social';
+import { getSocialCredentialsService } from '@/lib/social/credentials-service';
+import type { PlatformConnection, PlatformCredentials, SocialPlatform } from '@/types/social-media';
+import { CheckCircle2, ExternalLink, Loader2, XCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface PlatformConnectionCardProps {
   platform: SocialPlatform;
@@ -34,46 +34,46 @@ const PLATFORM_INFO: Record<
   { name: string; description: string; icon: string; color: string }
 > = {
   linkedin: {
-    name: "LinkedIn",
-    description: "Professional network - Personal profiles & Company pages",
-    icon: "💼",
-    color: "bg-blue-600",
+    name: 'LinkedIn',
+    description: 'Professional network - Personal profiles & Company pages',
+    icon: '💼',
+    color: 'bg-blue-600',
   },
   twitter: {
-    name: "Twitter/X",
-    description: "Microblogging platform - Personal accounts",
-    icon: "𝕏",
-    color: "bg-black",
+    name: 'Twitter/X',
+    description: 'Microblogging platform - Personal accounts',
+    icon: '𝕏',
+    color: 'bg-black',
   },
   facebook: {
-    name: "Facebook",
-    description: "Social network - Business Pages only",
-    icon: "👥",
-    color: "bg-blue-700",
+    name: 'Facebook',
+    description: 'Social network - Business Pages only',
+    icon: '👥',
+    color: 'bg-blue-700',
   },
   instagram: {
-    name: "Instagram",
-    description: "Photo & video sharing - Business accounts",
-    icon: "📸",
-    color: "bg-gradient-to-br from-purple-600 to-pink-600",
+    name: 'Instagram',
+    description: 'Photo & video sharing - Business accounts',
+    icon: '📸',
+    color: 'bg-gradient-to-br from-purple-600 to-pink-600',
   },
   youtube: {
-    name: "YouTube",
-    description: "Video platform - Channels",
-    icon: "▶️",
-    color: "bg-red-600",
+    name: 'YouTube',
+    description: 'Video platform - Channels',
+    icon: '▶️',
+    color: 'bg-red-600',
   },
   telegram: {
-    name: "Telegram",
-    description: "Messaging app - Channels & Groups",
-    icon: "✈️",
-    color: "bg-sky-500",
+    name: 'Telegram',
+    description: 'Messaging app - Channels & Groups',
+    icon: '✈️',
+    color: 'bg-sky-500',
   },
   discord: {
-    name: "Discord",
-    description: "Community platform - Channels (via Webhook)",
-    icon: "🎮",
-    color: "bg-indigo-600",
+    name: 'Discord',
+    description: 'Community platform - Channels (via Webhook)',
+    icon: '🎮',
+    color: 'bg-indigo-600',
   },
 };
 
@@ -106,7 +106,7 @@ export const PlatformConnectionCard = ({
         await checkStatus();
       }
     } catch (error) {
-      console.error("Failed to load credentials:", error);
+      console.error('Failed to load credentials:', error);
     }
   };
 
@@ -119,7 +119,7 @@ export const PlatformConnectionCard = ({
         setStatus(null);
       }
     } catch (error) {
-      console.error("Failed to check status:", error);
+      console.error('Failed to check status:', error);
     }
   };
 
@@ -133,7 +133,7 @@ export const PlatformConnectionCard = ({
         !credentials.botToken &&
         !credentials.webhookUrl
       ) {
-        throw new Error("Please provide credentials");
+        throw new Error('Please provide credentials');
       }
 
       // Save to database first
@@ -146,7 +146,7 @@ export const PlatformConnectionCard = ({
       const isHealthy = await manager.testConnection(platform);
 
       if (!isHealthy) {
-        throw new Error("Connection test failed");
+        throw new Error('Connection test failed');
       }
 
       // Get updated status and save to database
@@ -162,7 +162,7 @@ export const PlatformConnectionCard = ({
       await checkStatus();
 
       toast({
-        title: "✅ Connected",
+        title: '✅ Connected',
         description: `${info.name} connected successfully!`,
       });
 
@@ -172,13 +172,13 @@ export const PlatformConnectionCard = ({
       await credentialsService.updateConnectionStatus(
         platform,
         false,
-        error instanceof Error ? error.message : "Unknown error"
+        error instanceof Error ? error.message : 'Unknown error'
       );
 
       toast({
-        title: "❌ Connection Failed",
-        description: error instanceof Error ? error.message : "Failed to connect",
-        variant: "destructive",
+        title: '❌ Connection Failed',
+        description: error instanceof Error ? error.message : 'Failed to connect',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -196,16 +196,16 @@ export const PlatformConnectionCard = ({
       setCredentials({});
 
       toast({
-        title: "Disconnected",
+        title: 'Disconnected',
         description: `${info.name} disconnected`,
       });
 
       onDisconnect?.(platform);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to disconnect",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to disconnect',
+        variant: 'destructive',
       });
     }
   };
@@ -225,13 +225,13 @@ export const PlatformConnectionCard = ({
           connectionStatus.accountInfo
         );
       } else {
-        await credentialsService.updateConnectionStatus(platform, false, "Connection test failed");
+        await credentialsService.updateConnectionStatus(platform, false, 'Connection test failed');
       }
 
       toast({
-        title: isHealthy ? "✅ Connection OK" : "❌ Connection Failed",
-        description: isHealthy ? "Platform is healthy" : "Failed to connect",
-        variant: isHealthy ? "default" : "destructive",
+        title: isHealthy ? '✅ Connection OK' : '❌ Connection Failed',
+        description: isHealthy ? 'Platform is healthy' : 'Failed to connect',
+        variant: isHealthy ? 'default' : 'destructive',
       });
 
       await checkStatus();
@@ -239,13 +239,13 @@ export const PlatformConnectionCard = ({
       await credentialsService.updateConnectionStatus(
         platform,
         false,
-        error instanceof Error ? error.message : "Unknown error"
+        error instanceof Error ? error.message : 'Unknown error'
       );
 
       toast({
-        title: "Test Failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        title: 'Test Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
       });
     } finally {
       setTesting(false);
@@ -254,29 +254,29 @@ export const PlatformConnectionCard = ({
 
   const renderCredentialInputs = () => {
     switch (platform) {
-      case "linkedin":
-      case "twitter":
+      case 'linkedin':
+      case 'twitter':
         return (
           <div className="space-y-2">
             <Label htmlFor={`${platform}-token`}>
-              {platform === "linkedin" ? "Access Token" : "Bearer Token"}
+              {platform === 'linkedin' ? 'Access Token' : 'Bearer Token'}
             </Label>
             <Input
               id={`${platform}-token`}
               type="password"
               placeholder="Enter token..."
-              value={credentials.accessToken || credentials.bearerToken || ""}
+              value={credentials.accessToken || credentials.bearerToken || ''}
               onChange={(e) =>
                 setCredentials({
                   ...credentials,
-                  [platform === "linkedin" ? "accessToken" : "bearerToken"]: e.target.value,
+                  [platform === 'linkedin' ? 'accessToken' : 'bearerToken']: e.target.value,
                 })
               }
             />
           </div>
         );
 
-      case "facebook":
+      case 'facebook':
         return (
           <div className="space-y-4">
             <div className="space-y-2">
@@ -285,7 +285,7 @@ export const PlatformConnectionCard = ({
                 id="facebook-token"
                 type="password"
                 placeholder="Enter page access token..."
-                value={credentials.accessToken || ""}
+                value={credentials.accessToken || ''}
                 onChange={(e) => setCredentials({ ...credentials, accessToken: e.target.value })}
               />
             </div>
@@ -294,14 +294,14 @@ export const PlatformConnectionCard = ({
               <Input
                 id="facebook-page-id"
                 placeholder="Enter page ID..."
-                value={credentials.pageId || ""}
+                value={credentials.pageId || ''}
                 onChange={(e) => setCredentials({ ...credentials, pageId: e.target.value })}
               />
             </div>
           </div>
         );
 
-      case "instagram":
+      case 'instagram':
         return (
           <div className="space-y-4">
             <div className="space-y-2">
@@ -310,7 +310,7 @@ export const PlatformConnectionCard = ({
                 id="instagram-token"
                 type="password"
                 placeholder="Enter access token..."
-                value={credentials.accessToken || ""}
+                value={credentials.accessToken || ''}
                 onChange={(e) => setCredentials({ ...credentials, accessToken: e.target.value })}
               />
             </div>
@@ -319,7 +319,7 @@ export const PlatformConnectionCard = ({
               <Input
                 id="instagram-account-id"
                 placeholder="Enter business account ID..."
-                value={credentials.businessAccountId || ""}
+                value={credentials.businessAccountId || ''}
                 onChange={(e) =>
                   setCredentials({ ...credentials, businessAccountId: e.target.value })
                 }
@@ -328,7 +328,7 @@ export const PlatformConnectionCard = ({
           </div>
         );
 
-      case "youtube":
+      case 'youtube':
         return (
           <div className="space-y-2">
             <Label htmlFor="youtube-token">Access Token (OAuth 2.0)</Label>
@@ -336,13 +336,13 @@ export const PlatformConnectionCard = ({
               id="youtube-token"
               type="password"
               placeholder="Enter access token..."
-              value={credentials.accessToken || ""}
+              value={credentials.accessToken || ''}
               onChange={(e) => setCredentials({ ...credentials, accessToken: e.target.value })}
             />
           </div>
         );
 
-      case "telegram":
+      case 'telegram':
         return (
           <div className="space-y-4">
             <div className="space-y-2">
@@ -351,7 +351,7 @@ export const PlatformConnectionCard = ({
                 id="telegram-bot-token"
                 type="password"
                 placeholder="Enter bot token..."
-                value={credentials.botToken || ""}
+                value={credentials.botToken || ''}
                 onChange={(e) => setCredentials({ ...credentials, botToken: e.target.value })}
               />
             </div>
@@ -360,14 +360,14 @@ export const PlatformConnectionCard = ({
               <Input
                 id="telegram-channel-id"
                 placeholder="@channel_name or ID..."
-                value={credentials.channelId || ""}
+                value={credentials.channelId || ''}
                 onChange={(e) => setCredentials({ ...credentials, channelId: e.target.value })}
               />
             </div>
           </div>
         );
 
-      case "discord":
+      case 'discord':
         return (
           <div className="space-y-2">
             <Label htmlFor="discord-webhook">Webhook URL</Label>
@@ -375,7 +375,7 @@ export const PlatformConnectionCard = ({
               id="discord-webhook"
               type="url"
               placeholder="https://discord.com/api/webhooks/..."
-              value={credentials.webhookUrl || ""}
+              value={credentials.webhookUrl || ''}
               onChange={(e) => setCredentials({ ...credentials, webhookUrl: e.target.value })}
             />
           </div>

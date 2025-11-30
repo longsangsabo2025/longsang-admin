@@ -143,7 +143,9 @@ export const EditConfigModal = ({ open, onOpenChange, agent }: EditConfigModalPr
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
           <Label>Generate SEO Metadata</Label>
-          <p className="text-xs text-muted-foreground">Auto-generate meta titles and descriptions</p>
+          <p className="text-xs text-muted-foreground">
+            Auto-generate meta titles and descriptions
+          </p>
         </div>
         <Switch
           checked={config.generate_seo ?? true}
@@ -347,9 +349,7 @@ export const EditConfigModal = ({ open, onOpenChange, agent }: EditConfigModalPr
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          {renderConfigFields()}
-        </div>
+        <div className="space-y-6 py-4">{renderConfigFields()}</div>
 
         <DialogFooter>
           <Button
@@ -361,9 +361,7 @@ export const EditConfigModal = ({ open, onOpenChange, agent }: EditConfigModalPr
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={updateMutation.isPending}>
-            {updateMutation.isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
+            {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Changes
           </Button>
         </DialogFooter>

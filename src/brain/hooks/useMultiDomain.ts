@@ -3,7 +3,7 @@
  * Manages multi-domain query operations
  */
 
-import { brainAPI } from "@/brain/lib/services/brain-api";
+import { brainAPI } from '@/brain/lib/services/brain-api';
 import type {
   MultiDomainQueryRequest,
   MultiDomainQueryResult,
@@ -11,9 +11,9 @@ import type {
   RoutingDecision,
   DomainRelevance,
   RoutingHistoryEntry,
-} from "@/brain/types/multi-domain.types";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+} from '@/brain/types/multi-domain.types';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 /**
  * Hook to query across multiple domains
@@ -22,9 +22,10 @@ export function useMultiDomainQuery() {
   return useMutation<
     SynthesizedResponse,
     Error,
-    { query: string; domainIds?: string[]; options?: MultiDomainQueryRequest["options"] }
+    { query: string; domainIds?: string[]; options?: MultiDomainQueryRequest['options'] }
   >({
-    mutationFn: ({ query, domainIds, options }) => brainAPI.multiDomainQuery(query, domainIds, options),
+    mutationFn: ({ query, domainIds, options }) =>
+      brainAPI.multiDomainQuery(query, domainIds, options),
     onError: (error) => {
       toast.error(`Multi-domain query failed: ${error.message}`);
     },
@@ -48,9 +49,9 @@ export function useRouteQuery() {
  */
 export function useRelevantDomains(query: string | null, maxDomains: number = 5) {
   return useQuery<DomainRelevance[]>({
-    queryKey: ["brain", "relevant-domains", query, maxDomains],
+    queryKey: ['brain', 'relevant-domains', query, maxDomains],
     queryFn: () => {
-      if (!query) throw new Error("Query is required");
+      if (!query) throw new Error('Query is required');
       return brainAPI.getRelevantDomains(query, maxDomains);
     },
     enabled: !!query && query.length > 0,
@@ -80,9 +81,8 @@ export function useSynthesizeResponse() {
  */
 export function useRoutingHistory(limit: number = 50) {
   return useQuery<RoutingHistoryEntry[]>({
-    queryKey: ["brain", "routing-history", limit],
+    queryKey: ['brain', 'routing-history', limit],
     queryFn: () => brainAPI.getRoutingHistory(limit),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
-

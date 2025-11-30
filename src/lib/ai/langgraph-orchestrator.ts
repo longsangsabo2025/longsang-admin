@@ -48,7 +48,9 @@ async function contentGeneratorAgent(state: AgentState): Promise<Partial<AgentSt
       new SystemMessage(
         'You are a professional content writer. Create engaging, SEO-optimized content based on the given topic.'
       ),
-      new HumanMessage(`Context:\n${contextText}\n\nTask: ${state.task}\n\nCreate comprehensive content.`),
+      new HumanMessage(
+        `Context:\n${contextText}\n\nTask: ${state.task}\n\nCreate comprehensive content.`
+      ),
     ]);
 
     return {
@@ -89,7 +91,9 @@ async function contentReviewAgent(state: AgentState): Promise<Partial<AgentState
       new SystemMessage(
         'You are a senior content reviewer. Review content for quality, accuracy, tone, and SEO. Provide a score (1-10) and suggestions.'
       ),
-      new HumanMessage(`Review this content:\n\n${content}\n\nProvide detailed feedback in JSON format: {"score": X, "feedback": "...", "suggestions": [...]}`),
+      new HumanMessage(
+        `Review this content:\n\n${content}\n\nProvide detailed feedback in JSON format: {"score": X, "feedback": "...", "suggestions": [...]}`
+      ),
     ]);
 
     const reviewText = response.content.toString();

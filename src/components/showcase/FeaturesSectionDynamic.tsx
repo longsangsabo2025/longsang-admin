@@ -1,7 +1,7 @@
-import { AppShowcaseData } from "@/types/app-showcase.types";
-import { motion } from "framer-motion";
-import { Crown, Heart, Rocket, Shield, Sparkles, Star, Trophy, Zap } from "lucide-react";
-import { PhoneMockup } from "./PhoneMockup";
+import { AppShowcaseData } from '@/types/app-showcase.types';
+import { motion } from 'framer-motion';
+import { Crown, Heart, Rocket, Shield, Sparkles, Star, Trophy, Zap } from 'lucide-react';
+import { PhoneMockup } from './PhoneMockup';
 
 // Icon map with common icons - lazy load others if needed
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -29,7 +29,7 @@ const FeatureIcon = ({ children, color }: { children: React.ReactNode; color: st
     transition={{
       duration: 4,
       repeat: Infinity,
-      ease: "easeInOut",
+      ease: 'easeInOut',
     }}
   >
     <motion.div
@@ -41,7 +41,7 @@ const FeatureIcon = ({ children, color }: { children: React.ReactNode; color: st
       transition={{
         duration: 2,
         repeat: Infinity,
-        ease: "easeInOut",
+        ease: 'easeInOut',
       }}
     />
     <div className={`relative ${color} rounded-full p-2`}>{children}</div>
@@ -80,14 +80,14 @@ export const FeaturesSection = ({ data }: FeaturesSectionProps) => {
               <motion.div
                 key={feature.id}
                 className={`grid lg:grid-cols-2 gap-8 items-center ${
-                  !isEven ? "lg:flex-row-reverse" : ""
+                  !isEven ? 'lg:flex-row-reverse' : ''
                 }`}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
               >
-                <div className={`${!isEven ? "lg:order-2" : "order-2 lg:order-1"}`}>
+                <div className={`${!isEven ? 'lg:order-2' : 'order-2 lg:order-1'}`}>
                   {feature.badge && (
                     <div
                       className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-${feature.badge.color}/10 border border-${feature.badge.color}/30 mb-4`}
@@ -128,8 +128,8 @@ export const FeaturesSection = ({ data }: FeaturesSectionProps) => {
                           <motion.div
                             key={idx}
                             className="glass-panel rounded-xl p-4"
-                            whileHover={{ scale: 1.05, borderColor: "hsl(var(--neon-cyan))" }}
-                            transition={{ type: "spring", stiffness: 300 }}
+                            whileHover={{ scale: 1.05, borderColor: 'hsl(var(--neon-cyan))' }}
+                            transition={{ type: 'spring', stiffness: 300 }}
                           >
                             {StatIcon && <StatIcon className="w-6 h-6 text-neon-cyan mb-2" />}
                             <p className="text-foreground font-semibold text-sm">{stat.label}</p>
@@ -141,7 +141,7 @@ export const FeaturesSection = ({ data }: FeaturesSectionProps) => {
                   )}
                 </div>
 
-                <div className={`${!isEven ? "lg:order-1" : "order-1 lg:order-2"}`}>
+                <div className={`${!isEven ? 'lg:order-1' : 'order-1 lg:order-2'}`}>
                   <PhoneMockup delay={index * 0.2}>
                     {feature.screenshot ? (
                       <img

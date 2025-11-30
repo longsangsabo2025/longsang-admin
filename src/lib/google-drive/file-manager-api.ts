@@ -1,4 +1,8 @@
-import { googleDriveService, type DriveFile, type DriveFolder } from '@/lib/google-drive/drive-service';
+import {
+  googleDriveService,
+  type DriveFile,
+  type DriveFolder,
+} from '@/lib/google-drive/drive-service';
 
 export interface FileManagerData {
   files: DriveFile[];
@@ -11,7 +15,9 @@ export class FileManagerAPI {
   /**
    * Fetch files and folders from a specific directory
    */
-  static async listFiles(folderId: string = 'root'): Promise<{ files: DriveFile[], folders: DriveFolder[] }> {
+  static async listFiles(
+    folderId: string = 'root'
+  ): Promise<{ files: DriveFile[]; folders: DriveFolder[] }> {
     try {
       // In a real implementation, this would make an API call to your backend
       // For now, we'll use the service directly (this should be moved to backend)
@@ -65,7 +71,7 @@ export class FileManagerAPI {
   static async downloadFile(fileId: string, fileName: string): Promise<void> {
     try {
       const buffer = await googleDriveService.downloadFile(fileId);
-      
+
       // Create download link
       const blob = new Blob([buffer]);
       const url = window.URL.createObjectURL(blob);
@@ -97,7 +103,11 @@ export class FileManagerAPI {
   /**
    * Share a file with someone
    */
-  static async shareFile(fileId: string, email: string, role: 'reader' | 'writer' = 'reader'): Promise<void> {
+  static async shareFile(
+    fileId: string,
+    email: string,
+    role: 'reader' | 'writer' = 'reader'
+  ): Promise<void> {
     try {
       await googleDriveService.shareFile(fileId, email, role);
     } catch (error) {
@@ -174,7 +184,7 @@ export const FileManagerHelpers = {
     if (diffMins < 60) return `${diffMins} minutes ago`;
     if (diffHours < 24) return `${diffHours} hours ago`;
     if (diffDays < 7) return `${diffDays} days ago`;
-    
+
     return date.toLocaleDateString();
   },
 
@@ -192,14 +202,14 @@ export const FileManagerHelpers = {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'text/*'
+      'text/*',
     ];
 
     if (file.size > maxSize) {
       return { isValid: false, error: 'File size exceeds 100MB limit' };
     }
 
-    const isAllowedType = allowedTypes.some(type => {
+    const isAllowedType = allowedTypes.some((type) => {
       if (type.endsWith('/*')) {
         return file.type.startsWith(type.slice(0, -1));
       }
@@ -211,5 +221,5 @@ export const FileManagerHelpers = {
     }
 
     return { isValid: true };
-  }
+  },
 };

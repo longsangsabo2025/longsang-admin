@@ -1,35 +1,25 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { toast } from "sonner";
-import {
-  Bot,
-  Plus,
-  Trash2,
-  Play,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Zap,
-  Settings,
-} from "lucide-react";
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+import { Bot, Plus, Trash2, Play, CheckCircle, XCircle, Clock, Zap, Settings } from 'lucide-react';
 
 interface Agent {
   id: string;
@@ -64,7 +54,7 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
   const [availableAgents, setAvailableAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [selectedAgentId, setSelectedAgentId] = useState("");
+  const [selectedAgentId, setSelectedAgentId] = useState('');
 
   useEffect(() => {
     fetchProjectAgents();
@@ -74,15 +64,15 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
   const fetchProjectAgents = async () => {
     try {
       const { data, error } = await supabase
-        .from("project_agents")
-        .select("*, ai_agents(id, name, type, description, status)")
-        .eq("project_id", projectId)
-        .order("priority", { ascending: true });
+        .from('project_agents')
+        .select('*, ai_agents(id, name, type, description, status)')
+        .eq('project_id', projectId)
+        .order('priority', { ascending: true });
 
       if (error) throw error;
       setProjectAgents(data || []);
     } catch (error) {
-      console.error("Error fetching project agents:", error);
+      console.error('Error fetching project agents:', error);
     } finally {
       setLoading(false);
     }
@@ -91,59 +81,59 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
   const fetchAvailableAgents = async () => {
     try {
       const { data } = await supabase
-        .from("ai_agents")
-        .select("id, name, type, description, status")
-        .eq("status", "active")
-        .order("name");
+        .from('ai_agents')
+        .select('id, name, type, description, status')
+        .eq('status', 'active')
+        .order('name');
       setAvailableAgents(data || []);
     } catch (error) {
-      console.error("Error fetching agents:", error);
+      console.error('Error fetching agents:', error);
     }
   };
 
   const assignAgent = async () => {
     if (!selectedAgentId) {
-      toast.error("Vui lòng chọn agent");
+      toast.error('Vui lòng chọn agent');
       return;
     }
 
     try {
       // 1. Insert project_agents record
-      const { error } = await supabase.from("project_agents").insert({
+      const { error } = await supabase.from('project_agents').insert({
         project_id: projectId,
         agent_id: selectedAgentId,
         is_enabled: true,
         priority: projectAgents.length + 1,
-        auto_trigger_events: ["manual"],
+        auto_trigger_events: ['manual'],
       });
 
       if (error) {
-        if (error.code === "23505") {
-          toast.error("Agent này đã được assign rồi");
+        if (error.code === '23505') {
+          toast.error('Agent này đã được assign rồi');
           return;
         }
         throw error;
       }
 
       // 2. Get agent info to find matching workflow template
-      const selectedAgent = availableAgents.find(a => a.id === selectedAgentId);
+      const selectedAgent = availableAgents.find((a) => a.id === selectedAgentId);
       if (selectedAgent) {
         // Find workflow template by agent type
         const { data: template } = await supabase
-          .from("workflow_templates")
-          .select("*")
-          .eq("status", "active")
-          .ilike("name", `%${selectedAgent.type}%`)
+          .from('workflow_templates')
+          .select('*')
+          .eq('status', 'active')
+          .ilike('name', `%${selectedAgent.type}%`)
           .single();
 
         if (template) {
           // 3. Auto-clone workflow for this project
-          toast.info("🔄 Đang tạo workflow cho project...");
-          
+          toast.info('🔄 Đang tạo workflow cho project...');
+
           try {
-            const response = await fetch("/api/n8n/workflows/clone", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
+            const response = await fetch('/api/n8n/workflows/clone', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 project_id: projectId,
                 template_slug: template.slug,
@@ -152,43 +142,43 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
 
             if (response.ok) {
               const result = await response.json();
-              const n8nInfo = result.n8nWorkflowId ? " (n8n: " + result.n8nWorkflowId + ")" : "";
-              toast.success("✅ Đã assign agent và tạo workflow!" + n8nInfo);
+              const n8nInfo = result.n8nWorkflowId ? ' (n8n: ' + result.n8nWorkflowId + ')' : '';
+              toast.success('✅ Đã assign agent và tạo workflow!' + n8nInfo);
             } else {
-              toast.success("Đã assign agent (workflow sẽ được tạo sau)");
+              toast.success('Đã assign agent (workflow sẽ được tạo sau)');
             }
           } catch (cloneError) {
-            console.warn("Could not auto-clone workflow:", cloneError);
-            toast.success("Đã assign agent (workflow sẽ được tạo sau)");
+            console.warn('Could not auto-clone workflow:', cloneError);
+            toast.success('Đã assign agent (workflow sẽ được tạo sau)');
           }
         } else {
-          toast.success("Đã assign agent");
+          toast.success('Đã assign agent');
         }
       } else {
-        toast.success("Đã assign agent");
+        toast.success('Đã assign agent');
       }
 
       setIsAssignDialogOpen(false);
-      setSelectedAgentId("");
+      setSelectedAgentId('');
       fetchProjectAgents();
     } catch (error) {
-      console.error("Error assigning agent:", error);
-      toast.error("Không thể assign agent");
+      console.error('Error assigning agent:', error);
+      toast.error('Không thể assign agent');
     }
   };
 
   const toggleAgent = async (id: string, currentEnabled: boolean) => {
     try {
       const { error } = await supabase
-        .from("project_agents")
+        .from('project_agents')
         .update({ is_enabled: !currentEnabled })
-        .eq("id", id);
+        .eq('id', id);
 
       if (error) throw error;
-      toast.success(currentEnabled ? "Đã tắt agent" : "Đã bật agent");
+      toast.success(currentEnabled ? 'Đã tắt agent' : 'Đã bật agent');
       fetchProjectAgents();
     } catch (error) {
-      console.error("Error toggling agent:", error);
+      console.error('Error toggling agent:', error);
     }
   };
 
@@ -196,16 +186,13 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
     if (!confirm(`Xóa "${name}" khỏi project này?`)) return;
 
     try {
-      const { error } = await supabase
-        .from("project_agents")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from('project_agents').delete().eq('id', id);
 
       if (error) throw error;
-      toast.success("Đã xóa agent");
+      toast.success('Đã xóa agent');
       fetchProjectAgents();
     } catch (error) {
-      console.error("Error removing agent:", error);
+      console.error('Error removing agent:', error);
     }
   };
 
@@ -215,16 +202,16 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
     try {
       // First check if there's a workflow instance for this agent + project
       const { data: instance } = await supabase
-        .from("project_workflow_instances")
-        .select("*")
-        .eq("project_id", projectId)
+        .from('project_workflow_instances')
+        .select('*')
+        .eq('project_id', projectId)
         .single();
 
       if (instance?.n8n_workflow_id) {
         // Execute real n8n workflow
         const response = await fetch(`/api/n8n/workflows/${instance.n8n_workflow_id}/execute`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             project_id: projectId,
             agent_id: pa.agent_id,
@@ -234,7 +221,7 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.error || "Workflow execution failed");
+          throw new Error(error.error || 'Workflow execution failed');
         }
 
         const result = await response.json();
@@ -247,39 +234,39 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
 
       // Update stats
       const { error } = await supabase
-        .from("project_agents")
+        .from('project_agents')
         .update({
           total_runs: pa.total_runs + 1,
           successful_runs: pa.successful_runs + 1,
           last_run_at: new Date().toISOString(),
         })
-        .eq("id", pa.id);
+        .eq('id', pa.id);
 
       if (error) throw error;
       fetchProjectAgents();
     } catch (error) {
-      console.error("Error executing agent:", error);
-      
+      console.error('Error executing agent:', error);
+
       // Update failed stats
       await supabase
-        .from("project_agents")
+        .from('project_agents')
         .update({
           total_runs: pa.total_runs + 1,
           failed_runs: pa.failed_runs + 1,
           last_run_at: new Date().toISOString(),
         })
-        .eq("id", pa.id);
-      
-      toast.error(`Agent execution failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+        .eq('id', pa.id);
+
+      toast.error(
+        `Agent execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       fetchProjectAgents();
     }
   };
 
   // Agents already assigned
   const assignedAgentIds = projectAgents.map((pa) => pa.agent_id);
-  const unassignedAgents = availableAgents.filter(
-    (a) => !assignedAgentIds.includes(a.id)
-  );
+  const unassignedAgents = availableAgents.filter((a) => !assignedAgentIds.includes(a.id));
 
   if (loading) {
     return (
@@ -329,11 +316,7 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
                 </SelectContent>
               </Select>
 
-              <Button
-                onClick={assignAgent}
-                disabled={!selectedAgentId}
-                className="w-full"
-              >
+              <Button onClick={assignAgent} disabled={!selectedAgentId} className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
                 Assign Agent
               </Button>
@@ -348,7 +331,7 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
             <Card
               key={pa.id}
               className={`transition-all ${
-                pa.is_enabled ? "border-border" : "border-muted opacity-60"
+                pa.is_enabled ? 'border-border' : 'border-muted opacity-60'
               }`}
             >
               <CardContent className="p-4">
@@ -361,30 +344,23 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
 
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {pa.ai_agents?.name}
-                        </span>
+                        <span className="font-medium">{pa.ai_agents?.name}</span>
                         <Badge variant="outline">{pa.ai_agents?.type}</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-1">
                         {pa.ai_agents?.description}
                       </p>
 
-                      {pa.auto_trigger_events &&
-                        pa.auto_trigger_events.length > 0 && (
-                          <div className="flex gap-1 mt-1">
-                            <Zap className="h-3 w-3 text-yellow-500" />
-                            {pa.auto_trigger_events.map((e) => (
-                              <Badge
-                                key={e}
-                                variant="secondary"
-                                className="text-xs"
-                              >
-                                {e}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+                      {pa.auto_trigger_events && pa.auto_trigger_events.length > 0 && (
+                        <div className="flex gap-1 mt-1">
+                          <Zap className="h-3 w-3 text-yellow-500" />
+                          {pa.auto_trigger_events.map((e) => (
+                            <Badge key={e} variant="secondary" className="text-xs">
+                              {e}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Stats */}
@@ -399,13 +375,13 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
                           {pa.failed_runs}
                         </span>
                         <span className="text-muted-foreground">
-                          ${pa.total_cost_usd?.toFixed(2) || "0.00"}
+                          ${pa.total_cost_usd?.toFixed(2) || '0.00'}
                         </span>
                       </div>
                       {pa.last_run_at && (
                         <div className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
                           <Clock className="h-3 w-3" />
-                          {new Date(pa.last_run_at).toLocaleString("vi-VN")}
+                          {new Date(pa.last_run_at).toLocaleString('vi-VN')}
                         </div>
                       )}
                     </div>
@@ -427,9 +403,7 @@ const ProjectAgentsSection = ({ projectId, projectName }: Props) => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() =>
-                        removeAgent(pa.id, pa.ai_agents?.name || "")
-                      }
+                      onClick={() => removeAgent(pa.id, pa.ai_agents?.name || '')}
                       className="text-destructive hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />

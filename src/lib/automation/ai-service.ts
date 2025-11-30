@@ -28,12 +28,15 @@ const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
 /**
  * Call OpenAI API
  */
-async function callOpenAI(prompt: string, config: AIGenerationConfig): Promise<AIGenerationResponse> {
+async function callOpenAI(
+  prompt: string,
+  config: AIGenerationConfig
+): Promise<AIGenerationResponse> {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
       model: config.model || 'gpt-4-turbo-preview',
@@ -63,7 +66,10 @@ async function callOpenAI(prompt: string, config: AIGenerationConfig): Promise<A
 /**
  * Call Anthropic Claude API
  */
-async function callClaude(prompt: string, config: AIGenerationConfig): Promise<AIGenerationResponse> {
+async function callClaude(
+  prompt: string,
+  config: AIGenerationConfig
+): Promise<AIGenerationResponse> {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -76,9 +82,7 @@ async function callClaude(prompt: string, config: AIGenerationConfig): Promise<A
       max_tokens: config.max_tokens || 2000,
       temperature: config.temperature || 0.7,
       system: config.system_prompt,
-      messages: [
-        { role: 'user', content: prompt },
-      ],
+      messages: [{ role: 'user', content: prompt }],
     }),
   });
 
@@ -101,8 +105,8 @@ async function callClaude(prompt: string, config: AIGenerationConfig): Promise<A
  */
 async function mockAI(prompt: string, config: AIGenerationConfig): Promise<AIGenerationResponse> {
   console.log('🤖 Mock AI (no API keys configured):', { prompt: prompt.substring(0, 100), config });
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   return {
     content: `[MOCK] Generated content for: ${prompt.substring(0, 50)}...\n\nThis is a mock response. Configure VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY in .env to use real AI.`,
     model: config.model || 'mock-model',
@@ -115,11 +119,9 @@ async function mockAI(prompt: string, config: AIGenerationConfig): Promise<AIGen
  * Generate content using AI (OpenAI or Claude)
  * Automatically selects available provider
  */
-export async function generateWithAI(
-  request: AIGenerationRequest
-): Promise<AIGenerationResponse> {
+export async function generateWithAI(request: AIGenerationRequest): Promise<AIGenerationResponse> {
   const { prompt, config = {} } = request;
-  
+
   try {
     // Prefer Claude if model specified or API key available
     if (config.model?.includes('claude') || (ANTHROPIC_API_KEY && !OPENAI_API_KEY)) {
@@ -129,21 +131,20 @@ export async function generateWithAI(
       }
       return await callClaude(prompt, config);
     }
-    
+
     // Use OpenAI if available
     if (OPENAI_API_KEY) {
       return await callOpenAI(prompt, config);
     }
-    
+
     // Fallback to Claude if available
     if (ANTHROPIC_API_KEY) {
       return await callClaude(prompt, config);
     }
-    
+
     // No API keys configured - use mock
     console.warn('No AI API keys configured. Using mock responses.');
     return mockAI(prompt, config);
-    
   } catch (error) {
     console.error('AI generation error:', error);
     // Fallback to mock on error
@@ -177,7 +178,7 @@ Format the response as JSON with the following structure:
 }`;
 
   const response = await generateWithAI({ prompt, config });
-  
+
   // Parse the response (in real implementation, this would parse actual AI output)
   return {
     title: `How to Master ${topic}`,
@@ -217,7 +218,7 @@ Format the response as JSON:
 }`;
 
   const response = await generateWithAI({ prompt, config });
-  
+
   return {
     subject: `Re: Your inquiry about ${service}`,
     body: response.content,
@@ -255,7 +256,7 @@ Format as JSON:
 }`;
 
   const response = await generateWithAI({ prompt, config });
-  
+
   return {
     linkedin: {
       text: `New blog post: ${blogTitle}\n\n${response.content.substring(0, 200)}...\n\nRead more: [link]`,
@@ -284,7 +285,7 @@ Return a concise topic phrase (2-5 words) that could be used as a blog post topi
 Just return the topic phrase, nothing else.`;
 
   const response = await generateWithAI({ prompt, config });
-  
+
   return response.content.trim();
 }
 
@@ -315,7 +316,7 @@ Format as JSON:
 }`;
 
   const response = await generateWithAI({ prompt, config });
-  
+
   return {
     summary: 'Traffic is steady with room for growth',
     trends: ['Increasing mobile traffic', 'Higher engagement on blog posts'],

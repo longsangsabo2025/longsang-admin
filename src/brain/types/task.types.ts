@@ -33,4 +33,3 @@ export interface TaskInput {
   source?: TaskSource;
   metadata?: Record<string, any>;
 }
-

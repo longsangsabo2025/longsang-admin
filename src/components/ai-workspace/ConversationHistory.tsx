@@ -9,15 +9,7 @@ import { AssistantType } from '@/hooks/useAssistant';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  History,
-  Search,
-  Trash2,
-  Edit2,
-  MessageSquare,
-  X,
-  Loader2,
-} from 'lucide-react';
+import { History, Search, Trash2, Edit2, MessageSquare, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -68,31 +60,53 @@ export function ConversationHistory({
   refreshTrigger = 0,
   showAllAssistants = false,
 }: ConversationHistoryProps) {
-  const { conversations, isLoading, fetchConversations, fetchAllConversations, deleteConversation, renameConversation } =
-    useConversations({ assistantType, userId });
+  const {
+    conversations,
+    isLoading,
+    fetchConversations,
+    fetchAllConversations,
+    deleteConversation,
+    renameConversation,
+  } = useConversations({ assistantType, userId });
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
-  const [conversationToRename, setConversationToRename] = useState<{ id: string; title: string } | null>(null);
+  const [conversationToRename, setConversationToRename] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const { toast } = useToast();
 
   // Fetch conversations based on mode
   useEffect(() => {
     if (userId) {
-      console.log('[ConversationHistory] Fetching conversations, showAll:', showAllAssistants, 'trigger:', refreshTrigger);
+      console.log(
+        '[ConversationHistory] Fetching conversations, showAll:',
+        showAllAssistants,
+        'trigger:',
+        refreshTrigger
+      );
       if (showAllAssistants) {
         fetchAllConversations();
       } else if (assistantType) {
         fetchConversations();
       }
     }
-  }, [userId, assistantType, fetchConversations, fetchAllConversations, refreshTrigger, showAllAssistants]);
+  }, [
+    userId,
+    assistantType,
+    fetchConversations,
+    fetchAllConversations,
+    refreshTrigger,
+    showAllAssistants,
+  ]);
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.messages[0]?.content.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredConversations = conversations.filter(
+    (conv) =>
+      conv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conv.messages[0]?.content.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleDelete = async () => {
@@ -183,11 +197,7 @@ export function ConversationHistory({
 
       {/* New Conversation Button */}
       <div className="p-4 border-b">
-        <Button
-          variant="default"
-          className="w-full"
-          onClick={() => onConversationSelect(null)}
-        >
+        <Button variant="default" className="w-full" onClick={() => onConversationSelect(null)}>
           <MessageSquare className="h-4 w-4 mr-2" />
           Cuộc trò chuyện mới
         </Button>
@@ -210,7 +220,10 @@ export function ConversationHistory({
           <div className="p-2 space-y-1">
             {filteredConversations.map((conversation) => {
               const isSelected = selectedConversationId === conversation.id;
-              const assistantInfo = ASSISTANT_LABELS[conversation.assistant_type] || { label: '🤖 AI', color: 'text-gray-500' };
+              const assistantInfo = ASSISTANT_LABELS[conversation.assistant_type] || {
+                label: '🤖 AI',
+                color: 'text-gray-500',
+              };
               return (
                 <div
                   key={conversation.id}
@@ -224,7 +237,12 @@ export function ConversationHistory({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <h4 className={cn('font-medium text-sm truncate', isSelected && 'text-primary-foreground')}>
+                      <h4
+                        className={cn(
+                          'font-medium text-sm truncate',
+                          isSelected && 'text-primary-foreground'
+                        )}
+                      >
                         {conversation.title}
                       </h4>
                       <p
@@ -237,7 +255,12 @@ export function ConversationHistory({
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         {showAllAssistants && (
-                          <span className={cn('text-xs', isSelected ? 'text-primary-foreground/70' : assistantInfo.color)}>
+                          <span
+                            className={cn(
+                              'text-xs',
+                              isSelected ? 'text-primary-foreground/70' : assistantInfo.color
+                            )}
+                          >
                             {assistantInfo.label}
                           </span>
                         )}
@@ -299,7 +322,10 @@ export function ConversationHistory({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
               Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -336,4 +362,3 @@ export function ConversationHistory({
     </div>
   );
 }
-

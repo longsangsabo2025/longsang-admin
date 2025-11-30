@@ -35,7 +35,7 @@ export function XPBar() {
           event: '*',
           schema: 'public',
           table: 'user_xp',
-          filter: `user_id=eq.${userId}`
+          filter: `user_id=eq.${userId}`,
         },
         () => {
           loadXPData();
@@ -71,7 +71,7 @@ export function XPBar() {
             user_id: userId,
             total_xp: 0,
             current_level: 1,
-            xp_to_next_level: 100
+            xp_to_next_level: 100,
           })
           .select()
           .single();
@@ -136,10 +136,7 @@ export function XPBar() {
             {Math.round(progressPercent)}% to Level {xpData.current_level + 1}
           </span>
         </div>
-        <Progress 
-          value={progressPercent} 
-          className="h-3 bg-gray-800"
-        />
+        <Progress value={progressPercent} className="h-3 bg-gray-800" />
       </div>
 
       {/* Stats Row */}

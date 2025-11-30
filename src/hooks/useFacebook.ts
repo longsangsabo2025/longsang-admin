@@ -40,7 +40,7 @@ interface UseFacebookReturn {
   user: FacebookUser | null;
   pages: FacebookPage[];
   error: string | null;
-  
+
   // Actions
   login: (scopes?: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -65,14 +65,14 @@ export const useFacebook = (): UseFacebookReturn => {
       try {
         await waitForFBSDK();
         setIsSDKLoaded(true);
-        
+
         // Check current login status
         const status = await getFBLoginStatus();
-        
+
         if (status.status === 'connected' && status.authResponse) {
           setIsLoggedIn(true);
           setAccessToken(status.authResponse.accessToken);
-          
+
           // Fetch user profile
           const profile = await getFBUserProfile();
           setUser({
@@ -82,16 +82,18 @@ export const useFacebook = (): UseFacebookReturn => {
             picture: profile.picture?.data?.url,
             accessToken: status.authResponse.accessToken,
           });
-          
+
           // Fetch pages
           try {
             const pagesResponse = await getFBPages();
-            setPages(pagesResponse.data.map(page => ({
-              id: page.id,
-              name: page.name,
-              accessToken: page.access_token,
-              category: page.category,
-            })));
+            setPages(
+              pagesResponse.data.map((page) => ({
+                id: page.id,
+                name: page.name,
+                accessToken: page.access_token,
+                category: page.category,
+              }))
+            );
           } catch {
             // User may not have pages or permission
           }
@@ -111,14 +113,14 @@ export const useFacebook = (): UseFacebookReturn => {
   const login = useCallback(async (scopes?: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await loginWithFacebook(scopes);
-      
+
       if (response.authResponse) {
         setIsLoggedIn(true);
         setAccessToken(response.authResponse.accessToken);
-        
+
         // Fetch user profile
         const profile = await getFBUserProfile();
         setUser({
@@ -128,17 +130,19 @@ export const useFacebook = (): UseFacebookReturn => {
           picture: profile.picture?.data?.url,
           accessToken: response.authResponse.accessToken,
         });
-        
+
         // Fetch pages with page management scope
         if (scopes?.includes('pages_')) {
           try {
             const pagesResponse = await getFBPages();
-            setPages(pagesResponse.data.map(page => ({
-              id: page.id,
-              name: page.name,
-              accessToken: page.access_token,
-              category: page.category,
-            })));
+            setPages(
+              pagesResponse.data.map((page) => ({
+                id: page.id,
+                name: page.name,
+                accessToken: page.access_token,
+                category: page.category,
+              }))
+            );
           } catch {
             // Permission not granted
           }
@@ -157,7 +161,7 @@ export const useFacebook = (): UseFacebookReturn => {
   const logout = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await logoutFromFacebook();
       setIsLoggedIn(false);
@@ -175,7 +179,7 @@ export const useFacebook = (): UseFacebookReturn => {
   // Share handler
   const share = useCallback(async (url: string, quote?: string, hashtag?: string) => {
     setError(null);
-    
+
     try {
       return await shareToFacebook({ url, quote, hashtag });
     } catch (err) {
@@ -186,35 +190,40 @@ export const useFacebook = (): UseFacebookReturn => {
   }, []);
 
   // Post to page handler
-  const postToPage = useCallback(async (pageId: string, message: string, link?: string) => {
-    setError(null);
-    
-    const page = pages.find(p => p.id === pageId);
-    if (!page) {
-      throw new Error('Không tìm thấy trang');
-    }
-    
-    try {
-      return await postToFacebookPage(pageId, page.accessToken, message, link);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Đăng bài thất bại';
-      setError(message);
-      throw err;
-    }
-  }, [pages]);
+  const postToPage = useCallback(
+    async (pageId: string, message: string, link?: string) => {
+      setError(null);
+
+      const page = pages.find((p) => p.id === pageId);
+      if (!page) {
+        throw new Error('Không tìm thấy trang');
+      }
+
+      try {
+        return await postToFacebookPage(pageId, page.accessToken, message, link);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Đăng bài thất bại';
+        setError(message);
+        throw err;
+      }
+    },
+    [pages]
+  );
 
   // Refresh pages
   const refreshPages = useCallback(async () => {
     if (!isLoggedIn) return;
-    
+
     try {
       const pagesResponse = await getFBPages();
-      setPages(pagesResponse.data.map(page => ({
-        id: page.id,
-        name: page.name,
-        accessToken: page.access_token,
-        category: page.category,
-      })));
+      setPages(
+        pagesResponse.data.map((page) => ({
+          id: page.id,
+          name: page.name,
+          accessToken: page.access_token,
+          category: page.category,
+        }))
+      );
     } catch (err) {
       console.error('Failed to refresh pages:', err);
     }

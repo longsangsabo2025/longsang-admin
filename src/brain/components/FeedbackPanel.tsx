@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ThumbsUp, ThumbsDown, Star, Loader2 } from 'lucide-react';
 import { useState } from 'react';
@@ -15,7 +21,9 @@ interface FeedbackPanelProps {
 }
 
 export function FeedbackPanel({ queryId, onSubmitted }: FeedbackPanelProps) {
-  const [feedbackType, setFeedbackType] = useState<'thumbs_up' | 'thumbs_down' | 'rating'>('thumbs_up');
+  const [feedbackType, setFeedbackType] = useState<'thumbs_up' | 'thumbs_down' | 'rating'>(
+    'thumbs_up'
+  );
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState('');
 
@@ -38,7 +46,9 @@ export function FeedbackPanel({ queryId, onSubmitted }: FeedbackPanelProps) {
     <Card>
       <CardHeader>
         <CardTitle>Provide Feedback</CardTitle>
-        <CardDescription>Help improve the system by providing feedback on this response</CardDescription>
+        <CardDescription>
+          Help improve the system by providing feedback on this response
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -68,7 +78,10 @@ export function FeedbackPanel({ queryId, onSubmitted }: FeedbackPanelProps) {
         {feedbackType === 'rating' && (
           <div>
             <Label>Rating (1-5)</Label>
-            <Select value={rating.toString()} onValueChange={(value) => setRating(parseInt(value, 10))}>
+            <Select
+              value={rating.toString()}
+              onValueChange={(value) => setRating(parseInt(value, 10))}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -94,7 +107,11 @@ export function FeedbackPanel({ queryId, onSubmitted }: FeedbackPanelProps) {
           />
         </div>
 
-        <Button onClick={handleSubmit} disabled={submitFeedbackMutation.isPending} className="w-full">
+        <Button
+          onClick={handleSubmit}
+          disabled={submitFeedbackMutation.isPending}
+          className="w-full"
+        >
           {submitFeedbackMutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
           ) : null}
@@ -104,5 +121,3 @@ export function FeedbackPanel({ queryId, onSubmitted }: FeedbackPanelProps) {
     </Card>
   );
 }
-
-

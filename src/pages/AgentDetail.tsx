@@ -6,20 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  getAgent, 
-  getActivityLogs, 
+import {
+  getAgent,
+  getActivityLogs,
   getTriggers,
   pauseAgent,
   resumeAgent,
   deleteAgent,
 } from '@/lib/automation/api';
 import { manuallyTriggerAgent } from '@/lib/automation/workflows';
-import { 
-  ArrowLeft, 
-  Play, 
-  Pause, 
-  Trash2, 
+import {
+  ArrowLeft,
+  Play,
+  Pause,
+  Trash2,
   Zap,
   Settings,
   Activity,
@@ -44,7 +44,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -155,9 +155,7 @@ const AgentDetail = () => {
             <CardContent className="p-12 text-center">
               <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Agent Not Found</h3>
-              <Button onClick={() => navigate('/automation')}>
-                Back to Dashboard
-              </Button>
+              <Button onClick={() => navigate('/automation')}>Back to Dashboard</Button>
             </CardContent>
           </Card>
         </div>
@@ -165,20 +163,15 @@ const AgentDetail = () => {
     );
   }
 
-  const successRate = agent.total_runs > 0
-    ? Math.round((agent.successful_runs / agent.total_runs) * 100)
-    : 0;
+  const successRate =
+    agent.total_runs > 0 ? Math.round((agent.successful_runs / agent.total_runs) * 100) : 0;
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/automation')}
-            className="mb-4"
-          >
+          <Button variant="ghost" onClick={() => navigate('/automation')} className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
@@ -187,7 +180,15 @@ const AgentDetail = () => {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-4xl font-bold">{agent.name}</h1>
-                <Badge variant={agent.status === 'active' ? 'default' : agent.status === 'error' ? 'destructive' : 'secondary'}>
+                <Badge
+                  variant={
+                    agent.status === 'active'
+                      ? 'default'
+                      : agent.status === 'error'
+                        ? 'destructive'
+                        : 'secondary'
+                  }
+                >
                   {agent.status}
                 </Badge>
               </div>
@@ -215,18 +216,12 @@ const AgentDetail = () => {
                 </Button>
               )}
 
-              <Button
-                variant="default"
-                onClick={() => setShowFullConfig(true)}
-              >
+              <Button variant="default" onClick={() => setShowFullConfig(true)}>
                 <Settings className="w-4 h-4 mr-2" />
                 Configure All Settings
               </Button>
 
-              <Button
-                variant="outline"
-                onClick={() => setShowBudgetControls(true)}
-              >
+              <Button variant="outline" onClick={() => setShowBudgetControls(true)}>
                 <Settings className="w-4 h-4 mr-2" />
                 Budget Only
               </Button>
@@ -264,7 +259,10 @@ const AgentDetail = () => {
                   </div>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleManualTrigger} disabled={manualTriggerMutation.isPending}>
+                    <AlertDialogAction
+                      onClick={handleManualTrigger}
+                      disabled={manualTriggerMutation.isPending}
+                    >
                       {manualTriggerMutation.isPending ? 'Triggering...' : 'Trigger Agent'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -282,13 +280,16 @@ const AgentDetail = () => {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will permanently delete the agent and all its associated data.
-                      This action cannot be undone.
+                      This will permanently delete the agent and all its associated data. This
+                      action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
+                    <AlertDialogAction
+                      onClick={() => deleteMutation.mutate()}
+                      disabled={deleteMutation.isPending}
+                    >
                       Delete Agent
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -330,10 +331,9 @@ const AgentDetail = () => {
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Last Run</p>
                   <h3 className="text-sm font-bold">
-                    {agent.last_run 
+                    {agent.last_run
                       ? formatDistanceToNow(new Date(agent.last_run), { addSuffix: true })
-                      : 'Never'
-                    }
+                      : 'Never'}
                   </h3>
                 </div>
                 <Clock className="w-8 h-8 text-orange-500 opacity-50" />
@@ -362,8 +362,8 @@ const AgentDetail = () => {
                 <CardTitle>Configuration</CardTitle>
                 <CardDescription>Agent settings and parameters</CardDescription>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setShowEditConfig(true)}
                 className="gap-2"
@@ -391,11 +391,7 @@ const AgentDetail = () => {
           </CardContent>
         </Card>
 
-        <EditConfigModal 
-          open={showEditConfig} 
-          onOpenChange={setShowEditConfig} 
-          agent={agent}
-        />
+        <EditConfigModal open={showEditConfig} onOpenChange={setShowEditConfig} agent={agent} />
 
         <BudgetControlsModal
           open={showBudgetControls}
@@ -416,11 +412,15 @@ const AgentDetail = () => {
             ) : triggers && triggers.length > 0 ? (
               <div className="space-y-4">
                 {triggers.map((trigger) => (
-                  <div key={trigger.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={trigger.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div>
                       <h4 className="font-semibold capitalize">{trigger.trigger_type} Trigger</h4>
                       <p className="text-sm text-muted-foreground">
-                        {trigger.trigger_config.description || JSON.stringify(trigger.trigger_config)}
+                        {trigger.trigger_config.description ||
+                          JSON.stringify(trigger.trigger_config)}
                       </p>
                     </div>
                     <Badge variant={trigger.enabled ? 'default' : 'secondary'}>

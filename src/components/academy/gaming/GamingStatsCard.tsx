@@ -1,15 +1,21 @@
-import { Card } from "@/components/ui/card";
-import { LucideIcon } from "lucide-react";
+import { Card } from '@/components/ui/card';
+import { LucideIcon } from 'lucide-react';
 
 interface GamingStatsCardProps {
   icon: LucideIcon;
   title: string;
   value: string | number;
   change?: string;
-  trend?: "up" | "down";
+  trend?: 'up' | 'down';
 }
 
-export const GamingStatsCard = ({ icon: Icon, title, value, change, trend }: GamingStatsCardProps) => {
+export const GamingStatsCard = ({
+  icon: Icon,
+  title,
+  value,
+  change,
+  trend,
+}: GamingStatsCardProps) => {
   return (
     <Card className="glass-card p-6 hover-lift group cursor-pointer">
       <div className="flex items-start justify-between mb-4">
@@ -22,11 +28,13 @@ export const GamingStatsCard = ({ icon: Icon, title, value, change, trend }: Gam
         <p className="text-3xl font-bold text-foreground mb-2">{value}</p>
         {change && (
           <div className="flex items-center gap-1">
-            <span className={`text-xs px-2 py-1 rounded-full ${
-              trend === "up" 
-                ? "bg-gaming-success/20 text-gaming-success" 
-                : "bg-gaming-warning/20 text-gaming-warning"
-            }`}>
+            <span
+              className={`text-xs px-2 py-1 rounded-full ${
+                trend === 'up'
+                  ? 'bg-gaming-success/20 text-gaming-success'
+                  : 'bg-gaming-warning/20 text-gaming-warning'
+              }`}
+            >
               {change}
             </span>
           </div>

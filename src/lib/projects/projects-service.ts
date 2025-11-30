@@ -4,7 +4,7 @@
  * =================================================================
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Project {
   id: string;
@@ -120,11 +120,7 @@ class ProjectsService {
    * Get project by ID
    */
   async getProjectById(id: string): Promise<Project | null> {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('projects').select('*').eq('id', id).single();
 
     if (error) return null;
     return data;
@@ -205,7 +201,9 @@ class ProjectsService {
     status?: 'draft' | 'scheduled' | 'publishing';
     scheduled_at?: string;
   }): Promise<ProjectPost> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
     const { data, error } = await supabase
@@ -231,19 +229,16 @@ class ProjectsService {
     results?: Record<string, unknown>
   ): Promise<void> {
     const updates: Partial<ProjectPost> = { status };
-    
+
     if (status === 'published') {
       updates.published_at = new Date().toISOString();
     }
-    
+
     if (results) {
       updates.results = results;
     }
 
-    const { error } = await supabase
-      .from('project_posts')
-      .update(updates)
-      .eq('id', postId);
+    const { error } = await supabase.from('project_posts').update(updates).eq('id', postId);
 
     if (error) throw error;
   }
@@ -258,7 +253,9 @@ class ProjectsService {
     color?: string;
     website_url?: string;
   }): Promise<Project> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
     const { data, error } = await supabase

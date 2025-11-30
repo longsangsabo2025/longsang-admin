@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { 
+import {
   AgentInputSchema,
   EmailSchema,
   FileUploadSchema,
   validate,
   validateOrThrow,
-  formatValidationErrors
+  formatValidationErrors,
 } from '../schemas';
 
 describe('Validation schemas', () => {
@@ -15,7 +15,7 @@ describe('Validation schemas', () => {
         agentId: '123e4567-e89b-12d3-a456-426614174000',
         task: 'Test task',
       };
-      
+
       const result = validate(AgentInputSchema, validInput);
       expect(result.success).toBe(true);
     });
@@ -25,7 +25,7 @@ describe('Validation schemas', () => {
         agentId: 'not-a-uuid',
         task: 'Test task',
       };
-      
+
       const result = validate(AgentInputSchema, invalidInput);
       expect(result.success).toBe(false);
     });
@@ -35,7 +35,7 @@ describe('Validation schemas', () => {
         agentId: '123e4567-e89b-12d3-a456-426614174000',
         task: '',
       };
-      
+
       const result = validate(AgentInputSchema, invalidInput);
       expect(result.success).toBe(false);
     });
@@ -60,7 +60,7 @@ describe('Validation schemas', () => {
         size: 1024 * 1024, // 1MB
         type: 'application/pdf',
       };
-      
+
       const result = validate(FileUploadSchema, validFile);
       expect(result.success).toBe(true);
     });
@@ -71,7 +71,7 @@ describe('Validation schemas', () => {
         size: 20 * 1024 * 1024, // 20MB
         type: 'application/pdf',
       };
-      
+
       const result = validate(FileUploadSchema, largeFile);
       expect(result.success).toBe(false);
     });
@@ -97,7 +97,7 @@ describe('Validation schemas', () => {
         agentId: 'invalid',
         task: '',
       });
-      
+
       if (!result.success) {
         const formatted = formatValidationErrors(result.errors);
         expect(formatted.length).toBeGreaterThan(0);

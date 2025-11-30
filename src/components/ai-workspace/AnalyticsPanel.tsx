@@ -23,14 +23,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import {
-  MessageSquare,
-  Zap,
-  DollarSign,
-  Clock,
-  RefreshCw,
-  Loader2,
-} from 'lucide-react';
+import { MessageSquare, Zap, DollarSign, Clock, RefreshCw, Loader2 } from 'lucide-react';
 
 interface AnalyticsPanelProps {
   userId?: string;
@@ -226,4 +219,3 @@ export function AnalyticsPanel({ userId, className }: AnalyticsPanelProps) {
     </div>
   );
 }
-

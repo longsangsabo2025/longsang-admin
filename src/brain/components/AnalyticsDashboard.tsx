@@ -1,8 +1,19 @@
-import { useUserBehavior, useSystemMetrics, useQueryPatterns, useDailyUserActivity } from '@/brain/hooks/useAnalytics';
+import {
+  useUserBehavior,
+  useSystemMetrics,
+  useQueryPatterns,
+  useDailyUserActivity,
+} from '@/brain/hooks/useAnalytics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, BarChart3, TrendingUp, Activity, Users } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useState } from 'react';
 
 export function AnalyticsDashboard() {
@@ -71,7 +82,9 @@ export function AnalyticsDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemMetrics?.unique_active_users?.value || 0}</div>
+            <div className="text-2xl font-bold">
+              {systemMetrics?.unique_active_users?.value || 0}
+            </div>
             <p className="text-xs text-muted-foreground">Unique active users</p>
           </CardContent>
         </Card>
@@ -97,7 +110,10 @@ export function AnalyticsDashboard() {
           {userBehavior && userBehavior.length > 0 ? (
             <div className="space-y-2">
               {userBehavior.map((behavior) => (
-                <div key={behavior.event_type} className="flex items-center justify-between p-2 border rounded">
+                <div
+                  key={behavior.event_type}
+                  className="flex items-center justify-between p-2 border rounded"
+                >
                   <span className="text-sm font-medium">{behavior.event_type}</span>
                   <div className="flex items-center gap-2">
                     <Badge>{behavior.event_count} events</Badge>
@@ -123,7 +139,10 @@ export function AnalyticsDashboard() {
           {dailyActivity && dailyActivity.length > 0 ? (
             <div className="space-y-2">
               {dailyActivity.slice(0, 10).map((activity, index) => (
-                <div key={index} className="flex items-center justify-between p-2 border rounded text-sm">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-2 border rounded text-sm"
+                >
                   <span>{activity.date}</span>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">{activity.event_type}</Badge>
@@ -140,5 +159,3 @@ export function AnalyticsDashboard() {
     </div>
   );
 }
-
-

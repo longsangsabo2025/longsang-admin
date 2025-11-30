@@ -67,4 +67,3 @@ export function useAnalytics({ userId }: UseAnalyticsOptions) {
     fetchAnalytics,
   };
 }
-

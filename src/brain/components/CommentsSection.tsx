@@ -49,7 +49,11 @@ export function CommentsSection({ knowledgeId }: CommentsSectionProps) {
             onChange={(e) => setComment(e.target.value)}
             rows={3}
           />
-          <Button onClick={handleAddComment} disabled={addCommentMutation.isPending || !comment.trim()} size="sm">
+          <Button
+            onClick={handleAddComment}
+            disabled={addCommentMutation.isPending || !comment.trim()}
+            size="sm"
+          >
             {addCommentMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
             ) : (
@@ -80,4 +84,3 @@ export function CommentsSection({ knowledgeId }: CommentsSectionProps) {
     </Card>
   );
 }
-

@@ -377,9 +377,7 @@ export default function CourseDetail() {
                 </Avatar>
                 <div>
                   <div className="font-semibold">{courseData.instructor.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {courseData.instructor.title}
-                  </div>
+                  <div className="text-sm text-muted-foreground">{courseData.instructor.title}</div>
                   <div className="flex items-center gap-4 text-sm mt-1">
                     <span>{courseData.instructor.students.toLocaleString()} students</span>
                     <span>{courseData.instructor.courses} courses</span>
@@ -486,10 +484,7 @@ export default function CourseDetail() {
                             <CardTitle className="text-lg">{section.title}</CardTitle>
                             <CardDescription>
                               {section.lessons.length} lectures •{' '}
-                              {section.lessons.reduce(
-                                (sum, l) => sum + parseInt(l.duration),
-                                0
-                              )}{' '}
+                              {section.lessons.reduce((sum, l) => sum + parseInt(l.duration), 0)}{' '}
                               min
                             </CardDescription>
                           </div>
@@ -548,10 +543,7 @@ export default function CourseDetail() {
                         <div className="text-5xl font-bold">{courseData.rating}</div>
                         <div className="flex items-center gap-1 mt-2">
                           {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className="h-4 w-4 fill-yellow-400 text-yellow-400"
-                            />
+                            <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                           ))}
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">Course Rating</div>
@@ -559,7 +551,10 @@ export default function CourseDetail() {
                       <div className="flex-1">
                         {[5, 4, 3, 2, 1].map((stars) => (
                           <div key={stars} className="flex items-center gap-3 mb-2">
-                            <Progress value={stars === 5 ? 85 : stars === 4 ? 12 : 3} className="flex-1" />
+                            <Progress
+                              value={stars === 5 ? 85 : stars === 4 ? 12 : 3}
+                              className="flex-1"
+                            />
                             <div className="flex items-center gap-1 text-sm w-20">
                               <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                               {stars}
@@ -592,9 +587,7 @@ export default function CourseDetail() {
                                     />
                                   ))}
                                 </div>
-                                <span className="text-xs text-muted-foreground">
-                                  {review.date}
-                                </span>
+                                <span className="text-xs text-muted-foreground">{review.date}</span>
                               </div>
                             </div>
                           </div>

@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
-import { GlowCard } from "./GlowCard";
-import { ProjectData } from "@/data/projects-data";
+import { motion } from 'framer-motion';
+import { GlowCard } from './GlowCard';
+import { ProjectData } from '@/data/projects-data';
 
 interface FeaturesGridProps {
   project: ProjectData;
@@ -15,9 +15,7 @@ export const FeaturesGrid = ({ project }: FeaturesGridProps) => {
       transition={{ duration: 0.6 }}
       className="py-12"
     >
-      <h2 className="font-display text-3xl font-bold mb-6 glow-text">
-        TÍNH NĂNG NỔI BẬT
-      </h2>
+      <h2 className="font-display text-3xl font-bold mb-6 glow-text">TÍNH NĂNG NỔI BẬT</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {project.features.map((feature, idx) => (
@@ -28,23 +26,24 @@ export const FeaturesGrid = ({ project }: FeaturesGridProps) => {
             viewport={{ once: true }}
             transition={{ delay: idx * 0.1, duration: 0.5 }}
           >
-            <GlowCard
-              glowColor={feature.color as "cyan" | "blue" | "green"}
-              className="h-full"
-            >
+            <GlowCard glowColor={feature.color as 'cyan' | 'blue' | 'green'} className="h-full">
               <div className="flex flex-col items-center text-center mb-4">
-                <div className={`
+                <div
+                  className={`
                   p-4 rounded-lg mb-4
-                  ${feature.color === "cyan" && "bg-neon-cyan/10"}
-                  ${feature.color === "blue" && "bg-neon-blue/10"}
-                  ${feature.color === "green" && "bg-neon-green/10"}
-                `}>
-                  <feature.icon className={`
+                  ${feature.color === 'cyan' && 'bg-neon-cyan/10'}
+                  ${feature.color === 'blue' && 'bg-neon-blue/10'}
+                  ${feature.color === 'green' && 'bg-neon-green/10'}
+                `}
+                >
+                  <feature.icon
+                    className={`
                     h-8 w-8
-                    ${feature.color === "cyan" && "text-neon-cyan"}
-                    ${feature.color === "blue" && "text-neon-blue"}
-                    ${feature.color === "green" && "text-neon-green"}
-                  `} />
+                    ${feature.color === 'cyan' && 'text-neon-cyan'}
+                    ${feature.color === 'blue' && 'text-neon-blue'}
+                    ${feature.color === 'green' && 'text-neon-green'}
+                  `}
+                  />
                 </div>
                 <h3 className="font-display text-lg font-semibold text-foreground">
                   {feature.title}
@@ -61,12 +60,14 @@ export const FeaturesGrid = ({ project }: FeaturesGridProps) => {
                     transition={{ delay: idx * 0.1 + i * 0.05 }}
                     className="flex items-start gap-2 text-sm text-muted-foreground"
                   >
-                    <span className={`
+                    <span
+                      className={`
                       mt-1 text-lg
-                      ${feature.color === "cyan" && "text-neon-cyan"}
-                      ${feature.color === "blue" && "text-neon-blue"}
-                      ${feature.color === "green" && "text-neon-green"}
-                    `}>
+                      ${feature.color === 'cyan' && 'text-neon-cyan'}
+                      ${feature.color === 'blue' && 'text-neon-blue'}
+                      ${feature.color === 'green' && 'text-neon-green'}
+                    `}
+                    >
                       ✓
                     </span>
                     <span>{point}</span>

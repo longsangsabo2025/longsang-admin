@@ -11,7 +11,8 @@ interface KnowledgeQualityScoreProps {
 
 export function KnowledgeQualityScore({ knowledgeId }: KnowledgeQualityScoreProps) {
   const scoreMutation = useScoreKnowledge();
-  const { data: suggestions, isLoading: isLoadingSuggestions } = useImprovementSuggestions(knowledgeId);
+  const { data: suggestions, isLoading: isLoadingSuggestions } =
+    useImprovementSuggestions(knowledgeId);
 
   const handleScore = async () => {
     await scoreMutation.mutateAsync(knowledgeId);
@@ -34,7 +35,12 @@ export function KnowledgeQualityScore({ knowledgeId }: KnowledgeQualityScoreProp
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Quality Score</span>
-          <Button onClick={handleScore} disabled={scoreMutation.isPending} size="sm" variant="outline">
+          <Button
+            onClick={handleScore}
+            disabled={scoreMutation.isPending}
+            size="sm"
+            variant="outline"
+          >
             {scoreMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -92,12 +98,12 @@ export function KnowledgeQualityScore({ knowledgeId }: KnowledgeQualityScoreProp
           </>
         ) : (
           <div className="text-center py-4">
-            <p className="text-muted-foreground text-sm">Click refresh to calculate quality score</p>
+            <p className="text-muted-foreground text-sm">
+              Click refresh to calculate quality score
+            </p>
           </div>
         )}
       </CardContent>
     </Card>
   );
 }
-
-

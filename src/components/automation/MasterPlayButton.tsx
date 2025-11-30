@@ -6,17 +6,17 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { n8nWebhooks } from '@/lib/automation/n8n-webhooks';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { 
-  Play, 
-  Square, 
-  Activity, 
-  Zap, 
-  CheckCircle, 
+import {
+  Play,
+  Square,
+  Activity,
+  Zap,
+  CheckCircle,
   AlertCircle,
   TrendingUp,
   Clock,
   Users,
-  Target
+  Target,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -50,8 +50,8 @@ export function MasterPlayButton() {
       workflows_running: '0',
       uptime: 100,
       success_rate: 0,
-      tasks_completed_today: 0
-    }
+      tasks_completed_today: 0,
+    },
   });
 
   const [isActivating, setIsActivating] = useState(false);
@@ -62,13 +62,14 @@ export function MasterPlayButton() {
   useEffect(() => {
     if (systemStatus.status === 'fully_automated') {
       const interval = setInterval(() => {
-        setRealTimeMetrics(prev => ({
+        setRealTimeMetrics((prev) => ({
           automation_level: '100%',
           active_agents: 4 + Math.floor(Math.random() * 2), // 4-5 agents
           workflows_running: (8 + Math.floor(Math.random() * 4)).toString(), // 8-12 workflows
           uptime: 99.8 + Math.random() * 0.2, // 99.8-100%
           success_rate: 95 + Math.random() * 5, // 95-100%
-          tasks_completed_today: (prev?.tasks_completed_today || 50) + Math.floor(Math.random() * 3) // Incremental
+          tasks_completed_today:
+            (prev?.tasks_completed_today || 50) + Math.floor(Math.random() * 3), // Incremental
         }));
       }, 5000);
 
@@ -91,18 +92,18 @@ export function MasterPlayButton() {
         'Launching lead processor...',
         'Enabling analytics engine...',
         'Initializing monitoring...',
-        'Full automation activated!'
+        'Full automation activated!',
       ];
 
       for (let i = 0; i < activationSteps.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise((resolve) => setTimeout(resolve, 800));
         setActivationProgress(((i + 1) / activationSteps.length) * 100);
-        
-        setSystemStatus(prev => ({
+
+        setSystemStatus((prev) => ({
           ...prev,
           status: i === activationSteps.length - 1 ? 'fully_automated' : 'activating',
           message: activationSteps[i],
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         }));
       }
 
@@ -122,13 +123,12 @@ export function MasterPlayButton() {
             workflows_running: 'all',
             uptime: 100,
             success_rate: 100,
-            tasks_completed_today: 0
-          }
+            tasks_completed_today: 0,
+          },
         });
       } else {
         throw new Error(response.error || 'Unknown error');
       }
-
     } catch (error) {
       console.error('Automation activation failed:', error);
       setSystemStatus({
@@ -142,8 +142,8 @@ export function MasterPlayButton() {
           workflows_running: '0',
           uptime: 0,
           success_rate: 0,
-          tasks_completed_today: 0
-        }
+          tasks_completed_today: 0,
+        },
       });
     } finally {
       setIsActivating(false);
@@ -155,7 +155,7 @@ export function MasterPlayButton() {
     try {
       const userId = user?.id || 'anonymous-user';
       await n8nWebhooks.stopAllWorkflows(userId);
-      
+
       setSystemStatus({
         status: 'idle',
         message: 'Automation stopped. System ready for activation.',
@@ -167,8 +167,8 @@ export function MasterPlayButton() {
           workflows_running: '0',
           uptime: 100,
           success_rate: 0,
-          tasks_completed_today: realTimeMetrics?.tasks_completed_today || 0
-        }
+          tasks_completed_today: realTimeMetrics?.tasks_completed_today || 0,
+        },
       });
       setRealTimeMetrics(null);
     } catch (error) {
@@ -178,19 +178,27 @@ export function MasterPlayButton() {
 
   const getStatusColor = () => {
     switch (systemStatus.status) {
-      case 'fully_automated': return 'text-green-600';
-      case 'activating': return 'text-yellow-600';
-      case 'error': return 'text-red-600';
-      default: return 'text-gray-600';
+      case 'fully_automated':
+        return 'text-green-600';
+      case 'activating':
+        return 'text-yellow-600';
+      case 'error':
+        return 'text-red-600';
+      default:
+        return 'text-gray-600';
     }
   };
 
   const getStatusIcon = () => {
     switch (systemStatus.status) {
-      case 'fully_automated': return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case 'activating': return <Activity className="w-5 h-5 text-yellow-600 animate-pulse" />;
-      case 'error': return <AlertCircle className="w-5 h-5 text-red-600" />;
-      default: return <Clock className="w-5 h-5 text-gray-600" />;
+      case 'fully_automated':
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'activating':
+        return <Activity className="w-5 h-5 text-yellow-600 animate-pulse" />;
+      case 'error':
+        return <AlertCircle className="w-5 h-5 text-red-600" />;
+      default:
+        return <Clock className="w-5 h-5 text-gray-600" />;
     }
   };
 
@@ -205,17 +213,13 @@ export function MasterPlayButton() {
             <Zap className="w-6 h-6 text-blue-600" />
             Master AI Agent Control
           </CardTitle>
-          <CardDescription>
-            One-click activation for complete automation
-          </CardDescription>
+          <CardDescription>One-click activation for complete automation</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Status Display */}
           <div className="flex items-center justify-center gap-2">
             {getStatusIcon()}
-            <span className={cn("font-medium", getStatusColor())}>
-              {systemStatus.message}
-            </span>
+            <span className={cn('font-medium', getStatusColor())}>{systemStatus.message}</span>
           </div>
 
           {/* Activation Progress */}
@@ -264,7 +268,10 @@ export function MasterPlayButton() {
               <div className="flex flex-wrap gap-2 justify-center">
                 {systemStatus.active_workflows.map((workflow) => (
                   <Badge key={workflow} variant="secondary" className="bg-green-100 text-green-800">
-                    {workflow.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                    {workflow
+                      .split('_')
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(' ')}
                   </Badge>
                 ))}
               </div>
@@ -278,9 +285,7 @@ export function MasterPlayButton() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {metrics.automation_level}
-              </div>
+              <div className="text-2xl font-bold text-green-600">{metrics.automation_level}</div>
               <p className="text-sm text-muted-foreground">Automation Level</p>
             </CardContent>
           </Card>
@@ -297,9 +302,7 @@ export function MasterPlayButton() {
 
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {metrics.workflows_running}
-              </div>
+              <div className="text-2xl font-bold text-purple-600">{metrics.workflows_running}</div>
               <p className="text-sm text-muted-foreground">Workflows Running</p>
             </CardContent>
           </Card>
@@ -334,7 +337,7 @@ export function MasterPlayButton() {
                 </div>
                 <Progress value={metrics.uptime} className="h-2" />
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Success Rate</span>
@@ -342,15 +345,13 @@ export function MasterPlayButton() {
                 </div>
                 <Progress value={metrics.success_rate} className="h-2" />
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Tasks Today</span>
                   <span className="font-medium">{metrics.tasks_completed_today}</span>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Tasks completed automatically
-                </div>
+                <div className="text-sm text-muted-foreground">Tasks completed automatically</div>
               </div>
             </div>
           </CardContent>
@@ -361,9 +362,7 @@ export function MasterPlayButton() {
       {systemStatus.status === 'error' && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {systemStatus.message}
-          </AlertDescription>
+          <AlertDescription>{systemStatus.message}</AlertDescription>
         </Alert>
       )}
 

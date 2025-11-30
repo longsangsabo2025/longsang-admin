@@ -1,9 +1,9 @@
 /**
  * Threads API Service
- * 
+ *
  * Official Threads API integration for posting text, images, and videos.
  * Threads uses a 2-step process similar to Instagram: Create container → Publish
- * 
+ *
  * API Documentation: https://developers.facebook.com/docs/threads
  */
 
@@ -52,13 +52,13 @@ export async function getThreadsProfile(
   const response = await fetch(
     `${THREADS_API_BASE}/${userId}?fields=${fields}&access_token=${accessToken}`
   );
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(data.error.message);
   }
-  
+
   return {
     id: data.id,
     username: data.username,
@@ -91,23 +91,23 @@ async function createThreadContainer(
   if (options.text) {
     params.append('text', options.text);
   }
-  
+
   if (options.imageUrl) {
     params.append('image_url', options.imageUrl);
   }
-  
+
   if (options.videoUrl) {
     params.append('video_url', options.videoUrl);
   }
-  
+
   if (options.children && options.children.length > 0) {
     params.append('children', options.children.join(','));
   }
-  
+
   if (options.replyToId) {
     params.append('reply_to_id', options.replyToId);
   }
-  
+
   if (options.linkAttachment) {
     params.append('link_attachment', options.linkAttachment);
   }
@@ -116,13 +116,13 @@ async function createThreadContainer(
     method: 'POST',
     body: params,
   });
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(data.error.message);
   }
-  
+
   return data;
 }
 
@@ -143,13 +143,13 @@ async function publishThread(
     method: 'POST',
     body: params,
   });
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(data.error.message);
   }
-  
+
   return data;
 }
 
@@ -167,7 +167,7 @@ export async function postTextThread(
 ): Promise<ThreadsPostResult> {
   const userId = options?.userId || THREADS_CONFIG.userId;
   const accessToken = options?.accessToken || THREADS_CONFIG.accessToken;
-  
+
   try {
     // Step 1: Create container
     const container = await createThreadContainer(userId, accessToken, {
@@ -176,13 +176,13 @@ export async function postTextThread(
       replyToId: options?.replyToId,
       linkAttachment: options?.linkAttachment,
     });
-    
+
     // Step 2: Wait briefly
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     // Step 3: Publish
     const result = await publishThread(userId, container.id, accessToken);
-    
+
     return {
       success: true,
       postId: result.id,
@@ -210,7 +210,7 @@ export async function postImageThread(
 ): Promise<ThreadsPostResult> {
   const userId = options?.userId || THREADS_CONFIG.userId;
   const accessToken = options?.accessToken || THREADS_CONFIG.accessToken;
-  
+
   try {
     // Step 1: Create container
     const container = await createThreadContainer(userId, accessToken, {
@@ -219,13 +219,13 @@ export async function postImageThread(
       text,
       replyToId: options?.replyToId,
     });
-    
+
     // Step 2: Wait for processing
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
     // Step 3: Publish
     const result = await publishThread(userId, container.id, accessToken);
-    
+
     return {
       success: true,
       postId: result.id,
@@ -253,7 +253,7 @@ export async function postVideoThread(
 ): Promise<ThreadsPostResult> {
   const userId = options?.userId || THREADS_CONFIG.userId;
   const accessToken = options?.accessToken || THREADS_CONFIG.accessToken;
-  
+
   try {
     // Step 1: Create container
     const container = await createThreadContainer(userId, accessToken, {
@@ -262,14 +262,14 @@ export async function postVideoThread(
       text,
       replyToId: options?.replyToId,
     });
-    
+
     // Step 2: Wait for video processing (can take a while)
     // TODO: Implement status polling
-    await new Promise(resolve => setTimeout(resolve, 10000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+
     // Step 3: Publish
     const result = await publishThread(userId, container.id, accessToken);
-    
+
     return {
       success: true,
       postId: result.id,
@@ -296,51 +296,51 @@ export async function postCarouselThread(
 ): Promise<ThreadsPostResult> {
   const userId = options?.userId || THREADS_CONFIG.userId;
   const accessToken = options?.accessToken || THREADS_CONFIG.accessToken;
-  
+
   try {
     // Step 1: Create containers for each item
     const childContainerIds: string[] = [];
-    
+
     for (const item of mediaItems) {
       const params = new URLSearchParams({
         media_type: item.type,
         access_token: accessToken,
         is_carousel_item: 'true',
       });
-      
+
       if (item.type === 'IMAGE') {
         params.append('image_url', item.url);
       } else {
         params.append('video_url', item.url);
       }
-      
+
       const response = await fetch(`${THREADS_API_BASE}/${userId}/threads`, {
         method: 'POST',
         body: params,
       });
-      
+
       const data = await response.json();
-      
+
       if (data.error) {
         throw new Error(data.error.message);
       }
-      
+
       childContainerIds.push(data.id);
     }
-    
+
     // Wait for items to process
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
     // Step 2: Create carousel container
     const container = await createThreadContainer(userId, accessToken, {
       mediaType: 'CAROUSEL',
       text,
       children: childContainerIds,
     });
-    
+
     // Step 3: Publish
     const result = await publishThread(userId, container.id, accessToken);
-    
+
     return {
       success: true,
       postId: result.id,
@@ -368,21 +368,21 @@ export async function replyToThread(
 ): Promise<ThreadsPostResult> {
   const userId = options?.userId || THREADS_CONFIG.userId;
   const accessToken = options?.accessToken || THREADS_CONFIG.accessToken;
-  
+
   try {
     const mediaType = options?.imageUrl ? 'IMAGE' : 'TEXT';
-    
+
     const container = await createThreadContainer(userId, accessToken, {
       mediaType,
       text,
       imageUrl: options?.imageUrl,
       replyToId,
     });
-    
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     const result = await publishThread(userId, container.id, accessToken);
-    
+
     return {
       success: true,
       postId: result.id,
@@ -407,15 +407,15 @@ export async function getThreadInsights(
   const response = await fetch(
     `${THREADS_API_BASE}/${mediaId}/insights?metric=${metrics}&access_token=${accessToken}`
   );
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(data.error.message);
   }
-  
+
   const insights: ThreadsInsights = {};
-  
+
   for (const item of data.data || []) {
     switch (item.name) {
       case 'views':
@@ -435,7 +435,7 @@ export async function getThreadInsights(
         break;
     }
   }
-  
+
   return insights;
 }
 
@@ -446,24 +446,26 @@ export async function getRecentThreads(
   userId: string = THREADS_CONFIG.userId,
   accessToken: string = THREADS_CONFIG.accessToken,
   limit: number = 10
-): Promise<Array<{
-  id: string;
-  mediaType: string;
-  text?: string;
-  permalink: string;
-  timestamp: string;
-}>> {
+): Promise<
+  Array<{
+    id: string;
+    mediaType: string;
+    text?: string;
+    permalink: string;
+    timestamp: string;
+  }>
+> {
   const fields = 'id,media_type,text,permalink,timestamp';
   const response = await fetch(
     `${THREADS_API_BASE}/${userId}/threads?fields=${fields}&limit=${limit}&access_token=${accessToken}`
   );
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(data.error.message);
   }
-  
+
   return (data.data || []).map((item: any) => ({
     id: item.id,
     mediaType: item.media_type,

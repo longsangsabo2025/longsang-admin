@@ -3,8 +3,8 @@
  * Integrates with existing AI service to execute agent tasks
  */
 
-import { supabase } from "@/integrations/supabase/client";
-import { generateWithAI } from "@/lib/automation/ai-service";
+import { supabase } from '@/integrations/supabase/client';
+import { generateWithAI } from '@/lib/automation/ai-service';
 
 /**
  * Calculate cost for GPT-4o mini model
@@ -66,7 +66,7 @@ export interface AgentExecutionResult {
  */
 export async function executeAgent(input: AgentExecutionInput): Promise<AgentExecutionResult> {
   const startTime = Date.now();
-  
+
   try {
     // Get agent details from database
     const { data: agent, error: agentError } = await supabase
@@ -88,7 +88,7 @@ export async function executeAgent(input: AgentExecutionInput): Promise<AgentExe
         agent_id: input.agentId,
         status: 'running',
         input_data: { task: input.task, context: input.context },
-        started_at: new Date().toISOString()
+        started_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -99,24 +99,24 @@ export async function executeAgent(input: AgentExecutionInput): Promise<AgentExe
 
     // Build system prompt based on agent configuration
     const systemPrompt = buildSystemPrompt(agent);
-    
+
     // Call AI service (uses existing ai-service.ts)
     const aiResponse = await generateWithAI({
       prompt: input.task,
       config: {
-        model: 'gpt-4o-mini',  // Ultra cheap: $0.15/$0.60 per 1M tokens!
+        model: 'gpt-4o-mini', // Ultra cheap: $0.15/$0.60 per 1M tokens!
         temperature: 0.7,
         max_tokens: 2000,
-        system_prompt: systemPrompt
-      }
+        system_prompt: systemPrompt,
+      },
     });
 
     const output = aiResponse.content;
-    
+
     // Calculate cost (approximate based on tokens)
     const tokensUsed = aiResponse.tokens_used || 1500;
     const costUsd = calculateCostFromTokens(tokensUsed);
-    
+
     const executionTimeMs = Date.now() - startTime;
 
     // Update execution record
@@ -124,14 +124,14 @@ export async function executeAgent(input: AgentExecutionInput): Promise<AgentExe
       .from('agent_executions')
       .update({
         status: 'completed',
-        output_data: { 
+        output_data: {
           result: output,
           model: aiResponse.model,
-          tokens: tokensUsed
+          tokens: tokensUsed,
         },
         execution_time_ms: executionTimeMs,
         cost_usd: costUsd,
-        completed_at: new Date().toISOString()
+        completed_at: new Date().toISOString(),
       })
       .eq('id', (execution as unknown as AgentExecution).id);
 
@@ -144,9 +144,9 @@ export async function executeAgent(input: AgentExecutionInput): Promise<AgentExe
         total_cost_usd: agentData.total_cost_usd + costUsd,
         last_used_at: new Date().toISOString(),
         avg_execution_time_ms: Math.round(
-          (agentData.avg_execution_time_ms * agentData.total_executions + executionTimeMs) / 
-          (agentData.total_executions + 1)
-        )
+          (agentData.avg_execution_time_ms * agentData.total_executions + executionTimeMs) /
+            (agentData.total_executions + 1)
+        ),
       })
       .eq('id', input.agentId);
 
@@ -155,13 +155,12 @@ export async function executeAgent(input: AgentExecutionInput): Promise<AgentExe
       success: true,
       output,
       executionTimeMs,
-      costUsd
+      costUsd,
     };
-
   } catch (error) {
     const executionTimeMs = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
+
     console.error('Agent execution error:', error);
 
     // Try to update execution record with error
@@ -172,7 +171,7 @@ export async function executeAgent(input: AgentExecutionInput): Promise<AgentExe
           status: 'failed',
           error_message: errorMessage,
           execution_time_ms: executionTimeMs,
-          completed_at: new Date().toISOString()
+          completed_at: new Date().toISOString(),
         })
         .eq('agent_id', input.agentId)
         .order('started_at', { ascending: false })
@@ -191,7 +190,7 @@ export async function executeAgent(input: AgentExecutionInput): Promise<AgentExe
           .from('agents')
           .update({
             total_executions: failedAgentData.total_executions + 1,
-            failed_executions: failedAgentData.failed_executions + 1
+            failed_executions: failedAgentData.failed_executions + 1,
           })
           .eq('id', input.agentId);
       }
@@ -205,7 +204,7 @@ export async function executeAgent(input: AgentExecutionInput): Promise<AgentExe
       output: '',
       executionTimeMs,
       costUsd: 0,
-      error: errorMessage
+      error: errorMessage,
     };
   }
 }
@@ -216,7 +215,7 @@ export async function executeAgent(input: AgentExecutionInput): Promise<AgentExe
 function buildSystemPrompt(agent: Agent): string {
   const capabilities = agent.capabilities || [];
   const description = agent.description || '';
-  
+
   return `You are an AI agent named "${agent.name}".
 
 Role: ${agent.role}

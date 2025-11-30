@@ -5,26 +5,26 @@
  * Settings to configure auto-publish behavior without review
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import type { SocialPlatform } from "@/types/social-media";
-import { AlertTriangle, Save, Settings, Zap } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import type { SocialPlatform } from '@/types/social-media';
+import { AlertTriangle, Save, Settings, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const platformInfo: Record<SocialPlatform, { name: string; icon: string }> = {
-  linkedin: { name: "LinkedIn", icon: "💼" },
-  twitter: { name: "Twitter/X", icon: "𝕏" },
-  facebook: { name: "Facebook", icon: "👥" },
-  instagram: { name: "Instagram", icon: "📸" },
-  youtube: { name: "YouTube", icon: "▶️" },
-  telegram: { name: "Telegram", icon: "✈️" },
-  discord: { name: "Discord", icon: "🎮" },
+  linkedin: { name: 'LinkedIn', icon: '💼' },
+  twitter: { name: 'Twitter/X', icon: '𝕏' },
+  facebook: { name: 'Facebook', icon: '👥' },
+  instagram: { name: 'Instagram', icon: '📸' },
+  youtube: { name: 'YouTube', icon: '▶️' },
+  telegram: { name: 'Telegram', icon: '✈️' },
+  discord: { name: 'Discord', icon: '🎮' },
 };
 
 interface AutoPublishSettings {
@@ -54,18 +54,18 @@ export function AutoPublishSettings() {
   const loadSettings = async () => {
     try {
       const { data, error } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("key", "auto_publish_settings")
+        .from('system_settings')
+        .select('*')
+        .eq('key', 'auto_publish_settings')
         .single();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error && error.code !== 'PGRST116') throw error;
 
       if (data?.value) {
         setSettings(data.value as AutoPublishSettings);
       }
     } catch (error) {
-      console.error("Failed to load settings:", error);
+      console.error('Failed to load settings:', error);
     } finally {
       setLoading(false);
     }
@@ -74,8 +74,8 @@ export function AutoPublishSettings() {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase.from("system_settings").upsert({
-        key: "auto_publish_settings",
+      const { error } = await supabase.from('system_settings').upsert({
+        key: 'auto_publish_settings',
         value: settings,
         updated_at: new Date().toISOString(),
       });
@@ -83,15 +83,15 @@ export function AutoPublishSettings() {
       if (error) throw error;
 
       toast({
-        title: "✅ Settings Saved",
-        description: "Auto-publish settings have been updated",
+        title: '✅ Settings Saved',
+        description: 'Auto-publish settings have been updated',
       });
     } catch (error) {
-      console.error("Failed to save settings:", error);
+      console.error('Failed to save settings:', error);
       toast({
-        title: "❌ Save Failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        title: '❌ Save Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -261,19 +261,19 @@ export function AutoPublishSettings() {
               </div>
               <ul className="text-sm space-y-1 ml-6">
                 <li>
-                  • Status: <strong>{settings.enabled ? "Enabled" : "Disabled"}</strong>
+                  • Status: <strong>{settings.enabled ? 'Enabled' : 'Disabled'}</strong>
                 </li>
                 <li>
-                  • Platforms: <strong>{settings.platforms.length || "None"}</strong> selected
+                  • Platforms: <strong>{settings.platforms.length || 'None'}</strong> selected
                 </li>
                 <li>
-                  • Auto-approve: <strong>{settings.auto_approve ? "Yes" : "No"}</strong>
+                  • Auto-approve: <strong>{settings.auto_approve ? 'Yes' : 'No'}</strong>
                 </li>
                 <li>
-                  • Hashtags: <strong>{settings.add_hashtags ? "Yes" : "No"}</strong>
+                  • Hashtags: <strong>{settings.add_hashtags ? 'Yes' : 'No'}</strong>
                 </li>
                 <li>
-                  • Include link: <strong>{settings.include_link ? "Yes" : "No"}</strong>
+                  • Include link: <strong>{settings.include_link ? 'Yes' : 'No'}</strong>
                 </li>
               </ul>
             </div>
@@ -283,7 +283,7 @@ export function AutoPublishSettings() {
         {/* Save Button */}
         <Button onClick={saveSettings} disabled={saving} className="w-full" size="lg">
           <Save className="h-4 w-4 mr-2" />
-          {saving ? "Saving..." : "Save Settings"}
+          {saving ? 'Saving...' : 'Save Settings'}
         </Button>
       </CardContent>
     </Card>

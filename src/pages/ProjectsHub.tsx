@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   FolderKanban,
   Search,
@@ -20,134 +20,134 @@ import {
   AlertCircle,
   Clock,
   RefreshCw,
-  Database
-} from "lucide-react";
-import { projectsApi, type ProjectWithStats } from "@/lib/api/projects-service";
+  Database,
+} from 'lucide-react';
+import { projectsApi, type ProjectWithStats } from '@/lib/api/projects-service';
 
 // Fallback mock data when database is not available
 const mockProjects: ProjectWithStats[] = [
   {
-    id: "1",
-    slug: "longsang-portfolio",
-    name: "Long Sang Portfolio",
-    description: "Website portfolio cá nhân với AI integration",
-    icon: "🏠",
-    color: "from-blue-500 to-indigo-600",
-    status: "active",
-    local_url: "http://localhost:8081",
-    production_url: "https://longsang.com",
-    github_url: "https://github.com/longsangsabo2025/longsang-portfolio",
-    created_at: "2025-11-01",
-    updated_at: "2025-11-25",
+    id: '1',
+    slug: 'longsang-portfolio',
+    name: 'Long Sang Portfolio',
+    description: 'Website portfolio cá nhân với AI integration',
+    icon: '🏠',
+    color: 'from-blue-500 to-indigo-600',
+    status: 'active',
+    local_url: 'http://localhost:8081',
+    production_url: 'https://longsang.com',
+    github_url: 'https://github.com/longsangsabo2025/longsang-portfolio',
+    created_at: '2025-11-01',
+    updated_at: '2025-11-25',
     metadata: {},
     credentials_count: 5,
     agents_count: 3,
-    workflows_count: 4
+    workflows_count: 4,
   },
   {
-    id: "2",
-    slug: "ainewbie-web",
-    name: "AI Newbie Web",
-    description: "Platform học AI cho người mới bắt đầu",
-    icon: "🤖",
-    color: "from-purple-500 to-pink-600",
-    status: "active",
-    local_url: "http://localhost:5173",
-    production_url: "https://ainewbie.vn",
-    github_url: "https://github.com/longsangsabo2025/ainewbie-web",
-    created_at: "2025-11-01",
-    updated_at: "2025-11-24",
+    id: '2',
+    slug: 'ainewbie-web',
+    name: 'AI Newbie Web',
+    description: 'Platform học AI cho người mới bắt đầu',
+    icon: '🤖',
+    color: 'from-purple-500 to-pink-600',
+    status: 'active',
+    local_url: 'http://localhost:5173',
+    production_url: 'https://ainewbie.vn',
+    github_url: 'https://github.com/longsangsabo2025/ainewbie-web',
+    created_at: '2025-11-01',
+    updated_at: '2025-11-24',
     metadata: {},
     credentials_count: 8,
     agents_count: 5,
-    workflows_count: 6
+    workflows_count: 6,
   },
   {
-    id: "3",
-    slug: "sabo-hub",
-    name: "Sabo Hub",
-    description: "Hệ sinh thái quản lý doanh nghiệp",
-    icon: "🏢",
-    color: "from-green-500 to-emerald-600",
-    status: "development",
-    local_url: "http://localhost:3000",
+    id: '3',
+    slug: 'sabo-hub',
+    name: 'Sabo Hub',
+    description: 'Hệ sinh thái quản lý doanh nghiệp',
+    icon: '🏢',
+    color: 'from-green-500 to-emerald-600',
+    status: 'development',
+    local_url: 'http://localhost:3000',
     production_url: null,
-    github_url: "https://github.com/longsangsabo2025/sabo-hub",
-    created_at: "2025-11-01",
-    updated_at: "2025-11-23",
+    github_url: 'https://github.com/longsangsabo2025/sabo-hub',
+    created_at: '2025-11-01',
+    updated_at: '2025-11-23',
     metadata: {},
     credentials_count: 4,
     agents_count: 2,
-    workflows_count: 3
+    workflows_count: 3,
   },
   {
-    id: "4",
-    slug: "vungtau-dream-homes",
-    name: "Vũng Tàu Dream Homes",
-    description: "Website bất động sản Vũng Tàu",
-    icon: "🏡",
-    color: "from-orange-500 to-red-600",
-    status: "active",
-    local_url: "http://localhost:5174",
-    production_url: "https://vungtaudreamhomes.com",
-    github_url: "https://github.com/longsangsabo2025/vungtau-dream-homes",
-    created_at: "2025-11-01",
-    updated_at: "2025-11-22",
+    id: '4',
+    slug: 'vungtau-dream-homes',
+    name: 'Vũng Tàu Dream Homes',
+    description: 'Website bất động sản Vũng Tàu',
+    icon: '🏡',
+    color: 'from-orange-500 to-red-600',
+    status: 'active',
+    local_url: 'http://localhost:5174',
+    production_url: 'https://vungtaudreamhomes.com',
+    github_url: 'https://github.com/longsangsabo2025/vungtau-dream-homes',
+    created_at: '2025-11-01',
+    updated_at: '2025-11-22',
     metadata: {},
     credentials_count: 3,
     agents_count: 1,
-    workflows_count: 2
+    workflows_count: 2,
   },
   {
-    id: "5",
-    slug: "ai-secretary",
-    name: "AI Secretary",
-    description: "Trợ lý AI thông minh đa năng",
-    icon: "💼",
-    color: "from-cyan-500 to-blue-600",
-    status: "development",
-    local_url: "http://localhost:3001",
+    id: '5',
+    slug: 'ai-secretary',
+    name: 'AI Secretary',
+    description: 'Trợ lý AI thông minh đa năng',
+    icon: '💼',
+    color: 'from-cyan-500 to-blue-600',
+    status: 'development',
+    local_url: 'http://localhost:3001',
     production_url: null,
-    github_url: "https://github.com/longsangsabo2025/ai-secretary",
-    created_at: "2025-11-01",
-    updated_at: "2025-11-21",
+    github_url: 'https://github.com/longsangsabo2025/ai-secretary',
+    created_at: '2025-11-01',
+    updated_at: '2025-11-21',
     metadata: {},
     credentials_count: 6,
     agents_count: 4,
-    workflows_count: 5
+    workflows_count: 5,
   },
   {
-    id: "6",
-    slug: "sabo-arena",
-    name: "Sabo Arena",
-    description: "Gaming và giải trí platform",
-    icon: "🎮",
-    color: "from-violet-500 to-purple-600",
-    status: "paused",
+    id: '6',
+    slug: 'sabo-arena',
+    name: 'Sabo Arena',
+    description: 'Gaming và giải trí platform',
+    icon: '🎮',
+    color: 'from-violet-500 to-purple-600',
+    status: 'paused',
     local_url: null,
     production_url: null,
-    github_url: "https://github.com/longsangsabo2025/sabo-arena",
-    created_at: "2025-11-01",
-    updated_at: "2025-11-15",
+    github_url: 'https://github.com/longsangsabo2025/sabo-arena',
+    created_at: '2025-11-01',
+    updated_at: '2025-11-15',
     metadata: {},
     credentials_count: 2,
     agents_count: 0,
-    workflows_count: 1
-  }
+    workflows_count: 1,
+  },
 ];
 
 const statusConfig = {
-  active: { label: "Active", color: "bg-green-500", icon: CheckCircle },
-  development: { label: "Development", color: "bg-yellow-500", icon: Clock },
-  paused: { label: "Paused", color: "bg-gray-500", icon: AlertCircle },
-  archived: { label: "Archived", color: "bg-red-500", icon: AlertCircle }
+  active: { label: 'Active', color: 'bg-green-500', icon: CheckCircle },
+  development: { label: 'Development', color: 'bg-yellow-500', icon: Clock },
+  paused: { label: 'Paused', color: 'bg-gray-500', icon: AlertCircle },
+  archived: { label: 'Archived', color: 'bg-red-500', icon: AlertCircle },
 };
 
 const ProjectsHub = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [projects, setProjects] = useState<ProjectWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingMockData, setUsingMockData] = useState(false);
@@ -165,20 +165,20 @@ const ProjectsHub = () => {
         setProjects(mockProjects);
         setUsingMockData(true);
         toast({
-          title: "Sử dụng dữ liệu mẫu",
-          description: "Chưa có dữ liệu trong database. Đang hiển thị dữ liệu mẫu.",
-          variant: "default"
+          title: 'Sử dụng dữ liệu mẫu',
+          description: 'Chưa có dữ liệu trong database. Đang hiển thị dữ liệu mẫu.',
+          variant: 'default',
         });
       }
     } catch (error) {
-      console.error("Error loading projects:", error);
+      console.error('Error loading projects:', error);
       // Fallback to mock data on error
       setProjects(mockProjects);
       setUsingMockData(true);
       toast({
-        title: "Không thể kết nối database",
-        description: "Đang sử dụng dữ liệu mẫu. Chạy migration để tạo tables.",
-        variant: "destructive"
+        title: 'Không thể kết nối database',
+        description: 'Đang sử dụng dữ liệu mẫu. Chạy migration để tạo tables.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -189,18 +189,22 @@ const ProjectsHub = () => {
     loadProjects();
   }, []);
 
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-    const matchesStatus = statusFilter === "all" || project.status === statusFilter;
+  const filteredProjects = projects.filter((project) => {
+    const matchesSearch =
+      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+    const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const totalStats = projects.reduce((acc, p) => ({
-    credentials: acc.credentials + (p.credentials_count || 0),
-    agents: acc.agents + (p.agents_count || 0),
-    workflows: acc.workflows + (p.workflows_count || 0)
-  }), { credentials: 0, agents: 0, workflows: 0 });
+  const totalStats = projects.reduce(
+    (acc, p) => ({
+      credentials: acc.credentials + (p.credentials_count || 0),
+      agents: acc.agents + (p.agents_count || 0),
+      workflows: acc.workflows + (p.workflows_count || 0),
+    }),
+    { credentials: 0, agents: 0, workflows: 0 }
+  );
 
   if (loading) {
     return (
@@ -210,12 +214,12 @@ const ProjectsHub = () => {
           <Skeleton className="h-10 w-32" />
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
+          {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map(i => (
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="h-72" />
           ))}
         </div>
@@ -314,14 +318,16 @@ const ProjectsHub = () => {
           />
         </div>
         <div className="flex gap-2">
-          {["all", "active", "development", "paused"].map((status) => (
+          {['all', 'active', 'development', 'paused'].map((status) => (
             <Button
               key={status}
-              variant={statusFilter === status ? "default" : "outline"}
+              variant={statusFilter === status ? 'default' : 'outline'}
               size="sm"
               onClick={() => setStatusFilter(status)}
             >
-              {status === "all" ? "Tất cả" : statusConfig[status as keyof typeof statusConfig]?.label}
+              {status === 'all'
+                ? 'Tất cả'
+                : statusConfig[status as keyof typeof statusConfig]?.label}
             </Button>
           ))}
         </div>
@@ -333,20 +339,19 @@ const ProjectsHub = () => {
           const StatusIcon = statusConfig[project.status]?.icon || CheckCircle;
           const statusStyle = statusConfig[project.status] || statusConfig.active;
           return (
-            <Card 
-              key={project.id} 
+            <Card
+              key={project.id}
               className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-2 hover:border-indigo-500/50"
               onClick={() => navigate(`/admin/projects/${project.slug}`)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
-                  <div className={`text-4xl p-3 rounded-xl bg-gradient-to-br ${project.color} shadow-lg`}>
+                  <div
+                    className={`text-4xl p-3 rounded-xl bg-gradient-to-br ${project.color} shadow-lg`}
+                  >
                     {project.icon}
                   </div>
-                  <Badge 
-                    variant="outline" 
-                    className={`${statusStyle.color} text-white border-0`}
-                  >
+                  <Badge variant="outline" className={`${statusStyle.color} text-white border-0`}>
                     <StatusIcon className="h-3 w-3 mr-1" />
                     {statusStyle.label}
                   </Badge>
@@ -379,33 +384,42 @@ const ProjectsHub = () => {
                 {/* Quick Links */}
                 <div className="flex gap-2 pt-2 border-t">
                   {project.local_url && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="flex-1"
-                      onClick={(e) => { e.stopPropagation(); window.open(project.local_url!, '_blank'); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(project.local_url!, '_blank');
+                      }}
                     >
                       <Server className="h-4 w-4 mr-1" />
                       Local
                     </Button>
                   )}
                   {project.production_url && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="flex-1"
-                      onClick={(e) => { e.stopPropagation(); window.open(project.production_url!, '_blank'); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(project.production_url!, '_blank');
+                      }}
                     >
                       <Globe className="h-4 w-4 mr-1" />
                       Live
                     </Button>
                   )}
                   {project.github_url && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="flex-1"
-                      onClick={(e) => { e.stopPropagation(); window.open(project.github_url!, '_blank'); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(project.github_url!, '_blank');
+                      }}
                     >
                       <Github className="h-4 w-4 mr-1" />
                       Code

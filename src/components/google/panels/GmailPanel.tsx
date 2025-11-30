@@ -10,15 +10,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Mail, 
-  Send, 
-  RefreshCw, 
-  CheckCircle2, 
+import {
+  Mail,
+  Send,
+  RefreshCw,
+  CheckCircle2,
   XCircle,
   Loader2,
   Users,
-  BarChart3
+  BarChart3,
 } from 'lucide-react';
 import { sendEmail, getEmailStats } from '@/lib/google/gmail-api';
 import { toast } from 'sonner';
@@ -27,7 +27,7 @@ export const GmailPanel = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [stats, setStats] = useState<any>(null);
-  
+
   const [emailForm, setEmailForm] = useState({
     to: '',
     subject: '',
@@ -130,9 +130,7 @@ export const GmailPanel = () => {
             <Send className="h-5 w-5" />
             Send Email
           </CardTitle>
-          <CardDescription>
-            Send email using Google service account
-          </CardDescription>
+          <CardDescription>Send email using Google service account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -143,7 +141,7 @@ export const GmailPanel = () => {
                 type="email"
                 placeholder="recipient@example.com"
                 value={emailForm.to}
-                onChange={(e) => setEmailForm(prev => ({ ...prev, to: e.target.value }))}
+                onChange={(e) => setEmailForm((prev) => ({ ...prev, to: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
@@ -152,7 +150,7 @@ export const GmailPanel = () => {
                 id="subject"
                 placeholder="Email subject"
                 value={emailForm.subject}
-                onChange={(e) => setEmailForm(prev => ({ ...prev, subject: e.target.value }))}
+                onChange={(e) => setEmailForm((prev) => ({ ...prev, subject: e.target.value }))}
               />
             </div>
           </div>
@@ -163,7 +161,7 @@ export const GmailPanel = () => {
               placeholder="Write your message here..."
               rows={5}
               value={emailForm.body}
-              onChange={(e) => setEmailForm(prev => ({ ...prev, body: e.target.value }))}
+              onChange={(e) => setEmailForm((prev) => ({ ...prev, body: e.target.value }))}
             />
           </div>
           <div className="flex gap-2">
@@ -198,7 +196,10 @@ export const GmailPanel = () => {
           <CardContent>
             <div className="space-y-2">
               {stats.recentLogs.map((log: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between py-2 border-b last:border-0">
+                <div
+                  key={idx}
+                  className="flex items-center justify-between py-2 border-b last:border-0"
+                >
                   <div>
                     <div className="text-sm font-medium">{log.subject || 'No subject'}</div>
                     <div className="text-xs text-muted-foreground">{log.to_email}</div>

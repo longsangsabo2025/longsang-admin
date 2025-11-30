@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Send, 
-  Bot, 
-  User, 
-  Loader2, 
-  Brain, 
+import {
+  Send,
+  Bot,
+  User,
+  Loader2,
+  Brain,
   FolderOpen,
   RefreshCw,
   Trash2,
@@ -12,7 +12,7 @@ import {
   ChevronDown,
   FileText,
   Search,
-  Bug
+  Bug,
 } from 'lucide-react';
 
 interface Message {
@@ -38,7 +38,7 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState({
     includeWorkspaceContext: true,
-    includeBrainContext: true
+    includeBrainContext: true,
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -74,10 +74,10 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
     const userMessage: Message = {
       role: 'user',
       content: input.trim(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
@@ -90,27 +90,33 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
           sessionId,
           project: project || null,
           includeWorkspaceContext: settings.includeWorkspaceContext,
-          includeBrainContext: settings.includeBrainContext
-        })
+          includeBrainContext: settings.includeBrainContext,
+        }),
       });
 
       const data = await res.json();
 
       if (data.success) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: data.response,
-          timestamp: new Date().toISOString()
-        }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: data.response,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
       } else {
         throw new Error(data.error || 'Failed to get response');
       }
     } catch (err: any) {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: `❌ Error: ${err.message}`,
-        timestamp: new Date().toISOString()
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: `❌ Error: ${err.message}`,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
@@ -130,7 +136,7 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
     { icon: Bug, label: 'Check Errors', action: 'Có lỗi gì trong hệ thống hôm nay?' },
     { icon: FolderOpen, label: 'List Projects', action: 'Liệt kê các projects trong workspace' },
     { icon: Brain, label: 'Brain Status', action: 'Status của AI Second Brain?' },
-    { icon: Search, label: 'Search Code', action: 'Tìm kiếm function' }
+    { icon: Search, label: 'Search Code', action: 'Tìm kiếm function' },
   ];
 
   // Clear chat
@@ -139,14 +145,16 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
   };
 
   return (
-    <div className={`flex flex-col h-full bg-slate-900 rounded-lg border border-slate-700 ${className}`}>
+    <div
+      className={`flex flex-col h-full bg-slate-900 rounded-lg border border-slate-700 ${className}`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
         <div className="flex items-center gap-2">
           <Bot className="w-5 h-5 text-cyan-400" />
           <span className="font-medium text-white">Workspace AI Chat</span>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {/* Project selector */}
           <select
@@ -155,8 +163,10 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
             className="bg-slate-800 text-sm text-slate-300 rounded px-2 py-1 border border-slate-600"
           >
             <option value="">All Projects</option>
-            {projects.map(p => (
-              <option key={p} value={p}>{p.split('/').pop()}</option>
+            {projects.map((p) => (
+              <option key={p} value={p}>
+                {p.split('/').pop()}
+              </option>
             ))}
           </select>
 
@@ -187,7 +197,9 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
               <input
                 type="checkbox"
                 checked={settings.includeWorkspaceContext}
-                onChange={(e) => setSettings(s => ({ ...s, includeWorkspaceContext: e.target.checked }))}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, includeWorkspaceContext: e.target.checked }))
+                }
                 className="rounded"
               />
               <FolderOpen className="w-3 h-3" />
@@ -197,7 +209,9 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
               <input
                 type="checkbox"
                 checked={settings.includeBrainContext}
-                onChange={(e) => setSettings(s => ({ ...s, includeBrainContext: e.target.checked }))}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, includeBrainContext: e.target.checked }))
+                }
                 className="rounded"
               />
               <Brain className="w-3 h-3" />
@@ -212,13 +226,11 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
         {messages.length === 0 ? (
           <div className="text-center py-8">
             <Bot className="w-12 h-12 text-cyan-400 mx-auto mb-3" />
-            <h3 className="text-lg font-medium text-white mb-2">
-              Workspace AI Assistant
-            </h3>
+            <h3 className="text-lg font-medium text-white mb-2">Workspace AI Assistant</h3>
             <p className="text-slate-400 text-sm mb-6">
               Hỏi bất kỳ điều gì về workspace, code, hoặc projects của bạn.
             </p>
-            
+
             {/* Quick actions */}
             <div className="flex flex-wrap justify-center gap-2">
               {quickActions.map((qa, i) => (
@@ -239,28 +251,23 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
           </div>
         ) : (
           messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}
-            >
+            <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
               {msg.role === 'assistant' && (
                 <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
                   <Bot className="w-4 h-4 text-cyan-400" />
                 </div>
               )}
-              
+
               <div
                 className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                  msg.role === 'user'
-                    ? 'bg-cyan-600 text-white'
-                    : 'bg-slate-800 text-slate-200'
+                  msg.role === 'user' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-200'
                 }`}
               >
                 {msg.role === 'assistant' ? (
-                  <div 
+                  <div
                     className="prose prose-invert prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ 
-                      __html: formatMessage(msg.content) 
+                    dangerouslySetInnerHTML={{
+                      __html: formatMessage(msg.content),
                     }}
                   />
                 ) : (
@@ -320,7 +327,7 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
             )}
           </button>
         </div>
-        
+
         <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
           <span>Enter để gửi, Shift+Enter để xuống dòng</span>
           <div className="flex items-center gap-2">
@@ -343,21 +350,26 @@ export function WorkspaceChat({ defaultProject, className = '' }: WorkspaceChatP
 
 // Helper: Format markdown-like message to HTML
 function formatMessage(content: string): string {
-  return content
-    // Code blocks
-    .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="bg-slate-900 p-2 rounded my-2 overflow-x-auto"><code class="text-sm">$2</code></pre>')
-    // Inline code
-    .replace(/`([^`]+)`/g, '<code class="bg-slate-900 px-1 rounded text-cyan-300">$1</code>')
-    // Bold
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    // Headers
-    .replace(/^### (.+)$/gm, '<h4 class="font-bold text-cyan-400 mt-3 mb-1">$1</h4>')
-    .replace(/^## (.+)$/gm, '<h3 class="font-bold text-cyan-300 mt-3 mb-1">$1</h3>')
-    // Lists
-    .replace(/^- (.+)$/gm, '<li class="ml-4">$1</li>')
-    .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4">$1. $2</li>')
-    // Line breaks
-    .replace(/\n/g, '<br/>');
+  return (
+    content
+      // Code blocks
+      .replace(
+        /```(\w+)?\n([\s\S]*?)```/g,
+        '<pre class="bg-slate-900 p-2 rounded my-2 overflow-x-auto"><code class="text-sm">$2</code></pre>'
+      )
+      // Inline code
+      .replace(/`([^`]+)`/g, '<code class="bg-slate-900 px-1 rounded text-cyan-300">$1</code>')
+      // Bold
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      // Headers
+      .replace(/^### (.+)$/gm, '<h4 class="font-bold text-cyan-400 mt-3 mb-1">$1</h4>')
+      .replace(/^## (.+)$/gm, '<h3 class="font-bold text-cyan-300 mt-3 mb-1">$1</h3>')
+      // Lists
+      .replace(/^- (.+)$/gm, '<li class="ml-4">$1</li>')
+      .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4">$1. $2</li>')
+      // Line breaks
+      .replace(/\n/g, '<br/>')
+  );
 }
 
 export default WorkspaceChat;

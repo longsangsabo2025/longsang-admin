@@ -5,7 +5,7 @@ interface TechIconProps {
   className?: string;
 }
 
-export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12" }) => {
+export const TechIcon: React.FC<TechIconProps> = ({ type, className = 'w-12 h-12' }) => {
   const icons: Record<string, JSX.Element> = {
     flutter: (
       <svg viewBox="0 0 100 100" className={className}>
@@ -15,7 +15,11 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
             <stop offset="100%" stopColor="#0066FF" />
           </linearGradient>
         </defs>
-        <path d="M50 10 L90 50 L70 70 L50 50 L30 70 L10 50 Z" fill="url(#flutter-grad)" opacity="0.9" />
+        <path
+          d="M50 10 L90 50 L70 70 L50 50 L30 70 L10 50 Z"
+          fill="url(#flutter-grad)"
+          opacity="0.9"
+        />
         <path d="M50 50 L70 70 L50 90 L30 70 Z" fill="url(#flutter-grad)" opacity="0.6" />
       </svg>
     ),
@@ -41,7 +45,15 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
             <stop offset="100%" stopColor="#00D4AA" />
           </linearGradient>
         </defs>
-        <rect x="20" y="20" width="60" height="60" rx="8" fill="url(#supabase-grad)" opacity="0.3" />
+        <rect
+          x="20"
+          y="20"
+          width="60"
+          height="60"
+          rx="8"
+          fill="url(#supabase-grad)"
+          opacity="0.3"
+        />
         <path d="M40 30 L60 30 L60 50 L70 50 L50 70 L30 50 L40 50 Z" fill="url(#supabase-grad)" />
       </svg>
     ),
@@ -67,8 +79,11 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
             <stop offset="100%" stopColor="#FBBC04" />
           </linearGradient>
         </defs>
-        <path d="M30 50 Q30 35 45 35 Q45 25 55 25 Q65 25 65 35 Q80 35 80 50 Q80 65 65 65 L35 65 Q30 65 30 50 Z" 
-              fill="url(#cloud-grad)" opacity="0.8" />
+        <path
+          d="M30 50 Q30 35 45 35 Q45 25 55 25 Q65 25 65 35 Q80 35 80 50 Q80 65 65 65 L35 65 Q30 65 30 50 Z"
+          fill="url(#cloud-grad)"
+          opacity="0.8"
+        />
       </svg>
     ),
     oauth: (
@@ -79,7 +94,15 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
             <stop offset="100%" stopColor="#9333EA" />
           </linearGradient>
         </defs>
-        <circle cx="50" cy="50" r="30" fill="none" stroke="url(#oauth-grad)" strokeWidth="4" opacity="0.6" />
+        <circle
+          cx="50"
+          cy="50"
+          r="30"
+          fill="none"
+          stroke="url(#oauth-grad)"
+          strokeWidth="4"
+          opacity="0.6"
+        />
         <circle cx="50" cy="50" r="20" fill="none" stroke="url(#oauth-grad)" strokeWidth="3" />
         <circle cx="50" cy="50" r="8" fill="url(#oauth-grad)" />
       </svg>
@@ -92,9 +115,35 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
             <stop offset="100%" stopColor="#61DAFB" />
           </linearGradient>
         </defs>
-        <ellipse cx="50" cy="50" rx="40" ry="15" fill="none" stroke="url(#react-grad)" strokeWidth="3" />
-        <ellipse cx="50" cy="50" rx="40" ry="15" fill="none" stroke="url(#react-grad)" strokeWidth="3" transform="rotate(60 50 50)" />
-        <ellipse cx="50" cy="50" rx="40" ry="15" fill="none" stroke="url(#react-grad)" strokeWidth="3" transform="rotate(120 50 50)" />
+        <ellipse
+          cx="50"
+          cy="50"
+          rx="40"
+          ry="15"
+          fill="none"
+          stroke="url(#react-grad)"
+          strokeWidth="3"
+        />
+        <ellipse
+          cx="50"
+          cy="50"
+          rx="40"
+          ry="15"
+          fill="none"
+          stroke="url(#react-grad)"
+          strokeWidth="3"
+          transform="rotate(60 50 50)"
+        />
+        <ellipse
+          cx="50"
+          cy="50"
+          rx="40"
+          ry="15"
+          fill="none"
+          stroke="url(#react-grad)"
+          strokeWidth="3"
+          transform="rotate(120 50 50)"
+        />
         <circle cx="50" cy="50" r="6" fill="url(#react-grad)" />
       </svg>
     ),
@@ -106,7 +155,11 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
             <stop offset="100%" stopColor="#68A063" />
           </linearGradient>
         </defs>
-        <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" fill="url(#node-grad)" opacity="0.8" />
+        <path
+          d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z"
+          fill="url(#node-grad)"
+          opacity="0.8"
+        />
         <path d="M50 35 L65 43 L65 57 L50 65 L35 57 L35 43 Z" fill="#00FF88" opacity="0.6" />
       </svg>
     ),
@@ -118,7 +171,11 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
             <stop offset="100%" stopColor="#9333EA" />
           </linearGradient>
         </defs>
-        <path d="M50 15 L35 30 L35 50 L50 65 L65 50 L65 30 Z" fill="url(#pinecone-grad)" opacity="0.7" />
+        <path
+          d="M50 15 L35 30 L35 50 L50 65 L65 50 L65 30 Z"
+          fill="url(#pinecone-grad)"
+          opacity="0.7"
+        />
         <circle cx="50" cy="35" r="5" fill="#FF6B6B" />
         <circle cx="50" cy="50" r="5" fill="#9333EA" />
       </svg>
@@ -133,8 +190,12 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
           </linearGradient>
         </defs>
         <circle cx="50" cy="50" r="35" fill="none" stroke="url(#openai-grad)" strokeWidth="4" />
-        <path d="M50 20 L50 80 M20 50 L80 50 M30 30 L70 70 M70 30 L30 70" 
-              stroke="url(#openai-grad)" strokeWidth="2" opacity="0.6" />
+        <path
+          d="M50 20 L50 80 M20 50 L80 50 M30 30 L70 70 M70 30 L30 70"
+          stroke="url(#openai-grad)"
+          strokeWidth="2"
+          opacity="0.6"
+        />
       </svg>
     ),
     langchain: (
@@ -145,7 +206,12 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
             <stop offset="100%" stopColor="#FFD700" />
           </linearGradient>
         </defs>
-        <path d="M20 50 L35 35 L50 50 L65 35 L80 50" fill="none" stroke="url(#langchain-grad)" strokeWidth="4" />
+        <path
+          d="M20 50 L35 35 L50 50 L65 35 L80 50"
+          fill="none"
+          stroke="url(#langchain-grad)"
+          strokeWidth="4"
+        />
         <circle cx="20" cy="50" r="6" fill="url(#langchain-grad)" />
         <circle cx="50" cy="50" r="6" fill="url(#langchain-grad)" />
         <circle cx="80" cy="50" r="6" fill="url(#langchain-grad)" />
@@ -188,7 +254,10 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
             <stop offset="100%" stopColor="#00D9FF" />
           </linearGradient>
         </defs>
-        <path d="M70 15 L70 85 L50 70 L30 85 L30 50 L50 40 L30 30 L30 15 Z" fill="url(#vscode-grad)" />
+        <path
+          d="M70 15 L70 85 L50 70 L30 85 L30 50 L50 40 L30 30 L30 15 Z"
+          fill="url(#vscode-grad)"
+        />
       </svg>
     ),
     androidstudio: (
@@ -199,8 +268,11 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
             <stop offset="100%" stopColor="#A4C639" />
           </linearGradient>
         </defs>
-        <path d="M50 20 Q70 20 70 40 L70 70 Q70 80 60 80 L40 80 Q30 80 30 70 L30 40 Q30 20 50 20 Z" 
-              fill="url(#android-grad)" opacity="0.8" />
+        <path
+          d="M50 20 Q70 20 70 40 L70 70 Q70 80 60 80 L40 80 Q30 80 30 70 L30 40 Q30 20 50 20 Z"
+          fill="url(#android-grad)"
+          opacity="0.8"
+        />
         <circle cx="40" cy="40" r="4" fill="#fff" />
         <circle cx="60" cy="40" r="4" fill="#fff" />
         <line x1="35" y1="15" x2="40" y2="25" stroke="url(#android-grad)" strokeWidth="3" />
@@ -258,8 +330,11 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
             <stop offset="100%" stopColor="#9333EA" />
           </linearGradient>
         </defs>
-        <path d="M50 15 Q70 20 75 40 Q75 60 65 70 Q55 75 50 85 Q45 75 35 70 Q25 60 25 40 Q30 20 50 15 Z" 
-              fill="url(#github-grad)" opacity="0.8" />
+        <path
+          d="M50 15 Q70 20 75 40 Q75 60 65 70 Q55 75 50 85 Q45 75 35 70 Q25 60 25 40 Q30 20 50 15 Z"
+          fill="url(#github-grad)"
+          opacity="0.8"
+        />
         <circle cx="40" cy="45" r="5" fill="#fff" />
         <circle cx="60" cy="45" r="5" fill="#fff" />
       </svg>
@@ -273,7 +348,13 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
           </linearGradient>
         </defs>
         <path d="M50 20 L80 80 L20 80 Z" fill="url(#vercel-grad)" />
-        <path d="M50 20 L80 80 L20 80 Z" fill="none" stroke="#00D9FF" strokeWidth="2" opacity="0.5" />
+        <path
+          d="M50 20 L80 80 L20 80 Z"
+          fill="none"
+          stroke="#00D9FF"
+          strokeWidth="2"
+          opacity="0.5"
+        />
       </svg>
     ),
     datadog: (
@@ -293,6 +374,6 @@ export const TechIcon: React.FC<TechIconProps> = ({ type, className = "w-12 h-12
   };
 
   const normalizedType = type.toLowerCase().replace(/\s+/g, '').replace(/&/g, '');
-  
+
   return icons[normalizedType] || icons.cloud;
 };

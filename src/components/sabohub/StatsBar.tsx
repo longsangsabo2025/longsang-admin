@@ -1,11 +1,11 @@
-import { motion } from "framer-motion";
-import { Grid3x3, Zap, Smartphone, Shield } from "lucide-react";
+import { motion } from 'framer-motion';
+import { Grid3x3, Zap, Smartphone, Shield } from 'lucide-react';
 
 const stats = [
-  { icon: Grid3x3, label: "8 Hệ Thống Tích Hợp", value: "8+" },
-  { icon: Zap, label: "Đồng Bộ Thời Gian Thực", value: "100%" },
-  { icon: Smartphone, label: "Đa Nền Tảng", value: "3+" },
-  { icon: Shield, label: "Bảo Mật", value: "100%" },
+  { icon: Grid3x3, label: '8 Hệ Thống Tích Hợp', value: '8+' },
+  { icon: Zap, label: 'Đồng Bộ Thời Gian Thực', value: '100%' },
+  { icon: Smartphone, label: 'Đa Nền Tảng', value: '3+' },
+  { icon: Shield, label: 'Bảo Mật', value: '100%' },
 ];
 
 export const StatsBar = () => {
@@ -23,9 +23,7 @@ export const StatsBar = () => {
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
               <stat.icon className="w-8 h-8 mx-auto mb-3 text-primary" />
-              <div className="text-3xl font-bold gradient-text mb-2 font-mono">
-                {stat.value}
-              </div>
+              <div className="text-3xl font-bold gradient-text mb-2 font-mono">{stat.value}</div>
               <div className="text-sm text-muted-foreground">{stat.label}</div>
             </motion.div>
           ))}

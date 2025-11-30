@@ -1,6 +1,6 @@
 /**
  * 🧠 useBrainContext Hook
- * 
+ *
  * Tự động lấy context từ AI Second Brain cho mỗi message.
  * Giúp AI assistants có thêm kiến thức từ Brain.
  */
@@ -45,61 +45,64 @@ export function useBrainContext(options: UseBrainContextOptions = {}) {
   /**
    * Tìm kiếm knowledge liên quan từ Brain
    */
-  const searchBrain = useCallback(async (query: string): Promise<BrainContext | null> => {
-    if (!enabled || !query.trim()) return null;
+  const searchBrain = useCallback(
+    async (query: string): Promise<BrainContext | null> => {
+      if (!enabled || !query.trim()) return null;
 
-    setIsSearching(true);
-    setError(null);
+      setIsSearching(true);
+      setError(null);
 
-    try {
-      const response = await fetch(`${API_BASE}/api/brain/search`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': userId,
-        },
-        body: JSON.stringify({
-          query,
-          userId,
-          domain,
-          limit: maxResults,
-          minSimilarity,
-        }),
-      });
+      try {
+        const response = await fetch(`${API_BASE}/api/brain/search`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-id': userId,
+          },
+          body: JSON.stringify({
+            query,
+            userId,
+            domain,
+            limit: maxResults,
+            minSimilarity,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error(`Brain search failed: ${response.status}`);
-      }
+        if (!response.ok) {
+          throw new Error(`Brain search failed: ${response.status}`);
+        }
 
-      const data = await response.json();
-      
-      if (!data.success || !data.data?.length) {
+        const data = await response.json();
+
+        if (!data.success || !data.data?.length) {
+          return null;
+        }
+
+        // Build context from results
+        const context: BrainContext = {
+          relevant_knowledge: data.data.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            content: item.content,
+            domain: item.domain,
+            similarity: item.similarity,
+          })),
+          context_summary: buildContextSummary(data.data),
+          sources: data.data.map((item: any) => item.title),
+        };
+
+        setLastContext(context);
+        return context;
+      } catch (err: any) {
+        console.error('[useBrainContext] Search error:', err);
+        setError(err.message);
         return null;
+      } finally {
+        setIsSearching(false);
       }
-
-      // Build context from results
-      const context: BrainContext = {
-        relevant_knowledge: data.data.map((item: any) => ({
-          id: item.id,
-          title: item.title,
-          content: item.content,
-          domain: item.domain,
-          similarity: item.similarity,
-        })),
-        context_summary: buildContextSummary(data.data),
-        sources: data.data.map((item: any) => item.title),
-      };
-
-      setLastContext(context);
-      return context;
-    } catch (err: any) {
-      console.error('[useBrainContext] Search error:', err);
-      setError(err.message);
-      return null;
-    } finally {
-      setIsSearching(false);
-    }
-  }, [userId, domain, maxResults, minSimilarity, enabled]);
+    },
+    [userId, domain, maxResults, minSimilarity, enabled]
+  );
 
   /**
    * Build system prompt addition từ Brain context
@@ -124,29 +127,32 @@ ${knowledgeText}
    * Enrich message với Brain context
    * Returns enriched system prompt or null nếu không có context
    */
-  const enrichWithBrain = useCallback(async (
-    userMessage: string,
-    existingSystemPrompt?: string
-  ): Promise<{
-    enrichedSystemPrompt: string;
-    context: BrainContext | null;
-  }> => {
-    const context = await searchBrain(userMessage);
-    
-    if (!context) {
-      return {
-        enrichedSystemPrompt: existingSystemPrompt || '',
-        context: null,
-      };
-    }
+  const enrichWithBrain = useCallback(
+    async (
+      userMessage: string,
+      existingSystemPrompt?: string
+    ): Promise<{
+      enrichedSystemPrompt: string;
+      context: BrainContext | null;
+    }> => {
+      const context = await searchBrain(userMessage);
 
-    const addition = buildSystemPromptAddition(context);
-    
-    return {
-      enrichedSystemPrompt: `${existingSystemPrompt || ''}\n${addition}`,
-      context,
-    };
-  }, [searchBrain, buildSystemPromptAddition]);
+      if (!context) {
+        return {
+          enrichedSystemPrompt: existingSystemPrompt || '',
+          context: null,
+        };
+      }
+
+      const addition = buildSystemPromptAddition(context);
+
+      return {
+        enrichedSystemPrompt: `${existingSystemPrompt || ''}\n${addition}`,
+        context,
+      };
+    },
+    [searchBrain, buildSystemPromptAddition]
+  );
 
   return {
     searchBrain,
@@ -161,10 +167,10 @@ ${knowledgeText}
 // Helper: Build summary từ knowledge items
 function buildContextSummary(items: any[]): string {
   if (!items.length) return '';
-  
-  const domains = [...new Set(items.map(i => i.domain))];
-  const titles = items.map(i => i.title).slice(0, 3);
-  
+
+  const domains = [...new Set(items.map((i) => i.domain))];
+  const titles = items.map((i) => i.title).slice(0, 3);
+
   return `Found ${items.length} relevant item(s) from ${domains.join(', ')}: ${titles.join(', ')}`;
 }
 

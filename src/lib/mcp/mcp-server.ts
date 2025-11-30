@@ -403,31 +403,19 @@ export class AutomationMCPServer {
 
     switch (resource) {
       case 'active': {
-        const { data } = await supabase
-          .from('n8n_workflows')
-          .select('*')
-          .eq('status', 'active');
+        const { data } = await supabase.from('n8n_workflows').select('*').eq('status', 'active');
         return { workflows: data };
       }
       case 'running': {
-        const { data } = await supabase
-          .from('agents')
-          .select('*')
-          .eq('status', 'active');
+        const { data } = await supabase.from('agents').select('*').eq('status', 'active');
         return { agents: data };
       }
       case 'dashboard': {
-        const { data: executions } = await supabase
-          .from('agent_executions')
-          .select('*')
-          .limit(50);
+        const { data: executions } = await supabase.from('agent_executions').select('*').limit(50);
         return { recent_executions: executions };
       }
       case 'queue': {
-        const { data } = await supabase
-          .from('content_queue')
-          .select('*')
-          .eq('status', 'queued');
+        const { data } = await supabase.from('content_queue').select('*').eq('status', 'queued');
         return { queued_content: data };
       }
       default:

@@ -1,21 +1,12 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/subscription/api";
-import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Users, 
-  Search, 
-  Filter,
-  Crown,
-  Ban,
-  CheckCircle,
-  XCircle,
-  TrendingUp
-} from "lucide-react";
-import { usePersistedState, useScrollRestore } from "@/hooks/usePersistedState";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/subscription/api';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Users, Search, Filter, Crown, Ban, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
+import { usePersistedState, useScrollRestore } from '@/hooks/usePersistedState';
 import {
   Table,
   TableBody,
@@ -23,14 +14,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface UserWithSubscription {
   id: string;
@@ -66,7 +57,7 @@ export default function AdminUsers() {
     queryFn: async () => {
       // Get all users with their subscriptions
       const { data: authUsers, error: userError } = await supabase.auth.admin.listUsers();
-      
+
       if (userError) throw userError;
 
       // Get subscriptions and usage for each user
@@ -74,10 +65,12 @@ export default function AdminUsers() {
         authUsers.users.map(async (user) => {
           const { data: subscription } = await supabase
             .from('user_subscriptions')
-            .select(`
+            .select(
+              `
               *,
               plan:subscription_plans(display_name, name)
-            `)
+            `
+            )
             .eq('user_id', user.id)
             .single();
 
@@ -92,19 +85,20 @@ export default function AdminUsers() {
           return {
             ...user,
             subscription,
-            usage: usage || { api_calls_count: 0, workflows_executed: 0, agents_created: 0 }
+            usage: usage || { api_calls_count: 0, workflows_executed: 0, agents_created: 0 },
           };
         })
       );
 
       return usersWithData as UserWithSubscription[];
-    }
+    },
   });
 
-  const filteredUsers = users?.filter(user => {
-    const matchesSearch = user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredUsers = users?.filter((user) => {
+    const matchesSearch =
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.raw_user_meta_data?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesStatus = statusFilter === 'all' || user.subscription?.status === statusFilter;
     const matchesPlan = planFilter === 'all' || user.subscription?.plan?.name === planFilter;
 
@@ -113,10 +107,10 @@ export default function AdminUsers() {
 
   const stats = {
     total: users?.length || 0,
-    active: users?.filter(u => u.subscription?.status === 'active').length || 0,
-    free: users?.filter(u => u.subscription?.plan?.name === 'free').length || 0,
-    pro: users?.filter(u => u.subscription?.plan?.name === 'pro').length || 0,
-    enterprise: users?.filter(u => u.subscription?.plan?.name === 'enterprise').length || 0,
+    active: users?.filter((u) => u.subscription?.status === 'active').length || 0,
+    free: users?.filter((u) => u.subscription?.plan?.name === 'free').length || 0,
+    pro: users?.filter((u) => u.subscription?.plan?.name === 'pro').length || 0,
+    enterprise: users?.filter((u) => u.subscription?.plan?.name === 'enterprise').length || 0,
   };
 
   if (isLoading) {
@@ -265,10 +259,15 @@ export default function AdminUsers() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={
-                        user.subscription?.plan?.name === 'enterprise' ? 'default' :
-                        user.subscription?.plan?.name === 'pro' ? 'secondary' : 'outline'
-                      }>
+                      <Badge
+                        variant={
+                          user.subscription?.plan?.name === 'enterprise'
+                            ? 'default'
+                            : user.subscription?.plan?.name === 'pro'
+                              ? 'secondary'
+                              : 'outline'
+                        }
+                      >
                         {user.subscription?.plan?.display_name || 'Free'}
                       </Badge>
                     </TableCell>
@@ -294,9 +293,7 @@ export default function AdminUsers() {
                     <TableCell className="text-right font-mono">
                       {user.usage?.agents_created || 0}
                     </TableCell>
-                    <TableCell>
-                      {new Date(user.created_at).toLocaleDateString()}
-                    </TableCell>
+                    <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-2 justify-end">
                         <Button variant="outline" size="sm">

@@ -1,9 +1,9 @@
 /**
  * 🚀 Global Upload Widget
- * 
+ *
  * Floating widget that shows upload progress globally
  * Place this once in your app layout (e.g., App.tsx or Layout.tsx)
- * 
+ *
  * Features:
  * - Shows active uploads count
  * - Expandable to see all uploads
@@ -15,18 +15,18 @@ import { useEffect, useState } from 'react';
 import { uploadManager, UploadManagerState } from '@/services/uploadManager';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { 
-  Upload, 
-  CheckCircle2, 
-  XCircle, 
-  X, 
-  RefreshCw, 
+import {
+  Upload,
+  CheckCircle2,
+  XCircle,
+  X,
+  RefreshCw,
   Trash2,
   FileText,
   Loader2,
   ChevronDown,
   ChevronUp,
-  Minimize2
+  Minimize2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -40,13 +40,13 @@ export function GlobalUploadWidget() {
     return unsubscribe;
   }, []);
 
-  const activeTasks = state.tasks.filter(t => 
-    t.status === 'pending' || t.status === 'uploading' || t.status === 'processing'
+  const activeTasks = state.tasks.filter(
+    (t) => t.status === 'pending' || t.status === 'uploading' || t.status === 'processing'
   );
-  const completedTasks = state.tasks.filter(t => t.status === 'completed');
-  const failedTasks = state.tasks.filter(t => t.status === 'failed');
-  const recentTasks = state.tasks.filter(t => 
-    t.status === 'completed' && t.completedAt && Date.now() - t.completedAt < 60000
+  const completedTasks = state.tasks.filter((t) => t.status === 'completed');
+  const failedTasks = state.tasks.filter((t) => t.status === 'failed');
+  const recentTasks = state.tasks.filter(
+    (t) => t.status === 'completed' && t.completedAt && Date.now() - t.completedAt < 60000
   );
 
   const hasActiveTasks = activeTasks.length > 0;
@@ -66,18 +66,17 @@ export function GlobalUploadWidget() {
   // Minimized view - just a small badge
   if (isMinimized) {
     return (
-      <div 
-        className="fixed bottom-4 right-4 z-50"
-        onClick={() => setIsMinimized(false)}
-      >
+      <div className="fixed bottom-4 right-4 z-50" onClick={() => setIsMinimized(false)}>
         <Button
           variant="default"
           size="sm"
           className={cn(
             'rounded-full shadow-lg',
-            hasActiveTasks ? 'bg-blue-500 hover:bg-blue-600' : 
-            failedTasks.length > 0 ? 'bg-red-500 hover:bg-red-600' :
-            'bg-green-500 hover:bg-green-600'
+            hasActiveTasks
+              ? 'bg-blue-500 hover:bg-blue-600'
+              : failedTasks.length > 0
+                ? 'bg-red-500 hover:bg-red-600'
+                : 'bg-green-500 hover:bg-green-600'
           )}
         >
           {hasActiveTasks ? (
@@ -88,9 +87,11 @@ export function GlobalUploadWidget() {
             <CheckCircle2 className="h-4 w-4" />
           )}
           <span className="ml-1">
-            {hasActiveTasks ? activeTasks.length : 
-             failedTasks.length > 0 ? failedTasks.length :
-             recentTasks.length}
+            {hasActiveTasks
+              ? activeTasks.length
+              : failedTasks.length > 0
+                ? failedTasks.length
+                : recentTasks.length}
           </span>
         </Button>
       </div>
@@ -100,12 +101,14 @@ export function GlobalUploadWidget() {
   return (
     <div className="fixed bottom-4 right-4 z-50 w-80 bg-background border rounded-lg shadow-xl overflow-hidden">
       {/* Header */}
-      <div 
+      <div
         className={cn(
           'flex items-center justify-between p-3 cursor-pointer',
-          hasActiveTasks ? 'bg-blue-500/10' :
-          failedTasks.length > 0 ? 'bg-red-500/10' :
-          'bg-green-500/10'
+          hasActiveTasks
+            ? 'bg-blue-500/10'
+            : failedTasks.length > 0
+              ? 'bg-red-500/10'
+              : 'bg-green-500/10'
         )}
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -118,12 +121,11 @@ export function GlobalUploadWidget() {
             <CheckCircle2 className="h-5 w-5 text-green-500" />
           )}
           <span className="font-medium text-sm">
-            {hasActiveTasks 
+            {hasActiveTasks
               ? `Đang upload ${activeTasks.length} file...`
               : failedTasks.length > 0
-              ? `${failedTasks.length} upload thất bại`
-              : `${recentTasks.length} upload hoàn thành`
-            }
+                ? `${failedTasks.length} upload thất bại`
+                : `${recentTasks.length} upload hoàn thành`}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -138,11 +140,7 @@ export function GlobalUploadWidget() {
           >
             <Minimize2 className="h-3 w-3" />
           </Button>
-          {isExpanded ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronUp className="h-4 w-4" />
-          )}
+          {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
         </div>
       </div>
 
@@ -150,7 +148,7 @@ export function GlobalUploadWidget() {
       {isExpanded && (
         <div className="max-h-64 overflow-y-auto">
           {/* Active uploads */}
-          {activeTasks.map(task => (
+          {activeTasks.map((task) => (
             <div key={task.id} className="p-3 border-b">
               <div className="flex items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -176,7 +174,7 @@ export function GlobalUploadWidget() {
           ))}
 
           {/* Failed uploads */}
-          {failedTasks.map(task => (
+          {failedTasks.map((task) => (
             <div key={task.id} className="p-3 border-b bg-red-500/5">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -199,14 +197,12 @@ export function GlobalUploadWidget() {
           ))}
 
           {/* Recent completed */}
-          {recentTasks.map(task => (
+          {recentTasks.map((task) => (
             <div key={task.id} className="p-3 border-b bg-green-500/5">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-green-500" />
                 <span className="text-sm truncate flex-1">{task.fileName}</span>
-                <span className="text-xs text-muted-foreground">
-                  {formatSize(task.fileSize)}
-                </span>
+                <span className="text-xs text-muted-foreground">{formatSize(task.fileSize)}</span>
               </div>
             </div>
           ))}
@@ -214,9 +210,9 @@ export function GlobalUploadWidget() {
           {/* Clear button */}
           {(completedTasks.length > 0 || failedTasks.length > 0) && (
             <div className="p-2 bg-muted/30">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="w-full text-xs"
                 onClick={() => uploadManager.clearCompleted()}
               >

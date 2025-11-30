@@ -13,12 +13,12 @@ import {
   PlatformSettings,
   SocialPostRequest,
   SocialPostResponse,
-} from "@/types/social-media";
-import { BaseSocialPlatform } from "./BaseSocialPlatform";
+} from '@/types/social-media';
+import { BaseSocialPlatform } from './BaseSocialPlatform';
 
 export class DiscordPlatform extends BaseSocialPlatform {
   constructor(credentials: PlatformCredentials, settings?: PlatformSettings) {
-    super("discord", credentials, settings);
+    super('discord', credentials, settings);
   }
 
   async authenticate(): Promise<boolean> {
@@ -35,7 +35,7 @@ export class DiscordPlatform extends BaseSocialPlatform {
 
       // If using bot token, verify it
       if (this.credentials.botToken) {
-        const response = await fetch("https://discord.com/api/v10/users/@me", {
+        const response = await fetch('https://discord.com/api/v10/users/@me', {
           headers: {
             Authorization: `Bot ${this.credentials.botToken}`,
           },
@@ -59,7 +59,7 @@ export class DiscordPlatform extends BaseSocialPlatform {
       this.validatePost(request);
 
       if (!this.credentials.webhookUrl) {
-        throw new Error("Discord webhook URL not configured");
+        throw new Error('Discord webhook URL not configured');
       }
 
       // Format content
@@ -67,8 +67,8 @@ export class DiscordPlatform extends BaseSocialPlatform {
 
       if (this.settings.autoHashtags && request.hashtags && request.hashtags.length > 0) {
         // Discord doesn't support hashtags like other platforms, but we can add them as text
-        const tags = request.hashtags.map((tag) => (tag.startsWith("#") ? tag : `#${tag}`));
-        content = `${content}\n\n${tags.join(" ")}`;
+        const tags = request.hashtags.map((tag) => (tag.startsWith('#') ? tag : `#${tag}`));
+        content = `${content}\n\n${tags.join(' ')}`;
       }
 
       // Prepare Discord message payload
@@ -100,7 +100,7 @@ export class DiscordPlatform extends BaseSocialPlatform {
 
         if (request.media && request.media.length > 0) {
           const media = request.media[0];
-          if (media.type === "image") {
+          if (media.type === 'image') {
             payload.embeds[0].image = { url: media.url };
           }
         }
@@ -114,9 +114,9 @@ export class DiscordPlatform extends BaseSocialPlatform {
       }
 
       const response = await fetch(this.credentials.webhookUrl, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
       });
@@ -131,23 +131,23 @@ export class DiscordPlatform extends BaseSocialPlatform {
       const messageId = `discord-${Date.now()}`;
 
       return {
-        platform: "discord",
+        platform: 'discord',
         success: true,
         postId: messageId,
         postUrl: this.credentials.channelId
           ? `https://discord.com/channels/${this.credentials.channelId}`
           : undefined,
-        status: "published",
+        status: 'published',
         publishedAt: new Date(),
       };
     } catch (error) {
       return {
-        platform: "discord",
+        platform: 'discord',
         success: false,
-        status: "failed",
+        status: 'failed',
         error: {
-          code: "POST_FAILED",
-          message: error instanceof Error ? error.message : "Unknown error",
+          code: 'POST_FAILED',
+          message: error instanceof Error ? error.message : 'Unknown error',
           details: error,
         },
       };
@@ -158,12 +158,12 @@ export class DiscordPlatform extends BaseSocialPlatform {
     const isHealthy = await this.testConnection();
 
     return {
-      platform: "discord",
+      platform: 'discord',
       connected: isHealthy,
       health: {
-        status: isHealthy ? "healthy" : "error",
+        status: isHealthy ? 'healthy' : 'error',
         lastChecked: new Date(),
-        message: isHealthy ? "Connected" : "Invalid webhook or bot token",
+        message: isHealthy ? 'Connected' : 'Invalid webhook or bot token',
       },
       credentials: this.credentials,
       settings: this.settings,
@@ -172,7 +172,7 @@ export class DiscordPlatform extends BaseSocialPlatform {
 
   getCapabilities(): PlatformCapabilities {
     return {
-      platform: "discord",
+      platform: 'discord',
       features: {
         textPosts: true,
         imagePosts: true,

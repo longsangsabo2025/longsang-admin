@@ -1,40 +1,32 @@
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'text' | 'rectangular' | 'circular';
   animate?: boolean;
 }
 
-function Skeleton({ 
-  className, 
-  variant = 'rectangular',
-  animate = true,
-  ...props 
-}: SkeletonProps) {
-  const baseClasses = "bg-gradient-to-r from-gray-700/50 via-gray-600/50 to-gray-700/50";
-  
+function Skeleton({ className, variant = 'rectangular', animate = true, ...props }: SkeletonProps) {
+  const baseClasses = 'bg-gradient-to-r from-gray-700/50 via-gray-600/50 to-gray-700/50';
+
   const variantClasses = {
-    text: "h-4 rounded",
-    rectangular: "rounded-lg",
-    circular: "rounded-full"
+    text: 'h-4 rounded',
+    rectangular: 'rounded-lg',
+    circular: 'rounded-full',
   };
 
   const Component = animate ? motion.div : 'div';
-  const motionProps = animate ? {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    transition: { duration: 0.3 }
-  } : {};
+  const motionProps = animate
+    ? {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        transition: { duration: 0.3 },
+      }
+    : {};
 
   return (
     <Component
-      className={cn(
-        baseClasses,
-        "animate-pulse",
-        variantClasses[variant],
-        className
-      )}
+      className={cn(baseClasses, 'animate-pulse', variantClasses[variant], className)}
       {...motionProps}
       {...props}
     />

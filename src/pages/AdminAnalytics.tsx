@@ -1,6 +1,6 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   TrendingUp,
   TrendingDown,
@@ -12,9 +12,23 @@ import {
   XCircle,
   BarChart3,
   Calendar,
-} from "lucide-react";
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { usePersistedState, useScrollRestore } from "@/hooks/usePersistedState";
+} from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { usePersistedState, useScrollRestore } from '@/hooks/usePersistedState';
 
 const AdminAnalytics = () => {
   // Restore scroll position and persist active tab
@@ -23,92 +37,92 @@ const AdminAnalytics = () => {
 
   // Mock data - replace with real data from Supabase
   const executionData = [
-    { date: "Jan 5", executions: 45, success: 43, failed: 2 },
-    { date: "Jan 6", executions: 52, success: 50, failed: 2 },
-    { date: "Jan 7", executions: 49, success: 48, failed: 1 },
-    { date: "Jan 8", executions: 63, success: 61, failed: 2 },
-    { date: "Jan 9", executions: 71, success: 69, failed: 2 },
-    { date: "Jan 10", executions: 68, success: 67, failed: 1 },
-    { date: "Jan 11", executions: 127, success: 125, failed: 2 },
+    { date: 'Jan 5', executions: 45, success: 43, failed: 2 },
+    { date: 'Jan 6', executions: 52, success: 50, failed: 2 },
+    { date: 'Jan 7', executions: 49, success: 48, failed: 1 },
+    { date: 'Jan 8', executions: 63, success: 61, failed: 2 },
+    { date: 'Jan 9', executions: 71, success: 69, failed: 2 },
+    { date: 'Jan 10', executions: 68, success: 67, failed: 1 },
+    { date: 'Jan 11', executions: 127, success: 125, failed: 2 },
   ];
 
   const workflowUsage = [
-    { name: "AI Content Factory", executions: 342, percentage: 35 },
-    { name: "Lead Management", executions: 287, percentage: 29 },
-    { name: "Social Media Manager", executions: 198, percentage: 20 },
-    { name: "Email Campaign", executions: 151, percentage: 16 },
+    { name: 'AI Content Factory', executions: 342, percentage: 35 },
+    { name: 'Lead Management', executions: 287, percentage: 29 },
+    { name: 'Social Media Manager', executions: 198, percentage: 20 },
+    { name: 'Email Campaign', executions: 151, percentage: 16 },
   ];
 
   const performanceData = [
-    { name: "< 1s", count: 650, color: "#10b981" },
-    { name: "1-3s", count: 280, color: "#3b82f6" },
-    { name: "3-5s", count: 45, color: "#f59e0b" },
-    { name: "> 5s", count: 25, color: "#ef4444" },
+    { name: '< 1s', count: 650, color: '#10b981' },
+    { name: '1-3s', count: 280, color: '#3b82f6' },
+    { name: '3-5s', count: 45, color: '#f59e0b' },
+    { name: '> 5s', count: 25, color: '#ef4444' },
   ];
 
   const stats = [
     {
-      title: "Total Executions",
-      value: "1,247",
-      change: "+23.5%",
-      trend: "up",
+      title: 'Total Executions',
+      value: '1,247',
+      change: '+23.5%',
+      trend: 'up',
       icon: Activity,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100"
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100',
     },
     {
-      title: "Success Rate",
-      value: "98.5%",
-      change: "+2.1%",
-      trend: "up",
+      title: 'Success Rate',
+      value: '98.5%',
+      change: '+2.1%',
+      trend: 'up',
       icon: CheckCircle2,
-      color: "text-green-600",
-      bgColor: "bg-green-100"
+      color: 'text-green-600',
+      bgColor: 'bg-green-100',
     },
     {
-      title: "Avg Response Time",
-      value: "1.2s",
-      change: "-0.3s",
-      trend: "up",
+      title: 'Avg Response Time',
+      value: '1.2s',
+      change: '-0.3s',
+      trend: 'up',
       icon: Zap,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100"
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100',
     },
     {
-      title: "Active Users",
-      value: "12",
-      change: "+4 this week",
-      trend: "up",
+      title: 'Active Users',
+      value: '12',
+      change: '+4 this week',
+      trend: 'up',
       icon: Users,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100"
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100',
     },
   ];
 
   const recentExecutions = [
     {
-      workflow: "AI Content Factory",
-      status: "success",
-      duration: "1.2s",
-      time: "2 min ago"
+      workflow: 'AI Content Factory',
+      status: 'success',
+      duration: '1.2s',
+      time: '2 min ago',
     },
     {
-      workflow: "Lead Management",
-      status: "success",
-      duration: "0.8s",
-      time: "5 min ago"
+      workflow: 'Lead Management',
+      status: 'success',
+      duration: '0.8s',
+      time: '5 min ago',
     },
     {
-      workflow: "Social Media Manager",
-      status: "failed",
-      duration: "3.5s",
-      time: "8 min ago"
+      workflow: 'Social Media Manager',
+      status: 'failed',
+      duration: '3.5s',
+      time: '8 min ago',
     },
     {
-      workflow: "Email Campaign",
-      status: "success",
-      duration: "1.5s",
-      time: "12 min ago"
+      workflow: 'Email Campaign',
+      status: 'success',
+      duration: '1.5s',
+      time: '12 min ago',
     },
   ];
 
@@ -137,9 +151,7 @@ const AdminAnalytics = () => {
           return (
             <Card key={stat.title}>
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardDescription className="text-sm font-medium">
-                  {stat.title}
-                </CardDescription>
+                <CardDescription className="text-sm font-medium">{stat.title}</CardDescription>
                 <div className={`p-2 rounded-lg ${stat.bgColor}`}>
                   <Icon className={`h-4 w-4 ${stat.color}`} />
                 </div>
@@ -147,12 +159,12 @@ const AdminAnalytics = () => {
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
                 <div className="flex items-center gap-1 text-xs mt-1">
-                  {stat.trend === "up" ? (
+                  {stat.trend === 'up' ? (
                     <TrendingUp className="h-3 w-3 text-green-600" />
                   ) : (
                     <TrendingDown className="h-3 w-3 text-red-600" />
                   )}
-                  <span className={stat.trend === "up" ? "text-green-600" : "text-red-600"}>
+                  <span className={stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
                     {stat.change}
                   </span>
                   <span className="text-muted-foreground">vs last week</span>
@@ -186,9 +198,27 @@ const AdminAnalytics = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="executions" stroke="#0ea5e9" strokeWidth={2} name="Total Executions" />
-                  <Line type="monotone" dataKey="success" stroke="#10b981" strokeWidth={2} name="Successful" />
-                  <Line type="monotone" dataKey="failed" stroke="#ef4444" strokeWidth={2} name="Failed" />
+                  <Line
+                    type="monotone"
+                    dataKey="executions"
+                    stroke="#0ea5e9"
+                    strokeWidth={2}
+                    name="Total Executions"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="success"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    name="Successful"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="failed"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    name="Failed"
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -278,9 +308,12 @@ const AdminAnalytics = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 {recentExecutions.map((exec, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 rounded-lg border"
+                  >
                     <div className="flex items-center gap-3">
-                      {exec.status === "success" ? (
+                      {exec.status === 'success' ? (
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                       ) : (
                         <XCircle className="h-4 w-4 text-red-600" />

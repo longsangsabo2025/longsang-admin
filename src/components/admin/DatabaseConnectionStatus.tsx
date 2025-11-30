@@ -9,7 +9,10 @@ interface ConnectionStatusProps {
   className?: string;
 }
 
-export function DatabaseConnectionStatus({ showDetails = false, className = '' }: ConnectionStatusProps) {
+export function DatabaseConnectionStatus({
+  showDetails = false,
+  className = '',
+}: ConnectionStatusProps) {
   const [healthy, setHealthy] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
@@ -114,4 +117,3 @@ export function DatabaseConnectionStatus({ showDetails = false, className = '' }
     </div>
   );
 }
-

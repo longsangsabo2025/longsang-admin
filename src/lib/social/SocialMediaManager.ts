@@ -14,16 +14,16 @@ import {
   SocialPlatform,
   SocialPostRequest,
   SocialPostResponse,
-} from "@/types/social-media";
+} from '@/types/social-media';
 
-import { BaseSocialPlatform } from "./BaseSocialPlatform";
-import { DiscordPlatform } from "./DiscordPlatform";
-import { FacebookPlatform } from "./FacebookPlatform";
-import { InstagramPlatform } from "./InstagramPlatform";
-import { LinkedInPlatform } from "./LinkedInPlatform";
-import { TelegramPlatform } from "./TelegramPlatform";
-import { TwitterPlatform } from "./TwitterPlatform";
-import { YouTubePlatform } from "./YouTubePlatform";
+import { BaseSocialPlatform } from './BaseSocialPlatform';
+import { DiscordPlatform } from './DiscordPlatform';
+import { FacebookPlatform } from './FacebookPlatform';
+import { InstagramPlatform } from './InstagramPlatform';
+import { LinkedInPlatform } from './LinkedInPlatform';
+import { TelegramPlatform } from './TelegramPlatform';
+import { TwitterPlatform } from './TwitterPlatform';
+import { YouTubePlatform } from './YouTubePlatform';
 
 export class SocialMediaManager {
   private platforms: Map<SocialPlatform, BaseSocialPlatform>;
@@ -43,25 +43,25 @@ export class SocialMediaManager {
     let platformInstance: BaseSocialPlatform;
 
     switch (platform) {
-      case "linkedin":
+      case 'linkedin':
         platformInstance = new LinkedInPlatform(credentials, settings);
         break;
-      case "twitter":
+      case 'twitter':
         platformInstance = new TwitterPlatform(credentials, settings);
         break;
-      case "telegram":
+      case 'telegram':
         platformInstance = new TelegramPlatform(credentials, settings);
         break;
-      case "facebook":
+      case 'facebook':
         platformInstance = new FacebookPlatform(credentials, settings);
         break;
-      case "instagram":
+      case 'instagram':
         platformInstance = new InstagramPlatform(credentials, settings);
         break;
-      case "youtube":
+      case 'youtube':
         platformInstance = new YouTubePlatform(credentials, settings);
         break;
-      case "discord":
+      case 'discord':
         platformInstance = new DiscordPlatform(credentials, settings);
         break;
       default:
@@ -105,9 +105,9 @@ export class SocialMediaManager {
       return {
         platform,
         success: false,
-        status: "failed",
+        status: 'failed',
         error: {
-          code: "PLATFORM_NOT_REGISTERED",
+          code: 'PLATFORM_NOT_REGISTERED',
           message: `Platform ${platform} is not registered`,
         },
       };
@@ -142,8 +142,8 @@ export class SocialMediaManager {
     const summary = {
       total: results.length,
       successful: results.filter((r) => r.success).length,
-      failed: results.filter((r) => !r.success && r.status === "failed").length,
-      pending: results.filter((r) => r.status === "scheduled").length,
+      failed: results.filter((r) => !r.success && r.status === 'failed').length,
+      pending: results.filter((r) => r.status === 'scheduled').length,
     };
 
     return {
@@ -280,11 +280,11 @@ export class SocialMediaManager {
     warning: number;
     error: number;
     total: number;
-    platforms: Record<SocialPlatform, "healthy" | "warning" | "error">;
+    platforms: Record<SocialPlatform, 'healthy' | 'warning' | 'error'>;
   }> {
     const statuses = await this.getAllConnectionStatuses();
 
-    const healthMap: Record<string, "healthy" | "warning" | "error"> = {};
+    const healthMap: Record<string, 'healthy' | 'warning' | 'error'> = {};
     let healthy = 0;
     let warning = 0;
     let error = 0;
@@ -292,8 +292,8 @@ export class SocialMediaManager {
     for (const status of statuses) {
       healthMap[status.platform] = status.health.status;
 
-      if (status.health.status === "healthy") healthy++;
-      else if (status.health.status === "warning") warning++;
+      if (status.health.status === 'healthy') healthy++;
+      else if (status.health.status === 'warning') warning++;
       else error++;
     }
 
@@ -302,7 +302,7 @@ export class SocialMediaManager {
       warning,
       error,
       total: statuses.length,
-      platforms: healthMap as Record<SocialPlatform, "healthy" | "warning" | "error">,
+      platforms: healthMap as Record<SocialPlatform, 'healthy' | 'warning' | 'error'>,
     };
   }
 }

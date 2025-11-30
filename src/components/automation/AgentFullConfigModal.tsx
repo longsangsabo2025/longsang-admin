@@ -10,12 +10,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, Settings, Zap, Mail, Share2, Brain, DollarSign, Calendar } from 'lucide-react';
+import {
+  Loader2,
+  Save,
+  Settings,
+  Zap,
+  Mail,
+  Share2,
+  Brain,
+  DollarSign,
+  Calendar,
+} from 'lucide-react';
 
 interface AgentFullConfigModalProps {
   open: boolean;
@@ -64,18 +80,26 @@ export function AgentFullConfigModal({
   const [targetAudience, setTargetAudience] = useState(currentConfig?.target_audience || '');
 
   // Lead Nurture Settings
-  const [followUpDelayHours, setFollowUpDelayHours] = useState(currentConfig?.follow_up_delay_hours || 24);
+  const [followUpDelayHours, setFollowUpDelayHours] = useState(
+    currentConfig?.follow_up_delay_hours || 24
+  );
   const [maxFollowUps, setMaxFollowUps] = useState(currentConfig?.max_follow_ups || 3);
-  const [personalizationLevel, setPersonalizationLevel] = useState(currentConfig?.personalization_level || 'high');
+  const [personalizationLevel, setPersonalizationLevel] = useState(
+    currentConfig?.personalization_level || 'high'
+  );
 
   // Budget Settings
   const [dailyBudget, setDailyBudget] = useState(currentConfig?.daily_budget || 5);
   const [monthlyBudget, setMonthlyBudget] = useState(currentConfig?.monthly_budget || 100);
-  const [autoPauseOnBudget, setAutoPauseOnBudget] = useState(currentConfig?.auto_pause_on_budget ?? true);
+  const [autoPauseOnBudget, setAutoPauseOnBudget] = useState(
+    currentConfig?.auto_pause_on_budget ?? true
+  );
 
   // Schedule Settings
   const [scheduleEnabled, setScheduleEnabled] = useState(currentConfig?.schedule?.enabled || false);
-  const [scheduleFrequency, setScheduleFrequency] = useState(currentConfig?.schedule?.frequency || 'daily');
+  const [scheduleFrequency, setScheduleFrequency] = useState(
+    currentConfig?.schedule?.frequency || 'daily'
+  );
   const [scheduleTime, setScheduleTime] = useState(currentConfig?.schedule?.time || '09:00');
 
   const togglePlatform = (platform: string) => {
@@ -165,10 +189,7 @@ export function AgentFullConfigModal({
       }
 
       // Update config with security flags
-      await supabase
-        .from('ai_agents')
-        .update({ config: secureConfig })
-        .eq('id', agentId);
+      await supabase.from('ai_agents').update({ config: secureConfig }).eq('id', agentId);
 
       toast({
         title: '✅ Configuration Saved',
@@ -237,15 +258,22 @@ export function AgentFullConfigModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="gpt-4o">GPT-4o (Most Advanced) - ~$0.01/request</SelectItem>
-                  <SelectItem value="gpt-4o-mini">GPT-4o Mini (Recommended) - ~$0.002/request</SelectItem>
+                  <SelectItem value="gpt-4o-mini">
+                    GPT-4o Mini (Recommended) - ~$0.002/request
+                  </SelectItem>
                   <SelectItem value="gpt-4-turbo">GPT-4 Turbo - ~$0.008/request</SelectItem>
-                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Fastest) - ~$0.001/request</SelectItem>
+                  <SelectItem value="gpt-3.5-turbo">
+                    GPT-3.5 Turbo (Fastest) - ~$0.001/request
+                  </SelectItem>
                   <SelectItem value="claude-sonnet-4">Claude Sonnet 4 - ~$0.015/request</SelectItem>
-                  <SelectItem value="claude-3-haiku">Claude 3 Haiku (Budget) - ~$0.0008/request</SelectItem>
+                  <SelectItem value="claude-3-haiku">
+                    Claude 3 Haiku (Budget) - ~$0.0008/request
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Choose the AI model for content generation. Higher cost models provide better quality.
+                Choose the AI model for content generation. Higher cost models provide better
+                quality.
               </p>
             </div>
 
@@ -316,7 +344,10 @@ export function AgentFullConfigModal({
                 onChange={(e) => setEmailApiKey(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                Get your API key from {emailProvider === 'resend' ? 'resend.com/api-keys' : 'sendgrid.com/settings/api_keys'}
+                Get your API key from{' '}
+                {emailProvider === 'resend'
+                  ? 'resend.com/api-keys'
+                  : 'sendgrid.com/settings/api_keys'}
               </p>
             </div>
           </TabsContent>
@@ -333,10 +364,9 @@ export function AgentFullConfigModal({
                     variant={platforms.includes(platform) ? 'default' : 'outline'}
                     onClick={() => togglePlatform(platform)}
                   >
-                    {platform === 'linkedin' && '🔗'} 
+                    {platform === 'linkedin' && '🔗'}
                     {platform === 'facebook' && '📘'}
-                    {platform === 'twitter' && '🐦'}
-                    {' '}
+                    {platform === 'twitter' && '🐦'}{' '}
                     {platform.charAt(0).toUpperCase() + platform.slice(1)}
                   </Button>
                 ))}
@@ -352,9 +382,7 @@ export function AgentFullConfigModal({
                   value={linkedinToken}
                   onChange={(e) => setLinkedinToken(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Get token from LinkedIn OAuth 2.0
-                </p>
+                <p className="text-xs text-muted-foreground">Get token from LinkedIn OAuth 2.0</p>
               </div>
             )}
 
@@ -506,15 +534,24 @@ export function AgentFullConfigModal({
               <div className="space-y-1 text-sm">
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">50%</Badge>
-                  <span>${(dailyBudget * 0.5).toFixed(2)} daily / ${(monthlyBudget * 0.5).toFixed(2)} monthly</span>
+                  <span>
+                    ${(dailyBudget * 0.5).toFixed(2)} daily / ${(monthlyBudget * 0.5).toFixed(2)}{' '}
+                    monthly
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">75%</Badge>
-                  <span>${(dailyBudget * 0.75).toFixed(2)} daily / ${(monthlyBudget * 0.75).toFixed(2)} monthly</span>
+                  <span>
+                    ${(dailyBudget * 0.75).toFixed(2)} daily / ${(monthlyBudget * 0.75).toFixed(2)}{' '}
+                    monthly
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">90%</Badge>
-                  <span>${(dailyBudget * 0.9).toFixed(2)} daily / ${(monthlyBudget * 0.9).toFixed(2)} monthly</span>
+                  <span>
+                    ${(dailyBudget * 0.9).toFixed(2)} daily / ${(monthlyBudget * 0.9).toFixed(2)}{' '}
+                    monthly
+                  </span>
                 </div>
               </div>
             </div>

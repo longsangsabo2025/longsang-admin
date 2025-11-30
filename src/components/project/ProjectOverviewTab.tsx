@@ -1,16 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { 
-  Calendar, 
-  Clock, 
-  ExternalLink, 
-  Globe, 
-  Key, 
-  Users, 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Calendar,
+  Clock,
+  ExternalLink,
+  Globe,
+  Key,
+  Users,
   FileText,
-  TrendingUp
-} from "lucide-react";
+  TrendingUp,
+} from 'lucide-react';
 
 interface ProjectOverviewTabProps {
   project: {
@@ -29,10 +29,10 @@ interface ProjectOverviewTabProps {
 
 export function ProjectOverviewTab({ project }: ProjectOverviewTabProps) {
   const stats = [
-    { label: "API Keys", value: "0", icon: Key, color: "text-blue-500" },
-    { label: "Domains", value: "0", icon: Globe, color: "text-green-500" },
-    { label: "Team Members", value: "0", icon: Users, color: "text-purple-500" },
-    { label: "Documents", value: "0", icon: FileText, color: "text-orange-500" },
+    { label: 'API Keys', value: '0', icon: Key, color: 'text-blue-500' },
+    { label: 'Domains', value: '0', icon: Globe, color: 'text-green-500' },
+    { label: 'Team Members', value: '0', icon: Users, color: 'text-purple-500' },
+    { label: 'Documents', value: '0', icon: FileText, color: 'text-orange-500' },
   ];
 
   return (
@@ -75,14 +75,14 @@ export function ProjectOverviewTab({ project }: ProjectOverviewTabProps) {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Status</span>
-              <Badge variant={project.status === "active" ? "default" : "secondary"}>
+              <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>
                 {project.status}
               </Badge>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Color</span>
               <div className="flex items-center gap-2">
-                <div 
+                <div
                   className="w-6 h-6 rounded-full border"
                   style={{ backgroundColor: project.color }}
                 />
@@ -95,7 +95,7 @@ export function ProjectOverviewTab({ project }: ProjectOverviewTabProps) {
                 Ngày tạo
               </span>
               <span className="text-sm">
-                {new Date(project.created_at).toLocaleDateString("vi-VN")}
+                {new Date(project.created_at).toLocaleDateString('vi-VN')}
               </span>
             </div>
             <div className="flex justify-between items-center">
@@ -104,7 +104,7 @@ export function ProjectOverviewTab({ project }: ProjectOverviewTabProps) {
                 Cập nhật
               </span>
               <span className="text-sm">
-                {new Date(project.updated_at).toLocaleDateString("vi-VN")}
+                {new Date(project.updated_at).toLocaleDateString('vi-VN')}
               </span>
             </div>
           </CardContent>
@@ -145,7 +145,7 @@ export function ProjectOverviewTab({ project }: ProjectOverviewTabProps) {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            {project.description || "Chưa có mô tả cho dự án này."}
+            {project.description || 'Chưa có mô tả cho dự án này.'}
           </p>
         </CardContent>
       </Card>

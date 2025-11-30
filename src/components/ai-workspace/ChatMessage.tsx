@@ -100,10 +100,7 @@ export const ChatMessage = memo(function ChatMessage({
 
   return (
     <div
-      className={cn(
-        'group relative py-6 px-4 md:px-8',
-        isUser ? 'bg-background' : 'bg-muted/30'
-      )}
+      className={cn('group relative py-6 px-4 md:px-8', isUser ? 'bg-background' : 'bg-muted/30')}
     >
       <div className="max-w-3xl mx-auto flex gap-4">
         {/* Avatar */}
@@ -123,9 +120,7 @@ export const ChatMessage = memo(function ChatMessage({
         {/* Content */}
         <div className="flex-1 min-w-0">
           {/* Role label */}
-          <div className="font-semibold mb-1 text-sm">
-            {isUser ? 'Bạn' : assistantName}
-          </div>
+          <div className="font-semibold mb-1 text-sm">{isUser ? 'Bạn' : assistantName}</div>
 
           {/* Message content */}
           <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -162,9 +157,18 @@ export const ChatMessage = memo(function ChatMessage({
             ) : isStreaming ? (
               <div className="flex items-center gap-2">
                 <span className="inline-flex gap-1">
-                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <span
+                    className="w-2 h-2 bg-primary rounded-full animate-bounce"
+                    style={{ animationDelay: '0ms' }}
+                  />
+                  <span
+                    className="w-2 h-2 bg-primary rounded-full animate-bounce"
+                    style={{ animationDelay: '150ms' }}
+                  />
+                  <span
+                    className="w-2 h-2 bg-primary rounded-full animate-bounce"
+                    style={{ animationDelay: '300ms' }}
+                  />
                 </span>
               </div>
             ) : null}

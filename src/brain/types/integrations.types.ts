@@ -30,4 +30,3 @@ export interface ExportResult {
   filename: string;
   format?: 'markdown' | 'pdf';
 }
-

@@ -1,17 +1,17 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Cloud, 
-  Mail, 
-  MessageSquare, 
-  CreditCard, 
-  Brain, 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Cloud,
+  Mail,
+  MessageSquare,
+  CreditCard,
+  Brain,
   Database,
   CheckCircle2,
-  ExternalLink
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+  ExternalLink,
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface PlatformConfig {
   id: string;
@@ -164,7 +164,7 @@ export default function PlatformIntegrations() {
   const handleConnect = (platform: PlatformConfig) => {
     if (platform.connected) {
       toast({
-        title: "Already connected",
+        title: 'Already connected',
         description: `${platform.name} is already connected to your account.`,
       });
       return;
@@ -172,19 +172,19 @@ export default function PlatformIntegrations() {
 
     if (platform.authType === 'oauth') {
       toast({
-        title: "OAuth Flow",
+        title: 'OAuth Flow',
         description: `Opening ${platform.name} authorization window...`,
       });
       // TODO: Implement OAuth flow
       setTimeout(() => {
         toast({
-          title: "Connected!",
+          title: 'Connected!',
           description: `${platform.name} has been connected successfully.`,
         });
       }, 2000);
     } else {
       toast({
-        title: "API Key Required",
+        title: 'API Key Required',
         description: `Please add your ${platform.name} API key in credential manager.`,
       });
     }
@@ -192,17 +192,24 @@ export default function PlatformIntegrations() {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'storage': return <Cloud className="h-5 w-5" />;
-      case 'email': return <Mail className="h-5 w-5" />;
-      case 'messaging': return <MessageSquare className="h-5 w-5" />;
-      case 'payment': return <CreditCard className="h-5 w-5" />;
-      case 'ai': return <Brain className="h-5 w-5" />;
-      case 'database': return <Database className="h-5 w-5" />;
-      default: return null;
+      case 'storage':
+        return <Cloud className="h-5 w-5" />;
+      case 'email':
+        return <Mail className="h-5 w-5" />;
+      case 'messaging':
+        return <MessageSquare className="h-5 w-5" />;
+      case 'payment':
+        return <CreditCard className="h-5 w-5" />;
+      case 'ai':
+        return <Brain className="h-5 w-5" />;
+      case 'database':
+        return <Database className="h-5 w-5" />;
+      default:
+        return null;
     }
   };
 
-  const categories = Array.from(new Set(platforms.map(p => p.category)));
+  const categories = Array.from(new Set(platforms.map((p) => p.category)));
 
   return (
     <div className="space-y-8">
@@ -214,7 +221,7 @@ export default function PlatformIntegrations() {
       </div>
 
       {categories.map((category) => {
-        const categoryPlatforms = platforms.filter(p => p.category === category);
+        const categoryPlatforms = platforms.filter((p) => p.category === category);
         const categoryName = category.charAt(0).toUpperCase() + category.slice(1);
 
         return (
@@ -239,9 +246,7 @@ export default function PlatformIntegrations() {
                           </CardDescription>
                         </div>
                       </div>
-                      {platform.connected && (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      )}
+                      {platform.connected && <CheckCircle2 className="h-5 w-5 text-green-500" />}
                     </div>
                   </CardHeader>
 

@@ -90,7 +90,7 @@ export interface WorkflowResponse {
 
 export interface SocialMediaCampaign {
   content: string;
-  platforms: ("linkedin" | "facebook" | "twitter" | "instagram")[];
+  platforms: ('linkedin' | 'facebook' | 'twitter' | 'instagram')[];
   scheduledTime?: string;
   imageUrl?: string;
   hashtags?: string[];
@@ -99,7 +99,7 @@ export interface SocialMediaCampaign {
     interests?: string[];
     demographics?: {
       ageRange?: [number, number];
-      gender?: "all" | "male" | "female";
+      gender?: 'all' | 'male' | 'female';
     };
   };
   [key: string]: unknown;
@@ -120,9 +120,9 @@ export interface EmailCampaign {
 }
 
 export interface ContentRepurposingJob {
-  sourceType: "blog" | "video" | "podcast" | "article";
+  sourceType: 'blog' | 'video' | 'podcast' | 'article';
   sourceUrl: string;
-  targetFormats: ("social-post" | "email" | "carousel" | "thread")[];
+  targetFormats: ('social-post' | 'email' | 'carousel' | 'thread')[];
   aiPrompt?: string;
   [key: string]: unknown;
 }
@@ -137,19 +137,19 @@ export interface LeadNurturingData {
 }
 
 export interface EngagementBotSettings {
-  platform: "linkedin" | "facebook" | "twitter";
+  platform: 'linkedin' | 'facebook' | 'twitter';
   targetHashtags?: string[];
   targetProfiles?: string[];
-  engagementType: ("like" | "comment" | "share")[];
+  engagementType: ('like' | 'comment' | 'share')[];
   commentTemplates?: string[];
   maxEngagementsPerDay?: number;
   [key: string]: unknown;
 }
 
 export interface ABTest {
-  type: "social-post" | "email-subject" | "landing-page";
+  type: 'social-post' | 'email-subject' | 'landing-page';
   variations: string[];
-  metric: "engagement" | "clicks" | "conversions";
+  metric: 'engagement' | 'clicks' | 'conversions';
   sampleSize: number;
   duration: number; // hours
   [key: string]: unknown;

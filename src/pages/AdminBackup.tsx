@@ -5,7 +5,7 @@
  * /admin/backup - Manage backups
  */
 
-import { BackupManager } from "@/components/admin/BackupManager";
+import { BackupManager } from '@/components/admin/BackupManager';
 
 export default function AdminBackup() {
   return (

@@ -4,7 +4,7 @@
 
 // Export stable client as default (with retry logic and health check)
 // The stable client includes all methods from regular Supabase client plus retry logic
-import { supabaseStable, getSupabaseClient } from "@/lib/supabase-stable";
+import { supabaseStable, getSupabaseClient } from '@/lib/supabase-stable';
 
 // Export stable client as supabase (backward compatible)
 // Since supabaseStable spreads the original client, it has all the same methods
@@ -17,4 +17,4 @@ export { supabaseStable };
 // Export legacy client if needed (not recommended - use stable client instead)
 export const supabaseLegacy = getSupabaseClient();
 
-export type { Database } from "./types";
+export type { Database } from './types';

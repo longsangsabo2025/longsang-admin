@@ -1,9 +1,9 @@
 /**
  * 🚀 useStreamingChat Hook - Elon Musk Edition
- * 
+ *
  * Real-time streaming chat like ChatGPT
  * Uses Server-Sent Events (SSE) for live updates
- * 
+ *
  * Features:
  * - Real-time streaming responses
  * - Auto-reconnect on failure
@@ -49,7 +49,7 @@ export function useStreamingChat(options: UseStreamingChatOptions): UseStreaming
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [streamingContent, setStreamingContent] = useState('');
-  
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastMessageRef = useRef<string>('');
 
@@ -58,150 +58,158 @@ export function useStreamingChat(options: UseStreamingChatOptions): UseStreaming
   /**
    * Send message with streaming response
    */
-  const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || isStreaming) return;
+  const sendMessage = useCallback(
+    async (content: string) => {
+      if (!content.trim() || isStreaming) return;
 
-    setError(null);
-    lastMessageRef.current = content;
+      setError(null);
+      lastMessageRef.current = content;
 
-    // Add user message
-    const userMessage: Message = {
-      id: generateId(),
-      role: 'user',
-      content: content.trim(),
-      timestamp: Date.now(),
-    };
-    setMessages(prev => [...prev, userMessage]);
+      // Add user message
+      const userMessage: Message = {
+        id: generateId(),
+        role: 'user',
+        content: content.trim(),
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
 
-    // Add placeholder for assistant response
-    const assistantMessageId = generateId();
-    const assistantMessage: Message = {
-      id: assistantMessageId,
-      role: 'assistant',
-      content: '',
-      timestamp: Date.now(),
-      isStreaming: true,
-    };
-    setMessages(prev => [...prev, assistantMessage]);
+      // Add placeholder for assistant response
+      const assistantMessageId = generateId();
+      const assistantMessage: Message = {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: '',
+        timestamp: Date.now(),
+        isStreaming: true,
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
 
-    setIsLoading(true);
-    setIsStreaming(true);
-    setStreamingContent('');
+      setIsLoading(true);
+      setIsStreaming(true);
+      setStreamingContent('');
 
-    // Create abort controller for cancellation
-    abortControllerRef.current = new AbortController();
+      // Create abort controller for cancellation
+      abortControllerRef.current = new AbortController();
 
-    try {
-      const response = await fetch(`/api/assistants/${assistantType}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': userId,
-        },
-        body: JSON.stringify({
-          message: content.trim(),
-          userId,
-          stream: true,
-        }),
-        signal: abortControllerRef.current.signal,
-      });
+      try {
+        const response = await fetch(`/api/assistants/${assistantType}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-id': userId,
+          },
+          body: JSON.stringify({
+            message: content.trim(),
+            userId,
+            stream: true,
+          }),
+          signal: abortControllerRef.current.signal,
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response body');
-      }
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('No response body');
+        }
 
-      const decoder = new TextDecoder();
-      let fullContent = '';
-      setIsLoading(false);
+        const decoder = new TextDecoder();
+        let fullContent = '';
+        setIsLoading(false);
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            
-            if (data === '[DONE]') {
-              // Streaming complete
-              setMessages(prev => prev.map(msg => 
-                msg.id === assistantMessageId 
-                  ? { ...msg, content: fullContent, isStreaming: false }
-                  : msg
-              ));
-              setIsStreaming(false);
-              setStreamingContent('');
-              onComplete?.(fullContent);
-              return;
-            }
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
 
-            try {
-              const parsed = JSON.parse(data);
-              
-              if (parsed.error) {
-                throw new Error(parsed.error);
+              if (data === '[DONE]') {
+                // Streaming complete
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMessageId
+                      ? { ...msg, content: fullContent, isStreaming: false }
+                      : msg
+                  )
+                );
+                setIsStreaming(false);
+                setStreamingContent('');
+                onComplete?.(fullContent);
+                return;
               }
-              
-              if (parsed.content) {
-                fullContent += parsed.content;
-                setStreamingContent(fullContent);
-                
-                // Update message in real-time
-                setMessages(prev => prev.map(msg => 
-                  msg.id === assistantMessageId 
-                    ? { ...msg, content: fullContent }
-                    : msg
-                ));
+
+              try {
+                const parsed = JSON.parse(data);
+
+                if (parsed.error) {
+                  throw new Error(parsed.error);
+                }
+
+                if (parsed.content) {
+                  fullContent += parsed.content;
+                  setStreamingContent(fullContent);
+
+                  // Update message in real-time
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessageId ? { ...msg, content: fullContent } : msg
+                    )
+                  );
+                }
+              } catch (parseError) {
+                // Ignore parse errors for incomplete chunks
+                console.debug('[Streaming] Parse error:', parseError);
               }
-            } catch (parseError) {
-              // Ignore parse errors for incomplete chunks
-              console.debug('[Streaming] Parse error:', parseError);
             }
           }
         }
+
+        // Finalize message
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? { ...msg, content: fullContent, isStreaming: false }
+              : msg
+          )
+        );
+        setIsStreaming(false);
+        onComplete?.(fullContent);
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          console.log('[Streaming] Aborted by user');
+          return;
+        }
+
+        const errorMessage = err.message || 'Failed to get response';
+        setError(errorMessage);
+        onError?.(errorMessage);
+
+        // Update assistant message with error
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? { ...msg, content: `❌ Error: ${errorMessage}`, isStreaming: false }
+              : msg
+          )
+        );
+
+        console.error('[Streaming] Error:', err);
+      } finally {
+        setIsLoading(false);
+        setIsStreaming(false);
+        abortControllerRef.current = null;
       }
-
-      // Finalize message
-      setMessages(prev => prev.map(msg => 
-        msg.id === assistantMessageId 
-          ? { ...msg, content: fullContent, isStreaming: false }
-          : msg
-      ));
-      setIsStreaming(false);
-      onComplete?.(fullContent);
-
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
-        console.log('[Streaming] Aborted by user');
-        return;
-      }
-
-      const errorMessage = err.message || 'Failed to get response';
-      setError(errorMessage);
-      onError?.(errorMessage);
-
-      // Update assistant message with error
-      setMessages(prev => prev.map(msg => 
-        msg.id === assistantMessageId 
-          ? { ...msg, content: `❌ Error: ${errorMessage}`, isStreaming: false }
-          : msg
-      ));
-
-      console.error('[Streaming] Error:', err);
-    } finally {
-      setIsLoading(false);
-      setIsStreaming(false);
-      abortControllerRef.current = null;
-    }
-  }, [assistantType, userId, isStreaming, onError, onComplete]);
+    },
+    [assistantType, userId, isStreaming, onError, onComplete]
+  );
 
   /**
    * Stop current streaming
@@ -229,7 +237,7 @@ export function useStreamingChat(options: UseStreamingChatOptions): UseStreaming
   const retryLast = useCallback(() => {
     if (lastMessageRef.current) {
       // Remove last assistant message
-      setMessages(prev => prev.slice(0, -1));
+      setMessages((prev) => prev.slice(0, -1));
       sendMessage(lastMessageRef.current);
     }
   }, [sendMessage]);

@@ -3,13 +3,13 @@
  * Auto-matching study groups by level
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
-import { MessageCircle, Users } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { supabase } from '@/lib/supabase';
+import { MessageCircle, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface StudyGroup {
   id: string;
@@ -33,9 +33,9 @@ export function StudyGroups({ userId, userLevel }: { userId: string; userLevel: 
 
   const loadGroups = async () => {
     const { data } = await supabase
-      .from("study_groups")
-      .select("*")
-      .order("member_count", { ascending: false });
+      .from('study_groups')
+      .select('*')
+      .order('member_count', { ascending: false });
 
     setGroups(data || []);
     setLoading(false);
@@ -43,23 +43,23 @@ export function StudyGroups({ userId, userLevel }: { userId: string; userLevel: 
 
   const loadMyGroup = async () => {
     const { data } = await supabase
-      .from("study_group_members")
-      .select("study_groups(*)")
-      .eq("user_id", userId)
+      .from('study_group_members')
+      .select('study_groups(*)')
+      .eq('user_id', userId)
       .single();
 
     if (data) setMyGroup(data.study_groups as any);
   };
 
   const joinGroup = async (groupId: string) => {
-    const { error } = await supabase.from("study_group_members").insert({
+    const { error } = await supabase.from('study_group_members').insert({
       group_id: groupId,
       user_id: userId,
-      role: "member",
+      role: 'member',
     });
 
     if (!error) {
-      toast.success("Joined study group!");
+      toast.success('Joined study group!');
       loadMyGroup();
     }
   };

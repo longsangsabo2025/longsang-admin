@@ -39,10 +39,7 @@ export function ProtectedRoute({ children, requireAuth = true }: ProtectedRouteP
             </button>
           </div>
         </div>
-        <LoginModal
-          open={showLoginModal}
-          onOpenChange={setShowLoginModal}
-        />
+        <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />
       </>
     );
   }

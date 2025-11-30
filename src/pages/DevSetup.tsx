@@ -28,7 +28,10 @@ export function DevSetup() {
 
       if (error) {
         // If user already exists, that's okay
-        if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+        if (
+          error.message.includes('already registered') ||
+          error.message.includes('User already registered')
+        ) {
           toast.info('Test admin already exists!', {
             description: 'You can use admin@test.com / admin123 to login',
           });
@@ -91,7 +94,7 @@ export function DevSetup() {
       console.log('SignUp result:', { signUpError });
 
       // Wait a bit for the account to be created
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Try to login
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -105,12 +108,14 @@ export function DevSetup() {
         // If sign in fails, provide detailed error
         if (signInError.message.includes('Email not confirmed')) {
           toast.error('Email confirmation required', {
-            description: 'Please check Supabase dashboard to disable email confirmation or confirm the email manually.',
+            description:
+              'Please check Supabase dashboard to disable email confirmation or confirm the email manually.',
             duration: 7000,
           });
         } else if (signInError.message.includes('Invalid login credentials')) {
           toast.error('Account not ready yet', {
-            description: 'Please wait a moment and try "Test Login" button, or check your Supabase dashboard.',
+            description:
+              'Please wait a moment and try "Test Login" button, or check your Supabase dashboard.',
             duration: 7000,
           });
         } else {
@@ -122,7 +127,7 @@ export function DevSetup() {
       toast.success('Success!', {
         description: 'Account created and logged in!',
       });
-      
+
       // Redirect to dashboard after 1 second
       setTimeout(() => {
         globalThis.location.href = '/automation';
@@ -143,9 +148,7 @@ export function DevSetup() {
       <div className="container max-w-2xl mx-auto py-8">
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            This page is only available in development mode.
-          </AlertDescription>
+          <AlertDescription>This page is only available in development mode.</AlertDescription>
         </Alert>
       </div>
     );
@@ -155,9 +158,7 @@ export function DevSetup() {
     <div className="container max-w-2xl mx-auto py-8 space-y-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">Development Setup</h1>
-        <p className="text-muted-foreground">
-          Quick setup tools for development environment
-        </p>
+        <p className="text-muted-foreground">Quick setup tools for development environment</p>
       </div>
 
       <Card>
@@ -166,9 +167,7 @@ export function DevSetup() {
             <User className="h-5 w-5" />
             Test Admin Account
           </CardTitle>
-          <CardDescription>
-            Create and test the admin account for development
-          </CardDescription>
+          <CardDescription>Create and test the admin account for development</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-muted p-4 rounded-lg space-y-2">
@@ -200,12 +199,7 @@ export function DevSetup() {
             >
               Create Only
             </Button>
-            <Button
-              onClick={testLogin}
-              disabled={loading}
-              variant="outline"
-              className="flex-1"
-            >
+            <Button onClick={testLogin} disabled={loading} variant="outline" className="flex-1">
               Test Login
             </Button>
           </div>
@@ -213,8 +207,8 @@ export function DevSetup() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="text-xs">
-              This account is automatically created when you use the Quick Login button.
-              Use this page only if you need to manually verify the setup.
+              This account is automatically created when you use the Quick Login button. Use this
+              page only if you need to manually verify the setup.
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -223,9 +217,7 @@ export function DevSetup() {
       <Card>
         <CardHeader>
           <CardTitle>Development Features</CardTitle>
-          <CardDescription>
-            Features available in development mode
-          </CardDescription>
+          <CardDescription>Features available in development mode</CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm">

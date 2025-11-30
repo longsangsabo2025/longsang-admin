@@ -40,7 +40,11 @@ export default function Academy() {
   const [selectedTab, setSelectedTab] = useState('all');
 
   // Fetch courses from Supabase
-  const { data: coursesData, isLoading, error } = useCourses(
+  const {
+    data: coursesData,
+    isLoading,
+    error,
+  } = useCourses(
     {
       category: selectedCategory !== 'Tất cả' ? selectedCategory : undefined,
       is_free: selectedTab === 'free' ? true : undefined,
@@ -74,9 +78,7 @@ export default function Academy() {
         <div className="container mx-auto px-4 py-8">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Không thể tải khóa học. Vui lòng thử lại sau.
-            </AlertDescription>
+            <AlertDescription>Không thể tải khóa học. Vui lòng thử lại sau.</AlertDescription>
           </Alert>
         </div>
       </div>
@@ -84,12 +86,13 @@ export default function Academy() {
   }
 
   // Determine which courses to display
-  const displayedCourses = selectedTab === 'my-courses' 
-    ? enrollments?.map(e => ({
-        ...e.course,
-        progress: e.progress_percentage
-      })) || []
-    : coursesData?.data || [];
+  const displayedCourses =
+    selectedTab === 'my-courses'
+      ? enrollments?.map((e) => ({
+          ...e.course,
+          progress: e.progress_percentage,
+        })) || []
+      : coursesData?.data || [];
 
   const categories = [
     { name: 'Tất cả', icon: BookOpen, count: coursesData?.total || 0 },
@@ -199,7 +202,10 @@ export default function Academy() {
                   {/* Thumbnail */}
                   <div className="relative aspect-video overflow-hidden bg-muted">
                     <img
-                      src={course.thumbnail_url || 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800'}
+                      src={
+                        course.thumbnail_url ||
+                        'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800'
+                      }
                       alt={course.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
@@ -251,7 +257,9 @@ export default function Academy() {
                     <div className="flex items-center gap-4 text-sm mb-4">
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{course.average_rating?.toFixed(1) || '5.0'}</span>
+                        <span className="font-medium">
+                          {course.average_rating?.toFixed(1) || '5.0'}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <Users className="h-4 w-4" />

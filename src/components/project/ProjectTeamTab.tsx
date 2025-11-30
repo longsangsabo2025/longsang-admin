@@ -1,34 +1,26 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  RefreshCw, 
-  Users,
-  Mail,
-  Phone,
-  Trash2,
-  Edit
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useEffect, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Plus, RefreshCw, Users, Mail, Phone, Trash2, Edit } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface Contact {
   id: string;
@@ -50,12 +42,12 @@ export function ProjectTeamTab({ projectId }: ProjectTeamTabProps) {
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newContact, setNewContact] = useState({
-    name: "",
-    role: "developer",
-    email: "",
-    phone: "",
+    name: '',
+    role: 'developer',
+    email: '',
+    phone: '',
     is_primary: false,
-    notes: ""
+    notes: '',
   });
 
   useEffect(() => {
@@ -66,16 +58,16 @@ export function ProjectTeamTab({ projectId }: ProjectTeamTabProps) {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("project_contacts")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("is_primary", { ascending: false });
+        .from('project_contacts')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('is_primary', { ascending: false });
 
       if (error) throw error;
       setContacts(data || []);
     } catch (error: any) {
-      console.error("Error fetching contacts:", error);
-      toast.error("Không thể tải contacts");
+      console.error('Error fetching contacts:', error);
+      toast.error('Không thể tải contacts');
     } finally {
       setLoading(false);
     }
@@ -83,47 +75,42 @@ export function ProjectTeamTab({ projectId }: ProjectTeamTabProps) {
 
   const addContact = async () => {
     try {
-      const { error } = await supabase
-        .from("project_contacts")
-        .insert({
-          ...newContact,
-          project_id: projectId
-        });
+      const { error } = await supabase.from('project_contacts').insert({
+        ...newContact,
+        project_id: projectId,
+      });
 
       if (error) throw error;
-      
-      toast.success("Đã thêm team member!");
+
+      toast.success('Đã thêm team member!');
       setShowAddDialog(false);
       setNewContact({
-        name: "",
-        role: "developer",
-        email: "",
-        phone: "",
+        name: '',
+        role: 'developer',
+        email: '',
+        phone: '',
         is_primary: false,
-        notes: ""
+        notes: '',
       });
       fetchContacts();
     } catch (error: any) {
-      console.error("Error adding contact:", error);
-      toast.error("Không thể thêm contact");
+      console.error('Error adding contact:', error);
+      toast.error('Không thể thêm contact');
     }
   };
 
   const deleteContact = async (id: string) => {
-    if (!confirm("Bạn có chắc muốn xóa?")) return;
-    
+    if (!confirm('Bạn có chắc muốn xóa?')) return;
+
     try {
-      const { error } = await supabase
-        .from("project_contacts")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from('project_contacts').delete().eq('id', id);
 
       if (error) throw error;
-      toast.success("Đã xóa!");
+      toast.success('Đã xóa!');
       fetchContacts();
     } catch (error: any) {
-      console.error("Error deleting contact:", error);
-      toast.error("Không thể xóa");
+      console.error('Error deleting contact:', error);
+      toast.error('Không thể xóa');
     }
   };
 
@@ -159,17 +146,17 @@ export function ProjectTeamTab({ projectId }: ProjectTeamTabProps) {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Tên</Label>
-                <Input 
+                <Input
                   placeholder="Nguyễn Văn A"
                   value={newContact.name}
-                  onChange={(e) => setNewContact({...newContact, name: e.target.value})}
+                  onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Role</Label>
-                <Select 
+                <Select
                   value={newContact.role}
-                  onValueChange={(v) => setNewContact({...newContact, role: v})}
+                  onValueChange={(v) => setNewContact({ ...newContact, role: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -187,36 +174,36 @@ export function ProjectTeamTab({ projectId }: ProjectTeamTabProps) {
               </div>
               <div className="space-y-2">
                 <Label>Email</Label>
-                <Input 
+                <Input
                   type="email"
                   placeholder="email@example.com"
                   value={newContact.email}
-                  onChange={(e) => setNewContact({...newContact, email: e.target.value})}
+                  onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Phone</Label>
-                <Input 
+                <Input
                   placeholder="+84 xxx xxx xxx"
                   value={newContact.phone}
-                  onChange={(e) => setNewContact({...newContact, phone: e.target.value})}
+                  onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
                 />
               </div>
               <div className="flex items-center gap-2">
-                <input 
+                <input
                   type="checkbox"
                   id="is_primary"
                   checked={newContact.is_primary}
-                  onChange={(e) => setNewContact({...newContact, is_primary: e.target.checked})}
+                  onChange={(e) => setNewContact({ ...newContact, is_primary: e.target.checked })}
                 />
                 <Label htmlFor="is_primary">Primary Contact</Label>
               </div>
               <div className="space-y-2">
                 <Label>Ghi chú</Label>
-                <Input 
+                <Input
                   placeholder="Mô tả thêm..."
                   value={newContact.notes}
-                  onChange={(e) => setNewContact({...newContact, notes: e.target.value})}
+                  onChange={(e) => setNewContact({ ...newContact, notes: e.target.value })}
                 />
               </div>
               <Button onClick={addContact} className="w-full">
@@ -254,9 +241,7 @@ export function ProjectTeamTab({ projectId }: ProjectTeamTabProps) {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{contact.name}</span>
-                        {contact.is_primary && (
-                          <Badge variant="default">Primary</Badge>
-                        )}
+                        {contact.is_primary && <Badge variant="default">Primary</Badge>}
                       </div>
                       <Badge variant="outline" className="mt-1 capitalize">
                         {contact.role}

@@ -31,4 +31,3 @@ export interface WorkflowInput {
   actions: WorkflowActionStep[];
   isActive?: boolean;
 }
-

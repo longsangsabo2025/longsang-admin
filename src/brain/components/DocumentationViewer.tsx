@@ -3,7 +3,7 @@
  * Displays AI Second Brain user guide in a modal/dialog
  */
 
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,11 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import {
   BookOpen,
   Rocket,
@@ -29,7 +29,7 @@ import {
   CheckCircle,
   AlertTriangle,
   ExternalLink,
-} from "lucide-react";
+} from 'lucide-react';
 
 export function DocumentationViewer() {
   const [open, setOpen] = useState(false);
@@ -85,7 +85,10 @@ export function DocumentationViewer() {
                   AI Second Brain là hệ thống quản lý tri thức thông minh, cho phép bạn:
                 </p>
                 <div className="grid gap-3">
-                  <FeatureItem icon={<FolderOpen className="h-4 w-4" />} title="Lưu trữ & tổ chức kiến thức">
+                  <FeatureItem
+                    icon={<FolderOpen className="h-4 w-4" />}
+                    title="Lưu trữ & tổ chức kiến thức"
+                  >
                     Theo từng domain riêng biệt
                   </FeatureItem>
                   <FeatureItem icon={<Search className="h-4 w-4" />} title="Tìm kiếm ngữ nghĩa">
@@ -97,7 +100,10 @@ export function DocumentationViewer() {
                   <FeatureItem icon={<Bell className="h-4 w-4" />} title="Quản lý công việc">
                     Tasks & Notifications
                   </FeatureItem>
-                  <FeatureItem icon={<MessageSquare className="h-4 w-4" />} title="Truy vấn đa domain">
+                  <FeatureItem
+                    icon={<MessageSquare className="h-4 w-4" />}
+                    title="Truy vấn đa domain"
+                  >
                     Câu trả lời toàn diện
                   </FeatureItem>
                 </div>
@@ -106,7 +112,7 @@ export function DocumentationViewer() {
               <Section title="Kiến Trúc Hệ Thống">
                 <div className="bg-muted p-4 rounded-lg font-mono text-sm">
                   <pre className="whitespace-pre-wrap">
-{`┌─────────────────────────────────────┐
+                    {`┌─────────────────────────────────────┐
 │         🖥️ Frontend (UI)             │
 │        localhost:8082               │
 └──────────────┬──────────────────────┘
@@ -175,9 +181,7 @@ export function DocumentationViewer() {
               </Section>
 
               <Section title="Domain Stats">
-                <p className="text-muted-foreground mb-3">
-                  Mỗi domain hiển thị:
-                </p>
+                <p className="text-muted-foreground mb-3">Mỗi domain hiển thị:</p>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-500" />
@@ -315,9 +319,7 @@ export function DocumentationViewer() {
               </Section>
 
               <Section title="Workflows">
-                <p className="text-muted-foreground mb-3">
-                  Workflows là chuỗi actions tự động:
-                </p>
+                <p className="text-muted-foreground mb-3">Workflows là chuỗi actions tự động:</p>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -363,9 +365,7 @@ export function DocumentationViewer() {
               </Section>
 
               <Section title="Notifications">
-                <p className="text-muted-foreground mb-3">
-                  Các loại notification:
-                </p>
+                <p className="text-muted-foreground mb-3">Các loại notification:</p>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary">info</Badge>
                   <Badge className="bg-green-500">success</Badge>
@@ -384,9 +384,7 @@ export function DocumentationViewer() {
               </Section>
 
               <Section title="Authentication">
-                <p className="text-muted-foreground mb-2">
-                  Tất cả requests cần header:
-                </p>
+                <p className="text-muted-foreground mb-2">Tất cả requests cần header:</p>
                 <code className="bg-muted px-2 py-1 rounded text-sm block">
                   x-user-id: your-user-uuid
                 </code>
@@ -404,47 +402,65 @@ export function DocumentationViewer() {
                     </thead>
                     <tbody>
                       <tr className="border-b">
-                        <td className="py-2"><Badge>GET</Badge></td>
+                        <td className="py-2">
+                          <Badge>GET</Badge>
+                        </td>
                         <td className="py-2 font-mono">/domains</td>
                         <td className="py-2">Lấy tất cả domains</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-2"><Badge>POST</Badge></td>
+                        <td className="py-2">
+                          <Badge>POST</Badge>
+                        </td>
                         <td className="py-2 font-mono">/domains</td>
                         <td className="py-2">Tạo domain mới</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-2"><Badge>GET</Badge></td>
+                        <td className="py-2">
+                          <Badge>GET</Badge>
+                        </td>
                         <td className="py-2 font-mono">/knowledge/search</td>
                         <td className="py-2">Tìm kiếm knowledge</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-2"><Badge>POST</Badge></td>
+                        <td className="py-2">
+                          <Badge>POST</Badge>
+                        </td>
                         <td className="py-2 font-mono">/knowledge/ingest</td>
                         <td className="py-2">Thêm knowledge</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-2"><Badge>POST</Badge></td>
+                        <td className="py-2">
+                          <Badge>POST</Badge>
+                        </td>
                         <td className="py-2 font-mono">/query</td>
                         <td className="py-2">Multi-domain query</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-2"><Badge>GET</Badge></td>
+                        <td className="py-2">
+                          <Badge>GET</Badge>
+                        </td>
                         <td className="py-2 font-mono">/actions</td>
                         <td className="py-2">Lấy actions</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-2"><Badge>GET</Badge></td>
+                        <td className="py-2">
+                          <Badge>GET</Badge>
+                        </td>
                         <td className="py-2 font-mono">/workflows</td>
                         <td className="py-2">Lấy workflows</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-2"><Badge>GET</Badge></td>
+                        <td className="py-2">
+                          <Badge>GET</Badge>
+                        </td>
                         <td className="py-2 font-mono">/tasks</td>
                         <td className="py-2">Lấy tasks</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-2"><Badge>GET</Badge></td>
+                        <td className="py-2">
+                          <Badge>GET</Badge>
+                        </td>
                         <td className="py-2 font-mono">/notifications</td>
                         <td className="py-2">Lấy notifications</td>
                       </tr>
@@ -455,17 +471,17 @@ export function DocumentationViewer() {
 
               <Section title="Troubleshooting">
                 <div className="space-y-3">
-                  <TroubleshootItem 
-                    error="User ID is required" 
-                    solution="Thêm header x-user-id vào request" 
+                  <TroubleshootItem
+                    error="User ID is required"
+                    solution="Thêm header x-user-id vào request"
                   />
-                  <TroubleshootItem 
-                    error="Embedding generation failed" 
-                    solution="Kiểm tra OPENAI_API_KEY trong .env" 
+                  <TroubleshootItem
+                    error="Embedding generation failed"
+                    solution="Kiểm tra OPENAI_API_KEY trong .env"
                   />
-                  <TroubleshootItem 
-                    error="Search returns 0 results" 
-                    solution="Giảm matchThreshold (VD: 0.5)" 
+                  <TroubleshootItem
+                    error="Search returns 0 results"
+                    solution="Giảm matchThreshold (VD: 0.5)"
                   />
                 </div>
               </Section>
@@ -474,13 +490,11 @@ export function DocumentationViewer() {
         </Tabs>
 
         <div className="flex justify-between items-center pt-4 border-t">
-          <p className="text-xs text-muted-foreground">
-            Version 1.0.0 • Updated 29/11/2025
-          </p>
+          <p className="text-xs text-muted-foreground">Version 1.0.0 • Updated 29/11/2025</p>
           <Button variant="ghost" size="sm" asChild>
-            <a 
-              href="https://github.com/longsangsabo2025/ainewbie-vision" 
-              target="_blank" 
+            <a
+              href="https://github.com/longsangsabo2025/ainewbie-vision"
+              target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1"
             >
@@ -548,14 +562,16 @@ function Step({ number, title, children }: StepProps) {
 }
 
 interface TipItemProps {
-  readonly type: "do" | "dont";
+  readonly type: 'do' | 'dont';
   readonly text: string;
 }
 
 function TipItem({ type, text }: TipItemProps) {
   return (
-    <div className={`flex items-center gap-2 p-2 rounded ${type === "do" ? "bg-green-50 dark:bg-green-950" : "bg-red-50 dark:bg-red-950"}`}>
-      {type === "do" ? (
+    <div
+      className={`flex items-center gap-2 p-2 rounded ${type === 'do' ? 'bg-green-50 dark:bg-green-950' : 'bg-red-50 dark:bg-red-950'}`}
+    >
+      {type === 'do' ? (
         <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
       ) : (
         <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />

@@ -1,4 +1,4 @@
-import { MapPin, Navigation } from "lucide-react";
+import { MapPin, Navigation } from 'lucide-react';
 
 export const MapViewScreen = () => {
   return (
@@ -22,21 +22,21 @@ export const MapViewScreen = () => {
             />
           ))}
         </div>
-        
+
         {/* Location pins */}
         <div className="absolute top-1/4 left-1/3 flex flex-col items-center">
           <MapPin className="w-6 h-6 text-app-light-blue fill-app-light-blue animate-bounce" />
         </div>
-        
+
         <div className="absolute top-1/2 right-1/4 flex flex-col items-center">
           <MapPin className="w-5 h-5 text-mesh-pink fill-mesh-pink" />
         </div>
-        
+
         <div className="absolute bottom-1/3 left-1/2 flex flex-col items-center">
           <MapPin className="w-5 h-5 text-mesh-cyan fill-mesh-cyan" />
         </div>
       </div>
-      
+
       {/* Bottom sheet */}
       <div className="absolute bottom-0 left-0 right-0 bg-white/10 backdrop-blur-md rounded-t-3xl p-4 border-t border-white/20">
         <div className="w-12 h-1 bg-white/40 rounded-full mx-auto mb-3" />

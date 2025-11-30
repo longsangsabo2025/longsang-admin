@@ -1,11 +1,11 @@
 /**
  * API Configuration
- * 
+ *
  * ⚠️ CHUẨN HÓA PORTS - KHÔNG ĐỔI! ⚠️
  * - Frontend Vite: 8080
  * - API Server: 3001
  * - OAuth Callback: 3333
- * 
+ *
  * Automatically switches between development and production
  */
 
@@ -18,9 +18,9 @@ export const getApiUrl = () => {
   if (import.meta.env.PROD) {
     return 'https://longsang.org/api';
   }
-  
+
   // In development, use VITE_API_URL from .env or default to localhost:3001
-  return import.meta.env.VITE_API_URL 
+  return import.meta.env.VITE_API_URL
     ? `${import.meta.env.VITE_API_URL}/api`
     : `http://localhost:${DEV_API_PORT}/api`;
 };
@@ -36,17 +36,19 @@ export const API_ENDPOINTS = {
     STATUS: (agentId: string) => `${API_URL}/agents/${agentId}/status`,
     LIST: `${API_URL}/agents`,
   },
-  
+
   // Google Drive
   DRIVE: {
-    LIST: (folderId?: string) => folderId ? `${API_URL}/drive/list/${folderId}` : `${API_URL}/drive/list`,
+    LIST: (folderId?: string) =>
+      folderId ? `${API_URL}/drive/list/${folderId}` : `${API_URL}/drive/list`,
     FOLDERS: `${API_URL}/drive/folders`,
-    UPLOAD: (parentId?: string) => parentId ? `${API_URL}/drive/upload/${parentId}` : `${API_URL}/drive/upload`,
+    UPLOAD: (parentId?: string) =>
+      parentId ? `${API_URL}/drive/upload/${parentId}` : `${API_URL}/drive/upload`,
     FOLDER: `${API_URL}/drive/folder`,
     DELETE: (fileId: string) => `${API_URL}/drive/${fileId}`,
     SHARED_DRIVES: `${API_URL}/drive/shared-drives`,
   },
-  
+
   // Google Services
   ANALYTICS: `${API_URL}/google/analytics`,
   CALENDAR: `${API_URL}/google/calendar`,
@@ -54,7 +56,7 @@ export const API_ENDPOINTS = {
   MAPS: `${API_URL}/google/maps`,
   INDEXING: `${API_URL}/google/indexing`,
   SHEETS: `${API_URL}/google/sheets`,
-  
+
   // Other APIs
   SEO: `${API_URL}/seo`,
   ENV: `${API_URL}/env`,

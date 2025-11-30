@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -79,7 +85,7 @@ export const CreateProjectModal = ({ open, onOpenChange, onSuccess }: CreateProj
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
-  
+
   // Form state
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
@@ -89,7 +95,7 @@ export const CreateProjectModal = ({ open, onOpenChange, onSuccess }: CreateProj
   const handleTemplateSelect = (template: keyof typeof PROJECT_TEMPLATES) => {
     setSelectedTemplate(template);
     const templateData = PROJECT_TEMPLATES[template];
-    
+
     // Auto-fill project name and description
     if (!projectName) {
       setProjectName(`My ${templateData.name}`);
@@ -97,19 +103,19 @@ export const CreateProjectModal = ({ open, onOpenChange, onSuccess }: CreateProj
     if (!projectDescription) {
       setProjectDescription(templateData.description);
     }
-    
+
     // Pre-select all suggested agents
-    setSelectedAgents(templateData.suggestedAgents.map(a => a.name));
-    
+    setSelectedAgents(templateData.suggestedAgents.map((a) => a.name));
+
     setStep(2);
   };
 
   const handleCreateProject = async () => {
     if (!projectName.trim()) {
       toast({
-        title: "Missing Information",
-        description: "Please enter a project name",
-        variant: "destructive",
+        title: 'Missing Information',
+        description: 'Please enter a project name',
+        variant: 'destructive',
       });
       return;
     }
@@ -118,33 +124,31 @@ export const CreateProjectModal = ({ open, onOpenChange, onSuccess }: CreateProj
 
     try {
       const template = PROJECT_TEMPLATES[selectedTemplate as keyof typeof PROJECT_TEMPLATES];
-      const agentsToCreate = template.suggestedAgents.filter(a => 
+      const agentsToCreate = template.suggestedAgents.filter((a) =>
         selectedAgents.includes(a.name)
       );
 
       // Create agents for the project
       for (const agent of agentsToCreate) {
-        const { error } = await supabase
-          .from('ai_agents')
-          .insert({
-            name: agent.name,
-            type: agent.type,
-            category: selectedTemplate,
-            status: 'paused',
-            description: `${agent.name} for ${projectName}`,
-            config: {
-              ai_model: 'gpt-4o-mini',
-              auto_publish: false,
-              require_approval: true,
-              tone: 'professional',
-            },
-          });
+        const { error } = await supabase.from('ai_agents').insert({
+          name: agent.name,
+          type: agent.type,
+          category: selectedTemplate,
+          status: 'paused',
+          description: `${agent.name} for ${projectName}`,
+          config: {
+            ai_model: 'gpt-4o-mini',
+            auto_publish: false,
+            require_approval: true,
+            tone: 'professional',
+          },
+        });
 
         if (error) throw error;
       }
 
       toast({
-        title: "✅ Project Created!",
+        title: '✅ Project Created!',
         description: `${projectName} with ${agentsToCreate.length} agents created successfully`,
       });
 
@@ -154,16 +158,15 @@ export const CreateProjectModal = ({ open, onOpenChange, onSuccess }: CreateProj
       setSelectedTemplate('');
       setSelectedAgents([]);
       setStep(1);
-      
+
       onOpenChange(false);
       onSuccess?.();
-
     } catch (error: any) {
       console.error('Error creating project:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to create project",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to create project',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -196,15 +199,23 @@ export const CreateProjectModal = ({ open, onOpenChange, onSuccess }: CreateProj
 
         {/* Step Indicator */}
         <div className="flex items-center gap-2 mb-6">
-          <div className={`flex items-center gap-2 ${step >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+          <div
+            className={`flex items-center gap-2 ${step >= 1 ? 'text-primary' : 'text-muted-foreground'}`}
+          >
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
+            >
               1
             </div>
             <span className="text-sm font-medium">Choose Template</span>
           </div>
           <div className="flex-1 h-px bg-border" />
-          <div className={`flex items-center gap-2 ${step >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+          <div
+            className={`flex items-center gap-2 ${step >= 2 ? 'text-primary' : 'text-muted-foreground'}`}
+          >
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
+            >
               2
             </div>
             <span className="text-sm font-medium">Configure</span>
@@ -229,9 +240,7 @@ export const CreateProjectModal = ({ open, onOpenChange, onSuccess }: CreateProj
                         <h4 className="font-semibold group-hover:text-primary transition-colors">
                           {template.name}
                         </h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {template.description}
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
                         {template.suggestedAgents.length > 0 && (
                           <div className="mt-2">
                             <Badge variant="secondary" className="text-xs">
@@ -292,15 +301,12 @@ export const CreateProjectModal = ({ open, onOpenChange, onSuccess }: CreateProj
                         if (checked) {
                           setSelectedAgents([...selectedAgents, agent.name]);
                         } else {
-                          setSelectedAgents(selectedAgents.filter(a => a !== agent.name));
+                          setSelectedAgents(selectedAgents.filter((a) => a !== agent.name));
                         }
                       }}
                     />
                     <div className="flex-1">
-                      <Label 
-                        htmlFor={agent.name} 
-                        className="font-medium cursor-pointer"
-                      >
+                      <Label htmlFor={agent.name} className="font-medium cursor-pointer">
                         {agent.name}
                       </Label>
                       <Badge variant="outline" className="ml-2 text-xs">
@@ -311,17 +317,14 @@ export const CreateProjectModal = ({ open, onOpenChange, onSuccess }: CreateProj
                 ))}
               </div>
               <p className="text-sm text-muted-foreground mt-2">
-                All agents will be created in 'paused' status. You can configure and activate them later.
+                All agents will be created in 'paused' status. You can configure and activate them
+                later.
               </p>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setStep(1)}
-                disabled={isLoading}
-              >
+              <Button variant="outline" onClick={() => setStep(1)} disabled={isLoading}>
                 Back
               </Button>
               <Button
@@ -337,7 +340,8 @@ export const CreateProjectModal = ({ open, onOpenChange, onSuccess }: CreateProj
                 ) : (
                   <>
                     <Plus className="w-4 h-4 mr-2" />
-                    Create Project with {selectedAgents.length} Agent{selectedAgents.length === 1 ? '' : 's'}
+                    Create Project with {selectedAgents.length} Agent
+                    {selectedAgents.length === 1 ? '' : 's'}
                   </>
                 )}
               </Button>

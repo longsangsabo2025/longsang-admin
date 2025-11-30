@@ -79,7 +79,11 @@
     "step1": {
       "number": "01",
       "title": "Discover",
-      "activities": ["Client consultation", "Requirements gathering", "Technical feasibility study"]
+      "activities": [
+        "Client consultation",
+        "Requirements gathering",
+        "Technical feasibility study"
+      ]
     },
     "step2": {
       "number": "02",
@@ -89,12 +93,20 @@
     "step3": {
       "number": "03",
       "title": "Develop",
-      "activities": ["Frontend development", "Backend API integration", "Testing & QA"]
+      "activities": [
+        "Frontend development",
+        "Backend API integration",
+        "Testing & QA"
+      ]
     },
     "step4": {
       "number": "04",
       "title": "Deliver",
-      "activities": ["Production deployment", "Performance monitoring", "Ongoing support"]
+      "activities": [
+        "Production deployment",
+        "Performance monitoring",
+        "Ongoing support"
+      ]
     }
   },
   "learning": {

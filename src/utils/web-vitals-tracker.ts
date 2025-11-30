@@ -3,12 +3,12 @@
  * Monitors LCP, INP, CLS and reports to analytics
  */
 
-import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
+import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
 export interface WebVitalMetric {
   name: string;
   value: number;
-  rating: "good" | "needs-improvement" | "poor";
+  rating: 'good' | 'needs-improvement' | 'poor';
   delta: number;
   id: string;
 }
@@ -25,19 +25,19 @@ const THRESHOLDS = {
 function getRating(
   name: keyof typeof THRESHOLDS,
   value: number
-): "good" | "needs-improvement" | "poor" {
+): 'good' | 'needs-improvement' | 'poor' {
   const threshold = THRESHOLDS[name];
-  if (value <= threshold.good) return "good";
-  if (value <= threshold.poor) return "needs-improvement";
-  return "poor";
+  if (value <= threshold.good) return 'good';
+  if (value <= threshold.poor) return 'needs-improvement';
+  return 'poor';
 }
 
 function sendToAnalytics(metric: WebVitalMetric) {
   // Send to your analytics service
-  if (typeof globalThis !== "undefined" && (globalThis as unknown as { gtag?: unknown }).gtag) {
-    (globalThis as unknown as { gtag: Function }).gtag("event", metric.name, {
-      event_category: "Web Vitals",
-      value: Math.round(metric.name === "CLS" ? metric.value * 1000 : metric.value),
+  if (typeof globalThis !== 'undefined' && (globalThis as unknown as { gtag?: unknown }).gtag) {
+    (globalThis as unknown as { gtag: Function }).gtag('event', metric.name, {
+      event_category: 'Web Vitals',
+      value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
       event_label: metric.id,
       non_interaction: true,
       metric_rating: metric.rating,
@@ -54,11 +54,11 @@ async function sendToCustomEndpoint(metric: WebVitalMetric) {
   if (import.meta.env.DEV) {
     return;
   }
-  
+
   try {
-    const response = await fetch("/api/analytics/web-vitals", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await fetch('/api/analytics/web-vitals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         metric: metric.name,
         value: metric.value,
@@ -85,9 +85,9 @@ export function initWebVitals() {
   // Largest Contentful Paint
   onLCP((metric) => {
     sendToAnalytics({
-      name: "LCP",
+      name: 'LCP',
       value: metric.value,
-      rating: getRating("LCP", metric.value),
+      rating: getRating('LCP', metric.value),
       delta: metric.delta,
       id: metric.id,
     });
@@ -96,9 +96,9 @@ export function initWebVitals() {
   // Interaction to Next Paint (replaces FID in web-vitals v4)
   onINP((metric) => {
     sendToAnalytics({
-      name: "INP",
+      name: 'INP',
       value: metric.value,
-      rating: getRating("INP", metric.value),
+      rating: getRating('INP', metric.value),
       delta: metric.delta,
       id: metric.id,
     });
@@ -107,9 +107,9 @@ export function initWebVitals() {
   // Cumulative Layout Shift
   onCLS((metric) => {
     sendToAnalytics({
-      name: "CLS",
+      name: 'CLS',
       value: metric.value,
-      rating: getRating("CLS", metric.value),
+      rating: getRating('CLS', metric.value),
       delta: metric.delta,
       id: metric.id,
     });
@@ -118,9 +118,9 @@ export function initWebVitals() {
   // First Contentful Paint
   onFCP((metric) => {
     sendToAnalytics({
-      name: "FCP",
+      name: 'FCP',
       value: metric.value,
-      rating: getRating("FCP", metric.value),
+      rating: getRating('FCP', metric.value),
       delta: metric.delta,
       id: metric.id,
     });
@@ -129,9 +129,9 @@ export function initWebVitals() {
   // Time to First Byte
   onTTFB((metric) => {
     sendToAnalytics({
-      name: "TTFB",
+      name: 'TTFB',
       value: metric.value,
-      rating: getRating("TTFB", metric.value),
+      rating: getRating('TTFB', metric.value),
       delta: metric.delta,
       id: metric.id,
     });
@@ -140,9 +140,9 @@ export function initWebVitals() {
   // Interaction to Next Paint (replaces FID)
   onINP((metric) => {
     sendToAnalytics({
-      name: "INP",
+      name: 'INP',
       value: metric.value,
-      rating: getRating("INP", metric.value),
+      rating: getRating('INP', metric.value),
       delta: metric.delta,
       id: metric.id,
     });
@@ -166,9 +166,9 @@ export async function getWebVitalsStatus() {
 
     onLCP((metric) => {
       metrics.LCP = {
-        name: "LCP",
+        name: 'LCP',
         value: metric.value,
-        rating: getRating("LCP", metric.value),
+        rating: getRating('LCP', metric.value),
         delta: metric.delta,
         id: metric.id,
       };
@@ -178,9 +178,9 @@ export async function getWebVitalsStatus() {
 
     onINP((metric) => {
       metrics.INP = {
-        name: "INP",
+        name: 'INP',
         value: metric.value,
-        rating: getRating("INP", metric.value),
+        rating: getRating('INP', metric.value),
         delta: metric.delta,
         id: metric.id,
       };
@@ -190,9 +190,9 @@ export async function getWebVitalsStatus() {
 
     onCLS((metric) => {
       metrics.CLS = {
-        name: "CLS",
+        name: 'CLS',
         value: metric.value,
-        rating: getRating("CLS", metric.value),
+        rating: getRating('CLS', metric.value),
         delta: metric.delta,
         id: metric.id,
       };
@@ -202,9 +202,9 @@ export async function getWebVitalsStatus() {
 
     onFCP((metric) => {
       metrics.FCP = {
-        name: "FCP",
+        name: 'FCP',
         value: metric.value,
-        rating: getRating("FCP", metric.value),
+        rating: getRating('FCP', metric.value),
         delta: metric.delta,
         id: metric.id,
       };
@@ -214,9 +214,9 @@ export async function getWebVitalsStatus() {
 
     onTTFB((metric) => {
       metrics.TTFB = {
-        name: "TTFB",
+        name: 'TTFB',
         value: metric.value,
-        rating: getRating("TTFB", metric.value),
+        rating: getRating('TTFB', metric.value),
         delta: metric.delta,
         id: metric.id,
       };
@@ -226,9 +226,9 @@ export async function getWebVitalsStatus() {
 
     onINP((metric) => {
       metrics.INP = {
-        name: "INP",
+        name: 'INP',
         value: metric.value,
-        rating: getRating("INP", metric.value),
+        rating: getRating('INP', metric.value),
         delta: metric.delta,
         id: metric.id,
       };

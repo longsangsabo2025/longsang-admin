@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Send, 
-  Bot, 
-  User, 
-  Loader2, 
-  Brain, 
+import {
+  Send,
+  Bot,
+  User,
+  Loader2,
+  Brain,
   FolderOpen,
   Trash2,
   Settings,
@@ -15,7 +15,7 @@ import {
   Eye,
   EyeOff,
   Plug,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 
 interface Message {
@@ -50,7 +50,10 @@ interface StreamingWorkspaceChatProps {
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-export function StreamingWorkspaceChat({ defaultProject, className = '' }: StreamingWorkspaceChatProps) {
+export function StreamingWorkspaceChat({
+  defaultProject,
+  className = '',
+}: StreamingWorkspaceChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -59,16 +62,19 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
   const [projects, setProjects] = useState<string[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showThinking, setShowThinking] = useState(true);
-  const [mcpStatus, setMcpStatus] = useState<{ connected: boolean; tools: string[] }>({ connected: false, tools: [] });
-  
+  const [mcpStatus, setMcpStatus] = useState<{ connected: boolean; tools: string[] }>({
+    connected: false,
+    tools: [],
+  });
+
   // Streaming state
   const [streamEvents, setStreamEvents] = useState<StreamEvent[]>([]);
   const [currentThinking, setCurrentThinking] = useState<string>('');
-  
+
   const [settings, setSettings] = useState({
     includeWorkspaceContext: true,
     includeBrainContext: true,
-    useMCPTools: true
+    useMCPTools: true,
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -109,7 +115,7 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
       if (data.success) {
         setMcpStatus({
           connected: data.mcp.connected,
-          tools: data.mcp.tools || []
+          tools: data.mcp.tools || [],
         });
       }
     } catch (err) {
@@ -120,13 +126,13 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
   const reconnectMCP = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/ai/workspace-chat/mcp-reconnect`, {
-        method: 'POST'
+        method: 'POST',
       });
       const data = await res.json();
       if (data.success) {
         setMcpStatus({
           connected: data.connected,
-          tools: data.tools || []
+          tools: data.tools || [],
         });
       }
     } catch (err) {
@@ -141,10 +147,10 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
     const userMessage: Message = {
       role: 'user',
       content: input.trim(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
     setStreamEvents([]);
@@ -160,8 +166,8 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
           project: project || null,
           includeWorkspaceContext: settings.includeWorkspaceContext,
           includeBrainContext: settings.includeBrainContext,
-          useMCPTools: settings.useMCPTools
-        })
+          useMCPTools: settings.useMCPTools,
+        }),
       });
 
       const reader = res.body?.getReader();
@@ -170,13 +176,13 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
       if (!reader) throw new Error('No response body');
 
       let buffer = '';
-      
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        
+
         // Process SSE events
         const lines = buffer.split('\n');
         buffer = lines.pop() || ''; // Keep incomplete line in buffer
@@ -193,11 +199,14 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
         }
       }
     } catch (err: any) {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: `❌ Error: ${err.message}`,
-        timestamp: new Date().toISOString()
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: `❌ Error: ${err.message}`,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
       setCurrentThinking('');
@@ -206,40 +215,46 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
   };
 
   const handleStreamEvent = (event: StreamEvent) => {
-    setStreamEvents(prev => [...prev, event]);
+    setStreamEvents((prev) => [...prev, event]);
 
     switch (event.type) {
       case 'status':
       case 'thinking':
         setCurrentThinking(event.message || '');
         break;
-      
+
       case 'tool_call':
         setCurrentThinking(`⚡ Đang gọi: ${event.tool}`);
         break;
-      
+
       case 'tool_result':
         // Tool completed
         break;
-      
+
       case 'complete':
         // Final response
         if (event.response) {
-          setMessages(prev => [...prev, {
-            role: 'assistant',
-            content: event.response,
-            timestamp: new Date().toISOString(),
-            toolCalls: event.toolCalls
-          }]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'assistant',
+              content: event.response,
+              timestamp: new Date().toISOString(),
+              toolCalls: event.toolCalls,
+            },
+          ]);
         }
         break;
-      
+
       case 'error':
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: `❌ Error: ${event.error}`,
-          timestamp: new Date().toISOString()
-        }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: `❌ Error: ${event.error}`,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
         break;
     }
   };
@@ -259,22 +274,35 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
   // Get event icon
   const getEventIcon = (type: string) => {
     switch (type) {
-      case 'start': return <Zap className="w-3 h-3 text-yellow-400" />;
-      case 'status': return <Loader2 className="w-3 h-3 text-blue-400 animate-spin" />;
-      case 'thinking': return <Brain className="w-3 h-3 text-purple-400" />;
-      case 'brain': return <Brain className="w-3 h-3 text-cyan-400" />;
-      case 'tools': return <Wrench className="w-3 h-3 text-orange-400" />;
-      case 'tool_start': return <Wrench className="w-3 h-3 text-yellow-400" />;
-      case 'tool_call': return <Zap className="w-3 h-3 text-yellow-400 animate-pulse" />;
-      case 'tool_result': return <CheckCircle className="w-3 h-3 text-green-400" />;
-      case 'complete': return <CheckCircle className="w-3 h-3 text-green-400" />;
-      case 'error': return <XCircle className="w-3 h-3 text-red-400" />;
-      default: return <Loader2 className="w-3 h-3 text-slate-400" />;
+      case 'start':
+        return <Zap className="w-3 h-3 text-yellow-400" />;
+      case 'status':
+        return <Loader2 className="w-3 h-3 text-blue-400 animate-spin" />;
+      case 'thinking':
+        return <Brain className="w-3 h-3 text-purple-400" />;
+      case 'brain':
+        return <Brain className="w-3 h-3 text-cyan-400" />;
+      case 'tools':
+        return <Wrench className="w-3 h-3 text-orange-400" />;
+      case 'tool_start':
+        return <Wrench className="w-3 h-3 text-yellow-400" />;
+      case 'tool_call':
+        return <Zap className="w-3 h-3 text-yellow-400 animate-pulse" />;
+      case 'tool_result':
+        return <CheckCircle className="w-3 h-3 text-green-400" />;
+      case 'complete':
+        return <CheckCircle className="w-3 h-3 text-green-400" />;
+      case 'error':
+        return <XCircle className="w-3 h-3 text-red-400" />;
+      default:
+        return <Loader2 className="w-3 h-3 text-slate-400" />;
     }
   };
 
   return (
-    <div className={`flex flex-col h-full bg-slate-900 rounded-lg border border-slate-700 ${className}`}>
+    <div
+      className={`flex flex-col h-full bg-slate-900 rounded-lg border border-slate-700 ${className}`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
         <div className="flex items-center gap-2">
@@ -287,7 +315,7 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
             </span>
           )}
         </div>
-        
+
         <div className="flex items-center gap-2">
           <select
             value={project}
@@ -295,17 +323,23 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
             className="bg-slate-800 text-sm text-slate-300 rounded px-2 py-1 border border-slate-600"
           >
             <option value="">All Projects</option>
-            {projects.map(p => (
-              <option key={p} value={p}>{p.split('/').pop()}</option>
+            {projects.map((p) => (
+              <option key={p} value={p}>
+                {p.split('/').pop()}
+              </option>
             ))}
           </select>
 
           <button
             onClick={() => setShowThinking(!showThinking)}
             className={`p-1.5 rounded hover:bg-slate-700 ${showThinking ? 'bg-slate-700' : ''}`}
-            title={showThinking ? "Hide thinking process" : "Show thinking process"}
+            title={showThinking ? 'Hide thinking process' : 'Show thinking process'}
           >
-            {showThinking ? <Eye className="w-4 h-4 text-cyan-400" /> : <EyeOff className="w-4 h-4 text-slate-400" />}
+            {showThinking ? (
+              <Eye className="w-4 h-4 text-cyan-400" />
+            ) : (
+              <EyeOff className="w-4 h-4 text-slate-400" />
+            )}
           </button>
 
           <button
@@ -315,7 +349,11 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
             <Settings className="w-4 h-4 text-slate-400" />
           </button>
 
-          <button onClick={clearChat} className="p-1.5 rounded hover:bg-slate-700" title="Clear chat">
+          <button
+            onClick={clearChat}
+            className="p-1.5 rounded hover:bg-slate-700"
+            title="Clear chat"
+          >
             <Trash2 className="w-4 h-4 text-slate-400" />
           </button>
         </div>
@@ -329,7 +367,9 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
               <input
                 type="checkbox"
                 checked={settings.includeWorkspaceContext}
-                onChange={(e) => setSettings(s => ({ ...s, includeWorkspaceContext: e.target.checked }))}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, includeWorkspaceContext: e.target.checked }))
+                }
                 className="rounded"
               />
               <FolderOpen className="w-3 h-3" /> Workspace
@@ -338,7 +378,9 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
               <input
                 type="checkbox"
                 checked={settings.includeBrainContext}
-                onChange={(e) => setSettings(s => ({ ...s, includeBrainContext: e.target.checked }))}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, includeBrainContext: e.target.checked }))
+                }
                 className="rounded"
               />
               <Brain className="w-3 h-3" /> Brain
@@ -347,12 +389,12 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
               <input
                 type="checkbox"
                 checked={settings.useMCPTools}
-                onChange={(e) => setSettings(s => ({ ...s, useMCPTools: e.target.checked }))}
+                onChange={(e) => setSettings((s) => ({ ...s, useMCPTools: e.target.checked }))}
                 className="rounded"
               />
               <Wrench className="w-3 h-3" /> MCP Tools
             </label>
-            
+
             {!mcpStatus.connected && (
               <button
                 onClick={reconnectMCP}
@@ -372,24 +414,27 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
           {messages.length === 0 ? (
             <div className="text-center py-8">
               <Bot className="w-12 h-12 text-cyan-400 mx-auto mb-3" />
-              <h3 className="text-lg font-medium text-white mb-2">
-                Streaming AI Assistant
-              </h3>
+              <h3 className="text-lg font-medium text-white mb-2">Streaming AI Assistant</h3>
               <p className="text-slate-400 text-sm mb-4">
                 Xem AI suy nghĩ và làm việc realtime như Copilot!
               </p>
-              
+
               {mcpStatus.connected && (
                 <div className="bg-slate-800 rounded-lg p-3 max-w-md mx-auto text-left">
                   <p className="text-xs text-slate-400 mb-2">Available MCP Tools:</p>
                   <div className="flex flex-wrap gap-1">
-                    {mcpStatus.tools.slice(0, 10).map(tool => (
-                      <span key={tool} className="text-xs bg-slate-700 text-cyan-300 px-2 py-0.5 rounded">
+                    {mcpStatus.tools.slice(0, 10).map((tool) => (
+                      <span
+                        key={tool}
+                        className="text-xs bg-slate-700 text-cyan-300 px-2 py-0.5 rounded"
+                      >
                         {tool}
                       </span>
                     ))}
                     {mcpStatus.tools.length > 10 && (
-                      <span className="text-xs text-slate-500">+{mcpStatus.tools.length - 10} more</span>
+                      <span className="text-xs text-slate-500">
+                        +{mcpStatus.tools.length - 10} more
+                      </span>
                     )}
                   </div>
                 </div>
@@ -403,13 +448,15 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
                     <Bot className="w-4 h-4 text-cyan-400" />
                   </div>
                 )}
-                
-                <div className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                  msg.role === 'user' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-200'
-                }`}>
+
+                <div
+                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                    msg.role === 'user' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-200'
+                  }`}
+                >
                   {msg.role === 'assistant' ? (
                     <>
-                      <div 
+                      <div
                         className="prose prose-invert prose-sm max-w-none"
                         dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
                       />
@@ -418,10 +465,12 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
                           <p className="text-xs text-slate-400 mb-1">Tools used:</p>
                           <div className="flex flex-wrap gap-1">
                             {msg.toolCalls.map((tc, j) => (
-                              <span 
-                                key={j} 
+                              <span
+                                key={j}
                                 className={`text-xs px-2 py-0.5 rounded ${
-                                  tc.success ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+                                  tc.success
+                                    ? 'bg-green-500/20 text-green-300'
+                                    : 'bg-red-500/20 text-red-300'
                                 }`}
                               >
                                 {tc.success ? '✓' : '✗'} {tc.tool}
@@ -471,24 +520,20 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
             </div>
             <div className="p-2 space-y-1">
               {streamEvents.map((event, i) => (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   className="flex items-start gap-2 text-xs p-2 rounded bg-slate-800/50 hover:bg-slate-700/50"
                 >
                   {getEventIcon(event.type)}
                   <div className="flex-1 min-w-0">
-                    <p className="text-slate-300 truncate">
-                      {event.message || event.type}
-                    </p>
+                    <p className="text-slate-300 truncate">{event.message || event.type}</p>
                     {event.tool && (
                       <p className="text-cyan-400 font-mono text-[10px]">
                         {event.tool}({event.args ? JSON.stringify(event.args).slice(0, 30) : ''})
                       </p>
                     )}
                     {event.preview && (
-                      <p className="text-slate-500 text-[10px] truncate mt-0.5">
-                        {event.preview}
-                      </p>
+                      <p className="text-slate-500 text-[10px] truncate mt-0.5">{event.preview}</p>
                     )}
                   </div>
                 </div>
@@ -521,10 +566,14 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
                      disabled:text-slate-500 text-white rounded-lg transition-colors
                      flex items-center gap-2"
           >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </button>
         </div>
-        
+
         <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
           <span>Enter để gửi</span>
           <div className="flex items-center gap-2">
@@ -543,7 +592,10 @@ export function StreamingWorkspaceChat({ defaultProject, className = '' }: Strea
 // Format markdown to HTML
 function formatMessage(content: string): string {
   return content
-    .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="bg-slate-900 p-2 rounded my-2 overflow-x-auto"><code class="text-sm">$2</code></pre>')
+    .replace(
+      /```(\w+)?\n([\s\S]*?)```/g,
+      '<pre class="bg-slate-900 p-2 rounded my-2 overflow-x-auto"><code class="text-sm">$2</code></pre>'
+    )
     .replace(/`([^`]+)`/g, '<code class="bg-slate-900 px-1 rounded text-cyan-300">$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/^### (.+)$/gm, '<h4 class="font-bold text-cyan-400 mt-3 mb-1">$1</h4>')

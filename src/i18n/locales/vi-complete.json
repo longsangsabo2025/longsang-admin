@@ -72,11 +72,7 @@
     "step2": {
       "number": "02",
       "title": "Thiết Kế",
-      "activities": [
-        "Wireframe UI/UX",
-        "Kiến trúc database",
-        "Thiết kế API"
-      ]
+      "activities": ["Wireframe UI/UX", "Kiến trúc database", "Thiết kế API"]
     },
     "step3": {
       "number": "03",

@@ -3,14 +3,14 @@
  * Chat interface for domain-specific AI agent
  */
 
-import { useDomainQuery, useDomainSuggestions } from "@/brain/hooks/useDomainAgent";
-import type { DomainQueryResponse } from "@/brain/types/domain-agent.types";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, User, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useDomainQuery, useDomainSuggestions } from '@/brain/hooks/useDomainAgent';
+import type { DomainQueryResponse } from '@/brain/types/domain-agent.types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface DomainAgentProps {
   domainId: string;
@@ -18,8 +18,10 @@ interface DomainAgentProps {
 }
 
 export function DomainAgent({ domainId, domainName }: DomainAgentProps) {
-  const [question, setQuestion] = useState("");
-  const [conversation, setConversation] = useState<Array<{ role: "user" | "assistant"; content: string; timestamp: Date }>>([]);
+  const [question, setQuestion] = useState('');
+  const [conversation, setConversation] = useState<
+    Array<{ role: 'user' | 'assistant'; content: string; timestamp: Date }>
+  >([]);
   const queryMutation = useDomainQuery();
   const { data: suggestions } = useDomainSuggestions(domainId, 5);
 
@@ -28,8 +30,11 @@ export function DomainAgent({ domainId, domainName }: DomainAgentProps) {
     if (!question.trim() || queryMutation.isPending) return;
 
     const userMessage = question.trim();
-    setQuestion("");
-    setConversation((prev) => [...prev, { role: "user", content: userMessage, timestamp: new Date() }]);
+    setQuestion('');
+    setConversation((prev) => [
+      ...prev,
+      { role: 'user', content: userMessage, timestamp: new Date() },
+    ]);
 
     try {
       const response = await queryMutation.mutateAsync({
@@ -39,12 +44,16 @@ export function DomainAgent({ domainId, domainName }: DomainAgentProps) {
 
       setConversation((prev) => [
         ...prev,
-        { role: "assistant", content: response.response, timestamp: new Date() },
+        { role: 'assistant', content: response.response, timestamp: new Date() },
       ]);
     } catch (error) {
       setConversation((prev) => [
         ...prev,
-        { role: "assistant", content: `Error: ${error instanceof Error ? error.message : "Failed to get response"}`, timestamp: new Date() },
+        {
+          role: 'assistant',
+          content: `Error: ${error instanceof Error ? error.message : 'Failed to get response'}`,
+          timestamp: new Date(),
+        },
       ]);
     }
   };
@@ -93,27 +102,31 @@ export function DomainAgent({ domainId, domainName }: DomainAgentProps) {
                 {conversation.map((msg, idx) => (
                   <div
                     key={idx}
-                    className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                    className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
                       className={`flex gap-2 max-w-[80%] ${
-                        msg.role === "user" ? "flex-row-reverse" : "flex-row"
+                        msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'
                       }`}
                     >
                       <div
                         className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                          msg.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
+                          msg.role === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
                         }`}
                       >
-                        {msg.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                        {msg.role === 'user' ? (
+                          <User className="h-4 w-4" />
+                        ) : (
+                          <Bot className="h-4 w-4" />
+                        )}
                       </div>
                       <div
                         className={`rounded-lg p-3 ${
-                          msg.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-foreground"
+                          msg.role === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-foreground'
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -162,4 +175,3 @@ export function DomainAgent({ domainId, domainName }: DomainAgentProps) {
     </div>
   );
 }
-

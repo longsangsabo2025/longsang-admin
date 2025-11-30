@@ -7,12 +7,12 @@
  * @version 1.0.0
  */
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Zap, AlertTriangle, CheckCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, Zap, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -63,9 +63,9 @@ export function WorkflowOptimizer({ workflowId }: { workflowId: string }) {
     } catch (error) {
       console.error('Error fetching optimizations:', error);
       toast({
-        title: "Lỗi",
-        description: "Không thể tải optimization data",
-        variant: "destructive"
+        title: 'Lỗi',
+        description: 'Không thể tải optimization data',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -130,9 +130,7 @@ export function WorkflowOptimizer({ workflowId }: { workflowId: string }) {
                     Avg time: {bottleneck.averageTime}ms
                   </div>
                   {bottleneck.optimization && (
-                    <div className="text-xs text-blue-400 mt-1">
-                      💡 {bottleneck.optimization}
-                    </div>
+                    <div className="text-xs text-blue-400 mt-1">💡 {bottleneck.optimization}</div>
                   )}
                 </div>
               ))}
@@ -149,22 +147,23 @@ export function WorkflowOptimizer({ workflowId }: { workflowId: string }) {
                 <div key={i} className="p-3 rounded-lg border">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Badge variant={
-                        opt.impact === 'high' ? 'destructive' :
-                        opt.impact === 'medium' ? 'default' : 'secondary'
-                      }>
+                      <Badge
+                        variant={
+                          opt.impact === 'high'
+                            ? 'destructive'
+                            : opt.impact === 'medium'
+                              ? 'default'
+                              : 'secondary'
+                        }
+                      >
                         {opt.impact}
                       </Badge>
                       <span className="font-medium">{opt.type}</span>
                     </div>
                   </div>
                   <div className="text-sm mb-1">{opt.issue}</div>
-                  <div className="text-sm text-muted-foreground mb-2">
-                    💡 {opt.suggestion}
-                  </div>
-                  <div className="text-xs text-blue-400">
-                    Impact: {opt.estimatedImprovement}
-                  </div>
+                  <div className="text-sm text-muted-foreground mb-2">💡 {opt.suggestion}</div>
+                  <div className="text-xs text-blue-400">Impact: {opt.estimatedImprovement}</div>
                 </div>
               ))}
             </div>
@@ -181,4 +180,3 @@ export function WorkflowOptimizer({ workflowId }: { workflowId: string }) {
     </Card>
   );
 }
-

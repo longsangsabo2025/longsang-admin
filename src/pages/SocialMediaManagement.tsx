@@ -5,18 +5,18 @@
  * Complete social media automation platform
  */
 
-import { AutoPublishSettings } from "@/components/automation/AutoPublishSettings";
-import { PlatformConnectionCard } from "@/components/social/PlatformConnectionCard";
-import { SocialPostComposer } from "@/components/social/SocialPostComposer";
-import { AutoPostScheduler } from "@/components/social/AutoPostScheduler";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getSocialMediaManager } from "@/lib/social";
-import type { BulkPostResponse, SocialPlatform } from "@/types/social-media";
-import { Activity, MessageSquare, Settings, TrendingUp } from "lucide-react";
-import { useEffect, useState } from "react";
-import { usePersistedState, useScrollRestore } from "@/hooks/usePersistedState";
+import { AutoPublishSettings } from '@/components/automation/AutoPublishSettings';
+import { PlatformConnectionCard } from '@/components/social/PlatformConnectionCard';
+import { SocialPostComposer } from '@/components/social/SocialPostComposer';
+import { AutoPostScheduler } from '@/components/social/AutoPostScheduler';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getSocialMediaManager } from '@/lib/social';
+import type { BulkPostResponse, SocialPlatform } from '@/types/social-media';
+import { Activity, MessageSquare, Settings, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { usePersistedState, useScrollRestore } from '@/hooks/usePersistedState';
 
 export const SocialMediaManagement = () => {
   // Restore scroll & persist tab state
@@ -33,13 +33,13 @@ export const SocialMediaManagement = () => {
   const [recentPosts, setRecentPosts] = useState<BulkPostResponse[]>([]);
 
   const allPlatforms: SocialPlatform[] = [
-    "linkedin",
-    "twitter",
-    "facebook",
-    "instagram",
-    "youtube",
-    "telegram",
-    "discord",
+    'linkedin',
+    'twitter',
+    'facebook',
+    'instagram',
+    'youtube',
+    'telegram',
+    'discord',
   ];
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export const SocialMediaManagement = () => {
       const health = await manager.getHealthStatus();
       setHealthStatus(health);
     } catch (error) {
-      console.error("Failed to check health:", error);
+      console.error('Failed to check health:', error);
     }
   };
 
@@ -128,10 +128,10 @@ export const SocialMediaManagement = () => {
           <CardContent>
             <div className="text-2xl font-bold">
               {healthStatus.healthy === healthStatus.total && healthStatus.total > 0
-                ? "✅ All Good"
+                ? '✅ All Good'
                 : healthStatus.error > 0
-                ? "⚠️ Issues"
-                : "🔌 Setup"}
+                  ? '⚠️ Issues'
+                  : '🔌 Setup'}
             </div>
             <p className="text-xs text-muted-foreground">
               {healthStatus.error} errors, {healthStatus.warning} warnings
@@ -305,7 +305,7 @@ export const SocialMediaManagement = () => {
                       </span>
                     </div>
                     <CardDescription>
-                      Posted to {post.summary.total} platform(s) -{" "}
+                      Posted to {post.summary.total} platform(s) -{' '}
                       <span className="text-green-500">{post.summary.successful} successful</span>
                       {post.summary.failed > 0 && (
                         <span className="text-destructive">, {post.summary.failed} failed</span>
@@ -321,18 +321,18 @@ export const SocialMediaManagement = () => {
                         >
                           <div className="flex items-center gap-3">
                             <span className="text-xl">
-                              {result.platform === "linkedin" && "💼"}
-                              {result.platform === "twitter" && "𝕏"}
-                              {result.platform === "facebook" && "👥"}
-                              {result.platform === "instagram" && "📸"}
-                              {result.platform === "youtube" && "▶️"}
-                              {result.platform === "telegram" && "✈️"}
-                              {result.platform === "discord" && "🎮"}
+                              {result.platform === 'linkedin' && '💼'}
+                              {result.platform === 'twitter' && '𝕏'}
+                              {result.platform === 'facebook' && '👥'}
+                              {result.platform === 'instagram' && '📸'}
+                              {result.platform === 'youtube' && '▶️'}
+                              {result.platform === 'telegram' && '✈️'}
+                              {result.platform === 'discord' && '🎮'}
                             </span>
                             <div>
                               <p className="font-medium capitalize">{result.platform}</p>
                               <p className="text-sm text-muted-foreground">
-                                {result.success ? "Published" : result.error?.message}
+                                {result.success ? 'Published' : result.error?.message}
                               </p>
                             </div>
                           </div>

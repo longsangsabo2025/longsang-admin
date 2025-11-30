@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { HeroSection } from "@/components/showcase/HeroSection";
-import { FeaturesSection } from "@/components/showcase/FeaturesSectionDynamic";
-import { CTASection } from "@/components/showcase/CTASection";
-import { FooterSection } from "@/components/showcase/FooterSection";
-import { AnimatedBackground } from "@/components/showcase/AnimatedBackground";
-import { Settings } from "lucide-react";
-import { AppShowcaseService } from "@/services/app-showcase.service";
-import { AppShowcaseData } from "@/types/app-showcase.types";
-import SaboHubShowcase from "./SaboHubShowcase";
-import AINewbieShowcase from "./AINewbieShowcase";
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { HeroSection } from '@/components/showcase/HeroSection';
+import { FeaturesSection } from '@/components/showcase/FeaturesSectionDynamic';
+import { CTASection } from '@/components/showcase/CTASection';
+import { FooterSection } from '@/components/showcase/FooterSection';
+import { AnimatedBackground } from '@/components/showcase/AnimatedBackground';
+import { Settings } from 'lucide-react';
+import { AppShowcaseService } from '@/services/app-showcase.service';
+import { AppShowcaseData } from '@/types/app-showcase.types';
+import SaboHubShowcase from './SaboHubShowcase';
+import AINewbieShowcase from './AINewbieShowcase';
 
 const AppShowcaseDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -19,7 +19,7 @@ const AppShowcaseDetail = () => {
 
   useEffect(() => {
     // Skip loading data for custom showcases
-    if (slug === "sabohub" || slug === "ainewbievn") {
+    if (slug === 'sabohub' || slug === 'ainewbievn') {
       setLoading(false);
       return;
     }
@@ -29,28 +29,30 @@ const AppShowcaseDetail = () => {
         navigate('/app-showcase');
         return;
       }
-      
+
       setLoading(true);
       const appData = await AppShowcaseService.loadData(slug);
       setData(appData);
       setLoading(false);
     };
-    
+
     loadDataAsync();
-    
+
     // Subscribe to realtime changes from Supabase
-    const unsubscribe = slug ? AppShowcaseService.subscribeToChanges(slug, (newData) => {
-      setData(newData);
-      setLoading(false);
-    }) : () => {};
-    
+    const unsubscribe = slug
+      ? AppShowcaseService.subscribeToChanges(slug, (newData) => {
+          setData(newData);
+          setLoading(false);
+        })
+      : () => {};
+
     // Also listen for custom event (admin save triggers this)
     const handleAppUpdate = () => {
       loadDataAsync();
     };
-    
+
     globalThis.addEventListener('app-showcase-updated', handleAppUpdate);
-    
+
     return () => {
       unsubscribe();
       globalThis.removeEventListener('app-showcase-updated', handleAppUpdate);
@@ -58,12 +60,12 @@ const AppShowcaseDetail = () => {
   }, [slug, navigate]);
 
   // If slug is "sabohub", render SaboHub showcase directly
-  if (slug === "sabohub") {
+  if (slug === 'sabohub') {
     return <SaboHubShowcase />;
   }
 
   // If slug is "ainewbievn", render AINewbie showcase directly
-  if (slug === "ainewbievn") {
+  if (slug === 'ainewbievn') {
     return <AINewbieShowcase />;
   }
 
@@ -89,16 +91,16 @@ const AppShowcaseDetail = () => {
   return (
     <div className="min-h-screen overflow-x-hidden">
       <AnimatedBackground />
-      
+
       {/* Admin Button - Floating */}
-      <Link 
+      <Link
         to="/app-showcase/admin"
         className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full bg-neon-cyan text-dark-bg flex items-center justify-center shadow-lg shadow-neon-cyan/50 hover:scale-110 transition-transform"
         title="Vào trang Admin"
       >
         <Settings size={24} />
       </Link>
-      
+
       <HeroSection data={data} />
       <FeaturesSection data={data} />
       <CTASection data={data} />

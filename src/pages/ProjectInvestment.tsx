@@ -1,19 +1,31 @@
-import { motion } from "framer-motion";
-import { useParams, useNavigate } from "react-router-dom";
-import { TrendingUp, ArrowLeft, Mail, User, Phone, DollarSign, Building2, CheckCircle2, Shield, Award, BarChart3 } from "lucide-react";
-import { projectsData } from "@/data/projects-data";
-import { GlowCard } from "@/components/GlowCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { motion } from 'framer-motion';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  TrendingUp,
+  ArrowLeft,
+  Mail,
+  User,
+  Phone,
+  DollarSign,
+  Building2,
+  CheckCircle2,
+  Shield,
+  Award,
+  BarChart3,
+} from 'lucide-react';
+import { projectsData } from '@/data/projects-data';
+import { GlowCard } from '@/components/GlowCard';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useState } from 'react';
 
 const ProjectInvestment = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
-  
-  const project = projectsData.find(p => p.slug === slug) || projectsData[0];
+
+  const project = projectsData.find((p) => p.slug === slug) || projectsData[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +46,7 @@ const ProjectInvestment = () => {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring" }}
+            transition={{ delay: 0.2, type: 'spring' }}
             className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 mb-6"
           >
             <CheckCircle2 className="w-12 h-12 text-yellow-500" />
@@ -85,7 +97,9 @@ const ProjectInvestment = () => {
             </h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Tham gia đầu tư vào <span className="text-yellow-500 font-semibold">{project.name}</span> và trở thành một phần của hành trình thành công
+            Tham gia đầu tư vào{' '}
+            <span className="text-yellow-500 font-semibold">{project.name}</span> và trở thành một
+            phần của hành trình thành công
           </p>
         </motion.div>
 
@@ -97,26 +111,24 @@ const ProjectInvestment = () => {
             transition={{ delay: 0.2 }}
             className="space-y-6"
           >
-            <h2 className="font-display text-2xl font-bold text-yellow-500 mb-4">
-              Lợi Ích Đầu Tư
-            </h2>
-            
+            <h2 className="font-display text-2xl font-bold text-yellow-500 mb-4">Lợi Ích Đầu Tư</h2>
+
             {[
               {
                 icon: Award,
-                title: "Lợi Nhuận Hấp Dẫn",
-                description: "ROI dự kiến 15-25%/năm"
+                title: 'Lợi Nhuận Hấp Dẫn',
+                description: 'ROI dự kiến 15-25%/năm',
               },
               {
                 icon: Shield,
-                title: "Bảo Mật & Minh Bạch",
-                description: "Hợp đồng pháp lý rõ ràng"
+                title: 'Bảo Mật & Minh Bạch',
+                description: 'Hợp đồng pháp lý rõ ràng',
               },
               {
                 icon: BarChart3,
-                title: "Tăng Trưởng Bền Vững",
-                description: "Mô hình kinh doanh đã được chứng minh"
-              }
+                title: 'Tăng Trưởng Bền Vững',
+                description: 'Mô hình kinh doanh đã được chứng minh',
+              },
             ].map((item, index) => (
               <GlowCard key={index} glowColor="yellow" className="p-6">
                 <div className="flex items-start gap-4">
@@ -143,7 +155,7 @@ const ProjectInvestment = () => {
               <h2 className="font-display text-2xl font-bold text-yellow-500 mb-6">
                 Đăng Ký Tư Vấn Đầu Tư
               </h2>
-              
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Name */}

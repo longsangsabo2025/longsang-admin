@@ -1,35 +1,25 @@
 /**
  * 🔌 Service Status Component
- * 
+ *
  * Shows status of backend services (n8n, API, etc.)
  * Only visible in Electron desktop app.
  */
 
 import React, { useEffect, useState } from 'react';
-import { 
-  CheckCircle2, 
-  XCircle, 
-  RefreshCw, 
-  Play, 
+import {
+  CheckCircle2,
+  XCircle,
+  RefreshCw,
+  Play,
   Square,
   ExternalLink,
   Server,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useElectron, isElectron } from '@/hooks/useElectron';
 import { cn } from '@/lib/utils';
 
@@ -62,8 +52,11 @@ interface ServiceStatusItemProps {
 }
 
 function ServiceStatusItem({ service }: Readonly<ServiceStatusItemProps>) {
-  const { getServiceStatus, startService, stopService, restartService, openExternal } = useElectron();
-  const [status, setStatus] = useState<'stopped' | 'starting' | 'running' | 'stopping' | 'error'>('stopped');
+  const { getServiceStatus, startService, stopService, restartService, openExternal } =
+    useElectron();
+  const [status, setStatus] = useState<'stopped' | 'starting' | 'running' | 'stopping' | 'error'>(
+    'stopped'
+  );
   const [loading, setLoading] = useState(false);
 
   // Fetch status
@@ -111,9 +104,9 @@ function ServiceStatusItem({ service }: Readonly<ServiceStatusItemProps>) {
 
   // Helper to get status-based classes
   const getStatusClasses = () => {
-    if (isRunning) return "bg-green-500/20 text-green-500";
-    if (isStarting || isStopping) return "bg-yellow-500/20 text-yellow-500";
-    return "bg-red-500/20 text-red-500";
+    if (isRunning) return 'bg-green-500/20 text-green-500';
+    if (isStarting || isStopping) return 'bg-yellow-500/20 text-yellow-500';
+    return 'bg-red-500/20 text-red-500';
   };
 
   // Helper to get status icon
@@ -131,24 +124,17 @@ function ServiceStatusItem({ service }: Readonly<ServiceStatusItemProps>) {
     <div className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
       <div className="flex items-center gap-3">
         {/* Status Icon */}
-        <div className={cn(
-          "p-2 rounded-full",
-          getStatusClasses()
-        )}>
-          {getStatusIcon()}
-        </div>
+        <div className={cn('p-2 rounded-full', getStatusClasses())}>{getStatusIcon()}</div>
 
         {/* Service Info */}
         <div>
           <div className="flex items-center gap-2">
             <span className="font-medium">{service.displayName}</span>
-            <Badge variant={isRunning ? "default" : "secondary"} className="text-xs">
+            <Badge variant={isRunning ? 'default' : 'secondary'} className="text-xs">
               Port {service.port}
             </Badge>
           </div>
-          <span className="text-xs text-muted-foreground capitalize">
-            {status}
-          </span>
+          <span className="text-xs text-muted-foreground capitalize">{status}</span>
         </div>
       </div>
 
@@ -157,12 +143,7 @@ function ServiceStatusItem({ service }: Readonly<ServiceStatusItemProps>) {
         {service.editorUrl && isRunning && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8"
-                onClick={handleOpenEditor}
-              >
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleOpenEditor}>
                 <ExternalLink className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -174,9 +155,9 @@ function ServiceStatusItem({ service }: Readonly<ServiceStatusItemProps>) {
           <>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8"
                   onClick={handleRestart}
                   disabled={loading}
@@ -189,9 +170,9 @@ function ServiceStatusItem({ service }: Readonly<ServiceStatusItemProps>) {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 text-red-500 hover:text-red-600"
                   onClick={handleStop}
                   disabled={loading}
@@ -205,9 +186,9 @@ function ServiceStatusItem({ service }: Readonly<ServiceStatusItemProps>) {
         ) : (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8 text-green-500 hover:text-green-600"
                 onClick={handleStart}
                 disabled={loading || isStarting}
@@ -236,9 +217,7 @@ export function ServiceStatusPanel() {
           <Server className="h-5 w-5" />
           Services
         </CardTitle>
-        <CardDescription>
-          Manage backend services
-        </CardDescription>
+        <CardDescription>Manage backend services</CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
         {SERVICES.map((service) => (
@@ -279,10 +258,12 @@ export function ServiceStatusBadges() {
       {SERVICES.map((service) => (
         <Tooltip key={service.name}>
           <TooltipTrigger asChild>
-            <div className={cn(
-              "w-2 h-2 rounded-full",
-              statuses[service.name] ? "bg-green-500" : "bg-red-500"
-            )} />
+            <div
+              className={cn(
+                'w-2 h-2 rounded-full',
+                statuses[service.name] ? 'bg-green-500' : 'bg-red-500'
+              )}
+            />
           </TooltipTrigger>
           <TooltipContent>
             {service.displayName}: {statuses[service.name] ? 'Running' : 'Stopped'}

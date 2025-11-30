@@ -1,6 +1,6 @@
 /**
  * 🔌 Electron Hook
- * 
+ *
  * React hook for using Electron APIs.
  * Returns null-safe API that works in both Electron and browser.
  */
@@ -10,14 +10,25 @@ import type { ElectronAPI, AppInfo, ServiceStatus, SystemInfo } from '@/types/el
 
 // Check if running in Electron
 export const isElectron = (): boolean => {
-  return typeof globalThis !== 'undefined' && 
-         (globalThis as typeof globalThis & { electronAPI?: unknown }).electronAPI !== undefined &&
-         (globalThis as typeof globalThis & { platform?: { isElectron?: boolean } }).platform?.isElectron === true;
+  return (
+    typeof globalThis !== 'undefined' &&
+    (globalThis as typeof globalThis & { electronAPI?: unknown }).electronAPI !== undefined &&
+    (globalThis as typeof globalThis & { platform?: { isElectron?: boolean } }).platform
+      ?.isElectron === true
+  );
 };
 
 // Get platform info
 export const getPlatform = () => {
-  const win = globalThis as typeof globalThis & { platform?: { isElectron: boolean; isWindows: boolean; isMac: boolean; isLinux: boolean; arch: string } };
+  const win = globalThis as typeof globalThis & {
+    platform?: {
+      isElectron: boolean;
+      isWindows: boolean;
+      isMac: boolean;
+      isLinux: boolean;
+      arch: string;
+    };
+  };
   if (win.platform) {
     return win.platform;
   }
@@ -74,69 +85,99 @@ export function useElectron() {
   }, [api]);
 
   // Settings
-  const getSetting = useCallback(async <T = any>(key: string, defaultValue?: T): Promise<T | null> => {
-    if (!api) return defaultValue ?? null;
-    return api.settings.get(key, defaultValue);
-  }, [api]);
+  const getSetting = useCallback(
+    async <T = any>(key: string, defaultValue?: T): Promise<T | null> => {
+      if (!api) return defaultValue ?? null;
+      return api.settings.get(key, defaultValue);
+    },
+    [api]
+  );
 
-  const setSetting = useCallback(async <T = any>(key: string, value: T): Promise<boolean> => {
-    if (!api) return false;
-    return api.settings.set(key, value);
-  }, [api]);
+  const setSetting = useCallback(
+    async <T = any>(key: string, value: T): Promise<boolean> => {
+      if (!api) return false;
+      return api.settings.set(key, value);
+    },
+    [api]
+  );
 
   // Services
-  const startService = useCallback(async (name: string) => {
-    if (!api) return { success: false, error: 'Not in Electron' };
-    return api.services.start(name);
-  }, [api]);
+  const startService = useCallback(
+    async (name: string) => {
+      if (!api) return { success: false, error: 'Not in Electron' };
+      return api.services.start(name);
+    },
+    [api]
+  );
 
-  const stopService = useCallback(async (name: string) => {
-    if (!api) return { success: false, error: 'Not in Electron' };
-    return api.services.stop(name);
-  }, [api]);
+  const stopService = useCallback(
+    async (name: string) => {
+      if (!api) return { success: false, error: 'Not in Electron' };
+      return api.services.stop(name);
+    },
+    [api]
+  );
 
-  const getServiceStatus = useCallback(async (name: string): Promise<ServiceStatus | null> => {
-    if (!api) return null;
-    return api.services.status(name);
-  }, [api]);
+  const getServiceStatus = useCallback(
+    async (name: string): Promise<ServiceStatus | null> => {
+      if (!api) return null;
+      return api.services.status(name);
+    },
+    [api]
+  );
 
-  const restartService = useCallback(async (name: string) => {
-    if (!api) return { success: false, error: 'Not in Electron' };
-    return api.services.restart(name);
-  }, [api]);
+  const restartService = useCallback(
+    async (name: string) => {
+      if (!api) return { success: false, error: 'Not in Electron' };
+      return api.services.restart(name);
+    },
+    [api]
+  );
 
   // Shell
-  const openExternal = useCallback(async (url: string) => {
-    if (api) {
-      return api.shell.openExternal(url);
-    }
-    // Fallback for browser
-    window.open(url, '_blank');
-    return true;
-  }, [api]);
+  const openExternal = useCallback(
+    async (url: string) => {
+      if (api) {
+        return api.shell.openExternal(url);
+      }
+      // Fallback for browser
+      window.open(url, '_blank');
+      return true;
+    },
+    [api]
+  );
 
-  const showInFolder = useCallback(async (path: string) => {
-    if (api) return api.shell.showItem(path);
-    return false;
-  }, [api]);
+  const showInFolder = useCallback(
+    async (path: string) => {
+      if (api) return api.shell.showItem(path);
+      return false;
+    },
+    [api]
+  );
 
   // Dialog
-  const showMessage = useCallback(async (options: Parameters<NonNullable<ElectronAPI>['dialog']['message']>[0]) => {
-    if (!api) {
-      // Fallback to browser alert
-      alert(options.message);
-      return { response: 0, checkboxChecked: false };
-    }
-    return api.dialog.message(options);
-  }, [api]);
+  const showMessage = useCallback(
+    async (options: Parameters<NonNullable<ElectronAPI>['dialog']['message']>[0]) => {
+      if (!api) {
+        // Fallback to browser alert
+        alert(options.message);
+        return { response: 0, checkboxChecked: false };
+      }
+      return api.dialog.message(options);
+    },
+    [api]
+  );
 
-  const showError = useCallback(async (title: string, content: string) => {
-    if (api) {
-      await api.dialog.error(title, content);
-    } else {
-      alert(`${title}\n\n${content}`);
-    }
-  }, [api]);
+  const showError = useCallback(
+    async (title: string, content: string) => {
+      if (api) {
+        await api.dialog.error(title, content);
+      } else {
+        alert(`${title}\n\n${content}`);
+      }
+    },
+    [api]
+  );
 
   // System
   const getSystemInfo = useCallback(async (): Promise<SystemInfo | null> => {
@@ -197,11 +238,14 @@ export function useServiceStatus(serviceName: string) {
     // Subscribe to changes
     const win = globalThis as typeof globalThis & { electronAPI?: ElectronAPI };
     if (win.electronAPI) {
-      const unsubscribe = win.electronAPI.on('service-status-change', ({ name, status: newStatus }) => {
-        if (name === serviceName) {
-          getServiceStatus(serviceName).then(setStatus);
+      const unsubscribe = win.electronAPI.on(
+        'service-status-change',
+        ({ name, status: newStatus }) => {
+          if (name === serviceName) {
+            getServiceStatus(serviceName).then(setStatus);
+          }
         }
-      });
+      );
 
       return unsubscribe;
     }

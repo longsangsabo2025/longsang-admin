@@ -7,11 +7,11 @@
  * @version 1.0.0
  */
 
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, X } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, X } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -27,7 +27,7 @@ interface StreamingEvent {
 
 export function StreamingCommand({
   command,
-  onComplete
+  onComplete,
 }: {
   command: string;
   onComplete?: (result: any) => void;
@@ -66,47 +66,50 @@ export function StreamingCommand({
         if (!reader) throw new Error('No reader available');
 
         const readStream = () => {
-          reader.read().then(({ done, value }) => {
-            if (done) {
-              setIsComplete(true);
-              return;
-            }
+          reader
+            .read()
+            .then(({ done, value }) => {
+              if (done) {
+                setIsComplete(true);
+                return;
+              }
 
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n');
+              const chunk = decoder.decode(value);
+              const lines = chunk.split('\n');
 
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                try {
-                  const data: StreamingEvent = JSON.parse(line.slice(6));
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const data: StreamingEvent = JSON.parse(line.slice(6));
 
-                  setEvents((prev) => [...prev, data]);
+                    setEvents((prev) => [...prev, data]);
 
-                  if (data.type === 'thinking' && data.content) {
-                    setStreamingContent((prev) => prev + data.content);
-                  } else if (data.type === 'action') {
-                    setCurrentAction(data.action || null);
-                  } else if (data.type === 'complete') {
-                    setIsComplete(true);
-                    if (onComplete) {
-                      onComplete(data);
+                    if (data.type === 'thinking' && data.content) {
+                      setStreamingContent((prev) => prev + data.content);
+                    } else if (data.type === 'action') {
+                      setCurrentAction(data.action || null);
+                    } else if (data.type === 'complete') {
+                      setIsComplete(true);
+                      if (onComplete) {
+                        onComplete(data);
+                      }
+                    } else if (data.type === 'error') {
+                      setIsComplete(true);
                     }
-                  } else if (data.type === 'error') {
-                    setIsComplete(true);
+                  } catch (error) {
+                    console.error('Error parsing SSE event:', error);
                   }
-                } catch (error) {
-                  console.error('Error parsing SSE event:', error);
                 }
               }
-            }
 
-            readStream();
-          }).catch((error) => {
-            if (error.name !== 'AbortError') {
-              console.error('SSE read error:', error);
-              setIsComplete(true);
-            }
-          });
+              readStream();
+            })
+            .catch((error) => {
+              if (error.name !== 'AbortError') {
+                console.error('SSE read error:', error);
+                setIsComplete(true);
+              }
+            });
         };
 
         readStream();
@@ -157,38 +160,43 @@ export function StreamingCommand({
           )}
 
           {/* Results */}
-          {events.filter(e => e.type === 'result').map((event, i) => (
-            <div key={i} className="space-y-2">
-              <Badge variant="outline">Result: {event.function}</Badge>
-              {event.workflow && (
-                <div className="text-xs bg-muted p-2 rounded">
-                  Workflow: {event.workflow.name}
-                </div>
-              )}
-            </div>
-          ))}
+          {events
+            .filter((e) => e.type === 'result')
+            .map((event, i) => (
+              <div key={i} className="space-y-2">
+                <Badge variant="outline">Result: {event.function}</Badge>
+                {event.workflow && (
+                  <div className="text-xs bg-muted p-2 rounded">
+                    Workflow: {event.workflow.name}
+                  </div>
+                )}
+              </div>
+            ))}
 
           {/* Complete */}
           {isComplete && (
             <div className="flex items-center gap-2">
               <Badge variant="default">Hoàn thành</Badge>
-              {events.filter(e => e.type === 'complete').map((e, i) => (
-                <span key={i} className="text-sm text-muted-foreground">
-                  {e.message}
-                </span>
-              ))}
+              {events
+                .filter((e) => e.type === 'complete')
+                .map((e, i) => (
+                  <span key={i} className="text-sm text-muted-foreground">
+                    {e.message}
+                  </span>
+                ))}
             </div>
           )}
 
           {/* Error */}
-          {events.filter(e => e.type === 'error').map((event, i) => (
-            <div key={i} className="text-sm text-destructive">
-              ❌ {event.message}
-            </div>
-          ))}
+          {events
+            .filter((e) => e.type === 'error')
+            .map((event, i) => (
+              <div key={i} className="text-sm text-destructive">
+                ❌ {event.message}
+              </div>
+            ))}
         </div>
       </CardContent>
     </Card>
   );
 }
-

@@ -1,9 +1,9 @@
 /**
  * 🎤 useVoiceInput Hook - Elon Musk Edition
- * 
+ *
  * Web Speech API for voice-to-text input
  * Works in Chrome, Edge, Safari (with webkit prefix)
- * 
+ *
  * Features:
  * - Real-time speech recognition
  * - Auto-language detection (Vietnamese/English)
@@ -77,9 +77,10 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
-  
+
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const isSupported = typeof window !== 'undefined' && 
+  const isSupported =
+    typeof window !== 'undefined' &&
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
   // Initialize speech recognition
@@ -88,7 +89,7 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    
+
     recognition.continuous = continuous;
     recognition.interimResults = interimResults;
     recognition.lang = language;
@@ -111,7 +112,7 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
         const text = result[0].transcript;
-        
+
         if (result.isFinal) {
           finalTranscript += text;
         } else {
@@ -120,7 +121,7 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
       }
 
       if (finalTranscript) {
-        setTranscript(prev => prev + finalTranscript);
+        setTranscript((prev) => prev + finalTranscript);
         setInterimTranscript('');
         onResult?.(finalTranscript, true);
         console.log('[VoiceInput] ✅ Final:', finalTranscript);
@@ -147,10 +148,10 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
 
   const startListening = useCallback(() => {
     if (!recognitionRef.current || isListening) return;
-    
+
     setError(null);
     setInterimTranscript('');
-    
+
     try {
       recognitionRef.current.start();
     } catch (err) {
@@ -161,7 +162,7 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
 
   const stopListening = useCallback(() => {
     if (!recognitionRef.current || !isListening) return;
-    
+
     try {
       recognitionRef.current.stop();
     } catch (err) {

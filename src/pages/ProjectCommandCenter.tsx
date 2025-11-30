@@ -1,41 +1,41 @@
-import { useEffect, useState } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { 
-  ArrowLeft, 
-  LayoutDashboard, 
-  Key, 
-  Globe, 
-  Share2, 
-  BarChart3, 
-  Search, 
-  Workflow, 
-  FileText, 
-  Users, 
-  FolderOpen, 
-  Plug, 
+import { useEffect, useState } from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  ArrowLeft,
+  LayoutDashboard,
+  Key,
+  Globe,
+  Share2,
+  BarChart3,
+  Search,
+  Workflow,
+  FileText,
+  Users,
+  FolderOpen,
+  Plug,
   Settings,
-  RefreshCw
-} from "lucide-react";
-import { toast } from "sonner";
+  RefreshCw,
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 // Tab Components
-import { ProjectOverviewTab } from "@/components/project/ProjectOverviewTab";
-import { ProjectCredentialsTab } from "@/components/project/ProjectCredentialsTab";
-import { ProjectDomainsTab } from "@/components/project/ProjectDomainsTab";
-import { ProjectSocialTab } from "@/components/project/ProjectSocialTab";
-import { ProjectAnalyticsTab } from "@/components/project/ProjectAnalyticsTab";
-import { ProjectSEOTab } from "@/components/project/ProjectSEOTab";
-import { ProjectWorkflowsTab } from "@/components/project/ProjectWorkflowsTab";
-import { ProjectContentTab } from "@/components/project/ProjectContentTab";
-import { ProjectTeamTab } from "@/components/project/ProjectTeamTab";
-import { ProjectDocsTab } from "@/components/project/ProjectDocsTab";
-import { ProjectIntegrationsTab } from "@/components/project/ProjectIntegrationsTab";
-import { ProjectSettingsTab } from "@/components/project/ProjectSettingsTab";
+import { ProjectOverviewTab } from '@/components/project/ProjectOverviewTab';
+import { ProjectCredentialsTab } from '@/components/project/ProjectCredentialsTab';
+import { ProjectDomainsTab } from '@/components/project/ProjectDomainsTab';
+import { ProjectSocialTab } from '@/components/project/ProjectSocialTab';
+import { ProjectAnalyticsTab } from '@/components/project/ProjectAnalyticsTab';
+import { ProjectSEOTab } from '@/components/project/ProjectSEOTab';
+import { ProjectWorkflowsTab } from '@/components/project/ProjectWorkflowsTab';
+import { ProjectContentTab } from '@/components/project/ProjectContentTab';
+import { ProjectTeamTab } from '@/components/project/ProjectTeamTab';
+import { ProjectDocsTab } from '@/components/project/ProjectDocsTab';
+import { ProjectIntegrationsTab } from '@/components/project/ProjectIntegrationsTab';
+import { ProjectSettingsTab } from '@/components/project/ProjectSettingsTab';
 
 interface Project {
   id: string;
@@ -50,29 +50,29 @@ interface Project {
 }
 
 const tabs = [
-  { id: "overview", label: "Tổng Quan", icon: LayoutDashboard },
-  { id: "credentials", label: "API Keys", icon: Key },
-  { id: "domains", label: "Domains", icon: Globe },
-  { id: "social", label: "Social Media", icon: Share2 },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "seo", label: "SEO", icon: Search },
-  { id: "workflows", label: "Workflows", icon: Workflow },
-  { id: "content", label: "Content", icon: FileText },
-  { id: "team", label: "Team", icon: Users },
-  { id: "docs", label: "Documents", icon: FolderOpen },
-  { id: "integrations", label: "Integrations", icon: Plug },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: 'overview', label: 'Tổng Quan', icon: LayoutDashboard },
+  { id: 'credentials', label: 'API Keys', icon: Key },
+  { id: 'domains', label: 'Domains', icon: Globe },
+  { id: 'social', label: 'Social Media', icon: Share2 },
+  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+  { id: 'seo', label: 'SEO', icon: Search },
+  { id: 'workflows', label: 'Workflows', icon: Workflow },
+  { id: 'content', label: 'Content', icon: FileText },
+  { id: 'team', label: 'Team', icon: Users },
+  { id: 'docs', label: 'Documents', icon: FolderOpen },
+  { id: 'integrations', label: 'Integrations', icon: Plug },
+  { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 export default function ProjectCommandCenter() {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  const activeTab = searchParams.get("tab") || "overview";
+
+  const activeTab = searchParams.get('tab') || 'overview';
 
   useEffect(() => {
     if (slug) {
@@ -83,17 +83,13 @@ export default function ProjectCommandCenter() {
   const fetchProject = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("slug", slug)
-        .single();
+      const { data, error } = await supabase.from('projects').select('*').eq('slug', slug).single();
 
       if (error) throw error;
       setProject(data);
     } catch (error: any) {
-      console.error("Error fetching project:", error);
-      toast.error("Không thể tải thông tin dự án");
+      console.error('Error fetching project:', error);
+      toast.error('Không thể tải thông tin dự án');
     } finally {
       setLoading(false);
     }
@@ -116,7 +112,7 @@ export default function ProjectCommandCenter() {
       <Card>
         <CardContent className="py-10 text-center">
           <p className="text-muted-foreground">Không tìm thấy dự án</p>
-          <Button onClick={() => navigate("/admin/projects")} className="mt-4">
+          <Button onClick={() => navigate('/admin/projects')} className="mt-4">
             Quay lại danh sách
           </Button>
         </CardContent>
@@ -129,16 +125,12 @@ export default function ProjectCommandCenter() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => navigate("/admin/projects")}
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate('/admin/projects')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          
+
           <div className="flex items-center gap-3">
-            <div 
+            <div
               className="text-4xl p-3 rounded-xl"
               style={{ backgroundColor: `${project.color}20` }}
             >
@@ -152,8 +144,8 @@ export default function ProjectCommandCenter() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge 
-            variant={project.status === "active" ? "default" : "secondary"}
+          <Badge
+            variant={project.status === 'active' ? 'default' : 'secondary'}
             className="capitalize"
           >
             {project.status}

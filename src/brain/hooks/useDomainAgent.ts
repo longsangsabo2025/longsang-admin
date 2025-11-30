@@ -3,15 +3,15 @@
  * Manages domain agent operations
  */
 
-import { brainAPI } from "@/brain/lib/services/brain-api";
+import { brainAPI } from '@/brain/lib/services/brain-api';
 import type {
   DomainQueryRequest,
   DomainQueryResponse,
   DomainSuggestion,
   DomainSummary,
-} from "@/brain/types/domain-agent.types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+} from '@/brain/types/domain-agent.types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 /**
  * Hook to query domain agent
@@ -42,7 +42,7 @@ export function useAutoTag() {
       return brainAPI.autoTagKnowledge(knowledge, domainId);
     },
     onSuccess: () => {
-      toast.success("Tags generated successfully");
+      toast.success('Tags generated successfully');
     },
     onError: (error: Error) => {
       toast.error(`Failed to auto-tag: ${error.message}`);
@@ -55,9 +55,9 @@ export function useAutoTag() {
  */
 export function useDomainSuggestions(domainId: string | null, limit = 5) {
   return useQuery({
-    queryKey: ["brain", "domain-suggestions", domainId, limit],
+    queryKey: ['brain', 'domain-suggestions', domainId, limit],
     queryFn: () => {
-      if (!domainId) throw new Error("Domain ID is required");
+      if (!domainId) throw new Error('Domain ID is required');
       return brainAPI.getDomainSuggestions(domainId, limit);
     },
     enabled: !!domainId,
@@ -78,4 +78,3 @@ export function useDomainSummary() {
     },
   });
 }
-

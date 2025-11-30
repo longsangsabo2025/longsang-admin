@@ -12,11 +12,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  Eye, 
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  Eye,
   MousePointerClick,
   RefreshCw,
   Settings,
@@ -32,7 +32,7 @@ import {
   Mail,
   Calendar,
   Search,
-  MapPin
+  MapPin,
 } from 'lucide-react';
 import {
   getDashboardMetrics,
@@ -43,7 +43,7 @@ import {
   getSyncLogs,
   type DashboardMetrics,
   type GoogleServicesConfig,
-  type SyncLog
+  type SyncLog,
 } from '@/lib/google/hub';
 import { toast } from 'sonner';
 import { GmailPanel, CalendarPanel, IndexingPanel, MapsPanel } from './panels';
@@ -55,7 +55,7 @@ export const GoogleServicesHub = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [config, setConfig] = useState<GoogleServicesConfig | null>(null);
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
-  
+
   // Setup form state
   const [setupForm, setSetupForm] = useState({
     analytics_property_id: '',
@@ -94,9 +94,9 @@ export const GoogleServicesHub = () => {
     try {
       setSyncing(true);
       toast.info('Starting sync to Google Sheets...');
-      
+
       const result = await syncToGoogleSheets();
-      
+
       toast.success(`Synced ${result.recordsSynced} records to Google Sheets`);
       await loadData();
     } catch (error) {
@@ -131,9 +131,7 @@ export const GoogleServicesHub = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Google Services Hub</h1>
-            <p className="text-muted-foreground mt-1">
-              Configure your Google services integration
-            </p>
+            <p className="text-muted-foreground mt-1">Configure your Google services integration</p>
           </div>
         </div>
 
@@ -156,7 +154,9 @@ export const GoogleServicesHub = () => {
                   id="property_id"
                   placeholder="123456789"
                   value={setupForm.analytics_property_id}
-                  onChange={(e) => setSetupForm(prev => ({ ...prev, analytics_property_id: e.target.value }))}
+                  onChange={(e) =>
+                    setSetupForm((prev) => ({ ...prev, analytics_property_id: e.target.value }))
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
                   Find this in Google Analytics 4: Admin → Property Settings → Property ID
@@ -170,18 +170,24 @@ export const GoogleServicesHub = () => {
                 </div>
                 <Switch
                   checked={setupForm.analytics_enabled}
-                  onCheckedChange={(checked) => setSetupForm(prev => ({ ...prev, analytics_enabled: checked }))}
+                  onCheckedChange={(checked) =>
+                    setSetupForm((prev) => ({ ...prev, analytics_enabled: checked }))
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Auto-sync to Google Sheets</Label>
-                  <p className="text-xs text-muted-foreground">Automatically export data to Sheets</p>
+                  <p className="text-xs text-muted-foreground">
+                    Automatically export data to Sheets
+                  </p>
                 </div>
                 <Switch
                   checked={setupForm.sheets_auto_sync}
-                  onCheckedChange={(checked) => setSetupForm(prev => ({ ...prev, sheets_auto_sync: checked }))}
+                  onCheckedChange={(checked) =>
+                    setSetupForm((prev) => ({ ...prev, sheets_auto_sync: checked }))
+                  }
                 />
               </div>
 
@@ -192,7 +198,12 @@ export const GoogleServicesHub = () => {
                     id="spreadsheet_id"
                     placeholder="1abc123..."
                     value={setupForm.reporting_spreadsheet_id}
-                    onChange={(e) => setSetupForm(prev => ({ ...prev, reporting_spreadsheet_id: e.target.value }))}
+                    onChange={(e) =>
+                      setSetupForm((prev) => ({
+                        ...prev,
+                        reporting_spreadsheet_id: e.target.value,
+                      }))
+                    }
                   />
                   <p className="text-xs text-muted-foreground">
                     Get this from the Google Sheets URL: /spreadsheets/d/[THIS_ID]/edit
@@ -208,7 +219,7 @@ export const GoogleServicesHub = () => {
                     toast.error('Please enter your Google Analytics Property ID');
                     return;
                   }
-                  
+
                   setSaving(true);
                   try {
                     await saveGoogleConfig({
@@ -225,7 +236,9 @@ export const GoogleServicesHub = () => {
                     toast.success('Configuration saved! Loading dashboard...');
                     await loadData();
                   } catch (error) {
-                    toast.error(error instanceof Error ? error.message : 'Failed to save configuration');
+                    toast.error(
+                      error instanceof Error ? error.message : 'Failed to save configuration'
+                    );
                   } finally {
                     setSaving(false);
                   }
@@ -257,13 +270,21 @@ export const GoogleServicesHub = () => {
                   </a>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://search.google.com/search-console"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <ExternalLink className="h-3 w-3 mr-1" />
                     Search Console
                   </a>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <a href="https://docs.google.com/spreadsheets" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://docs.google.com/spreadsheets"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <ExternalLink className="h-3 w-3 mr-1" />
                     Google Sheets
                   </a>
@@ -282,7 +303,9 @@ export const GoogleServicesHub = () => {
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold text-green-600">✅ Configured</div>
-              <p className="text-xs text-muted-foreground">automation-bot-102@long-sang-automation</p>
+              <p className="text-xs text-muted-foreground">
+                automation-bot-102@long-sang-automation
+              </p>
             </CardContent>
           </Card>
 
@@ -323,18 +346,11 @@ export const GoogleServicesHub = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={loadData}
-            disabled={syncing}
-          >
+          <Button variant="outline" onClick={loadData} disabled={syncing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button
-            onClick={handleSync}
-            disabled={syncing || !config.sheets_auto_sync}
-          >
+          <Button onClick={handleSync} disabled={syncing || !config.sheets_auto_sync}>
             <FileSpreadsheet className="h-4 w-4 mr-2" />
             Sync to Sheets
           </Button>
@@ -358,12 +374,21 @@ export const GoogleServicesHub = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metrics.analytics.totalSessions.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                {metrics.analytics.totalSessions.toLocaleString()}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
-                <span className={metrics.analytics.comparison.sessionsChange >= 0 ? 'text-green-600' : 'text-red-600'}>
+                <span
+                  className={
+                    metrics.analytics.comparison.sessionsChange >= 0
+                      ? 'text-green-600'
+                      : 'text-red-600'
+                  }
+                >
                   {metrics.analytics.comparison.sessionsChange >= 0 ? '+' : ''}
                   {metrics.analytics.comparison.sessionsChange.toFixed(1)}%
-                </span> from last period
+                </span>{' '}
+                from last period
               </p>
             </CardContent>
           </Card>
@@ -374,12 +399,21 @@ export const GoogleServicesHub = () => {
               <Eye className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metrics.analytics.totalUsers.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                {metrics.analytics.totalUsers.toLocaleString()}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
-                <span className={metrics.analytics.comparison.usersChange >= 0 ? 'text-green-600' : 'text-red-600'}>
+                <span
+                  className={
+                    metrics.analytics.comparison.usersChange >= 0
+                      ? 'text-green-600'
+                      : 'text-red-600'
+                  }
+                >
                   {metrics.analytics.comparison.usersChange >= 0 ? '+' : ''}
                   {metrics.analytics.comparison.usersChange.toFixed(1)}%
-                </span> from last period
+                </span>{' '}
+                from last period
               </p>
             </CardContent>
           </Card>
@@ -390,12 +424,21 @@ export const GoogleServicesHub = () => {
               <MousePointerClick className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metrics.analytics.conversions.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                {metrics.analytics.conversions.toLocaleString()}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
-                <span className={metrics.analytics.comparison.conversionsChange >= 0 ? 'text-green-600' : 'text-red-600'}>
+                <span
+                  className={
+                    metrics.analytics.comparison.conversionsChange >= 0
+                      ? 'text-green-600'
+                      : 'text-red-600'
+                  }
+                >
                   {metrics.analytics.comparison.conversionsChange >= 0 ? '+' : ''}
                   {metrics.analytics.comparison.conversionsChange.toFixed(1)}%
-                </span> from last period
+                </span>{' '}
+                from last period
               </p>
             </CardContent>
           </Card>
@@ -454,11 +497,20 @@ export const GoogleServicesHub = () => {
               </CardHeader>
               <CardContent>
                 {metrics?.analytics.last7Days.map((day, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-2 border-b last:border-0">
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between py-2 border-b last:border-0"
+                  >
                     <span className="text-sm">{new Date(day.date).toLocaleDateString()}</span>
                     <div className="flex gap-4 text-sm">
-                      <span><BarChart3 className="h-3 w-3 inline mr-1" />{day.sessions}</span>
-                      <span><Users className="h-3 w-3 inline mr-1" />{day.users}</span>
+                      <span>
+                        <BarChart3 className="h-3 w-3 inline mr-1" />
+                        {day.sessions}
+                      </span>
+                      <span>
+                        <Users className="h-3 w-3 inline mr-1" />
+                        {day.users}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -488,7 +540,7 @@ export const GoogleServicesHub = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Last Sync</span>
                       <span className="text-sm text-muted-foreground">
-                        {metrics?.sheets.lastSyncTime 
+                        {metrics?.sheets.lastSyncTime
                           ? new Date(metrics.sheets.lastSyncTime).toLocaleString()
                           : 'Never'}
                       </span>
@@ -526,7 +578,9 @@ export const GoogleServicesHub = () => {
                     <div key={idx} className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="text-sm font-medium">{source.source}</div>
-                        <div className="text-xs text-muted-foreground">{source.sessions} sessions</div>
+                        <div className="text-xs text-muted-foreground">
+                          {source.sessions} sessions
+                        </div>
                       </div>
                       <div className="text-sm font-bold">{source.percentage.toFixed(1)}%</div>
                     </div>
@@ -546,7 +600,9 @@ export const GoogleServicesHub = () => {
                     <div key={idx} className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="text-sm font-medium capitalize">{device.device}</div>
-                        <div className="text-xs text-muted-foreground">{device.sessions} sessions</div>
+                        <div className="text-xs text-muted-foreground">
+                          {device.sessions} sessions
+                        </div>
                       </div>
                       <div className="text-sm font-bold">{device.percentage.toFixed(1)}%</div>
                     </div>
@@ -567,7 +623,10 @@ export const GoogleServicesHub = () => {
             <CardContent>
               <div className="space-y-2">
                 {metrics?.seo.topKeywords.map((keyword, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-2 border-b last:border-0">
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between py-2 border-b last:border-0"
+                  >
                     <div>
                       <div className="text-sm font-medium">{keyword.keyword}</div>
                       <div className="text-xs text-muted-foreground">{keyword.clicks} clicks</div>
@@ -592,11 +651,18 @@ export const GoogleServicesHub = () => {
             <CardContent>
               <div className="space-y-2">
                 {syncLogs.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between py-3 border-b last:border-0">
+                  <div
+                    key={log.id}
+                    className="flex items-center justify-between py-3 border-b last:border-0"
+                  >
                     <div className="flex items-center gap-3">
-                      {log.status === 'success' && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                      {log.status === 'success' && (
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      )}
                       {log.status === 'failed' && <XCircle className="h-4 w-4 text-red-600" />}
-                      {log.status === 'running' && <Clock className="h-4 w-4 text-blue-600 animate-spin" />}
+                      {log.status === 'running' && (
+                        <Clock className="h-4 w-4 text-blue-600 animate-spin" />
+                      )}
                       <div>
                         <div className="text-sm font-medium capitalize">{log.service}</div>
                         <div className="text-xs text-muted-foreground">
@@ -605,7 +671,15 @@ export const GoogleServicesHub = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <Badge variant={log.status === 'success' ? 'default' : log.status === 'failed' ? 'destructive' : 'secondary'}>
+                      <Badge
+                        variant={
+                          log.status === 'success'
+                            ? 'default'
+                            : log.status === 'failed'
+                              ? 'destructive'
+                              : 'secondary'
+                        }
+                      >
                         {log.status}
                       </Badge>
                       {log.records_synced > 0 && (

@@ -1,27 +1,27 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Search, 
-  Star, 
-  Clock, 
-  Users, 
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Search,
+  Star,
+  Clock,
+  Users,
   Zap,
   TrendingUp,
   DollarSign,
   Sparkles,
   LogIn,
-  User
-} from "lucide-react";
-import { MVP_AGENTS, MVPAgent } from "@/data/mvp-agents";
-import { useToast } from "@/hooks/use-toast";
-import { activateAgent } from "@/lib/marketplace/service";
-import { LoginModal } from "@/components/auth/LoginModal";
-import { supabase } from "@/integrations/supabase/client";
+  User,
+} from 'lucide-react';
+import { MVP_AGENTS, MVPAgent } from '@/data/mvp-agents';
+import { useToast } from '@/hooks/use-toast';
+import { activateAgent } from '@/lib/marketplace/service';
+import { LoginModal } from '@/components/auth/LoginModal';
+import { supabase } from '@/integrations/supabase/client';
 
 const CATEGORIES = [
   { id: 'all', label: 'All Agents', icon: '🎯' },
@@ -35,8 +35,8 @@ const CATEGORIES = [
 export const MVPMarketplace = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [user, setUser] = useState<any>(null);
 
@@ -47,7 +47,9 @@ export const MVPMarketplace = () => {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
@@ -55,37 +57,35 @@ export const MVPMarketplace = () => {
   }, []);
 
   const filteredAgents = MVP_AGENTS.filter((agent) => {
-    const matchesSearch = 
+    const matchesSearch =
       agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       agent.tagline.toLowerCase().includes(searchQuery.toLowerCase()) ||
       agent.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = 
-      selectedCategory === "all" || 
-      agent.category === selectedCategory;
-    
+
+    const matchesCategory = selectedCategory === 'all' || agent.category === selectedCategory;
+
     return matchesSearch && matchesCategory;
   });
 
   const handleActivate = async (agent: MVPAgent) => {
     try {
       console.log('🔍 Activating agent:', agent.id);
-      
+
       const result = await activateAgent(agent);
-      
+
       console.log('✅ Activation result:', result);
-      
+
       toast({
-        title: "🎉 Agent Activated!",
+        title: '🎉 Agent Activated!',
         description: `${agent.name} is now active. You have ${agent.pricing.free_trial_runs} free runs to try it out.`,
       });
     } catch (error) {
       console.error('❌ Activation error:', error);
-      
+
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to activate agent",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to activate agent',
+        variant: 'destructive',
       });
     }
   };
@@ -97,31 +97,32 @@ export const MVPMarketplace = () => {
   const totalAgents = MVP_AGENTS.length;
   const totalRuns = MVP_AGENTS.reduce((sum, a) => sum + a.metrics.total_runs, 0);
   const totalUsers = MVP_AGENTS.reduce((sum, a) => sum + a.metrics.user_count, 0);
-  const avgRating = (MVP_AGENTS.reduce((sum, a) => sum + a.rating.score, 0) / totalAgents).toFixed(1);
+  const avgRating = (MVP_AGENTS.reduce((sum, a) => sum + a.rating.score, 0) / totalAgents).toFixed(
+    1
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
-        
         {/* Auth Button - Top Right */}
         <div className="flex justify-end">
           {user ? (
             <div className="flex items-center gap-3 bg-slate-800/50 border border-slate-700 px-4 py-2 rounded-lg">
               <User className="w-4 h-4 text-slate-400" />
               <span className="text-sm text-slate-300">{user.email}</span>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={async () => {
                   await supabase.auth.signOut();
-                  toast({ title: "Signed out successfully" });
+                  toast({ title: 'Signed out successfully' });
                 }}
               >
                 Logout
               </Button>
             </div>
           ) : (
-            <Button 
+            <Button
               onClick={() => setShowLoginModal(true)}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
@@ -137,11 +138,11 @@ export const MVPMarketplace = () => {
             <Sparkles className="w-4 h-4 text-indigo-400" />
             <span className="text-sm text-indigo-300">AI Automation Marketplace</span>
           </div>
-          
+
           <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             Browse & Activate AI Agents
           </h1>
-          
+
           <p className="text-xl text-slate-400 max-w-2xl mx-auto">
             Pre-built AI agents ready to automate your work. Pay per use, cancel anytime.
           </p>
@@ -213,8 +214,8 @@ export const MVPMarketplace = () => {
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
           <TabsList className="bg-slate-900/50 border border-slate-800 p-1">
             {CATEGORIES.map((cat) => (
-              <TabsTrigger 
-                key={cat.id} 
+              <TabsTrigger
+                key={cat.id}
                 value={cat.id}
                 className="data-[state=active]:bg-indigo-600"
               >
@@ -228,7 +229,7 @@ export const MVPMarketplace = () => {
             {/* Agent Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAgents.map((agent) => (
-                <Card 
+                <Card
                   key={agent.id}
                   className="bg-slate-900/50 border-slate-800 hover:border-indigo-500/50 transition-all cursor-pointer group"
                   onClick={() => handleViewDetails(agent.id)}
@@ -256,12 +257,8 @@ export const MVPMarketplace = () => {
                     {/* Pricing */}
                     <div className="flex items-baseline gap-2 p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-lg">
                       <DollarSign className="w-5 h-5 text-indigo-400" />
-                      <span className="text-2xl font-bold text-white">
-                        ${agent.pricing.price}
-                      </span>
-                      <span className="text-sm text-slate-400">
-                        {agent.pricing.unit}
-                      </span>
+                      <span className="text-2xl font-bold text-white">${agent.pricing.price}</span>
+                      <span className="text-sm text-slate-400">{agent.pricing.unit}</span>
                     </div>
 
                     {/* Free Trial Badge */}
@@ -284,17 +281,17 @@ export const MVPMarketplace = () => {
                     {/* Use Cases Preview */}
                     <div className="flex flex-wrap gap-1">
                       {agent.use_cases.slice(0, 2).map((useCase) => (
-                        <Badge 
-                          key={useCase} 
-                          variant="outline" 
+                        <Badge
+                          key={useCase}
+                          variant="outline"
                           className="text-xs border-slate-700 text-slate-400"
                         >
                           {useCase}
                         </Badge>
                       ))}
                       {agent.use_cases.length > 2 && (
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className="text-xs border-slate-700 text-slate-400"
                         >
                           +{agent.use_cases.length - 2} more
@@ -304,7 +301,7 @@ export const MVPMarketplace = () => {
 
                     {/* Actions */}
                     <div className="flex gap-2 pt-2">
-                      <Button 
+                      <Button
                         className="flex-1 bg-indigo-600 hover:bg-indigo-700"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -314,8 +311,8 @@ export const MVPMarketplace = () => {
                         <Zap className="w-4 h-4 mr-2" />
                         Activate
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="border-slate-700 hover:bg-slate-800"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -335,9 +332,7 @@ export const MVPMarketplace = () => {
               <div className="text-center py-20">
                 <div className="text-6xl mb-4">🔍</div>
                 <h3 className="text-2xl font-bold text-white mb-2">No agents found</h3>
-                <p className="text-slate-400">
-                  Try adjusting your search or browse all categories
-                </p>
+                <p className="text-slate-400">Try adjusting your search or browse all categories</p>
               </div>
             )}
           </TabsContent>
@@ -346,9 +341,7 @@ export const MVPMarketplace = () => {
         {/* CTA Section */}
         <Card className="bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border-indigo-500/30">
           <CardContent className="p-8 text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Can't find what you need?
-            </h2>
+            <h2 className="text-3xl font-bold text-white mb-4">Can't find what you need?</h2>
             <p className="text-slate-300 mb-6">
               Request a custom agent or build your own with our Agent Builder
             </p>
@@ -362,15 +355,14 @@ export const MVPMarketplace = () => {
             </div>
           </CardContent>
         </Card>
-
       </div>
 
       {/* Login Modal */}
-      <LoginModal 
-        open={showLoginModal} 
+      <LoginModal
+        open={showLoginModal}
         onOpenChange={setShowLoginModal}
         onSuccess={() => {
-          toast({ title: "Login successful!", description: "You can now activate agents" });
+          toast({ title: 'Login successful!', description: 'You can now activate agents' });
         }}
       />
     </div>

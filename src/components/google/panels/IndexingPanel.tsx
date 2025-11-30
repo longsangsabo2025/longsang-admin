@@ -10,16 +10,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Search, 
-  Send, 
-  RefreshCw, 
-  CheckCircle2, 
+import {
+  Search,
+  Send,
+  RefreshCw,
+  CheckCircle2,
   XCircle,
   Loader2,
   Globe,
   TrendingUp,
-  Link2
+  Link2,
 } from 'lucide-react';
 import { submitUrlToGoogle, batchSubmitUrls, getIndexingStats } from '@/lib/google/indexing-api';
 import { toast } from 'sonner';
@@ -28,7 +28,7 @@ export const IndexingPanel = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [stats, setStats] = useState<any>(null);
-  
+
   const [singleUrl, setSingleUrl] = useState('');
   const [batchUrls, setBatchUrls] = useState('');
   const [mode, setMode] = useState<'single' | 'batch'>('single');
@@ -55,7 +55,7 @@ export const IndexingPanel = () => {
         toast.error('Please enter a URL');
         return;
       }
-      
+
       try {
         setSubmitting(true);
         await submitUrlToGoogle(singleUrl);
@@ -72,8 +72,8 @@ export const IndexingPanel = () => {
         toast.error('Please enter URLs');
         return;
       }
-      
-      const urls = batchUrls.split('\n').filter(url => url.trim());
+
+      const urls = batchUrls.split('\n').filter((url) => url.trim());
       if (urls.length === 0) {
         toast.error('No valid URLs found');
         return;
@@ -149,13 +149,11 @@ export const IndexingPanel = () => {
             <Search className="h-5 w-5" />
             Submit URLs for Indexing
           </CardTitle>
-          <CardDescription>
-            Submit URLs to Google for faster indexing (SEO)
-          </CardDescription>
+          <CardDescription>Submit URLs to Google for faster indexing (SEO)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
-            <Button 
+            <Button
               variant={mode === 'single' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setMode('single')}
@@ -163,7 +161,7 @@ export const IndexingPanel = () => {
               <Link2 className="h-4 w-4 mr-2" />
               Single URL
             </Button>
-            <Button 
+            <Button
               variant={mode === 'batch' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setMode('batch')}
@@ -195,7 +193,7 @@ export const IndexingPanel = () => {
                 onChange={(e) => setBatchUrls(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                {batchUrls.split('\n').filter(u => u.trim()).length} URLs entered
+                {batchUrls.split('\n').filter((u) => u.trim()).length} URLs entered
               </p>
             </div>
           )}
@@ -232,7 +230,10 @@ export const IndexingPanel = () => {
           <CardContent>
             <div className="space-y-2">
               {stats.recentLogs.map((log: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between py-2 border-b last:border-0">
+                <div
+                  key={idx}
+                  className="flex items-center justify-between py-2 border-b last:border-0"
+                >
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate">{log.url}</div>
                     <div className="text-xs text-muted-foreground">

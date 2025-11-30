@@ -4,10 +4,22 @@
 // UI component for scheduling agent runs
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Calendar, Clock } from 'lucide-react';
@@ -29,7 +41,11 @@ interface AgentScheduleModalProps {
   onUpdate: () => void;
 }
 
-export function AgentScheduleModal({ agentId, currentSchedule, onUpdate }: AgentScheduleModalProps) {
+export function AgentScheduleModal({
+  agentId,
+  currentSchedule,
+  onUpdate,
+}: AgentScheduleModalProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [schedule, setSchedule] = useState<ScheduleConfig>(
@@ -56,7 +72,7 @@ export function AgentScheduleModal({ agentId, currentSchedule, onUpdate }: Agent
       // If enabled, create automation trigger
       if (schedule.enabled) {
         const cronExpression = generateCronExpression(schedule);
-        
+
         await supabase.from('automation_triggers').upsert({
           agent_id: agentId,
           trigger_type: 'schedule',
@@ -144,7 +160,9 @@ export function AgentScheduleModal({ agentId, currentSchedule, onUpdate }: Agent
                     type="number"
                     min="1"
                     value={schedule.interval || 1}
-                    onChange={(e) => setSchedule({ ...schedule, interval: parseInt(e.target.value) })}
+                    onChange={(e) =>
+                      setSchedule({ ...schedule, interval: parseInt(e.target.value) })
+                    }
                   />
                 </div>
               )}
@@ -225,15 +243,23 @@ function generateCronExpression(schedule: ScheduleConfig): string {
 
 function getScheduleSummary(schedule: ScheduleConfig): string {
   if (!schedule.enabled) return 'Scheduling is disabled';
-  
+
   switch (schedule.frequency) {
     case 'hourly':
       return 'Runs every hour';
     case 'daily':
       return `Runs daily at ${schedule.time}`;
     case 'weekly':
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const days = (schedule.days || [1]).map(d => dayNames[d]).join(', ');
+      const dayNames = [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+      ];
+      const days = (schedule.days || [1]).map((d) => dayNames[d]).join(', ');
       return `Runs weekly on ${days} at ${schedule.time}`;
     case 'monthly':
       return 'Runs on the first day of each month at 9:00 AM';

@@ -1,11 +1,11 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { AlertCircle, CheckCircle, RefreshCw, Save } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { AlertCircle, CheckCircle, RefreshCw, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface KnowledgeBase {
   personal: {
@@ -59,19 +59,19 @@ export default function KnowledgeBaseEditor() {
   const loadKB = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3001/api/knowledge-base");
+      const response = await fetch('http://localhost:3001/api/knowledge-base');
       const data = await response.json();
       setKb(data);
 
       toast({
-        title: "Knowledge Base Loaded",
-        description: "Successfully loaded from file",
+        title: 'Knowledge Base Loaded',
+        description: 'Successfully loaded from file',
       });
     } catch (error) {
       toast({
-        title: "Load Failed",
-        description: "Could not load knowledge base",
-        variant: "destructive",
+        title: 'Load Failed',
+        description: 'Could not load knowledge base',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -81,16 +81,16 @@ export default function KnowledgeBaseEditor() {
   const saveKB = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3001/api/knowledge-base", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('http://localhost:3001/api/knowledge-base', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(kb),
       });
 
       if (response.ok) {
         toast({
-          title: "Saved Successfully",
-          description: "Knowledge base updated",
+          title: 'Saved Successfully',
+          description: 'Knowledge base updated',
         });
 
         // Validate after save
@@ -98,9 +98,9 @@ export default function KnowledgeBaseEditor() {
       }
     } catch (error) {
       toast({
-        title: "Save Failed",
-        description: "Could not save knowledge base",
-        variant: "destructive",
+        title: 'Save Failed',
+        description: 'Could not save knowledge base',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -110,27 +110,27 @@ export default function KnowledgeBaseEditor() {
   const validateKB = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3001/api/knowledge-base/validate");
+      const response = await fetch('http://localhost:3001/api/knowledge-base/validate');
       const data = await response.json();
       setValidationStatus(data);
 
       if (data.valid) {
         toast({
-          title: "Validation Passed",
-          description: "Knowledge base is valid",
+          title: 'Validation Passed',
+          description: 'Knowledge base is valid',
         });
       } else {
         toast({
-          title: "Validation Failed",
+          title: 'Validation Failed',
           description: `${data.errors.length} errors found`,
-          variant: "destructive",
+          variant: 'destructive',
         });
       }
     } catch (error) {
       toast({
-        title: "Validation Failed",
-        description: "Could not validate knowledge base",
-        variant: "destructive",
+        title: 'Validation Failed',
+        description: 'Could not validate knowledge base',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);

@@ -24,18 +24,14 @@ export const autoSEOTasks = {
    */
   async dailyPerformanceReport(siteUrl: string) {
     console.log('🔄 Running daily performance report...');
-    
+
     try {
       const today = new Date().toISOString().split('T')[0];
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
         .toISOString()
         .split('T')[0];
 
-      const data = await searchConsoleAPI.getPerformance(
-        siteUrl,
-        sevenDaysAgo,
-        today
-      );
+      const data = await searchConsoleAPI.getPerformance(siteUrl, sevenDaysAgo, today);
 
       // Phân tích data
       const summary = {
@@ -53,7 +49,7 @@ export const autoSEOTasks = {
       });
 
       summary.avgCTR = (summary.totalClicks / summary.totalImpressions) * 100;
-      
+
       // Sort top queries
       summary.topQueries = data
         .sort((a: any, b: any) => (b.clicks || 0) - (a.clicks || 0))
@@ -80,16 +76,16 @@ export const autoSEOTasks = {
    */
   async autoSubmitNewContent(urls: string[]) {
     console.log('🔄 Auto-submitting new content to Google...');
-    
+
     const results = [];
 
     for (const url of urls) {
       try {
         await indexingAPI.requestIndexing(url);
         results.push({ url, status: 'success' });
-        
+
         // Rate limiting: Wait 1 second between requests
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
         console.error(`❌ Failed to submit ${url}:`, error);
         results.push({ url, status: 'failed', error });
@@ -106,20 +102,14 @@ export const autoSEOTasks = {
    */
   async monitorKeywordRankings(siteUrl: string, targetKeywords: string[]) {
     console.log('🔄 Monitoring keyword rankings...');
-    
+
     try {
       const today = new Date().toISOString().split('T')[0];
-      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split('T')[0];
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-      const data = await searchConsoleAPI.getPerformance(
-        siteUrl,
-        yesterday,
-        today
-      );
+      const data = await searchConsoleAPI.getPerformance(siteUrl, yesterday, today);
 
-      const rankings = targetKeywords.map(keyword => {
+      const rankings = targetKeywords.map((keyword) => {
         const keywordData = data.find(
           (row: any) => row.keys?.[0]?.toLowerCase() === keyword.toLowerCase()
         );
@@ -148,18 +138,19 @@ export const autoSEOTasks = {
    */
   async weeklyAnalyticsSummary(propertyId: string) {
     console.log('🔄 Generating weekly analytics summary...');
-    
+
     try {
       const data = await analyticsAPI.getTopPages(propertyId, 7);
 
       const summary = {
         weekStartDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
         weekEndDate: new Date().toISOString(),
-        topPages: data.rows?.slice(0, 10).map((row: any) => ({
-          page: row.dimensionValues?.[0]?.value,
-          pageViews: parseInt(row.metricValues?.[0]?.value || '0'),
-          avgSessionDuration: parseFloat(row.metricValues?.[1]?.value || '0'),
-        })) || [],
+        topPages:
+          data.rows?.slice(0, 10).map((row: any) => ({
+            page: row.dimensionValues?.[0]?.value,
+            pageViews: parseInt(row.metricValues?.[0]?.value || '0'),
+            avgSessionDuration: parseFloat(row.metricValues?.[1]?.value || '0'),
+          })) || [],
       };
 
       console.log('✅ Weekly summary completed:', summary);
@@ -176,7 +167,7 @@ export const autoSEOTasks = {
    */
   async autoGenerateAndSubmitSitemap(siteUrl: string, sitemapUrl: string) {
     console.log('🔄 Auto-generating and submitting sitemap...');
-    
+
     try {
       // Submit sitemap to Google
       await searchConsoleAPI.submitSitemap(siteUrl, sitemapUrl);
@@ -193,12 +184,9 @@ export const autoSEOTasks = {
    * 🔔 Task 6: Alert on Ranking Drops
    * Cảnh báo khi có keyword giảm thứ hạng đáng kể
    */
-  async alertOnRankingDrops(
-    siteUrl: string,
-    thresholdDrop: number = 5
-  ) {
+  async alertOnRankingDrops(siteUrl: string, thresholdDrop: number = 5) {
     console.log('🔄 Checking for ranking drops...');
-    
+
     try {
       const today = new Date().toISOString().split('T')[0];
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -209,11 +197,7 @@ export const autoSEOTasks = {
         .split('T')[0];
 
       // Get current week data
-      const currentData = await searchConsoleAPI.getPerformance(
-        siteUrl,
-        sevenDaysAgo,
-        today
-      );
+      const currentData = await searchConsoleAPI.getPerformance(siteUrl, sevenDaysAgo, today);
 
       // Get previous week data
       const previousData = await searchConsoleAPI.getPerformance(
@@ -227,13 +211,11 @@ export const autoSEOTasks = {
 
       currentData.forEach((current: any) => {
         const query = current.keys?.[0];
-        const previous = previousData.find(
-          (p: any) => p.keys?.[0] === query
-        );
+        const previous = previousData.find((p: any) => p.keys?.[0] === query);
 
         if (previous) {
           const positionDrop = current.position - previous.position;
-          
+
           if (positionDrop >= thresholdDrop) {
             alerts.push({
               query,
@@ -305,14 +287,17 @@ export class SEOScheduler {
    */
   start() {
     console.log('🚀 SEO Scheduler started');
-    
+
     // Run immediately
     this.runScheduledTasks();
 
     // Then run every hour
-    this.intervalId = setInterval(() => {
-      this.runScheduledTasks();
-    }, 60 * 60 * 1000); // 1 hour
+    this.intervalId = setInterval(
+      () => {
+        this.runScheduledTasks();
+      },
+      60 * 60 * 1000
+    ); // 1 hour
   }
 
   /**
@@ -327,12 +312,12 @@ export class SEOScheduler {
 
   private async runScheduledTasks() {
     const now = new Date();
-    
+
     console.log('⏰ Running scheduled SEO tasks at', now.toISOString());
 
     for (const task of this.tasks) {
       const shouldRun = this.shouldRunTask(task, now);
-      
+
       if (shouldRun) {
         await this.runTask(task);
       }
@@ -342,8 +327,7 @@ export class SEOScheduler {
   private shouldRunTask(task: SEOTask, now: Date): boolean {
     if (!task.lastRun) return true;
 
-    const hoursSinceLastRun = 
-      (now.getTime() - task.lastRun.getTime()) / (1000 * 60 * 60);
+    const hoursSinceLastRun = (now.getTime() - task.lastRun.getTime()) / (1000 * 60 * 60);
 
     switch (task.frequency) {
       case 'daily':
@@ -364,10 +348,10 @@ export class SEOScheduler {
 
       // Run the appropriate task
       // (You'll need to pass siteUrl and other params from config)
-      
+
       task.status = 'completed';
       task.lastRun = new Date();
-      
+
       console.log(`✅ Task completed: ${task.name}`);
     } catch (error) {
       task.status = 'failed';

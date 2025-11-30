@@ -32,26 +32,16 @@ export function UserProfile() {
   if (!user) {
     return (
       <>
-        <Button
-          onClick={() => setShowLoginModal(true)}
-          variant="outline"
-          size="sm"
-        >
+        <Button onClick={() => setShowLoginModal(true)} variant="outline" size="sm">
           Sign In
         </Button>
-        <LoginModal
-          open={showLoginModal}
-          onOpenChange={setShowLoginModal}
-        />
+        <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />
       </>
     );
   }
 
   const userEmail = user.email || 'User';
-  const initials = userEmail
-    .split('@')[0]
-    .substring(0, 2)
-    .toUpperCase();
+  const initials = userEmail.split('@')[0].substring(0, 2).toUpperCase();
 
   return (
     <DropdownMenu>
@@ -66,9 +56,7 @@ export function UserProfile() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">Account</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {userEmail}
-            </p>
+            <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

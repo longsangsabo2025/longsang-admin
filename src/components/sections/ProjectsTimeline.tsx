@@ -1,34 +1,34 @@
-import { ArrowRight } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const ProjectsTimeline = () => {
   const { t } = useTranslation();
 
   const projects = [
     {
-      titleKey: "projects.ecommerce.title",
-      descriptionKey: "projects.ecommerce.description",
-      techStack: ["Python", "Zapier", "Shopify", "PostgreSQL"],
-      image: "/images/ecommerce-automation.jpg",
+      titleKey: 'projects.ecommerce.title',
+      descriptionKey: 'projects.ecommerce.description',
+      techStack: ['Python', 'Zapier', 'Shopify', 'PostgreSQL'],
+      image: '/images/ecommerce-automation.jpg',
     },
     {
-      titleKey: "projects.analytics.title",
-      descriptionKey: "projects.analytics.description",
-      techStack: ["React", "Node.js", "PostgreSQL", "Chart.js"],
-      image: "/images/analytics-dashboard.jpg",
+      titleKey: 'projects.analytics.title',
+      descriptionKey: 'projects.analytics.description',
+      techStack: ['React', 'Node.js', 'PostgreSQL', 'Chart.js'],
+      image: '/images/analytics-dashboard.jpg',
     },
     {
-      titleKey: "projects.aiDoc.title",
-      descriptionKey: "projects.aiDoc.description",
-      techStack: ["OpenAI", "Python", "Firebase", "Cloud Functions"],
-      image: "/images/ai-document-processor.jpg",
+      titleKey: 'projects.aiDoc.title',
+      descriptionKey: 'projects.aiDoc.description',
+      techStack: ['OpenAI', 'Python', 'Firebase', 'Cloud Functions'],
+      image: '/images/ai-document-processor.jpg',
     },
   ];
 
   const scrollToContact = () => {
-    const element = document.querySelector("#contact");
+    const element = document.querySelector('#contact');
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -40,10 +40,10 @@ export const ProjectsTimeline = () => {
         {/* Section Header */}
         <div className="text-center mb-8 md:mb-12">
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary mb-4">
-            {t("projects.header")}
+            {t('projects.header')}
           </p>
           <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-            {t("projects.subtitle")}
+            {t('projects.subtitle')}
           </h2>
         </div>
 
@@ -59,7 +59,7 @@ export const ProjectsTimeline = () => {
                 key={project.titleKey}
                 className="relative md:ml-12"
                 style={{
-                  animation: "fade-in 0.6s ease-out forwards",
+                  animation: 'fade-in 0.6s ease-out forwards',
                   animationDelay: `${index * 200}ms`,
                   opacity: 0,
                 }}
@@ -81,7 +81,7 @@ export const ProjectsTimeline = () => {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           // Fallback to gradient background if image fails
-                          e.currentTarget.style.display = "none";
+                          e.currentTarget.style.display = 'none';
                         }}
                       />
                     </div>
@@ -116,7 +116,7 @@ export const ProjectsTimeline = () => {
                       onClick={scrollToContact}
                       className="inline-flex items-center gap-2 text-base font-medium text-primary hover:text-accent transition-colors duration-200 group/link mt-auto"
                     >
-                      {t("projects.viewDetails")}
+                      {t('projects.viewDetails')}
                       <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform duration-200" />
                     </button>
                   </div>

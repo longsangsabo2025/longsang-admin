@@ -7,12 +7,12 @@
  * @version 1.0.0
  */
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Bot, Play, CheckCircle, XCircle, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Bot, Play, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -55,7 +55,7 @@ export function MultiAgentOrchestrator({ command }: { command?: string }) {
       const response = await fetch(`${API_BASE}/api/ai/orchestrate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ command: cmd })
+        body: JSON.stringify({ command: cmd }),
       });
 
       const data = await response.json();
@@ -67,7 +67,7 @@ export function MultiAgentOrchestrator({ command }: { command?: string }) {
           agent: r.agent,
           role: `Agent ${i + 1}`,
           status: r.status === 'completed' ? 'completed' : 'failed',
-          result: r.result
+          result: r.result,
         }));
 
         setTasks(agentTasks);
@@ -78,9 +78,9 @@ export function MultiAgentOrchestrator({ command }: { command?: string }) {
     } catch (error) {
       console.error('Error orchestrating agents:', error);
       toast({
-        title: "❌ Lỗi",
-        description: error instanceof Error ? error.message : "Không thể orchestrate agents",
-        variant: "destructive"
+        title: '❌ Lỗi',
+        description: error instanceof Error ? error.message : 'Không thể orchestrate agents',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -130,9 +130,13 @@ export function MultiAgentOrchestrator({ command }: { command?: string }) {
                   </div>
                   <Badge
                     variant={
-                      task.status === 'completed' ? 'default' :
-                      task.status === 'failed' ? 'destructive' :
-                      task.status === 'running' ? 'secondary' : 'outline'
+                      task.status === 'completed'
+                        ? 'default'
+                        : task.status === 'failed'
+                          ? 'destructive'
+                          : task.status === 'running'
+                            ? 'secondary'
+                            : 'outline'
                     }
                   >
                     {task.status === 'completed' && <CheckCircle className="w-3 h-3 mr-1" />}
@@ -164,4 +168,3 @@ export function MultiAgentOrchestrator({ command }: { command?: string }) {
     </Card>
   );
 }
-

@@ -70,28 +70,33 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
 /**
  * Measure performance of an async function
  */
-export async function measurePerformance<T>(
-  name: string,
-  fn: () => Promise<T>
-): Promise<T> {
+export async function measurePerformance<T>(name: string, fn: () => Promise<T>): Promise<T> {
   const start = performance.now();
   try {
     const result = await fn();
     const end = performance.now();
     const duration = end - start;
-    
+
     logger.debug(`Performance: ${name}`, { duration: `${duration.toFixed(2)}ms` }, 'Performance');
-    
+
     // Log slow operations (> 1 second)
     if (duration > 1000) {
-      logger.warn(`Slow operation detected: ${name}`, { duration: `${duration.toFixed(2)}ms` }, 'Performance');
+      logger.warn(
+        `Slow operation detected: ${name}`,
+        { duration: `${duration.toFixed(2)}ms` },
+        'Performance'
+      );
     }
-    
+
     return result;
   } catch (error) {
     const end = performance.now();
     logger.error(`Performance measurement failed: ${name}`, error, 'Performance');
-    logger.debug(`Failed operation duration`, { duration: `${(end - start).toFixed(2)}ms` }, 'Performance');
+    logger.debug(
+      `Failed operation duration`,
+      { duration: `${(end - start).toFixed(2)}ms` },
+      'Performance'
+    );
     throw error;
   }
 }
@@ -150,9 +155,7 @@ export function memoize<T extends (...args: unknown[]) => unknown>(
   const cache = new Map<string, ReturnType<T>>();
 
   return ((...args: Parameters<T>): ReturnType<T> => {
-    const key = keyGenerator 
-      ? keyGenerator(...args)
-      : JSON.stringify(args);
+    const key = keyGenerator ? keyGenerator(...args) : JSON.stringify(args);
 
     if (cache.has(key)) {
       return cache.get(key)!;
@@ -181,7 +184,7 @@ export function preloadResource(url: string, type: 'script' | 'style' | 'image' 
   const link = document.createElement('link');
   link.rel = 'preload';
   link.href = url;
-  
+
   switch (type) {
     case 'script':
       link.as = 'script';
@@ -197,7 +200,7 @@ export function preloadResource(url: string, type: 'script' | 'style' | 'image' 
       link.crossOrigin = 'anonymous';
       break;
   }
-  
+
   document.head.appendChild(link);
   logger.debug(`Preloading resource: ${type}`, { url }, 'Performance');
 }
@@ -220,14 +223,14 @@ export class BatchProcessor<T, R> {
       this.queue.push(item);
 
       if (this.queue.length >= this.maxBatchSize) {
-        void this.flush().then(results => {
+        void this.flush().then((results) => {
           const lastResult = results.at(-1);
           resolve(lastResult ?? ({} as R));
         });
       } else {
         if (this.timer) clearTimeout(this.timer);
         this.timer = setTimeout(() => {
-          void this.flush().then(results => {
+          void this.flush().then((results) => {
             const lastResult = results.at(-1);
             resolve(lastResult ?? ({} as R));
           });
@@ -238,10 +241,10 @@ export class BatchProcessor<T, R> {
 
   private async flush(): Promise<R[]> {
     if (this.queue.length === 0) return [];
-    
+
     const items = [...this.queue];
     this.queue = [];
-    
+
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;

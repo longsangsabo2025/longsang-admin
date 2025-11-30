@@ -1,30 +1,22 @@
 /**
  * n8n API Client
- * 
+ *
  * Low-level API client for n8n REST API
  */
 
-import type { 
-  N8nWorkflow, 
-  N8nExecution, 
-  N8nCredential, 
-  N8nTag, 
-  N8nConfig, 
-  N8nNode 
-} from './types';
+import type { N8nWorkflow, N8nExecution, N8nCredential, N8nTag, N8nConfig, N8nNode } from './types';
 
 // ============================================================
 // CONFIGURATION
 // ============================================================
 
 const getN8nConfig = (): N8nConfig => {
-  const baseUrl = import.meta.env.VITE_N8N_BASE_URL || 
-                  localStorage.getItem('n8n_base_url') || 
-                  'http://localhost:5678';
-  
-  const apiKey = import.meta.env.VITE_N8N_API_KEY || 
-                 localStorage.getItem('n8n_api_key') || 
-                 '';
+  const baseUrl =
+    import.meta.env.VITE_N8N_BASE_URL ||
+    localStorage.getItem('n8n_base_url') ||
+    'http://localhost:5678';
+
+  const apiKey = import.meta.env.VITE_N8N_API_KEY || localStorage.getItem('n8n_api_key') || '';
 
   return { baseUrl, apiKey };
 };
@@ -50,14 +42,14 @@ const createHeaders = (): HeadersInit => {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
-  
+
   if (!import.meta.env.DEV) {
     const { apiKey } = getN8nConfig();
     if (apiKey) {
       headers['X-N8N-API-KEY'] = apiKey;
     }
   }
-  
+
   return headers;
 };
 
@@ -74,11 +66,12 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 // ============================================================
 
 function detectTriggerType(nodes: N8nNode[]): string {
-  const triggerNode = nodes.find(n => 
-    n.type.includes('Trigger') || 
-    n.type.includes('webhook') ||
-    n.type.includes('Schedule') ||
-    n.type.includes('Cron')
+  const triggerNode = nodes.find(
+    (n) =>
+      n.type.includes('Trigger') ||
+      n.type.includes('webhook') ||
+      n.type.includes('Schedule') ||
+      n.type.includes('Cron')
   );
 
   if (!triggerNode) return 'manual';
@@ -90,7 +83,7 @@ function detectTriggerType(nodes: N8nNode[]): string {
   if (type.includes('telegram')) return 'telegram';
   if (type.includes('slack')) return 'slack';
   if (type.includes('discord')) return 'discord';
-  
+
   return 'trigger';
 }
 
@@ -101,7 +94,7 @@ function extractDescription(workflow: N8nWorkflow): string {
   const nodes = workflow.nodes || [];
   if (nodes.length === 0) return 'Empty workflow';
 
-  const nodeTypes = [...new Set(nodes.map(n => n.type.replace('n8n-nodes-base.', '')))];
+  const nodeTypes = [...new Set(nodes.map((n) => n.type.replace('n8n-nodes-base.', '')))];
   return `${nodes.length} nodes: ${nodeTypes.slice(0, 3).join(', ')}${nodeTypes.length > 3 ? '...' : ''}`;
 }
 
@@ -113,7 +106,7 @@ export const n8nWorkflowsApi = {
   async list(): Promise<N8nWorkflow[]> {
     const { apiKey } = getN8nConfig();
     const apiUrl = getApiUrl();
-    
+
     if (!apiKey && !import.meta.env.DEV) {
       throw new Error('n8n API key not configured. Please set it in Settings.');
     }
@@ -121,7 +114,7 @@ export const n8nWorkflowsApi = {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
-    
+
     if (!import.meta.env.DEV && apiKey) {
       headers['X-N8N-API-KEY'] = apiKey;
     }
@@ -132,8 +125,8 @@ export const n8nWorkflowsApi = {
     });
 
     const result = await handleResponse<{ data: N8nWorkflow[] }>(response);
-    
-    return (result.data || []).map(workflow => ({
+
+    return (result.data || []).map((workflow) => ({
       ...workflow,
       nodeCount: workflow.nodes?.length || 0,
       triggerType: detectTriggerType(workflow.nodes || []),
@@ -150,7 +143,7 @@ export const n8nWorkflowsApi = {
     });
 
     if (response.status === 404) return null;
-    
+
     const workflow = await handleResponse<N8nWorkflow>(response);
     return {
       ...workflow,
@@ -162,7 +155,7 @@ export const n8nWorkflowsApi = {
 
   async activate(id: string): Promise<N8nWorkflow> {
     const apiUrl = getApiUrl();
-    
+
     const response = await fetch(`${apiUrl}/workflows/${id}/activate`, {
       method: 'POST',
       headers: createHeaders(),
@@ -173,7 +166,7 @@ export const n8nWorkflowsApi = {
 
   async deactivate(id: string): Promise<N8nWorkflow> {
     const apiUrl = getApiUrl();
-    
+
     const response = await fetch(`${apiUrl}/workflows/${id}/deactivate`, {
       method: 'POST',
       headers: createHeaders(),
@@ -184,7 +177,7 @@ export const n8nWorkflowsApi = {
 
   async execute(id: string, data?: Record<string, unknown>): Promise<{ executionId: string }> {
     const apiUrl = getApiUrl();
-    
+
     const response = await fetch(`${apiUrl}/workflows/${id}/run`, {
       method: 'POST',
       headers: createHeaders(),
@@ -218,7 +211,7 @@ export const n8nExecutionsApi = {
 
   async getById(id: string): Promise<N8nExecution | null> {
     const apiUrl = getApiUrl();
-    
+
     const response = await fetch(`${apiUrl}/executions/${id}`, {
       method: 'GET',
       headers: createHeaders(),
@@ -230,7 +223,7 @@ export const n8nExecutionsApi = {
 
   async delete(id: string): Promise<void> {
     const apiUrl = getApiUrl();
-    
+
     await fetch(`${apiUrl}/executions/${id}`, {
       method: 'DELETE',
       headers: createHeaders(),
@@ -278,7 +271,7 @@ export const n8nHealthApi = {
   async check(): Promise<{ healthy: boolean; version?: string; error?: string }> {
     const { apiKey } = getN8nConfig();
     const apiUrl = getApiUrl();
-    
+
     if (!import.meta.env.DEV && !apiKey) {
       return { healthy: false, error: 'n8n API key not configured' };
     }
@@ -292,12 +285,12 @@ export const n8nHealthApi = {
       if (response.ok) {
         return { healthy: true };
       }
-      
+
       return { healthy: false, error: `HTTP ${response.status}` };
     } catch (err) {
-      return { 
-        healthy: false, 
-        error: err instanceof Error ? err.message : 'Connection failed' 
+      return {
+        healthy: false,
+        error: err instanceof Error ? err.message : 'Connection failed',
       };
     }
   },

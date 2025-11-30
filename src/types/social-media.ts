@@ -7,23 +7,23 @@
 
 // Supported social media platforms
 export type SocialPlatform =
-  | "linkedin" // LinkedIn (personal + company)
-  | "twitter" // Twitter/X
-  | "facebook" // Facebook Page
-  | "instagram" // Instagram Business
-  | "youtube" // YouTube Channel
-  | "telegram" // Telegram Channel/Group
-  | "discord" // Discord Channel
-  | "threads"; // Threads (Meta)
+  | 'linkedin' // LinkedIn (personal + company)
+  | 'twitter' // Twitter/X
+  | 'facebook' // Facebook Page
+  | 'instagram' // Instagram Business
+  | 'youtube' // YouTube Channel
+  | 'telegram' // Telegram Channel/Group
+  | 'discord' // Discord Channel
+  | 'threads'; // Threads (Meta)
 
 // Platform account types
-export type AccountType = "personal" | "business" | "company" | "channel" | "group";
+export type AccountType = 'personal' | 'business' | 'company' | 'channel' | 'group';
 
 // Post content types
-export type ContentType = "text" | "image" | "video" | "link" | "carousel" | "story" | "reel";
+export type ContentType = 'text' | 'image' | 'video' | 'link' | 'carousel' | 'story' | 'reel';
 
 // Post status
-export type PostStatus = "draft" | "scheduled" | "published" | "failed" | "deleted";
+export type PostStatus = 'draft' | 'scheduled' | 'published' | 'failed' | 'deleted';
 
 /**
  * Platform Configuration Interface
@@ -65,12 +65,12 @@ export interface PlatformCredentials {
  */
 export interface PlatformSettings {
   // Posting preferences
-  defaultVisibility?: "public" | "private" | "connections" | "followers";
+  defaultVisibility?: 'public' | 'private' | 'connections' | 'followers';
   autoHashtags?: boolean;
   maxHashtags?: number;
 
   // Media settings
-  imageQuality?: "high" | "medium" | "low";
+  imageQuality?: 'high' | 'medium' | 'low';
   videoFormat?: string;
   maxFileSize?: number; // in MB
 
@@ -116,7 +116,7 @@ export interface SocialPostRequest {
  * Media Attachment
  */
 export interface MediaAttachment {
-  type: "image" | "video" | "gif";
+  type: 'image' | 'video' | 'gif';
   url: string;
   thumbnail?: string;
   alt?: string;
@@ -131,11 +131,11 @@ export interface MediaAttachment {
  */
 export interface PostOptions {
   // LinkedIn specific
-  linkedinVisibility?: "PUBLIC" | "CONNECTIONS";
+  linkedinVisibility?: 'PUBLIC' | 'CONNECTIONS';
   linkedinCommentable?: boolean;
 
   // Twitter specific
-  twitterReplySettings?: "everyone" | "following" | "mentioned";
+  twitterReplySettings?: 'everyone' | 'following' | 'mentioned';
   twitterQuoteTweet?: boolean;
 
   // Facebook specific
@@ -155,11 +155,11 @@ export interface PostOptions {
   // YouTube specific
   youtubeCategory?: string;
   youtubeTags?: string[];
-  youtubePrivacy?: "public" | "private" | "unlisted";
+  youtubePrivacy?: 'public' | 'private' | 'unlisted';
 
   // Telegram specific
   telegramDisableNotification?: boolean;
-  telegramParseMode?: "Markdown" | "HTML";
+  telegramParseMode?: 'Markdown' | 'HTML';
 
   // Discord specific
   discordEmbed?: boolean;
@@ -263,7 +263,7 @@ export interface PlatformConnection {
     verified?: boolean;
   };
   health: {
-    status: "healthy" | "warning" | "error";
+    status: 'healthy' | 'warning' | 'error';
     lastChecked: Date;
     lastPost?: Date;
     errorCount?: number;
@@ -334,7 +334,7 @@ export interface ContentTemplate {
     optimalTime?: boolean;
     recurring?: {
       enabled: boolean;
-      frequency: "daily" | "weekly" | "monthly";
+      frequency: 'daily' | 'weekly' | 'monthly';
       days?: number[]; // day of week (0-6)
       time?: string; // HH:mm
     };
@@ -358,10 +358,10 @@ export interface SocialCampaign {
   schedule: {
     startDate: Date;
     endDate?: Date;
-    frequency?: "once" | "daily" | "weekly" | "custom";
+    frequency?: 'once' | 'daily' | 'weekly' | 'custom';
   };
 
-  status: "draft" | "active" | "paused" | "completed";
+  status: 'draft' | 'active' | 'paused' | 'completed';
 
   analytics?: {
     totalPosts: number;
@@ -386,14 +386,14 @@ export class SocialMediaError extends Error {
     public details?: any
   ) {
     super(message);
-    this.name = "SocialMediaError";
+    this.name = 'SocialMediaError';
   }
 }
 
 export class AuthenticationError extends SocialMediaError {
-  constructor(platform: SocialPlatform, message: string = "Authentication failed") {
-    super(platform, "AUTH_ERROR", message);
-    this.name = "AuthenticationError";
+  constructor(platform: SocialPlatform, message: string = 'Authentication failed') {
+    super(platform, 'AUTH_ERROR', message);
+    this.name = 'AuthenticationError';
   }
 }
 
@@ -401,16 +401,20 @@ export class RateLimitError extends SocialMediaError {
   constructor(
     platform: SocialPlatform,
     public retryAfter?: number,
-    message: string = "Rate limit exceeded"
+    message: string = 'Rate limit exceeded'
   ) {
-    super(platform, "RATE_LIMIT", message);
-    this.name = "RateLimitError";
+    super(platform, 'RATE_LIMIT', message);
+    this.name = 'RateLimitError';
   }
 }
 
 export class ValidationError extends SocialMediaError {
-  constructor(platform: SocialPlatform, message: string, public field?: string) {
-    super(platform, "VALIDATION_ERROR", message, { field });
-    this.name = "ValidationError";
+  constructor(
+    platform: SocialPlatform,
+    message: string,
+    public field?: string
+  ) {
+    super(platform, 'VALIDATION_ERROR', message, { field });
+    this.name = 'ValidationError';
   }
 }

@@ -57,7 +57,7 @@ export function CostDashboard() {
 
   useEffect(() => {
     loadCostData();
-    
+
     // Real-time subscription
     const subscription = supabase
       .channel('cost_analytics_changes')
@@ -86,10 +86,10 @@ export function CostDashboard() {
 
         const totalCost = analytics.reduce((sum, row) => sum + (row.cost || 0), 0);
         const todayCost = analytics
-          .filter(row => row.created_at.startsWith(today))
+          .filter((row) => row.created_at.startsWith(today))
           .reduce((sum, row) => sum + (row.cost || 0), 0);
         const thisMonthCost = analytics
-          .filter(row => row.created_at.startsWith(thisMonth))
+          .filter((row) => row.created_at.startsWith(thisMonth))
           .reduce((sum, row) => sum + (row.cost || 0), 0);
         const totalTokens = analytics.reduce((sum, row) => sum + (row.tokens_used || 0), 0);
         const avgCostPerRun = totalCost / analytics.length;
@@ -104,7 +104,7 @@ export function CostDashboard() {
 
         // Group by date for chart
         const dailyMap = new Map<string, { cost: number; tokens: number }>();
-        analytics.forEach(row => {
+        analytics.forEach((row) => {
           const date = row.created_at.split('T')[0];
           const existing = dailyMap.get(date) || { cost: 0, tokens: 0 };
           dailyMap.set(date, {
@@ -122,13 +122,11 @@ export function CostDashboard() {
       }
 
       // Get cost by agent
-      const { data: agents } = await supabase
-        .from('ai_agents')
-        .select('id, name, total_runs');
+      const { data: agents } = await supabase.from('ai_agents').select('id, name, total_runs');
 
       if (agents) {
         const agentCostData: AgentCost[] = [];
-        
+
         for (const agent of agents) {
           const { data: agentAnalytics } = await supabase
             .from('cost_analytics')
@@ -137,7 +135,10 @@ export function CostDashboard() {
 
           if (agentAnalytics && agentAnalytics.length > 0) {
             const totalCost = agentAnalytics.reduce((sum, row) => sum + (row.cost || 0), 0);
-            const totalTokens = agentAnalytics.reduce((sum, row) => sum + (row.tokens_used || 0), 0);
+            const totalTokens = agentAnalytics.reduce(
+              (sum, row) => sum + (row.tokens_used || 0),
+              0
+            );
 
             agentCostData.push({
               agent_id: agent.id,
@@ -151,7 +152,6 @@ export function CostDashboard() {
 
         setAgentCosts(agentCostData.sort((a, b) => b.total_cost - a.total_cost));
       }
-
     } catch (error) {
       console.error('Error loading cost data:', error);
     } finally {
@@ -331,9 +331,7 @@ export function CostDashboard() {
                 </div>
               ))}
               {agentCosts.length === 0 && (
-                <p className="text-center text-muted-foreground py-8">
-                  No agents have run yet
-                </p>
+                <p className="text-center text-muted-foreground py-8">No agents have run yet</p>
               )}
             </div>
           </CardContent>

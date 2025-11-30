@@ -3,18 +3,18 @@
  * Visualizes query routing decisions
  */
 
-import { useRouteQuery, useRoutingHistory, useRelevantDomains } from "@/brain/hooks/useMultiDomain";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Route, History, TrendingUp } from "lucide-react";
-import { useState } from "react";
-import { format } from "date-fns";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useRouteQuery, useRoutingHistory, useRelevantDomains } from '@/brain/hooks/useMultiDomain';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Route, History, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function DomainRouter() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const routeMutation = useRouteQuery();
   const { data: routingHistory } = useRoutingHistory(20);
   const { data: relevantDomains, isLoading: isLoadingRelevant } = useRelevantDomains(
@@ -53,7 +53,7 @@ export function DomainRouter() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleRoute();
                 }
@@ -83,7 +83,10 @@ export function DomainRouter() {
               <p className="text-sm font-medium mb-2">Preview - Relevant Domains:</p>
               <div className="space-y-2">
                 {relevantDomains.map((domain) => (
-                  <div key={domain.domainId} className="flex items-center justify-between p-2 border rounded">
+                  <div
+                    key={domain.domainId}
+                    className="flex items-center justify-between p-2 border rounded"
+                  >
                     <div>
                       <p className="font-semibold">{domain.domainName}</p>
                       <p className="text-xs text-muted-foreground">Rank: {domain.rank}</p>
@@ -100,13 +103,18 @@ export function DomainRouter() {
             <div className="mt-4 p-4 bg-muted rounded-md">
               <div className="flex items-center justify-between mb-3">
                 <p className="font-semibold">Routing Decision</p>
-                <Badge variant={routeMutation.data.routingConfidence > 0.7 ? "default" : "secondary"}>
+                <Badge
+                  variant={routeMutation.data.routingConfidence > 0.7 ? 'default' : 'secondary'}
+                >
                   Confidence: {(routeMutation.data.routingConfidence * 100).toFixed(1)}%
                 </Badge>
               </div>
               <div className="space-y-2">
                 {routeMutation.data.selectedDomains.map((domain) => (
-                  <div key={domain.domainId} className="flex items-center justify-between p-2 bg-background rounded">
+                  <div
+                    key={domain.domainId}
+                    className="flex items-center justify-between p-2 bg-background rounded"
+                  >
                     <div>
                       <p className="font-semibold">{domain.domainName}</p>
                       <p className="text-xs text-muted-foreground">Rank: {domain.rank}</p>
@@ -139,10 +147,10 @@ export function DomainRouter() {
                       <div className="flex-1">
                         <p className="font-semibold line-clamp-1">{entry.queryText}</p>
                         <p className="text-xs text-muted-foreground">
-                          {format(new Date(entry.createdAt), "MMM dd, yyyy HH:mm")}
+                          {format(new Date(entry.createdAt), 'MMM dd, yyyy HH:mm')}
                         </p>
                       </div>
-                      <Badge variant={entry.routingConfidence > 0.7 ? "default" : "secondary"}>
+                      <Badge variant={entry.routingConfidence > 0.7 ? 'default' : 'secondary'}>
                         {(entry.routingConfidence * 100).toFixed(0)}%
                       </Badge>
                     </div>
@@ -159,7 +167,9 @@ export function DomainRouter() {
                     {entry.userRating && (
                       <div className="mt-2 flex items-center gap-2">
                         <TrendingUp className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Rating: {entry.userRating}/5</span>
+                        <span className="text-xs text-muted-foreground">
+                          Rating: {entry.userRating}/5
+                        </span>
                       </div>
                     )}
                   </div>
@@ -174,4 +184,3 @@ export function DomainRouter() {
     </div>
   );
 }
-

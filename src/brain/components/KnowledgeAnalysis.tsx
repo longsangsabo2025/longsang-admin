@@ -3,12 +3,18 @@
  * Displays knowledge patterns, concepts, relationships, and topics
  */
 
-import { useAnalyzeDomain, useKnowledgePatterns, useKeyConcepts, useRelationships, useTopics } from "@/brain/hooks/useKnowledgeAnalysis";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { RefreshCw, TrendingUp, Brain, Network, BookOpen, Loader2 } from "lucide-react";
+import {
+  useAnalyzeDomain,
+  useKnowledgePatterns,
+  useKeyConcepts,
+  useRelationships,
+  useTopics,
+} from '@/brain/hooks/useKnowledgeAnalysis';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { RefreshCw, TrendingUp, Brain, Network, BookOpen, Loader2 } from 'lucide-react';
 
 interface KnowledgeAnalysisProps {
   domainId: string;
@@ -24,9 +30,9 @@ export function KnowledgeAnalysis({ domainId }: KnowledgeAnalysisProps) {
   const handleAnalyze = async () => {
     try {
       await analyzeMutation.mutateAsync();
-    // Data will be refreshed via queries
-    window.location.reload(); // Simple refresh - could be improved with query invalidation
-    // eslint-disable-next-line no-empty
+      // Data will be refreshed via queries
+      window.location.reload(); // Simple refresh - could be improved with query invalidation
+      // eslint-disable-next-line no-empty
     } catch (error) {}
   };
 
@@ -35,7 +41,9 @@ export function KnowledgeAnalysis({ domainId }: KnowledgeAnalysisProps) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Knowledge Analysis</h2>
-          <p className="text-muted-foreground">Patterns, concepts, and relationships in your knowledge</p>
+          <p className="text-muted-foreground">
+            Patterns, concepts, and relationships in your knowledge
+          </p>
         </div>
         <Button onClick={handleAnalyze} disabled={analyzeMutation.isPending} variant="outline">
           {analyzeMutation.isPending ? (
@@ -87,7 +95,7 @@ export function KnowledgeAnalysis({ domainId }: KnowledgeAnalysisProps) {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">{pattern.name}</CardTitle>
-                      <Badge variant={pattern.frequency === "high" ? "default" : "secondary"}>
+                      <Badge variant={pattern.frequency === 'high' ? 'default' : 'secondary'}>
                         {pattern.frequency}
                       </Badge>
                     </div>
@@ -132,7 +140,7 @@ export function KnowledgeAnalysis({ domainId }: KnowledgeAnalysisProps) {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">{concept.term}</CardTitle>
-                      <Badge variant={concept.importance === "high" ? "default" : "secondary"}>
+                      <Badge variant={concept.importance === 'high' ? 'default' : 'secondary'}>
                         {concept.importance}
                       </Badge>
                     </div>
@@ -183,7 +191,7 @@ export function KnowledgeAnalysis({ domainId }: KnowledgeAnalysisProps) {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{rel.type}</Badge>
-                        <Badge variant={rel.strength === "strong" ? "default" : "secondary"}>
+                        <Badge variant={rel.strength === 'strong' ? 'default' : 'secondary'}>
                           {rel.strength}
                         </Badge>
                       </div>
@@ -252,4 +260,3 @@ export function KnowledgeAnalysis({ domainId }: KnowledgeAnalysisProps) {
     </div>
   );
 }
-

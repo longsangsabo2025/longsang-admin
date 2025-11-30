@@ -351,7 +351,7 @@ export function useAISettings() {
         const response = await fetch(`/api/settings/${API_SETTINGS_KEY}`, {
           headers: { 'x-user-id': USER_ID },
         });
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
@@ -386,40 +386,43 @@ export function useAISettings() {
   }, []);
 
   // Save settings to both database and localStorage
-  const saveSettings = useCallback(async (newSettings: Partial<AISettings>) => {
-    const updated = { ...settings, ...newSettings };
-    setSettings(updated);
-    setIsSaving(true);
+  const saveSettings = useCallback(
+    async (newSettings: Partial<AISettings>) => {
+      const updated = { ...settings, ...newSettings };
+      setSettings(updated);
+      setIsSaving(true);
 
-    // Save to localStorage immediately (fast)
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (error) {
-      console.error('[useAISettings] Error saving to localStorage:', error);
-    }
-
-    // Save to database (async)
-    try {
-      const response = await fetch(`/api/settings/${API_SETTINGS_KEY}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': USER_ID,
-        },
-        body: JSON.stringify({ value: updated }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setLastSaved(result.updatedAt ? new Date(result.updatedAt) : new Date());
-        console.log('[useAISettings] Saved to database');
+      // Save to localStorage immediately (fast)
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (error) {
+        console.error('[useAISettings] Error saving to localStorage:', error);
       }
-    } catch (error) {
-      console.warn('[useAISettings] Could not save to database:', error);
-    } finally {
-      setIsSaving(false);
-    }
-  }, [settings]);
+
+      // Save to database (async)
+      try {
+        const response = await fetch(`/api/settings/${API_SETTINGS_KEY}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-id': USER_ID,
+          },
+          body: JSON.stringify({ value: updated }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          setLastSaved(result.updatedAt ? new Date(result.updatedAt) : new Date());
+          console.log('[useAISettings] Saved to database');
+        }
+      } catch (error) {
+        console.warn('[useAISettings] Could not save to database:', error);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [settings]
+  );
 
   // Reset to defaults
   const resetSettings = useCallback(async () => {
@@ -458,4 +461,3 @@ export function useAISettings() {
     DEFAULT_SETTINGS, // Export for reset comparison
   };
 }
-

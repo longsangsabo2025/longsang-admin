@@ -1,6 +1,6 @@
 /**
  * 🚀 Upload Status Panel - Shows upload progress globally
- * 
+ *
  * This component can be placed anywhere in the app
  * and will show active/completed uploads from the global manager
  */
@@ -9,17 +9,17 @@ import { useEffect, useState } from 'react';
 import { uploadManager, UploadManagerState, UploadTask } from '@/services/uploadManager';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { 
-  Upload, 
-  CheckCircle2, 
-  XCircle, 
-  X, 
-  RefreshCw, 
+import {
+  Upload,
+  CheckCircle2,
+  XCircle,
+  X,
+  RefreshCw,
   Trash2,
   FileText,
   Loader2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,10 +29,10 @@ interface UploadStatusPanelProps {
   compact?: boolean;
 }
 
-export function UploadStatusPanel({ 
-  className, 
+export function UploadStatusPanel({
+  className,
   showCompleted = true,
-  compact = false 
+  compact = false,
 }: UploadStatusPanelProps) {
   const [state, setState] = useState<UploadManagerState>({ tasks: [], isProcessing: false });
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -42,11 +42,11 @@ export function UploadStatusPanel({
     return unsubscribe;
   }, []);
 
-  const activeTasks = state.tasks.filter(t => 
-    t.status === 'pending' || t.status === 'uploading' || t.status === 'processing'
+  const activeTasks = state.tasks.filter(
+    (t) => t.status === 'pending' || t.status === 'uploading' || t.status === 'processing'
   );
-  const completedTasks = state.tasks.filter(t => t.status === 'completed');
-  const failedTasks = state.tasks.filter(t => t.status === 'failed');
+  const completedTasks = state.tasks.filter((t) => t.status === 'completed');
+  const failedTasks = state.tasks.filter((t) => t.status === 'failed');
 
   const hasActiveTasks = activeTasks.length > 0;
   const hasTasks = state.tasks.length > 0;
@@ -92,11 +92,13 @@ export function UploadStatusPanel({
 
   if (compact) {
     return (
-      <div className={cn(
-        'fixed bottom-4 right-4 z-50 bg-background border rounded-lg shadow-lg',
-        className
-      )}>
-        <div 
+      <div
+        className={cn(
+          'fixed bottom-4 right-4 z-50 bg-background border rounded-lg shadow-lg',
+          className
+        )}
+      >
+        <div
           className="flex items-center gap-2 p-3 cursor-pointer"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
@@ -108,20 +110,19 @@ export function UploadStatusPanel({
             <CheckCircle2 className="h-4 w-4 text-green-500" />
           )}
           <span className="text-sm font-medium">
-            {hasActiveTasks 
+            {hasActiveTasks
               ? `Đang upload ${activeTasks.length} file...`
-              : `${completedTasks.length} hoàn thành${failedTasks.length > 0 ? `, ${failedTasks.length} thất bại` : ''}`
-            }
+              : `${completedTasks.length} hoàn thành${failedTasks.length > 0 ? `, ${failedTasks.length} thất bại` : ''}`}
           </span>
           {isCollapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </div>
-        
+
         {!isCollapsed && (
           <div className="max-h-64 overflow-y-auto border-t">
-            {state.tasks.map(task => (
-              <TaskItem 
-                key={task.id} 
-                task={task} 
+            {state.tasks.map((task) => (
+              <TaskItem
+                key={task.id}
+                task={task}
                 formatSize={formatSize}
                 getStatusIcon={getStatusIcon}
                 getStatusText={getStatusText}
@@ -129,9 +130,9 @@ export function UploadStatusPanel({
             ))}
             {(completedTasks.length > 0 || failedTasks.length > 0) && (
               <div className="p-2 border-t">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="w-full"
                   onClick={() => uploadManager.clearCompleted()}
                 >
@@ -155,10 +156,10 @@ export function UploadStatusPanel({
             <Loader2 className="h-4 w-4 animate-spin" />
             Đang upload ({activeTasks.length})
           </h4>
-          {activeTasks.map(task => (
-            <TaskItem 
-              key={task.id} 
-              task={task} 
+          {activeTasks.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
               formatSize={formatSize}
               getStatusIcon={getStatusIcon}
               getStatusText={getStatusText}
@@ -174,10 +175,10 @@ export function UploadStatusPanel({
             <XCircle className="h-4 w-4" />
             Thất bại ({failedTasks.length})
           </h4>
-          {failedTasks.map(task => (
-            <TaskItem 
-              key={task.id} 
-              task={task} 
+          {failedTasks.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
               formatSize={formatSize}
               getStatusIcon={getStatusIcon}
               getStatusText={getStatusText}
@@ -194,19 +195,15 @@ export function UploadStatusPanel({
               <CheckCircle2 className="h-4 w-4" />
               Hoàn thành ({completedTasks.length})
             </h4>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => uploadManager.clearCompleted()}
-            >
+            <Button variant="ghost" size="sm" onClick={() => uploadManager.clearCompleted()}>
               <Trash2 className="h-3 w-3 mr-1" />
               Xóa
             </Button>
           </div>
-          {completedTasks.slice(0, 5).map(task => (
-            <TaskItem 
-              key={task.id} 
-              task={task} 
+          {completedTasks.slice(0, 5).map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
               formatSize={formatSize}
               getStatusIcon={getStatusIcon}
               getStatusText={getStatusText}
@@ -262,7 +259,7 @@ function TaskItem({ task, formatSize, getStatusIcon, getStatusText }: TaskItemPr
           )}
         </div>
       </div>
-      
+
       {(task.status === 'uploading' || task.status === 'processing') && (
         <Progress value={task.progress} className="h-1 mt-2" />
       )}

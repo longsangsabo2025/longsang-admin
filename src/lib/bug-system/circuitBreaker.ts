@@ -37,10 +37,7 @@ class CircuitBreaker {
   /**
    * Execute a function with circuit breaker protection
    */
-  async execute<T>(
-    circuitKey: string,
-    fn: () => Promise<T>
-  ): Promise<T> {
+  async execute<T>(circuitKey: string, fn: () => Promise<T>): Promise<T> {
     const circuit = this.getCircuit(circuitKey);
 
     // Check circuit state
@@ -51,9 +48,7 @@ class CircuitBreaker {
         circuit.state = 'half-open';
         circuit.successCount = 0;
       } else {
-        throw new Error(
-          `Circuit breaker is OPEN for ${circuitKey}. Too many failures.`
-        );
+        throw new Error(`Circuit breaker is OPEN for ${circuitKey}. Too many failures.`);
       }
     }
 
@@ -158,4 +153,3 @@ class CircuitBreaker {
 export const circuitBreaker = new CircuitBreaker();
 
 export default circuitBreaker;
-

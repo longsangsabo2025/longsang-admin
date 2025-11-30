@@ -3,13 +3,13 @@
  * Displays core logic structure with first principles, mental models, etc.
  */
 
-import { useCoreLogic } from "@/brain/hooks/useCoreLogic";
-import type { CoreLogic } from "@/brain/types/core-logic.types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Lightbulb, Brain, CheckCircle, XCircle, Link2, Loader2 } from "lucide-react";
+import { useCoreLogic } from '@/brain/hooks/useCoreLogic';
+import type { CoreLogic } from '@/brain/types/core-logic.types';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Lightbulb, Brain, CheckCircle, XCircle, Link2, Loader2 } from 'lucide-react';
 
 interface CoreLogicViewerProps {
   domainId: string;
@@ -45,8 +45,8 @@ export function CoreLogicViewer({ domainId }: CoreLogicViewerProps) {
           <h2 className="text-2xl font-bold">Core Logic</h2>
           <p className="text-muted-foreground">Version {coreLogic.version}</p>
         </div>
-        <Badge variant={coreLogic.isActive ? "default" : "secondary"}>
-          {coreLogic.isActive ? "Active" : "Inactive"}
+        <Badge variant={coreLogic.isActive ? 'default' : 'secondary'}>
+          {coreLogic.isActive ? 'Active' : 'Inactive'}
         </Badge>
       </div>
 
@@ -261,4 +261,3 @@ export function CoreLogicViewer({ domainId }: CoreLogicViewerProps) {
     </div>
   );
 }
-

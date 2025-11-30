@@ -1,14 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Workflow,
-  Play,
-  Pause,
-  ExternalLink,
-  RefreshCw,
-  Zap
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Workflow, Play, Pause, ExternalLink, RefreshCw, Zap } from 'lucide-react';
 
 interface ProjectWorkflowsTabProps {
   projectId: string;
@@ -18,26 +11,26 @@ interface ProjectWorkflowsTabProps {
 export function ProjectWorkflowsTab({ projectId, projectSlug }: ProjectWorkflowsTabProps) {
   // Placeholder workflows - will be connected to n8n
   const workflows = [
-    { 
-      id: 1, 
-      name: "Auto Social Post", 
-      status: "active",
-      lastRun: "2 giờ trước",
-      runs: 127
+    {
+      id: 1,
+      name: 'Auto Social Post',
+      status: 'active',
+      lastRun: '2 giờ trước',
+      runs: 127,
     },
-    { 
-      id: 2, 
-      name: "Content Generator", 
-      status: "paused",
-      lastRun: "1 ngày trước",
-      runs: 45
+    {
+      id: 2,
+      name: 'Content Generator',
+      status: 'paused',
+      lastRun: '1 ngày trước',
+      runs: 45,
     },
-    { 
-      id: 3, 
-      name: "SEO Report", 
-      status: "active",
-      lastRun: "30 phút trước",
-      runs: 89
+    {
+      id: 3,
+      name: 'SEO Report',
+      status: 'active',
+      lastRun: '30 phút trước',
+      runs: 89,
     },
   ];
 
@@ -64,21 +57,21 @@ export function ProjectWorkflowsTab({ projectId, projectSlug }: ProjectWorkflows
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${
-                    workflow.status === "active" 
-                      ? "bg-green-500/10" 
-                      : "bg-gray-500/10"
-                  }`}>
-                    <Workflow className={`h-5 w-5 ${
-                      workflow.status === "active" 
-                        ? "text-green-500" 
-                        : "text-gray-500"
-                    }`} />
+                  <div
+                    className={`p-2 rounded-lg ${
+                      workflow.status === 'active' ? 'bg-green-500/10' : 'bg-gray-500/10'
+                    }`}
+                  >
+                    <Workflow
+                      className={`h-5 w-5 ${
+                        workflow.status === 'active' ? 'text-green-500' : 'text-gray-500'
+                      }`}
+                    />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{workflow.name}</span>
-                      <Badge variant={workflow.status === "active" ? "default" : "secondary"}>
+                      <Badge variant={workflow.status === 'active' ? 'default' : 'secondary'}>
                         {workflow.status}
                       </Badge>
                     </div>
@@ -89,7 +82,7 @@ export function ProjectWorkflowsTab({ projectId, projectSlug }: ProjectWorkflows
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="icon">
-                    {workflow.status === "active" ? (
+                    {workflow.status === 'active' ? (
                       <Pause className="h-4 w-4" />
                     ) : (
                       <Play className="h-4 w-4" />

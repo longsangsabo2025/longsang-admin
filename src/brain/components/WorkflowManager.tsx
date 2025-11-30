@@ -20,7 +20,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, Edit, Trash2, Play, CheckCircle, Zap } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -120,7 +126,6 @@ export function WorkflowManager() {
   };
 
   const handleDeleteWorkflow = async (id: string) => {
-     
     if (window.confirm('Are you sure you want to delete this workflow?')) {
       await deleteWorkflowMutation.mutateAsync(id);
     }
@@ -147,7 +152,10 @@ export function WorkflowManager() {
       </div>
       <div>
         <Label htmlFor="trigger-type">Trigger Type</Label>
-        <Select value={triggerType} onValueChange={(value) => setTriggerType(value as Workflow['trigger_type'])}>
+        <Select
+          value={triggerType}
+          onValueChange={(value) => setTriggerType(value as Workflow['trigger_type'])}
+        >
           <SelectTrigger id="trigger-type">
             <SelectValue placeholder="Select a trigger type" />
           </SelectTrigger>
@@ -182,7 +190,10 @@ export function WorkflowManager() {
           className="font-mono text-xs"
         />
         <p className="text-xs text-muted-foreground mt-1">
-          e.g., {'[{"action_type": "create_task", "payload_template": {"title": "Review {{query}}", "priority": "high"}}]'}
+          e.g.,{' '}
+          {
+            '[{"action_type": "create_task", "payload_template": {"title": "Review {{query}}", "priority": "high"}}]'
+          }
         </p>
       </div>
       <div className="flex items-center space-x-2">
@@ -199,7 +210,9 @@ export function WorkflowManager() {
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5" /> Workflow Management
           </CardTitle>
-          <CardDescription>Define automated actions based on triggers within your AI Second Brain.</CardDescription>
+          <CardDescription>
+            Define automated actions based on triggers within your AI Second Brain.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -211,14 +224,19 @@ export function WorkflowManager() {
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create Workflow</DialogTitle>
-                <DialogDescription>Define the trigger and actions for your new automated workflow.</DialogDescription>
+                <DialogDescription>
+                  Define the trigger and actions for your new automated workflow.
+                </DialogDescription>
               </DialogHeader>
               {renderWorkflowForm()}
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateWorkflow} disabled={createWorkflowMutation.isPending || !name.trim()}>
+                <Button
+                  onClick={handleCreateWorkflow}
+                  disabled={createWorkflowMutation.isPending || !name.trim()}
+                >
                   {createWorkflowMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : (
@@ -276,7 +294,9 @@ export function WorkflowManager() {
                           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                               <DialogTitle>Edit Workflow</DialogTitle>
-                              <DialogDescription>Modify the details of your automated workflow.</DialogDescription>
+                              <DialogDescription>
+                                Modify the details of your automated workflow.
+                              </DialogDescription>
                             </DialogHeader>
                             {renderWorkflowForm()}
                             <DialogFooter>
@@ -317,7 +337,10 @@ export function WorkflowManager() {
                       <p>
                         <strong>Trigger:</strong> {workflow.trigger_type}
                         {workflow.last_triggered_at && (
-                          <span> (Last: {format(new Date(workflow.last_triggered_at), 'MMM dd, HH:mm')})</span>
+                          <span>
+                            {' '}
+                            (Last: {format(new Date(workflow.last_triggered_at), 'MMM dd, HH:mm')})
+                          </span>
                         )}
                       </p>
                       <p>
@@ -326,7 +349,9 @@ export function WorkflowManager() {
                       {testWorkflowMutation.isSuccess &&
                         testWorkflowMutation.data &&
                         testWorkflowMutation.variables?.id === workflow.id && (
-                          <p className="text-green-600">Test Result: {testWorkflowMutation.data.message}</p>
+                          <p className="text-green-600">
+                            Test Result: {testWorkflowMutation.data.message}
+                          </p>
                         )}
                       {testWorkflowMutation.isError &&
                         testWorkflowMutation.variables?.id === workflow.id && (
@@ -347,4 +372,3 @@ export function WorkflowManager() {
     </div>
   );
 }
-

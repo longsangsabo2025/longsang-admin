@@ -106,7 +106,12 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Be Vietnam Pro", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    font-family:
+      'Be Vietnam Pro',
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
       sans-serif;
   }
 
@@ -344,7 +349,7 @@ All colors MUST be HSL.
   }
 
   /* Optimize all animated elements */
-  [class*="animate-"] {
+  [class*='animate-'] {
     will-change: transform, opacity;
     transform: translate3d(0, 0, 0);
   }
@@ -470,11 +475,11 @@ All colors MUST be HSL.
 
   /* Font family utilities */
   .font-heading {
-    font-family: "Montserrat", sans-serif;
+    font-family: 'Montserrat', sans-serif;
   }
 
   .font-body {
-    font-family: "Inter", sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
   /* Remove any unwanted borders/outlines between sections */

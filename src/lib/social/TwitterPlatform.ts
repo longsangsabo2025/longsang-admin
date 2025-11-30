@@ -13,14 +13,14 @@ import {
   PlatformSettings,
   SocialPostRequest,
   SocialPostResponse,
-} from "@/types/social-media";
-import { BaseSocialPlatform } from "./BaseSocialPlatform";
+} from '@/types/social-media';
+import { BaseSocialPlatform } from './BaseSocialPlatform';
 
 export class TwitterPlatform extends BaseSocialPlatform {
-  private readonly API_BASE = "https://api.twitter.com/2";
+  private readonly API_BASE = 'https://api.twitter.com/2';
 
   constructor(credentials: PlatformCredentials, settings?: PlatformSettings) {
-    super("twitter", credentials, settings);
+    super('twitter', credentials, settings);
   }
 
   async authenticate(): Promise<boolean> {
@@ -50,7 +50,7 @@ export class TwitterPlatform extends BaseSocialPlatform {
 
       if (this.settings.autoHashtags && request.hashtags && request.hashtags.length > 0) {
         const hashtags = this.formatHashtags(request.hashtags);
-        tweetText = `${tweetText}\n\n${hashtags.join(" ")}`;
+        tweetText = `${tweetText}\n\n${hashtags.join(' ')}`;
       }
 
       // Create tweet payload
@@ -62,9 +62,9 @@ export class TwitterPlatform extends BaseSocialPlatform {
       // Media upload requires separate endpoint and OAuth 1.0a
 
       const response = await fetch(`${this.API_BASE}/tweets`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${this.credentials.bearerToken}`,
         },
         body: JSON.stringify(payload),
@@ -78,21 +78,21 @@ export class TwitterPlatform extends BaseSocialPlatform {
       const data = (await response.json()) as { data: { id: string; text: string } };
 
       return {
-        platform: "twitter",
+        platform: 'twitter',
         success: true,
         postId: data.data.id,
         postUrl: `https://twitter.com/i/web/status/${data.data.id}`,
-        status: "published",
+        status: 'published',
         publishedAt: new Date(),
       };
     } catch (error) {
       return {
-        platform: "twitter",
+        platform: 'twitter',
         success: false,
-        status: "failed",
+        status: 'failed',
         error: {
-          code: "POST_FAILED",
-          message: error instanceof Error ? error.message : "Unknown error",
+          code: 'POST_FAILED',
+          message: error instanceof Error ? error.message : 'Unknown error',
           details: error,
         },
       };
@@ -103,12 +103,12 @@ export class TwitterPlatform extends BaseSocialPlatform {
     const isHealthy = await this.testConnection();
 
     return {
-      platform: "twitter",
+      platform: 'twitter',
       connected: isHealthy,
       health: {
-        status: isHealthy ? "healthy" : "error",
+        status: isHealthy ? 'healthy' : 'error',
         lastChecked: new Date(),
-        message: isHealthy ? "Connected" : "Authentication failed",
+        message: isHealthy ? 'Connected' : 'Authentication failed',
       },
       credentials: this.credentials,
       settings: this.settings,
@@ -117,7 +117,7 @@ export class TwitterPlatform extends BaseSocialPlatform {
 
   getCapabilities(): PlatformCapabilities {
     return {
-      platform: "twitter",
+      platform: 'twitter',
       features: {
         textPosts: true,
         imagePosts: true,

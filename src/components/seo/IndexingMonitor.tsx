@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Link, RefreshCw, CheckCircle2, XCircle, Clock, ExternalLink } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Link, RefreshCw, CheckCircle2, XCircle, Clock, ExternalLink } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import {
   Table,
   TableBody,
@@ -12,38 +12,38 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
 interface IndexingStatus {
   id: string;
   domain: string;
   url: string;
-  status: "pending" | "crawling" | "indexed" | "failed";
+  status: 'pending' | 'crawling' | 'indexed' | 'failed';
   submittedAt: string;
   indexedAt?: string;
-  searchEngine: "google" | "bing";
+  searchEngine: 'google' | 'bing';
 }
 
 export function IndexingMonitor() {
   const { toast } = useToast();
   const [indexingQueue, setIndexingQueue] = useState<IndexingStatus[]>([
     {
-      id: "1",
-      domain: "saboarena.com",
-      url: "https://saboarena.com/news/top-10-co-thu-bia-xuat-sac-nhat-viet-nam-2025",
-      status: "pending",
-      submittedAt: "2025-11-11T20:18:00Z",
-      searchEngine: "google"
+      id: '1',
+      domain: 'saboarena.com',
+      url: 'https://saboarena.com/news/top-10-co-thu-bia-xuat-sac-nhat-viet-nam-2025',
+      status: 'pending',
+      submittedAt: '2025-11-11T20:18:00Z',
+      searchEngine: 'google',
     },
     {
-      id: "2", 
-      domain: "saboarena.com",
-      url: "https://saboarena.com/rankings",
-      status: "indexed",
-      submittedAt: "2025-11-11T12:00:00Z",
-      indexedAt: "2025-11-11T18:30:00Z",
-      searchEngine: "google"
-    }
+      id: '2',
+      domain: 'saboarena.com',
+      url: 'https://saboarena.com/rankings',
+      status: 'indexed',
+      submittedAt: '2025-11-11T12:00:00Z',
+      indexedAt: '2025-11-11T18:30:00Z',
+      searchEngine: 'google',
+    },
   ]);
 
   const [stats, setStats] = useState({
@@ -51,16 +51,16 @@ export function IndexingMonitor() {
     pending: 150,
     crawling: 50,
     indexed: 100,
-    failed: 10
+    failed: 10,
   });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "indexed":
+      case 'indexed':
         return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-      case "crawling":
+      case 'crawling':
         return <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />;
-      case "failed":
+      case 'failed':
         return <XCircle className="w-4 h-4 text-red-500" />;
       default:
         return <Clock className="w-4 h-4 text-yellow-500" />;
@@ -69,41 +69,41 @@ export function IndexingMonitor() {
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      pending: "secondary",
-      crawling: "default",
-      indexed: "default",
-      failed: "destructive"
+      pending: 'secondary',
+      crawling: 'default',
+      indexed: 'default',
+      failed: 'destructive',
     } as const;
 
     return (
-      <Badge variant={variants[status as keyof typeof variants] || "secondary"}>
-        {status === "pending" && "Đang chờ"}
-        {status === "crawling" && "Đang crawl"}
-        {status === "indexed" && "Đã index"}
-        {status === "failed" && "Thất bại"}
+      <Badge variant={variants[status as keyof typeof variants] || 'secondary'}>
+        {status === 'pending' && 'Đang chờ'}
+        {status === 'crawling' && 'Đang crawl'}
+        {status === 'indexed' && 'Đã index'}
+        {status === 'failed' && 'Thất bại'}
       </Badge>
     );
   };
 
   const handleRefresh = () => {
     toast({
-      title: "Đang cập nhật...",
-      description: "Kiểm tra trạng thái indexing từ Google & Bing"
+      title: 'Đang cập nhật...',
+      description: 'Kiểm tra trạng thái indexing từ Google & Bing',
     });
 
     // Simulate refresh
     setTimeout(() => {
       toast({
-        title: "✅ Đã cập nhật",
-        description: "Trạng thái indexing đã được làm mới"
+        title: '✅ Đã cập nhật',
+        description: 'Trạng thái indexing đã được làm mới',
       });
     }, 1500);
   };
 
   const handleRetryFailed = () => {
     toast({
-      title: "Đang thử lại...",
-      description: "Submit lại các URLs thất bại"
+      title: 'Đang thử lại...',
+      description: 'Submit lại các URLs thất bại',
     });
   };
 
@@ -174,11 +174,11 @@ export function IndexingMonitor() {
                 Theo dõi realtime quá trình Google & Bing index các URLs
               </CardDescription>
             </div>
-            
+
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleRetryFailed}
                 disabled={stats.failed === 0}
               >
@@ -191,7 +191,7 @@ export function IndexingMonitor() {
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent>
           <Table>
             <TableHeader>
@@ -211,7 +211,7 @@ export function IndexingMonitor() {
                   <TableCell className="max-w-xs">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(item.status)}
-                      <a 
+                      <a
                         href={item.url}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -225,27 +225,23 @@ export function IndexingMonitor() {
                   <TableCell>{item.domain}</TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {item.searchEngine === "google" ? "Google" : "Bing"}
+                      {item.searchEngine === 'google' ? 'Google' : 'Bing'}
                     </Badge>
                   </TableCell>
                   <TableCell>{getStatusBadge(item.status)}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {new Date(item.submittedAt).toLocaleString("vi-VN")}
+                    {new Date(item.submittedAt).toLocaleString('vi-VN')}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {item.indexedAt 
-                      ? new Date(item.indexedAt).toLocaleString("vi-VN")
-                      : "-"
-                    }
+                    {item.indexedAt ? new Date(item.indexedAt).toLocaleString('vi-VN') : '-'}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
-                      onClick={() => window.open(
-                        `https://www.google.com/search?q=site:${item.url}`,
-                        "_blank"
-                      )}
+                      onClick={() =>
+                        window.open(`https://www.google.com/search?q=site:${item.url}`, '_blank')
+                      }
                     >
                       <ExternalLink className="w-4 h-4" />
                     </Button>

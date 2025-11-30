@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Smartphone, Globe } from "lucide-react";
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, Smartphone, Globe } from 'lucide-react';
 
 export const CTA = () => {
   return (
@@ -25,7 +25,7 @@ export const CTA = () => {
             SABOHUB - Đối tác đáng tin cậy cho sự phát triển
           </p>
 
-          <Button 
+          <Button
             size="lg"
             className="bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90 transition-opacity text-xl px-12 py-8 h-auto group mb-8"
           >
@@ -34,17 +34,26 @@ export const CTA = () => {
           </Button>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center text-muted-foreground">
-            <a href="#" className="flex items-center gap-2 hover:text-foreground transition-colors group">
+            <a
+              href="#"
+              className="flex items-center gap-2 hover:text-foreground transition-colors group"
+            >
               <Smartphone className="w-5 h-5 group-hover:scale-110 transition-transform" />
               <span>📱 App Store</span>
             </a>
             <span className="hidden sm:block">|</span>
-            <a href="#" className="flex items-center gap-2 hover:text-foreground transition-colors group">
+            <a
+              href="#"
+              className="flex items-center gap-2 hover:text-foreground transition-colors group"
+            >
               <Smartphone className="w-5 h-5 group-hover:scale-110 transition-transform" />
               <span>🤖 Google Play</span>
             </a>
             <span className="hidden sm:block">|</span>
-            <a href="#" className="flex items-center gap-2 hover:text-foreground transition-colors group">
+            <a
+              href="#"
+              className="flex items-center gap-2 hover:text-foreground transition-colors group"
+            >
               <Globe className="w-5 h-5 group-hover:scale-110 transition-transform" />
               <span>🌐 Web App</span>
             </a>

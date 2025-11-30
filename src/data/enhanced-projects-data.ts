@@ -5,9 +5,19 @@ export const enhancedProjectsData: ProjectCardData[] = [
   {
     id: 'investment-portal',
     title: 'Investment Portal',
-    description: 'Full-stack investment application platform with real-time processing and analytics',
-    longDescription: 'A comprehensive investment portal built with React and TypeScript, featuring a complete multi-step application process, real-time data processing, and advanced analytics. The platform integrates with Supabase for backend operations and includes a sophisticated admin dashboard for investment management.',
-    technologies: ['React', 'TypeScript', 'Supabase', 'PostgreSQL', 'Express.js', 'Tailwind CSS', 'Framer Motion'],
+    description:
+      'Full-stack investment application platform with real-time processing and analytics',
+    longDescription:
+      'A comprehensive investment portal built with React and TypeScript, featuring a complete multi-step application process, real-time data processing, and advanced analytics. The platform integrates with Supabase for backend operations and includes a sophisticated admin dashboard for investment management.',
+    technologies: [
+      'React',
+      'TypeScript',
+      'Supabase',
+      'PostgreSQL',
+      'Express.js',
+      'Tailwind CSS',
+      'Framer Motion',
+    ],
     status: 'Completed',
     category: 'Web Application',
     image: '/api/placeholder/600/400',
@@ -25,27 +35,37 @@ export const enhancedProjectsData: ProjectCardData[] = [
       'Secure authentication system',
       'Admin panel for application review',
       'Email notification system',
-      'Export functionality for reports'
+      'Export functionality for reports',
     ],
     challenges: [
       'Implementing complex form validation across multiple steps',
       'Designing efficient database schema for investment data',
       'Creating responsive UI for mobile and desktop',
-      'Integrating real-time updates with Supabase'
+      'Integrating real-time updates with Supabase',
     ],
     achievements: [
       'Successfully processed 100+ test applications',
       'Achieved 95% mobile responsiveness score',
       'Implemented comprehensive error handling',
-      'Built scalable architecture for future growth'
-    ]
+      'Built scalable architecture for future growth',
+    ],
   },
   {
     id: 'sabo-arena',
     title: 'SABO Arena Management',
-    description: 'Comprehensive billiards arena management system with booking and tournament features',
-    longDescription: 'A complete management solution for billiards arenas, featuring table booking systems, tournament management, customer profiles, and revenue analytics. Built with modern web technologies to provide a seamless experience for both customers and staff.',
-    technologies: ['React', 'Node.js', 'MongoDB', 'Express.js', 'Socket.io', 'Tailwind CSS', 'Chart.js'],
+    description:
+      'Comprehensive billiards arena management system with booking and tournament features',
+    longDescription:
+      'A complete management solution for billiards arenas, featuring table booking systems, tournament management, customer profiles, and revenue analytics. Built with modern web technologies to provide a seamless experience for both customers and staff.',
+    technologies: [
+      'React',
+      'Node.js',
+      'MongoDB',
+      'Express.js',
+      'Socket.io',
+      'Tailwind CSS',
+      'Chart.js',
+    ],
     status: 'In Development',
     category: 'Web Application',
     image: '/api/placeholder/600/400',
@@ -62,21 +82,30 @@ export const enhancedProjectsData: ProjectCardData[] = [
       'Table availability tracking',
       'Mobile-responsive design',
       'Push notification system',
-      'Multi-language support'
+      'Multi-language support',
     ],
     challenges: [
       'Implementing real-time table status updates',
       'Complex tournament bracket management',
       'Payment gateway integration',
-      'Optimizing for high concurrent users'
-    ]
+      'Optimizing for high concurrent users',
+    ],
   },
   {
     id: 'ai-content-generator',
     title: 'AI Content Generator',
-    description: 'Intelligent content creation platform powered by GPT models with SEO optimization',
-    longDescription: 'An advanced AI-powered content generation platform that helps businesses create high-quality, SEO-optimized content at scale. Features multiple AI models, content templates, and automated optimization tools.',
-    technologies: ['Next.js', 'OpenAI API', 'Prisma', 'PostgreSQL', 'Tailwind CSS', 'Vercel AI SDK'],
+    description:
+      'Intelligent content creation platform powered by GPT models with SEO optimization',
+    longDescription:
+      'An advanced AI-powered content generation platform that helps businesses create high-quality, SEO-optimized content at scale. Features multiple AI models, content templates, and automated optimization tools.',
+    technologies: [
+      'Next.js',
+      'OpenAI API',
+      'Prisma',
+      'PostgreSQL',
+      'Tailwind CSS',
+      'Vercel AI SDK',
+    ],
     status: 'Beta',
     category: 'AI/ML Tool',
     image: '/api/placeholder/600/400',
@@ -93,21 +122,30 @@ export const enhancedProjectsData: ProjectCardData[] = [
       'Multi-format export (HTML, Markdown, PDF)',
       'Collaboration tools for teams',
       'Custom prompt engineering',
-      'API for third-party integrations'
+      'API for third-party integrations',
     ],
     challenges: [
       'Managing API rate limits efficiently',
       'Implementing effective prompt engineering',
       'Building scalable content storage system',
-      'Ensuring content quality consistency'
-    ]
+      'Ensuring content quality consistency',
+    ],
   },
   {
     id: 'e-commerce-platform',
     title: 'Modern E-commerce Platform',
     description: 'Full-featured e-commerce solution with advanced inventory and payment processing',
-    longDescription: 'A comprehensive e-commerce platform built from the ground up with modern technologies. Features include advanced inventory management, multiple payment gateways, real-time order tracking, and powerful admin tools.',
-    technologies: ['Next.js', 'Stripe API', 'Prisma', 'PostgreSQL', 'Redis', 'Tailwind CSS', 'TypeScript'],
+    longDescription:
+      'A comprehensive e-commerce platform built from the ground up with modern technologies. Features include advanced inventory management, multiple payment gateways, real-time order tracking, and powerful admin tools.',
+    technologies: [
+      'Next.js',
+      'Stripe API',
+      'Prisma',
+      'PostgreSQL',
+      'Redis',
+      'Tailwind CSS',
+      'TypeScript',
+    ],
     status: 'Live',
     category: 'E-commerce',
     image: '/api/placeholder/600/400',
@@ -125,20 +163,22 @@ export const enhancedProjectsData: ProjectCardData[] = [
       'Shopping cart with persistence',
       'Wishlist and comparison features',
       'Mobile-optimized checkout',
-      'Email notification system'
+      'Email notification system',
     ],
     challenges: [
       'Complex inventory synchronization',
       'Payment gateway security implementation',
       'Performance optimization for large catalogs',
-      'Mobile checkout experience optimization'
-    ]
+      'Mobile checkout experience optimization',
+    ],
   },
   {
     id: 'task-management-app',
     title: 'Collaborative Task Manager',
-    description: 'Real-time collaborative task management with team features and advanced analytics',
-    longDescription: 'A powerful task management application designed for teams and individuals. Features real-time collaboration, advanced project tracking, time management tools, and comprehensive reporting capabilities.',
+    description:
+      'Real-time collaborative task management with team features and advanced analytics',
+    longDescription:
+      'A powerful task management application designed for teams and individuals. Features real-time collaboration, advanced project tracking, time management tools, and comprehensive reporting capabilities.',
     technologies: ['Vue.js', 'Firebase', 'Vuetify', 'Node.js', 'Express.js', 'WebSockets'],
     status: 'Completed',
     category: 'Productivity Tool',
@@ -157,20 +197,21 @@ export const enhancedProjectsData: ProjectCardData[] = [
       'Advanced filtering and search',
       'Gantt chart visualization',
       'Mobile app companion',
-      'Integration with popular tools'
+      'Integration with popular tools',
     ],
     challenges: [
       'Real-time synchronization across clients',
       'Complex permission system implementation',
       'Performance optimization for large teams',
-      'Cross-platform mobile compatibility'
-    ]
+      'Cross-platform mobile compatibility',
+    ],
   },
   {
     id: 'weather-forecast-app',
     title: 'Advanced Weather Forecast',
     description: 'Beautiful weather application with detailed forecasts and location services',
-    longDescription: 'A comprehensive weather application that provides detailed forecasts, weather maps, and location-based services. Features beautiful animations and an intuitive user interface.',
+    longDescription:
+      'A comprehensive weather application that provides detailed forecasts, weather maps, and location-based services. Features beautiful animations and an intuitive user interface.',
     technologies: ['React Native', 'Weather API', 'Redux', 'Animated', 'Geolocation', 'TypeScript'],
     status: 'Planning',
     category: 'Mobile App',
@@ -187,21 +228,33 @@ export const enhancedProjectsData: ProjectCardData[] = [
       'Historical weather data',
       'Multiple location support',
       'Offline mode capability',
-      'Widget integration'
+      'Widget integration',
     ],
     challenges: [
       'Accurate location detection',
       'Weather data visualization',
       'Offline functionality implementation',
-      'Cross-platform performance optimization'
-    ]
+      'Cross-platform performance optimization',
+    ],
   },
   {
     id: 'long-sang-portfolio',
     title: 'Long Sang Portfolio',
     description: 'Portfolio Website với AI Marketplace, Academy và Investment Portal',
-    longDescription: 'Portfolio website chuyên nghiệp tích hợp AI Marketplace để khám phá các AI Agents, Academy cho đào tạo AI, và Investment Portal để thu hút đầu tư cho các dự án công nghệ. Sử dụng React 18, TypeScript, Supabase và Express.js.',
-    technologies: ['React 18', 'TypeScript', 'Vite', 'Tailwind CSS', 'shadcn/ui', 'Supabase', 'Express.js', 'TanStack Query', 'Framer Motion', 'i18next'],
+    longDescription:
+      'Portfolio website chuyên nghiệp tích hợp AI Marketplace để khám phá các AI Agents, Academy cho đào tạo AI, và Investment Portal để thu hút đầu tư cho các dự án công nghệ. Sử dụng React 18, TypeScript, Supabase và Express.js.',
+    technologies: [
+      'React 18',
+      'TypeScript',
+      'Vite',
+      'Tailwind CSS',
+      'shadcn/ui',
+      'Supabase',
+      'Express.js',
+      'TanStack Query',
+      'Framer Motion',
+      'i18next',
+    ],
     status: 'Live',
     category: 'Portfolio Platform',
     image: '/api/placeholder/600/400',
@@ -219,19 +272,19 @@ export const enhancedProjectsData: ProjectCardData[] = [
       'Multi-language support (i18n)',
       'Magic Link authentication',
       'User dashboard cá nhân',
-      'SEO optimization và sitemap'
+      'SEO optimization và sitemap',
     ],
     challenges: [
       'Tích hợp nhiều tính năng trong một nền tảng',
       'Xây dựng AI Marketplace scalable',
       'Quản lý auth flow với Magic Link',
-      'Performance optimization cho nhiều components'
+      'Performance optimization cho nhiều components',
     ],
     achievements: [
       '50+ AI Agents sẵn sàng sử dụng',
       'Lighthouse score 95+',
       'Response time < 1s',
-      'SEO optimized với sitemap tự động'
-    ]
-  }
+      'SEO optimized với sitemap tự động',
+    ],
+  },
 ];

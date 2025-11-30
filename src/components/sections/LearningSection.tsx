@@ -1,15 +1,15 @@
-import { ArrowRight, BookOpen, Gift } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { ArrowRight, BookOpen, Gift } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 export const LearningSection = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const scrollToContact = () => {
-    const element = document.querySelector("#contact");
+    const element = document.querySelector('#contact');
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -22,10 +22,10 @@ export const LearningSection = () => {
         {/* Section Header */}
         <div className="text-center mb-8 md:mb-12">
           <p className="text-sm font-bold uppercase tracking-[0.3em] text-primary mb-4 font-mono">
-            {t("learning.header")}
+            {t('learning.header')}
           </p>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-secondary">
-            {t("learning.subtitle")}
+            {t('learning.subtitle')}
           </h2>
         </div>
 
@@ -42,7 +42,7 @@ export const LearningSection = () => {
                 </h3>
                 <p className="text-muted-foreground text-sm md:text-base font-medium">
                   <span className="text-primary font-bold">15+</span> khóa học AI/Agent Development
-                  • <span className="text-accent font-bold">15K+</span> học viên •{" "}
+                  • <span className="text-accent font-bold">15K+</span> học viên •{' '}
                   <span className="text-secondary font-bold">Certificate</span> chuyên nghiệp
                 </p>
               </div>
@@ -50,7 +50,7 @@ export const LearningSection = () => {
 
             {/* Enhanced Button with gradient */}
             <button
-              onClick={() => navigate("/academy")}
+              onClick={() => navigate('/academy')}
               className="group/btn relative px-8 py-4 rounded-2xl font-bold text-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(14,165,233,0.5)]"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-shimmer"></div>
@@ -68,8 +68,8 @@ export const LearningSection = () => {
           <div
             className="group relative bg-gradient-to-br from-card via-card to-primary/5 border-2 border-border/20 rounded-3xl p-10 flex flex-col min-h-[450px] overflow-hidden hover:-translate-y-2 hover:border-primary/60 hover:shadow-[0_20px_60px_rgba(14,165,233,0.3)] hover:scale-[1.02] transition-all duration-500"
             style={{
-              animation: "fade-in 0.6s ease-out forwards",
-              animationDelay: "0ms",
+              animation: 'fade-in 0.6s ease-out forwards',
+              animationDelay: '0ms',
               opacity: 0,
             }}
           >
@@ -88,12 +88,12 @@ export const LearningSection = () => {
                 </div>
               </div>
               <h3 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-foreground to-primary relative z-10">
-                {t("learning.courses.badge")}
+                {t('learning.courses.badge')}
               </h3>
             </div>
 
             <ul className="space-y-4 mb-8 flex-grow relative z-10">
-              {(t("learning.courses.items", { returnObjects: true }) as string[]).map(
+              {(t('learning.courses.items', { returnObjects: true }) as string[]).map(
                 (item: string, index: number) => (
                   <li
                     key={`course-item-${index}-${item.substring(0, 15)}`}
@@ -115,7 +115,7 @@ export const LearningSection = () => {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent"></div>
               <div className="relative flex items-center justify-center gap-3 text-white">
-                {t("learning.courses.cta")}
+                {t('learning.courses.cta')}
                 <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
               </div>
             </button>
@@ -125,8 +125,8 @@ export const LearningSection = () => {
           <div
             className="group relative bg-gradient-to-br from-card via-card to-accent/5 border-2 border-border/20 rounded-3xl p-10 flex flex-col min-h-[450px] overflow-hidden hover:-translate-y-2 hover:border-accent/60 hover:shadow-[0_20px_60px_rgba(6,182,212,0.3)] hover:scale-[1.02] transition-all duration-500"
             style={{
-              animation: "fade-in 0.6s ease-out forwards",
-              animationDelay: "150ms",
+              animation: 'fade-in 0.6s ease-out forwards',
+              animationDelay: '150ms',
               opacity: 0,
             }}
           >
@@ -145,12 +145,12 @@ export const LearningSection = () => {
                 </div>
               </div>
               <h3 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-foreground to-accent relative z-10">
-                {t("learning.resources.badge")}
+                {t('learning.resources.badge')}
               </h3>
             </div>
 
             <ul className="space-y-4 mb-8 flex-grow relative z-10">
-              {(t("learning.resources.items", { returnObjects: true }) as string[]).map(
+              {(t('learning.resources.items', { returnObjects: true }) as string[]).map(
                 (item: string, index: number) => (
                   <li
                     key={`resource-item-${index}-${item.substring(0, 15)}`}
@@ -172,7 +172,7 @@ export const LearningSection = () => {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-accent to-secondary"></div>
               <div className="relative flex items-center justify-center gap-3 text-white">
-                {t("learning.resources.cta")}
+                {t('learning.resources.cta')}
                 <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
               </div>
             </button>

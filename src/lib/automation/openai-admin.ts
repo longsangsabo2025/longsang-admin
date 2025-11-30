@@ -44,10 +44,10 @@ export function calculateCost(
   completionTokens: number
 ): number {
   const pricing = MODEL_PRICING[model] || MODEL_PRICING['gpt-4'];
-  
+
   const promptCost = (promptTokens / 1000) * pricing.prompt;
   const completionCost = (completionTokens / 1000) * pricing.completion;
-  
+
   return promptCost + completionCost;
 }
 
@@ -66,15 +66,12 @@ export async function getOrganizationUsage(
   if (startDate) params.append('date', startDate.toISOString().split('T')[0]);
   if (endDate) params.append('end_date', endDate.toISOString().split('T')[0]);
 
-  const response = await fetch(
-    `${OPENAI_API_BASE}/organization/usage?${params}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${OPENAI_ADMIN_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
+  const response = await fetch(`${OPENAI_API_BASE}/organization/usage?${params}`, {
+    headers: {
+      Authorization: `Bearer ${OPENAI_ADMIN_KEY}`,
+      'Content-Type': 'application/json',
+    },
+  });
 
   if (!response.ok) {
     const error = await response.text();
@@ -88,17 +85,14 @@ export async function getOrganizationUsage(
 /**
  * Get cost breakdown by model
  */
-export async function getCostBreakdown(
-  startDate: Date,
-  endDate: Date
-): Promise<CostBreakdown[]> {
+export async function getCostBreakdown(startDate: Date, endDate: Date): Promise<CostBreakdown[]> {
   const usage = await getOrganizationUsage(startDate, endDate);
-  
+
   const breakdown: Record<string, CostBreakdown> = {};
 
   for (const item of usage) {
     const model = item.operation.split('/')[0] || 'unknown';
-    
+
     if (!breakdown[model]) {
       breakdown[model] = {
         model,
@@ -113,9 +107,8 @@ export async function getCostBreakdown(
     breakdown[model].requests += item.n_requests;
     breakdown[model].prompt_tokens += item.n_context_tokens_total;
     breakdown[model].completion_tokens += item.n_generated_tokens_total;
-    breakdown[model].total_tokens += 
-      item.n_context_tokens_total + item.n_generated_tokens_total;
-    
+    breakdown[model].total_tokens += item.n_context_tokens_total + item.n_generated_tokens_total;
+
     breakdown[model].cost_usd += calculateCost(
       model,
       item.n_context_tokens_total,
@@ -140,7 +133,7 @@ export async function createAgentAPIKey(
   const response = await fetch(`${OPENAI_API_BASE}/organization/api_keys`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${OPENAI_ADMIN_KEY}`,
+      Authorization: `Bearer ${OPENAI_ADMIN_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -169,15 +162,12 @@ export async function revokeAPIKey(keyId: string): Promise<void> {
     throw new Error('OPENAI_ADMIN_KEY not configured');
   }
 
-  const response = await fetch(
-    `${OPENAI_API_BASE}/organization/api_keys/${keyId}`,
-    {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_ADMIN_KEY}`,
-      },
-    }
-  );
+  const response = await fetch(`${OPENAI_API_BASE}/organization/api_keys/${keyId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${OPENAI_ADMIN_KEY}`,
+    },
+  });
 
   if (!response.ok) {
     const error = await response.text();
@@ -195,7 +185,7 @@ export async function listAPIKeys(): Promise<any[]> {
 
   const response = await fetch(`${OPENAI_API_BASE}/organization/api_keys`, {
     headers: {
-      'Authorization': `Bearer ${OPENAI_ADMIN_KEY}`,
+      Authorization: `Bearer ${OPENAI_ADMIN_KEY}`,
     },
   });
 
@@ -211,26 +201,21 @@ export async function listAPIKeys(): Promise<any[]> {
 /**
  * Get audit logs
  */
-export async function getAuditLogs(
-  startTime?: Date,
-  endTime?: Date
-): Promise<any[]> {
+export async function getAuditLogs(startTime?: Date, endTime?: Date): Promise<any[]> {
   if (!OPENAI_ADMIN_KEY) {
     throw new Error('OPENAI_ADMIN_KEY not configured');
   }
 
   const params = new URLSearchParams();
-  if (startTime) params.append('effective_at[gt]', Math.floor(startTime.getTime() / 1000).toString());
+  if (startTime)
+    params.append('effective_at[gt]', Math.floor(startTime.getTime() / 1000).toString());
   if (endTime) params.append('effective_at[lt]', Math.floor(endTime.getTime() / 1000).toString());
 
-  const response = await fetch(
-    `${OPENAI_API_BASE}/organization/audit_logs?${params}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${OPENAI_ADMIN_KEY}`,
-      },
-    }
-  );
+  const response = await fetch(`${OPENAI_API_BASE}/organization/audit_logs?${params}`, {
+    headers: {
+      Authorization: `Bearer ${OPENAI_ADMIN_KEY}`,
+    },
+  });
 
   if (!response.ok) {
     const error = await response.text();

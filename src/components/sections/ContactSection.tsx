@@ -1,16 +1,16 @@
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/integrations/supabase/client';
 import {
   AlertCircle,
   Calendar,
@@ -21,11 +21,11 @@ import {
   Mail,
   MapPin,
   Twitter,
-} from "lucide-react";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
-import { z } from "zod";
+} from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 
 // Schema will be created with translations inside component
 
@@ -37,41 +37,41 @@ export const ContactSection = () => {
     name: z
       .string()
       .trim()
-      .min(1, t("contact.validation.nameRequired"))
-      .max(100, t("contact.validation.nameMax")),
+      .min(1, t('contact.validation.nameRequired'))
+      .max(100, t('contact.validation.nameMax')),
     email: z
       .string()
       .trim()
-      .email(t("contact.validation.emailInvalid"))
-      .max(255, t("contact.validation.emailMax")),
-    service: z.string().min(1, t("contact.validation.serviceRequired")),
+      .email(t('contact.validation.emailInvalid'))
+      .max(255, t('contact.validation.emailMax')),
+    service: z.string().min(1, t('contact.validation.serviceRequired')),
     budget: z.string().optional(),
     message: z
       .string()
       .trim()
-      .min(20, t("contact.validation.messageMin"))
-      .max(1000, t("contact.validation.messageMax")),
+      .min(20, t('contact.validation.messageMin'))
+      .max(1000, t('contact.validation.messageMax')),
     subscribeNewsletter: z.boolean().optional(),
   });
 
   type ContactFormData = z.infer<typeof contactSchema>;
   const [formData, setFormData] = useState<ContactFormData>({
-    name: "",
-    email: "",
-    service: "",
-    budget: "",
-    message: "",
+    name: '',
+    email: '',
+    service: '',
+    budget: '',
+    message: '',
     subscribeNewsletter: false,
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    setSubmitStatus("idle");
+    setSubmitStatus('idle');
 
     // Validate form
     const result = contactSchema.safeParse(formData);
@@ -92,7 +92,7 @@ export const ContactSection = () => {
     try {
       // Insert data into Supabase
       const { data, error } = await supabase
-        .from("contacts")
+        .from('contacts')
         .insert([
           {
             name: result.data.name,
@@ -101,35 +101,35 @@ export const ContactSection = () => {
             budget: result.data.budget || null,
             message: result.data.message,
             subscribe_newsletter: result.data.subscribeNewsletter || false,
-            status: "new",
+            status: 'new',
           },
         ])
         .select();
 
       if (error) {
-        console.error("Supabase error:", error);
+        console.error('Supabase error:', error);
         throw error;
       }
 
-      console.log("Contact saved successfully:", data);
+      console.log('Contact saved successfully:', data);
 
-      setSubmitStatus("success");
+      setSubmitStatus('success');
 
       // Clear form
       setFormData({
-        name: "",
-        email: "",
-        service: "",
-        budget: "",
-        message: "",
+        name: '',
+        email: '',
+        service: '',
+        budget: '',
+        message: '',
         subscribeNewsletter: false,
       });
 
       // Auto-hide success message after 5 seconds
-      setTimeout(() => setSubmitStatus("idle"), 5000);
+      setTimeout(() => setSubmitStatus('idle'), 5000);
     } catch (error: any) {
-      console.error("Form submission error:", error);
-      setSubmitStatus("error");
+      console.error('Form submission error:', error);
+      setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
     }
@@ -143,9 +143,9 @@ export const ContactSection = () => {
         {/* Section Header */}
         <div className="text-center mb-8 md:mb-12">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
-            {t("contact.header")}
+            {t('contact.header')}
           </h2>
-          <p className="text-xl font-medium text-muted-foreground">{t("contact.subtitle")}</p>
+          <p className="text-xl font-medium text-muted-foreground">{t('contact.subtitle')}</p>
         </div>
 
         {/* Two Column Layout */}
@@ -153,22 +153,22 @@ export const ContactSection = () => {
           {/* Left Column - Contact Form */}
           <div className="bg-card border border-border/10 rounded-2xl p-8 md:p-10 shadow-[0_4px_24px_rgba(0,0,0,0.2)]">
             {/* Success Message */}
-            {submitStatus === "success" && (
+            {submitStatus === 'success' && (
               <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl flex items-start gap-3 animate-fade-in">
                 <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-green-500 font-medium">{t("contact.success.title")}</p>
-                  <p className="text-green-500/80 text-sm mt-1">{t("contact.success.message")}</p>
+                  <p className="text-green-500 font-medium">{t('contact.success.title')}</p>
+                  <p className="text-green-500/80 text-sm mt-1">{t('contact.success.message')}</p>
                 </div>
               </div>
             )}
 
             {/* Error Message */}
-            {submitStatus === "error" && (
+            {submitStatus === 'error' && (
               <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3 animate-fade-in">
                 <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-red-500 font-medium">{t("contact.error.message")}</p>
+                  <p className="text-red-500 font-medium">{t('contact.error.message')}</p>
                 </div>
               </div>
             )}
@@ -180,16 +180,16 @@ export const ContactSection = () => {
                   htmlFor="name"
                   className="text-sm font-medium text-muted-foreground mb-2 block"
                 >
-                  {t("contact.form.name")}
+                  {t('contact.form.name')}
                 </Label>
                 <Input
                   id="name"
                   type="text"
-                  placeholder={t("contact.form.namePlaceholder")}
+                  placeholder={t('contact.form.namePlaceholder')}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className={`bg-background border-border/10 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-primary/20 ${
-                    errors.name ? "border-red-500" : ""
+                    errors.name ? 'border-red-500' : ''
                   }`}
                   disabled={isSubmitting}
                 />
@@ -202,16 +202,16 @@ export const ContactSection = () => {
                   htmlFor="email"
                   className="text-sm font-medium text-muted-foreground mb-2 block"
                 >
-                  {t("contact.form.email")}
+                  {t('contact.form.email')}
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder={t("contact.form.emailPlaceholder")}
+                  placeholder={t('contact.form.emailPlaceholder')}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className={`bg-background border-border/10 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-primary/20 ${
-                    errors.email ? "border-red-500" : ""
+                    errors.email ? 'border-red-500' : ''
                   }`}
                   disabled={isSubmitting}
                 />
@@ -224,7 +224,7 @@ export const ContactSection = () => {
                   htmlFor="service"
                   className="text-sm font-medium text-muted-foreground mb-2 block"
                 >
-                  {t("contact.form.service")}
+                  {t('contact.form.service')}
                 </Label>
                 <Select
                   value={formData.service}
@@ -233,22 +233,22 @@ export const ContactSection = () => {
                 >
                   <SelectTrigger
                     className={`bg-background border-border/10 text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 ${
-                      errors.service ? "border-red-500" : ""
+                      errors.service ? 'border-red-500' : ''
                     }`}
                   >
-                    <SelectValue placeholder={t("contact.form.servicePlaceholder")} />
+                    <SelectValue placeholder={t('contact.form.servicePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border/10 z-50">
                     <SelectItem value="mobile">
-                      {t("contact.form.serviceOptions.mobile")}
+                      {t('contact.form.serviceOptions.mobile')}
                     </SelectItem>
-                    <SelectItem value="web">{t("contact.form.serviceOptions.web")}</SelectItem>
+                    <SelectItem value="web">{t('contact.form.serviceOptions.web')}</SelectItem>
                     <SelectItem value="automation">
-                      {t("contact.form.serviceOptions.automation")}
+                      {t('contact.form.serviceOptions.automation')}
                     </SelectItem>
-                    <SelectItem value="ai">{t("contact.form.serviceOptions.ai")}</SelectItem>
+                    <SelectItem value="ai">{t('contact.form.serviceOptions.ai')}</SelectItem>
                     <SelectItem value="not-sure">
-                      {t("contact.form.serviceOptions.notSure")}
+                      {t('contact.form.serviceOptions.notSure')}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -261,7 +261,7 @@ export const ContactSection = () => {
                   htmlFor="budget"
                   className="text-sm font-medium text-muted-foreground mb-2 block"
                 >
-                  {t("contact.form.budget")}
+                  {t('contact.form.budget')}
                 </Label>
                 <Select
                   value={formData.budget}
@@ -269,21 +269,21 @@ export const ContactSection = () => {
                   disabled={isSubmitting}
                 >
                   <SelectTrigger className="bg-background border-border/10 text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20">
-                    <SelectValue placeholder={t("contact.form.budgetPlaceholder")} />
+                    <SelectValue placeholder={t('contact.form.budgetPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border/10 z-50">
                     <SelectItem value="under-5k">
-                      {t("contact.form.budgetOptions.under5k")}
+                      {t('contact.form.budgetOptions.under5k')}
                     </SelectItem>
-                    <SelectItem value="5k-15k">{t("contact.form.budgetOptions.5k15k")}</SelectItem>
+                    <SelectItem value="5k-15k">{t('contact.form.budgetOptions.5k15k')}</SelectItem>
                     <SelectItem value="15k-50k">
-                      {t("contact.form.budgetOptions.15k50k")}
+                      {t('contact.form.budgetOptions.15k50k')}
                     </SelectItem>
                     <SelectItem value="50k-plus">
-                      {t("contact.form.budgetOptions.50kPlus")}
+                      {t('contact.form.budgetOptions.50kPlus')}
                     </SelectItem>
                     <SelectItem value="not-sure">
-                      {t("contact.form.budgetOptions.notSure")}
+                      {t('contact.form.budgetOptions.notSure')}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -295,15 +295,15 @@ export const ContactSection = () => {
                   htmlFor="message"
                   className="text-sm font-medium text-muted-foreground mb-2 block"
                 >
-                  {t("contact.form.message")}
+                  {t('contact.form.message')}
                 </Label>
                 <Textarea
                   id="message"
-                  placeholder={t("contact.form.messagePlaceholder")}
+                  placeholder={t('contact.form.messagePlaceholder')}
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   className={`bg-background border-border/10 text-foreground placeholder:text-muted-foreground/50 min-h-[120px] resize-y focus:border-primary focus:ring-2 focus:ring-primary/20 ${
-                    errors.message ? "border-red-500" : ""
+                    errors.message ? 'border-red-500' : ''
                   }`}
                   disabled={isSubmitting}
                 />
@@ -324,7 +324,7 @@ export const ContactSection = () => {
                   htmlFor="newsletter"
                   className="text-sm text-muted-foreground cursor-pointer"
                 >
-                  {t("contact.form.newsletter")}
+                  {t('contact.form.newsletter')}
                 </Label>
               </div>
 
@@ -334,7 +334,7 @@ export const ContactSection = () => {
                 disabled={isSubmitting}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 rounded-xl text-base font-semibold hover:scale-[1.02] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? t("contact.form.submitting") : t("contact.form.submit")}
+                {isSubmitting ? t('contact.form.submitting') : t('contact.form.submit')}
               </Button>
             </form>
           </div>
@@ -357,7 +357,7 @@ export const ContactSection = () => {
                 </div>
               </div>
               <Button
-                onClick={() => navigate("/consultation")}
+                onClick={() => navigate('/consultation')}
                 className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground font-semibold py-6 text-lg"
               >
                 Xem lịch & Đặt ngay →
@@ -369,7 +369,7 @@ export const ContactSection = () => {
               {/* Email */}
               <div>
                 <p className="text-sm font-bold uppercase tracking-wider text-primary mb-2">
-                  {t("contact.info.email")}
+                  {t('contact.info.email')}
                 </p>
                 <a
                   href="mailto:contact@longsang.org"
@@ -382,7 +382,7 @@ export const ContactSection = () => {
               {/* Book a Call */}
               <div>
                 <p className="text-sm font-bold uppercase tracking-wider text-primary mb-2">
-                  {t("contact.info.bookCall")}
+                  {t('contact.info.bookCall')}
                 </p>
                 <a
                   href="https://calendly.com/longsang"
@@ -390,14 +390,14 @@ export const ContactSection = () => {
                   rel="noopener noreferrer"
                   className="text-base text-muted-foreground hover:text-accent transition-colors duration-200 block mb-1"
                 >
-                  {t("contact.info.bookCallText")}
+                  {t('contact.info.bookCallText')}
                 </a>
               </div>
 
               {/* Social Links */}
               <div>
                 <p className="text-sm font-bold uppercase tracking-wider text-primary mb-3">
-                  {t("contact.info.connect")}
+                  {t('contact.info.connect')}
                 </p>
                 <div className="flex gap-4">
                   <a
@@ -440,15 +440,15 @@ export const ContactSection = () => {
               {/* Location */}
               <div>
                 <p className="text-sm font-bold uppercase tracking-wider text-primary mb-2">
-                  {t("contact.info.location")}
+                  {t('contact.info.location')}
                 </p>
                 <p className="text-base text-muted-foreground flex items-center gap-2 mb-1">
                   <MapPin className="w-4 h-4" />
-                  {t("contact.info.locationText")}
+                  {t('contact.info.locationText')}
                 </p>
                 <p className="text-base text-muted-foreground flex items-center gap-2">
                   <Globe className="w-4 h-4" />
-                  {t("contact.info.timezone")}
+                  {t('contact.info.timezone')}
                 </p>
               </div>
             </div>
@@ -458,16 +458,16 @@ export const ContactSection = () => {
               {/* Free Consultation Card */}
               <div className="bg-card border border-border/10 rounded-xl p-6 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300">
                 <p className="text-sm font-bold text-foreground mb-2">
-                  {t("contact.consultations.free.badge")}
+                  {t('contact.consultations.free.badge')}
                 </p>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {t("contact.consultations.free.title")}
+                  {t('contact.consultations.free.title')}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-1">
-                  {t("contact.consultations.free.duration")}
+                  {t('contact.consultations.free.duration')}
                 </p>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {t("contact.consultations.free.description")}
+                  {t('contact.consultations.free.description')}
                 </p>
                 <Button
                   asChild
@@ -475,7 +475,7 @@ export const ContactSection = () => {
                   className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
                 >
                   <a href="https://calendly.com/longsang" target="_blank" rel="noopener noreferrer">
-                    {t("contact.consultations.free.cta")}
+                    {t('contact.consultations.free.cta')}
                   </a>
                 </Button>
               </div>
@@ -483,26 +483,26 @@ export const ContactSection = () => {
               {/* Paid Consultation Card */}
               <div className="bg-card border border-border/10 rounded-xl p-6 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300">
                 <p className="text-sm font-bold text-foreground mb-2">
-                  {t("contact.consultations.paid.badge")}
+                  {t('contact.consultations.paid.badge')}
                 </p>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {t("contact.consultations.paid.title")}
+                  {t('contact.consultations.paid.title')}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-1">
-                  {t("contact.consultations.paid.duration")}
+                  {t('contact.consultations.paid.duration')}
                 </p>
                 <p className="text-sm text-muted-foreground mb-2">
-                  {t("contact.consultations.paid.description")}
+                  {t('contact.consultations.paid.description')}
                 </p>
                 <p className="text-sm font-semibold text-primary mb-4">
-                  {t("contact.consultations.paid.price")}
+                  {t('contact.consultations.paid.price')}
                 </p>
                 <Button
                   asChild
                   variant="outline"
                   className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
                 >
-                  <a href="#contact">{t("contact.consultations.paid.cta")}</a>
+                  <a href="#contact">{t('contact.consultations.paid.cta')}</a>
                 </Button>
               </div>
             </div>

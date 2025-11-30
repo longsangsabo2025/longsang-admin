@@ -1,8 +1,8 @@
 /**
  * 🎯 AI Command Center - Type Definitions
- * 
+ *
  * Theo tài liệu: docs/ai-command-center/08-DATA-MODELS.md
- * 
+ *
  * @author LongSang Admin
  * @version 2.0.0
  */
@@ -13,11 +13,11 @@
 
 export type AgentStatus = 'active' | 'inactive' | 'testing' | 'error';
 
-export type AgentType = 
-  | 'work_agent' 
-  | 'research_agent' 
-  | 'content_creator' 
-  | 'data_analyst' 
+export type AgentType =
+  | 'work_agent'
+  | 'research_agent'
+  | 'content_creator'
+  | 'data_analyst'
   | 'custom';
 
 export interface AgentConfig {
@@ -38,17 +38,17 @@ export interface AIAgent {
   type: AgentType;
   config: AgentConfig;
   category?: string; // From Supabase: content, marketing, automation, etc.
-  
+
   // Workflow integration
   n8nWorkflowId?: string;
   webhookUrl?: string;
-  
+
   // Metrics
   totalExecutions: number;
   successfulExecutions: number;
   failedExecutions: number;
   totalCostUsd: number;
-  
+
   // Timestamps
   lastUsedAt?: Date;
   createdAt: Date;
@@ -77,13 +77,13 @@ export type WorkflowStatus = 'active' | 'inactive' | 'paused' | 'error';
 
 export type TriggerType = 'manual' | 'scheduled' | 'webhook' | 'event' | 'api';
 
-export type StepType = 
-  | 'agent_call' 
-  | 'tool_call' 
-  | 'condition' 
-  | 'loop' 
-  | 'parallel' 
-  | 'webhook' 
+export type StepType =
+  | 'agent_call'
+  | 'tool_call'
+  | 'condition'
+  | 'loop'
+  | 'parallel'
+  | 'webhook'
   | 'delay';
 
 export interface WorkflowTrigger {
@@ -107,29 +107,29 @@ export interface Workflow {
   name: string;
   description?: string;
   status: WorkflowStatus;
-  
+
   // n8n Integration
   n8nWorkflowId?: string;
   n8nWorkflowName?: string;
   webhookUrl?: string;
-  
+
   // Configuration
   triggers: WorkflowTrigger[];
   steps: WorkflowStep[];
   variables: Record<string, unknown>;
   scheduleCron?: string;
-  
+
   // Metrics
   totalRuns: number;
   successfulRuns: number;
   failedRuns: number;
   avgExecutionTimeMs: number;
   totalCostUsd: number;
-  
+
   // Relations
   agentId?: string;
   agent?: AIAgent;
-  
+
   // Timestamps
   lastRunAt?: Date;
   createdAt: Date;
@@ -156,12 +156,7 @@ export interface UpdateWorkflowDTO extends Partial<CreateWorkflowDTO> {
 // EXECUTION TYPES
 // ============================================================
 
-export type ExecutionStatus = 
-  | 'pending' 
-  | 'running' 
-  | 'completed' 
-  | 'failed' 
-  | 'cancelled';
+export type ExecutionStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 
 export interface StepLog {
   stepId: string;
@@ -179,38 +174,38 @@ export interface WorkflowExecution {
   id: string;
   workflowId: string;
   agentId?: string;
-  
+
   // Execution details
   status: ExecutionStatus;
   triggerType: TriggerType;
-  
+
   // Input/Output
   inputData: Record<string, unknown>;
   outputData?: Record<string, unknown>;
   errorMessage?: string;
   errorStack?: string;
-  
+
   // Performance
   executionTimeMs?: number;
   startedAt?: Date;
   completedAt?: Date;
-  
+
   // Steps tracking
   currentStep: number;
   totalSteps: number;
   stepsLog: StepLog[];
-  
+
   // Cost tracking
   tokensUsed: number;
   costUsd: number;
-  
+
   // Metadata
   metadata: Record<string, unknown>;
   createdAt: Date;
-  
+
   // n8n reference
   n8nExecutionId?: string;
-  
+
   // Relations (when joined)
   workflow?: Workflow;
   agent?: AIAgent;
@@ -220,13 +215,13 @@ export interface WorkflowExecution {
 // TOOL TYPES
 // ============================================================
 
-export type ToolCategory = 
-  | 'ai' 
-  | 'utility' 
-  | 'integration' 
-  | 'custom' 
-  | 'video' 
-  | 'audio' 
+export type ToolCategory =
+  | 'ai'
+  | 'utility'
+  | 'integration'
+  | 'custom'
+  | 'video'
+  | 'audio'
   | 'image';
 
 export type ToolStatus = 'available' | 'unavailable' | 'deprecated' | 'beta';
@@ -254,31 +249,31 @@ export interface AITool {
   displayName?: string;
   description?: string;
   category: ToolCategory;
-  
+
   // Configuration
   config: ToolConfig;
   inputSchema?: JSONSchema;
   outputSchema?: JSONSchema;
-  
+
   // Pricing
   isFree: boolean;
   costPerUse: number;
   pricingModel: PricingModel;
-  
+
   // Status
   status: ToolStatus;
   isFeatured: boolean;
-  
+
   // Usage metrics
   totalCalls: number;
   successfulCalls: number;
   avgExecutionTimeMs: number;
-  
+
   // Marketplace
   fromMarketplace: boolean;
   marketplaceId?: string;
   version: string;
-  
+
   // Timestamps
   lastUsedAt?: Date;
   createdAt: Date;
@@ -410,12 +405,12 @@ export const DEFAULT_TOOL_CONFIG: ToolConfig = {
 // ============================================================
 
 export const CHART_COLORS = {
-  primary: '#3b82f6',   // Blue
+  primary: '#3b82f6', // Blue
   secondary: '#8b5cf6', // Purple
-  success: '#10b981',   // Green
-  warning: '#f59e0b',   // Amber
-  danger: '#ef4444',    // Red
-  neutral: '#6b7280',   // Gray
+  success: '#10b981', // Green
+  warning: '#f59e0b', // Amber
+  danger: '#ef4444', // Red
+  neutral: '#6b7280', // Gray
 };
 
 export const PIE_COLORS = [

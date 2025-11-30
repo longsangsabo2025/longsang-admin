@@ -34,12 +34,15 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 // Agent display config
-const AGENT_CONFIG: Record<string, { 
-  name: string; 
-  icon: React.ReactNode; 
-  color: string;
-  description: string;
-}> = {
+const AGENT_CONFIG: Record<
+  string,
+  {
+    name: string;
+    icon: React.ReactNode;
+    color: string;
+    description: string;
+  }
+> = {
   dev: {
     name: 'Dev Agent',
     icon: <Code2 className="h-4 w-4" />,
@@ -94,74 +97,64 @@ export function AIChatPanel({
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  
-  const {
-    messages,
-    isLoading,
-    error,
-    usage,
-    sendMessage,
-    clearChat,
-    regenerateLastResponse,
-  } = useAgentChat({
-    agentRole,
-    includeMemories: true,
-  });
-  
+
+  const { messages, isLoading, error, usage, sendMessage, clearChat, regenerateLastResponse } =
+    useAgentChat({
+      agentRole,
+      includeMemories: true,
+    });
+
   const agentConfig = AGENT_CONFIG[agentRole] || AGENT_CONFIG.advisor;
-  
+
   // Auto scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-  
+
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;
-    
+
     const message = inputValue.trim();
     setInputValue('');
-    
+
     onMessageSent?.(message);
     await sendMessage(message);
-    
+
     inputRef.current?.focus();
   };
-  
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
-  
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard');
   };
-  
+
   return (
     <Card className="flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={cn("p-2 rounded-full bg-muted", agentConfig.color)}>
+            <div className={cn('p-2 rounded-full bg-muted', agentConfig.color)}>
               {agentConfig.icon}
             </div>
             <div>
               <CardTitle className="text-lg">{agentConfig.name}</CardTitle>
-              <CardDescription className="text-xs">
-                {agentConfig.description}
-              </CardDescription>
+              <CardDescription className="text-xs">{agentConfig.description}</CardDescription>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {showStats && usage.totalTokens > 0 && (
               <Badge variant="secondary" className="text-xs">
-                <DollarSign className="h-3 w-3 mr-1" />
-                ${usage.totalCost.toFixed(4)}
+                <DollarSign className="h-3 w-3 mr-1" />${usage.totalCost.toFixed(4)}
               </Badge>
             )}
             <Button variant="ghost" size="icon" onClick={clearChat}>
@@ -170,8 +163,8 @@ export function AIChatPanel({
           </div>
         </div>
       </CardHeader>
-      
-      <CardContent className={cn("flex-1 flex flex-col p-0", height)}>
+
+      <CardContent className={cn('flex-1 flex flex-col p-0', height)}>
         {/* Messages */}
         <ScrollArea className="flex-1 px-4" ref={scrollRef}>
           <div className="space-y-4 py-4">
@@ -208,7 +201,7 @@ export function AIChatPanel({
                 </div>
               </div>
             )}
-            
+
             {messages.map((message, index) => (
               <MessageBubble
                 key={index}
@@ -217,10 +210,10 @@ export function AIChatPanel({
                 onCopy={() => copyToClipboard(message.content)}
               />
             ))}
-            
+
             {isLoading && (
               <div className="flex items-start gap-3">
-                <div className={cn("p-2 rounded-full bg-muted", agentConfig.color)}>
+                <div className={cn('p-2 rounded-full bg-muted', agentConfig.color)}>
                   {agentConfig.icon}
                 </div>
                 <div className="flex-1 space-y-2">
@@ -229,7 +222,7 @@ export function AIChatPanel({
                 </div>
               </div>
             )}
-            
+
             {error && (
               <div className="p-3 rounded-lg bg-red-500/10 text-red-500 text-sm">
                 Error: {error}
@@ -237,7 +230,7 @@ export function AIChatPanel({
             )}
           </div>
         </ScrollArea>
-        
+
         {/* Input */}
         <div className="p-4 border-t">
           <div className="flex gap-2">
@@ -251,8 +244,8 @@ export function AIChatPanel({
               disabled={isLoading}
             />
             <div className="flex flex-col gap-2">
-              <Button 
-                onClick={handleSend} 
+              <Button
+                onClick={handleSend}
                 disabled={!inputValue.trim() || isLoading}
                 className="h-[60px]"
               >
@@ -288,41 +281,40 @@ function MessageBubble({
   onCopy,
 }: {
   message: ChatMessage;
-  agentConfig: typeof AGENT_CONFIG[string];
+  agentConfig: (typeof AGENT_CONFIG)[string];
   onCopy: () => void;
 }) {
   const isUser = message.role === 'user';
-  
+
   return (
-    <div className={cn("flex gap-3", isUser && "flex-row-reverse")}>
-      <div className={cn(
-        "p-2 rounded-full h-fit",
-        isUser ? "bg-primary text-primary-foreground" : "bg-muted"
-      )}>
+    <div className={cn('flex gap-3', isUser && 'flex-row-reverse')}>
+      <div
+        className={cn(
+          'p-2 rounded-full h-fit',
+          isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'
+        )}
+      >
         {isUser ? (
           <MessageSquare className="h-4 w-4" />
         ) : (
           <span className={agentConfig.color}>{agentConfig.icon}</span>
         )}
       </div>
-      
-      <div className={cn(
-        "flex-1 max-w-[85%] group",
-        isUser && "flex flex-col items-end"
-      )}>
-        <div className={cn(
-          "rounded-lg p-3",
-          isUser 
-            ? "bg-primary text-primary-foreground" 
-            : "bg-muted"
-        )}>
+
+      <div className={cn('flex-1 max-w-[85%] group', isUser && 'flex flex-col items-end')}>
+        <div
+          className={cn(
+            'rounded-lg p-3',
+            isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'
+          )}
+        >
           {isUser ? (
             <p className="text-sm whitespace-pre-wrap">{message.content}</p>
           ) : (
             <MarkdownContent content={message.content} />
           )}
         </div>
-        
+
         {!isUser && (
           <Button
             variant="ghost"
@@ -358,7 +350,7 @@ function MarkdownContent({ content }: { content: string }) {
                 {String(children).replace(/\n$/, '')}
               </SyntaxHighlighter>
             ) : (
-              <code className={cn("bg-muted px-1 py-0.5 rounded", className)} {...props}>
+              <code className={cn('bg-muted px-1 py-0.5 rounded', className)} {...props}>
                 {children}
               </code>
             );
@@ -381,20 +373,9 @@ function MarkdownContent({ content }: { content: string }) {
 }
 
 // Suggested Prompt Button
-function SuggestedPrompt({ 
-  text, 
-  onClick 
-}: { 
-  text: string; 
-  onClick: (text: string) => void;
-}) {
+function SuggestedPrompt({ text, onClick }: { text: string; onClick: (text: string) => void }) {
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      className="text-xs"
-      onClick={() => onClick(text)}
-    >
+    <Button variant="outline" size="sm" className="text-xs" onClick={() => onClick(text)}>
       {text}
     </Button>
   );

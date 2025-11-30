@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/Layout';
-import { 
-  getDashboardStats, 
-  getAgents, 
+import {
+  getDashboardStats,
+  getAgents,
   getActivityLogs,
   getContentQueue,
   subscribeToAgentUpdates,
   subscribeToActivityLogs,
-  subscribeToContentQueue
+  subscribeToContentQueue,
 } from '@/lib/automation/api';
 import { DashboardHeader } from '@/components/automation/DashboardHeader';
 import { StatsCards } from '@/components/automation/StatsCards';
@@ -23,13 +23,17 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Globe, Briefcase, Zap, Workflow } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useNotifications, useBudgetAlerts, useContentNotifications } from '@/hooks/use-notifications';
+import {
+  useNotifications,
+  useBudgetAlerts,
+  useContentNotifications,
+} from '@/hooks/use-notifications';
 
 const AutomationDashboard = () => {
   const navigate = useNavigate();
   const [refreshKey, setRefreshKey] = useState(0);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  
+
   // Enable real-time notifications
   useNotifications();
   useBudgetAlerts();
@@ -59,15 +63,15 @@ const AutomationDashboard = () => {
   // Set up real-time subscriptions
   useEffect(() => {
     const agentsChannel = subscribeToAgentUpdates(() => {
-      setRefreshKey(prev => prev + 1);
+      setRefreshKey((prev) => prev + 1);
     });
 
     const logsChannel = subscribeToActivityLogs(() => {
-      setRefreshKey(prev => prev + 1);
+      setRefreshKey((prev) => prev + 1);
     });
 
     const queueChannel = subscribeToContentQueue(() => {
-      setRefreshKey(prev => prev + 1);
+      setRefreshKey((prev) => prev + 1);
     });
 
     return () => {
@@ -78,14 +82,14 @@ const AutomationDashboard = () => {
   }, []);
 
   // Categorize agents by category field
-  const websiteAgents = agents?.filter(a => a.category === 'website') || [];
-  const otherAgents = agents?.filter(a => a.category !== 'website') || [];
-  
+  const websiteAgents = agents?.filter((a) => a.category === 'website') || [];
+  const otherAgents = agents?.filter((a) => a.category !== 'website') || [];
+
   // Further categorize "other" agents by specific categories
-  const ecommerceAgents = agents?.filter(a => a.category === 'ecommerce') || [];
-  const crmAgents = agents?.filter(a => a.category === 'crm') || [];
-  const marketingAgents = agents?.filter(a => a.category === 'marketing') || [];
-  const operationsAgents = agents?.filter(a => a.category === 'operations') || [];
+  const ecommerceAgents = agents?.filter((a) => a.category === 'ecommerce') || [];
+  const crmAgents = agents?.filter((a) => a.category === 'crm') || [];
+  const marketingAgents = agents?.filter((a) => a.category === 'marketing') || [];
+  const operationsAgents = agents?.filter((a) => a.category === 'operations') || [];
 
   return (
     <Layout>
@@ -101,7 +105,8 @@ const AutomationDashboard = () => {
                   Dành cho <strong>Người dùng</strong> - Xem và chạy agents, theo dõi hoạt động
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  💡 Cần tính năng nâng cao? Truy cập <strong>Admin Management</strong> để tạo/sửa agents và workflows
+                  💡 Cần tính năng nâng cao? Truy cập <strong>Admin Management</strong> để tạo/sửa
+                  agents và workflows
                 </p>
               </div>
             </div>
@@ -118,10 +123,7 @@ const AutomationDashboard = () => {
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 mb-8">
-            <Button
-              variant="outline"
-              onClick={() => setRefreshKey(prev => prev + 1)}
-            >
+            <Button variant="outline" onClick={() => setRefreshKey((prev) => prev + 1)}>
               Refresh
             </Button>
             <Button onClick={() => setCreateModalOpen(true)}>
@@ -168,8 +170,8 @@ const AutomationDashboard = () => {
                   </p>
                 </div>
               </div>
-              <AgentStatusCards 
-                agents={websiteAgents} 
+              <AgentStatusCards
+                agents={websiteAgents}
                 isLoading={agentsLoading}
                 onCreateAgent={() => setCreateModalOpen(true)}
               />
@@ -193,9 +195,7 @@ const AutomationDashboard = () => {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-bold">💼 Other Projects</h2>
-                  <p className="text-muted-foreground">
-                    Agents organized by project category
-                  </p>
+                  <p className="text-muted-foreground">Agents organized by project category</p>
                 </div>
               </div>
 
@@ -222,8 +222,8 @@ const AutomationDashboard = () => {
 
                 {/* All Other Projects */}
                 <TabsContent value="all-other">
-                  <AgentStatusCards 
-                    agents={otherAgents} 
+                  <AgentStatusCards
+                    agents={otherAgents}
                     isLoading={agentsLoading}
                     onCreateAgent={() => setCreateModalOpen(true)}
                   />
@@ -250,8 +250,8 @@ const AutomationDashboard = () => {
                       Automate product descriptions, customer support, and cart recovery
                     </p>
                   </div>
-                  <AgentStatusCards 
-                    agents={ecommerceAgents} 
+                  <AgentStatusCards
+                    agents={ecommerceAgents}
                     isLoading={agentsLoading}
                     onCreateAgent={() => setCreateModalOpen(true)}
                   />
@@ -277,8 +277,8 @@ const AutomationDashboard = () => {
                       Lead qualification, follow-ups, and meeting notes
                     </p>
                   </div>
-                  <AgentStatusCards 
-                    agents={crmAgents} 
+                  <AgentStatusCards
+                    agents={crmAgents}
                     isLoading={agentsLoading}
                     onCreateAgent={() => setCreateModalOpen(true)}
                   />
@@ -304,8 +304,8 @@ const AutomationDashboard = () => {
                       Content generation, social media, and email campaigns
                     </p>
                   </div>
-                  <AgentStatusCards 
-                    agents={marketingAgents} 
+                  <AgentStatusCards
+                    agents={marketingAgents}
                     isLoading={agentsLoading}
                     onCreateAgent={() => setCreateModalOpen(true)}
                   />
@@ -331,8 +331,8 @@ const AutomationDashboard = () => {
                       Task management, document processing, and reporting
                     </p>
                   </div>
-                  <AgentStatusCards 
-                    agents={operationsAgents} 
+                  <AgentStatusCards
+                    agents={operationsAgents}
                     isLoading={agentsLoading}
                     onCreateAgent={() => setCreateModalOpen(true)}
                   />
@@ -388,8 +388,8 @@ const AutomationDashboard = () => {
                   </p>
                 </div>
               </div>
-              <AgentStatusCards 
-                agents={agents || []} 
+              <AgentStatusCards
+                agents={agents || []}
                 isLoading={agentsLoading}
                 onCreateAgent={() => setCreateModalOpen(true)}
               />
@@ -405,17 +405,11 @@ const AutomationDashboard = () => {
                   {contentQueue?.length || 0} items pending or scheduled
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/automation/content-queue')}
-              >
+              <Button variant="ghost" onClick={() => navigate('/automation/content-queue')}>
                 View All
               </Button>
             </div>
-            <ContentQueueList 
-              items={contentQueue || []} 
-              isLoading={queueLoading} 
-            />
+            <ContentQueueList items={contentQueue || []} isLoading={queueLoading} />
           </section>
 
           {/* Activity Log */}
@@ -423,30 +417,19 @@ const AutomationDashboard = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-bold">📊 Activity Log</h2>
-                <p className="text-muted-foreground">
-                  Recent automation activities and events
-                </p>
+                <p className="text-muted-foreground">Recent automation activities and events</p>
               </div>
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/automation/logs')}
-              >
+              <Button variant="ghost" onClick={() => navigate('/automation/logs')}>
                 View All
               </Button>
             </div>
-            <ActivityLogList 
-              logs={activityLogs || []} 
-              isLoading={logsLoading} 
-            />
+            <ActivityLogList logs={activityLogs || []} isLoading={logsLoading} />
           </section>
         </div>
       </div>
 
       {/* Create Agent Modal */}
-      <CreateAgentModal 
-        open={createModalOpen} 
-        onOpenChange={setCreateModalOpen} 
-      />
+      <CreateAgentModal open={createModalOpen} onOpenChange={setCreateModalOpen} />
     </Layout>
   );
 };

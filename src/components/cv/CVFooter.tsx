@@ -1,5 +1,5 @@
-import { Linkedin, Mail, Phone, Download, Heart, Coffee } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Linkedin, Mail, Phone, Download, Heart, Coffee } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const CVFooter = () => {
   return (
@@ -18,7 +18,7 @@ const CVFooter = () => {
           <div>
             <h4 className="font-heading font-semibold text-foreground mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              {["Home", "About", "Experience", "Contact"].map((link) => (
+              {['Home', 'About', 'Experience', 'Contact'].map((link) => (
                 <li key={link}>
                   <a
                     href={`#${link.toLowerCase()}`}
@@ -80,7 +80,8 @@ const CVFooter = () => {
               © 2025 Võ Long Sang. All rights reserved.
             </p>
             <p className="text-sm text-foreground-secondary flex items-center gap-1">
-              Made with <Heart className="w-4 h-4 text-destructive fill-current" /> and <Coffee className="w-4 h-4" />
+              Made with <Heart className="w-4 h-4 text-destructive fill-current" /> and{' '}
+              <Coffee className="w-4 h-4" />
             </p>
           </div>
         </div>

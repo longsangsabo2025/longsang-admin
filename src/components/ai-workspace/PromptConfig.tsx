@@ -1,6 +1,6 @@
 /**
  * ⚙️ PromptConfig - System Prompt & Parameters Configuration
- * 
+ *
  * Allows users to customize:
  * - System prompt (persona/instructions)
  * - Temperature (creativity level)
@@ -11,9 +11,9 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Settings2, 
-  Save, 
+import {
+  Settings2,
+  Save,
   RotateCcw,
   ChevronDown,
   ChevronUp,
@@ -43,18 +43,8 @@ import {
   SheetTrigger,
   SheetFooter,
 } from '@/components/ui/sheet';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Select,
   SelectContent,
@@ -62,11 +52,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // =============================================================================
@@ -76,20 +62,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 export interface PromptSettings {
   // Core
   systemPrompt: string;
-  
+
   // Generation params
   temperature: number;
   maxTokens: number;
   topP: number;
-  
+
   // Penalties
   presencePenalty: number;
   frequencyPenalty: number;
-  
+
   // Advanced
   stopSequences: string[];
   responseFormat: 'text' | 'json' | 'markdown';
-  
+
   // Features
   enableStreaming: boolean;
   enableMemory: boolean;
@@ -282,17 +268,14 @@ export function PromptConfig({
   };
 
   const handlePresetSelect = (presetId: string) => {
-    const preset = PROMPT_PRESETS.find(p => p.id === presetId);
+    const preset = PROMPT_PRESETS.find((p) => p.id === presetId);
     if (preset) {
       setLocalSettings(preset.settings);
     }
   };
 
-  const updateSetting = <K extends keyof PromptSettings>(
-    key: K, 
-    value: PromptSettings[K]
-  ) => {
-    setLocalSettings(prev => ({ ...prev, [key]: value }));
+  const updateSetting = <K extends keyof PromptSettings>(key: K, value: PromptSettings[K]) => {
+    setLocalSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   // Trigger button
@@ -316,21 +299,17 @@ export function PromptConfig({
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        {TriggerButton}
-      </SheetTrigger>
-      
+      <SheetTrigger asChild>{TriggerButton}</SheetTrigger>
+
       <SheetContent className="w-full sm:max-w-xl">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Settings2 className="h-5 w-5" />
             Cấu hình AI
           </SheetTitle>
-          <SheetDescription>
-            Tùy chỉnh system prompt và các tham số generation
-          </SheetDescription>
+          <SheetDescription>Tùy chỉnh system prompt và các tham số generation</SheetDescription>
         </SheetHeader>
-        
+
         <ScrollArea className="h-[calc(100vh-200px)] mt-4 pr-4">
           <Tabs defaultValue="prompt" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
@@ -347,7 +326,7 @@ export function PromptConfig({
                 Presets
               </TabsTrigger>
             </TabsList>
-            
+
             {/* PROMPT TAB */}
             <TabsContent value="prompt" className="space-y-4 mt-4">
               <div className="space-y-2">
@@ -365,46 +344,42 @@ export function PromptConfig({
                   Đây là prompt định hình tính cách và hành vi của AI
                 </p>
               </div>
-              
+
               {/* Quick toggles */}
               <div className="space-y-3 pt-4 border-t">
                 <Label className="text-sm font-medium">Tính năng</Label>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-sm">Streaming</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Hiện response từng chữ
-                    </p>
+                    <p className="text-xs text-muted-foreground">Hiện response từng chữ</p>
                   </div>
                   <Switch
                     checked={localSettings.enableStreaming}
                     onCheckedChange={(v) => updateSetting('enableStreaming', v)}
                   />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-sm">Bộ nhớ</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Nhớ context cuộc trò chuyện
-                    </p>
+                    <p className="text-xs text-muted-foreground">Nhớ context cuộc trò chuyện</p>
                   </div>
                   <Switch
                     checked={localSettings.enableMemory}
                     onCheckedChange={(v) => updateSetting('enableMemory', v)}
                   />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-sm flex items-center gap-1">
                       Web Search
-                      <Badge variant="outline" className="text-[10px]">Beta</Badge>
+                      <Badge variant="outline" className="text-[10px]">
+                        Beta
+                      </Badge>
                     </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Tìm kiếm thông tin real-time
-                    </p>
+                    <p className="text-xs text-muted-foreground">Tìm kiếm thông tin real-time</p>
                   </div>
                   <Switch
                     checked={localSettings.enableWebSearch}
@@ -413,7 +388,7 @@ export function PromptConfig({
                 </div>
               </div>
             </TabsContent>
-            
+
             {/* PARAMS TAB */}
             <TabsContent value="params" className="space-y-6 mt-4">
               {/* Temperature */}
@@ -439,7 +414,7 @@ export function PromptConfig({
                   <span>Sáng tạo (2)</span>
                 </div>
               </div>
-              
+
               {/* Max Tokens */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -462,13 +437,15 @@ export function PromptConfig({
                   <span>Dài (16K)</span>
                 </div>
               </div>
-              
+
               {/* Response Format */}
               <div className="space-y-2">
                 <Label>Response Format</Label>
                 <Select
                   value={localSettings.responseFormat}
-                  onValueChange={(v) => updateSetting('responseFormat', v as PromptSettings['responseFormat'])}
+                  onValueChange={(v) =>
+                    updateSetting('responseFormat', v as PromptSettings['responseFormat'])
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -480,7 +457,7 @@ export function PromptConfig({
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* Advanced */}
               <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
                 <CollapsibleTrigger asChild>
@@ -511,7 +488,7 @@ export function PromptConfig({
                       step={0.05}
                     />
                   </div>
-                  
+
                   {/* Presence Penalty */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -525,11 +502,9 @@ export function PromptConfig({
                       max={2}
                       step={0.1}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Cao hơn = đa dạng chủ đề hơn
-                    </p>
+                    <p className="text-xs text-muted-foreground">Cao hơn = đa dạng chủ đề hơn</p>
                   </div>
-                  
+
                   {/* Frequency Penalty */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -543,21 +518,22 @@ export function PromptConfig({
                       max={2}
                       step={0.1}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Cao hơn = ít lặp từ hơn
-                    </p>
+                    <p className="text-xs text-muted-foreground">Cao hơn = ít lặp từ hơn</p>
                   </div>
-                  
+
                   {/* Stop Sequences */}
                   <div className="space-y-2">
                     <Label>Stop Sequences</Label>
                     <Input
                       placeholder="Nhập các chuỗi stop, phân cách bằng dấu phẩy"
                       value={localSettings.stopSequences.join(', ')}
-                      onChange={(e) => 
+                      onChange={(e) =>
                         updateSetting(
-                          'stopSequences', 
-                          e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                          'stopSequences',
+                          e.target.value
+                            .split(',')
+                            .map((s) => s.trim())
+                            .filter(Boolean)
                         )
                       }
                     />
@@ -568,33 +544,29 @@ export function PromptConfig({
                 </CollapsibleContent>
               </Collapsible>
             </TabsContent>
-            
+
             {/* PRESETS TAB */}
             <TabsContent value="presets" className="space-y-3 mt-4">
-              <p className="text-sm text-muted-foreground">
-                Chọn preset để áp dụng nhanh cấu hình
-              </p>
-              
-              {PROMPT_PRESETS.map(preset => (
+              <p className="text-sm text-muted-foreground">Chọn preset để áp dụng nhanh cấu hình</p>
+
+              {PROMPT_PRESETS.map((preset) => (
                 <Button
                   key={preset.id}
                   variant="outline"
                   className={cn(
                     'w-full justify-start h-auto py-3 px-4',
-                    localSettings.systemPrompt === preset.settings.systemPrompt && 
-                    'border-primary bg-primary/5'
+                    localSettings.systemPrompt === preset.settings.systemPrompt &&
+                      'border-primary bg-primary/5'
                   )}
                   onClick={() => handlePresetSelect(preset.id)}
                 >
                   <div className="text-left">
                     <div className="font-medium">{preset.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {preset.description}
-                    </div>
+                    <div className="text-xs text-muted-foreground">{preset.description}</div>
                   </div>
                 </Button>
               ))}
-              
+
               <div className="pt-4 border-t">
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
@@ -604,7 +576,7 @@ export function PromptConfig({
             </TabsContent>
           </Tabs>
         </ScrollArea>
-        
+
         <SheetFooter className="mt-4 gap-2">
           <Button variant="outline" onClick={handleReset} className="gap-2">
             <RotateCcw className="h-4 w-4" />

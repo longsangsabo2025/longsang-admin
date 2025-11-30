@@ -22,23 +22,26 @@ export function useVisualWorkspace() {
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Add node to canvas
-  const addNode = useCallback((component: ComponentDefinition, position?: { x: number; y: number }) => {
-    const newNode: Node = {
-      id: component.id,
-      type: component.type,
-      position: position || { x: Math.random() * 400, y: Math.random() * 400 },
-      data: {
-        label: component.label,
-        componentType: component.componentType,
-        sublabel: component.sublabel,
-        properties: component.properties || {},
-        code: component.code,
-      },
-    };
+  const addNode = useCallback(
+    (component: ComponentDefinition, position?: { x: number; y: number }) => {
+      const newNode: Node = {
+        id: component.id,
+        type: component.type,
+        position: position || { x: Math.random() * 400, y: Math.random() * 400 },
+        data: {
+          label: component.label,
+          componentType: component.componentType,
+          sublabel: component.sublabel,
+          properties: component.properties || {},
+          code: component.code,
+        },
+      };
 
-    setNodes((prev) => [...prev, newNode]);
-    return newNode;
-  }, []);
+      setNodes((prev) => [...prev, newNode]);
+      return newNode;
+    },
+    []
+  );
 
   // Update node
   const updateNode = useCallback((nodeId: string, updates: Partial<Node['data']>) => {
@@ -58,13 +61,16 @@ export function useVisualWorkspace() {
   }, []);
 
   // Remove node
-  const removeNode = useCallback((nodeId: string) => {
-    setNodes((prev) => prev.filter((node) => node.id !== nodeId));
-    setEdges((prev) => prev.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
-    if (selectedNode?.id === nodeId) {
-      setSelectedNode(null);
-    }
-  }, [selectedNode]);
+  const removeNode = useCallback(
+    (nodeId: string) => {
+      setNodes((prev) => prev.filter((node) => node.id !== nodeId));
+      setEdges((prev) => prev.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+      if (selectedNode?.id === nodeId) {
+        setSelectedNode(null);
+      }
+    },
+    [selectedNode]
+  );
 
   // Add edge
   const addEdge = useCallback((connection: Connection) => {
@@ -104,9 +110,7 @@ export function useVisualWorkspace() {
           updated = updated.filter((node) => node.id !== change.id);
         } else if (change.type === 'position' && change.dragging === false) {
           updated = updated.map((node) =>
-            node.id === change.id
-              ? { ...node, position: change.position || node.position }
-              : node
+            node.id === change.id ? { ...node, position: change.position || node.position } : node
           );
         } else if (change.type === 'select') {
           updated = updated.map((node) =>
@@ -155,4 +159,3 @@ export function useVisualWorkspace() {
     setSelectedNode,
   };
 }
-

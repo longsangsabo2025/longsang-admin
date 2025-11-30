@@ -148,29 +148,29 @@ export interface ContentData {
   tags?: string[];
   images?: string[];
   estimated_length?: number;
-  
+
   // Advanced SEO Fields
   canonical_url?: string;
   og_image?: string;
   twitter_image?: string;
   schema_type?: 'Article' | 'BlogPosting' | 'NewsArticle' | 'Event' | 'Product';
   featured_snippet_target?: boolean;
-  
+
   // Content Clustering
   topic_cluster?: string;
   pillar_page_id?: string;
   related_content_ids?: string[];
-  
+
   // SEO Performance
   target_keywords?: string[];
   search_intent?: 'informational' | 'navigational' | 'commercial' | 'transactional';
   content_score?: number;
   readability_score?: number;
-  
+
   // Technical SEO
   structured_data?: Record<string, any>;
   breadcrumbs?: Array<{ name: string; url: string }>;
-  
+
   [key: string]: any;
 }
 

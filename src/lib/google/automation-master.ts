@@ -34,7 +34,9 @@ export interface AutomationResult {
  * Note: This function requires server-side execution through API endpoint
  */
 export async function runAllAutomations(_config: AutomationConfig): Promise<AutomationResult[]> {
-  throw new Error('runAllAutomations must be called through API server endpoint: POST /api/google/run-automations');
+  throw new Error(
+    'runAllAutomations must be called through API server endpoint: POST /api/google/run-automations'
+  );
 }
 
 /**
@@ -42,7 +44,9 @@ export async function runAllAutomations(_config: AutomationConfig): Promise<Auto
  * Note: This function requires server-side execution through API endpoint
  */
 export async function runDailyAutomation(_config: AutomationConfig) {
-  throw new Error('runDailyAutomation must be called through API server endpoint: POST /api/google/daily-automation');
+  throw new Error(
+    'runDailyAutomation must be called through API server endpoint: POST /api/google/daily-automation'
+  );
 }
 
 /**
@@ -50,7 +54,9 @@ export async function runDailyAutomation(_config: AutomationConfig) {
  * Note: This function requires server-side execution through API endpoint
  */
 export async function handleNewConsultation(_consultationId: string, _config: AutomationConfig) {
-  throw new Error('handleNewConsultation must be called through API server endpoint: POST /api/google/handle-consultation');
+  throw new Error(
+    'handleNewConsultation must be called through API server endpoint: POST /api/google/handle-consultation'
+  );
 }
 
 /**
@@ -58,7 +64,9 @@ export async function handleNewConsultation(_consultationId: string, _config: Au
  * Note: This function requires server-side execution through API endpoint
  */
 export async function handleNewBlogPost(_postId: string, _config: AutomationConfig) {
-  throw new Error('handleNewBlogPost must be called through API server endpoint: POST /api/google/handle-blog-post');
+  throw new Error(
+    'handleNewBlogPost must be called through API server endpoint: POST /api/google/handle-blog-post'
+  );
 }
 
 /**
@@ -79,12 +87,12 @@ export async function getAutomationStats(days = 7) {
 
   const stats = {
     totalRuns: logs?.length || 0,
-    successRate: logs ? (logs.filter(l => l.status === 'success').length / logs.length) * 100 : 0,
+    successRate: logs ? (logs.filter((l) => l.status === 'success').length / logs.length) * 100 : 0,
     byService: {} as Record<string, { success: number; error: number }>,
-    recentErrors: logs?.filter(l => l.status === 'error').slice(0, 5) || [],
+    recentErrors: logs?.filter((l) => l.status === 'error').slice(0, 5) || [],
   };
 
-  logs?.forEach(log => {
+  logs?.forEach((log) => {
     if (!stats.byService[log.service]) {
       stats.byService[log.service] = { success: 0, error: 0 };
     }
@@ -103,7 +111,9 @@ export async function getAutomationStats(days = 7) {
  * Note: This function requires server-side execution through API endpoint
  */
 export async function testAllConnections(_config: AutomationConfig) {
-  throw new Error('testAllConnections must be called through API server endpoint: POST /api/google/test-connections');
+  throw new Error(
+    'testAllConnections must be called through API server endpoint: POST /api/google/test-connections'
+  );
 }
 
 // ============================================================
@@ -111,7 +121,7 @@ export async function testAllConnections(_config: AutomationConfig) {
 // ============================================================
 
 async function logMasterAutomation(results: AutomationResult[]) {
-  const logs = results.map(result => ({
+  const logs = results.map((result) => ({
     service: result.service,
     status: result.status,
     message: result.message,

@@ -11,6 +11,7 @@ npm run setup:mcp-supabase
 ```
 
 Script sẽ:
+
 1. ✅ Tạo file config với token của bạn
 2. ✅ Tự động copy vào Cursor settings
 3. ✅ Hướng dẫn các bước tiếp theo
@@ -22,11 +23,13 @@ Sau đó **restart Cursor** và test!
 ### Bước 1: Tìm File Config Cursor
 
 **Windows:**
+
 ```
 %APPDATA%\Cursor\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json
 ```
 
 **Mac:**
+
 ```
 ~/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json
 ```
@@ -66,11 +69,13 @@ Hoặc copy nội dung này:
 ## ✅ Test
 
 Hỏi AI trong Cursor:
+
 ```
 Liệt kê các bảng trong Supabase database
 ```
 
 Hoặc chạy:
+
 ```bash
 npm run test:mcp-supabase
 ```
@@ -78,11 +83,12 @@ npm run test:mcp-supabase
 ## 📚 Chi Tiết
 
 Xem thêm:
+
 - [Token Configured](./_DOCS/MCP_SUPABASE_TOKEN_CONFIGURED.md)
 - [Quick Start](./_DOCS/MCP_SUPABASE_QUICKSTART.md)
 - [Full Guide](./_DOCS/SETUP_MCP_SUPABASE.md)
 
 ---
 
-**Token:** `sbp_8826363ab90440922fff6ad37577dc186d6b0796` ✅
-**Status:** Sẵn sàng cài đặt
+**Token:** `sbp_8826363ab90440922fff6ad37577dc186d6b0796` ✅ **Status:** Sẵn
+sàng cài đặt

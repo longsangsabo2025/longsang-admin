@@ -1,16 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
-import { usePersistedState, useScrollRestore } from "@/hooks/usePersistedState";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
+import { usePersistedState, useScrollRestore } from '@/hooks/usePersistedState';
 import {
   Key,
   Eye,
@@ -32,7 +45,7 @@ import {
   Database,
   CreditCard,
   Mail,
-  Cloud
+  Cloud,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -65,7 +78,7 @@ const CredentialManager = () => {
 
   const { toast: uiToast } = useToast();
   const [credentials, setCredentials] = useState<Credential[]>([]);
-  const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
+  const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({});
   const [showAllSecrets, setShowAllSecrets] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCredential, setEditingCredential] = useState<Credential | null>(null);
@@ -81,13 +94,14 @@ const CredentialManager = () => {
           name: 'OpenAI API',
           platform: 'OpenAI',
           category: 'api',
-          apiKey: 'sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+          apiKey:
+            'sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
           notes: 'API key OpenAI chính cho các tính năng AI',
           tags: ['ai', 'openai', 'production'],
           isActive: true,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-11',
-          isFavorite: true
+          isFavorite: true,
         },
         {
           id: '2',
@@ -96,13 +110,14 @@ const CredentialManager = () => {
           category: 'database',
           email: 'admin@longsang.com',
           password: 'xxxxxxxxxx',
-          apiKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+          apiKey:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
           notes: 'Thông tin đăng nhập cơ sở dữ liệu Production',
           tags: ['database', 'supabase', 'production'],
           isActive: true,
           createdAt: '2025-01-01',
           updatedAt: '2025-01-11',
-          isFavorite: true
+          isFavorite: true,
         },
         {
           id: '3',
@@ -116,8 +131,8 @@ const CredentialManager = () => {
           isActive: true,
           createdAt: '2025-01-11',
           updatedAt: '2025-01-11',
-          isFavorite: false
-        }
+          isFavorite: false,
+        },
       ];
       setCredentials(loadedCredentials);
     }
@@ -130,7 +145,7 @@ const CredentialManager = () => {
     payment: CreditCard,
     social: Globe,
     cloud: Cloud,
-    other: Shield
+    other: Shield,
   };
 
   const categoryColors = {
@@ -140,11 +155,12 @@ const CredentialManager = () => {
     payment: 'bg-yellow-100 text-yellow-800',
     social: 'bg-pink-100 text-pink-800',
     cloud: 'bg-indigo-100 text-indigo-800',
-    other: 'bg-gray-100 text-gray-800'
+    other: 'bg-gray-100 text-gray-800',
   };
 
   const handleUnlock = () => {
-    if (masterPassword === 'admin123') { // In production, use proper authentication
+    if (masterPassword === 'admin123') {
+      // In production, use proper authentication
       setIsUnlocked(true);
       toast.success('✅ Credential vault unlocked');
     } else {
@@ -153,9 +169,9 @@ const CredentialManager = () => {
   };
 
   const togglePasswordVisibility = (credentialId: string) => {
-    setShowPasswords(prev => ({
+    setShowPasswords((prev) => ({
       ...prev,
-      [credentialId]: !prev[credentialId]
+      [credentialId]: !prev[credentialId],
     }));
   };
 
@@ -166,7 +182,7 @@ const CredentialManager = () => {
       setShowAllSecrets(false);
     } else {
       // Show all
-      const allVisible: {[key: string]: boolean} = {};
+      const allVisible: { [key: string]: boolean } = {};
       for (const cred of credentials) {
         allVisible[cred.id] = true;
       }
@@ -184,17 +200,18 @@ const CredentialManager = () => {
     }
   };
 
-  const filteredCredentials = credentials.filter(cred => {
-    const matchesSearch = cred.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cred.platform.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cred.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredCredentials = credentials.filter((cred) => {
+    const matchesSearch =
+      cred.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cred.platform.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cred.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = selectedCategory === 'all' || cred.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   const CredentialCard = ({ credential }: { credential: Credential }) => {
     const CategoryIcon = categoryIcons[credential.category];
-    
+
     return (
       <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="pb-3">
@@ -211,8 +228,8 @@ const CredentialManager = () => {
                 <CardDescription>{credential.platform}</CardDescription>
               </div>
             </div>
-            <Badge variant={credential.isActive ? "default" : "secondary"}>
-              {credential.isActive ? "Active" : "Inactive"}
+            <Badge variant={credential.isActive ? 'default' : 'secondary'}>
+              {credential.isActive ? 'Active' : 'Inactive'}
             </Badge>
           </div>
         </CardHeader>
@@ -223,7 +240,11 @@ const CredentialManager = () => {
               <Label className="text-sm font-medium">Email</Label>
               <div className="flex items-center gap-2">
                 <Input value={credential.email} readOnly className="text-sm" />
-                <Button size="sm" variant="ghost" onClick={() => copyToClipboard(credential.email || '', 'Email')}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => copyToClipboard(credential.email || '', 'Email')}
+                >
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
@@ -235,7 +256,11 @@ const CredentialManager = () => {
               <Label className="text-sm font-medium">Username</Label>
               <div className="flex items-center gap-2">
                 <Input value={credential.username} readOnly className="text-sm" />
-                <Button size="sm" variant="ghost" onClick={() => copyToClipboard(credential.username || '', 'Username')}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => copyToClipboard(credential.username || '', 'Username')}
+                >
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
@@ -246,20 +271,28 @@ const CredentialManager = () => {
             <div className="space-y-1">
               <Label className="text-sm font-medium">Password</Label>
               <div className="flex items-center gap-2">
-                <Input 
-                  type={showPasswords[credential.id] ? "text" : "password"}
-                  value={credential.password} 
-                  readOnly 
+                <Input
+                  type={showPasswords[credential.id] ? 'text' : 'password'}
+                  value={credential.password}
+                  readOnly
                   className="text-sm"
                 />
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={() => togglePasswordVisibility(credential.id)}
                 >
-                  {showPasswords[credential.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPasswords[credential.id] ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => copyToClipboard(credential.password || '', 'Password')}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => copyToClipboard(credential.password || '', 'Password')}
+                >
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
@@ -270,20 +303,28 @@ const CredentialManager = () => {
             <div className="space-y-1">
               <Label className="text-sm font-medium">API Key</Label>
               <div className="flex items-center gap-2">
-                <Input 
-                  type={showPasswords[credential.id] ? "text" : "password"}
-                  value={credential.apiKey} 
-                  readOnly 
+                <Input
+                  type={showPasswords[credential.id] ? 'text' : 'password'}
+                  value={credential.apiKey}
+                  readOnly
                   className="text-sm font-mono"
                 />
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={() => togglePasswordVisibility(credential.id)}
                 >
-                  {showPasswords[credential.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPasswords[credential.id] ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => copyToClipboard(credential.apiKey || '', 'API Key')}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => copyToClipboard(credential.apiKey || '', 'API Key')}
+                >
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
@@ -294,20 +335,28 @@ const CredentialManager = () => {
             <div className="space-y-1">
               <Label className="text-sm font-medium">Secret Key</Label>
               <div className="flex items-center gap-2">
-                <Input 
-                  type={showPasswords[credential.id] ? "text" : "password"}
-                  value={credential.secretKey} 
-                  readOnly 
+                <Input
+                  type={showPasswords[credential.id] ? 'text' : 'password'}
+                  value={credential.secretKey}
+                  readOnly
                   className="text-sm font-mono"
                 />
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={() => togglePasswordVisibility(credential.id)}
                 >
-                  {showPasswords[credential.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPasswords[credential.id] ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => copyToClipboard(credential.secretKey || '', 'Secret Key')}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => copyToClipboard(credential.secretKey || '', 'Secret Key')}
+                >
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
@@ -325,7 +374,7 @@ const CredentialManager = () => {
             <div className="space-y-1">
               <Label className="text-sm font-medium">Tags</Label>
               <div className="flex flex-wrap gap-1">
-                {credential.tags.map(tag => (
+                {credential.tags.map((tag) => (
                   <Badge key={tag} variant="outline" className="text-xs">
                     {tag}
                   </Badge>
@@ -335,9 +384,7 @@ const CredentialManager = () => {
           )}
 
           <div className="flex justify-between items-center pt-2 border-t">
-            <span className="text-xs text-gray-500">
-              Updated: {credential.updatedAt}
-            </span>
+            <span className="text-xs text-gray-500">Updated: {credential.updatedAt}</span>
             <div className="flex gap-1">
               <Button size="sm" variant="ghost" onClick={() => setEditingCredential(credential)}>
                 <Edit className="h-4 w-4" />
@@ -361,9 +408,7 @@ const CredentialManager = () => {
               <Lock className="h-6 w-6 text-blue-600" />
             </div>
             <CardTitle className="text-2xl">🔐 Credential Vault</CardTitle>
-            <CardDescription>
-              Enter master password to access your credential vault
-            </CardDescription>
+            <CardDescription>Enter master password to access your credential vault</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -406,10 +451,7 @@ const CredentialManager = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant={showAllSecrets ? "default" : "outline"}
-            onClick={toggleAllSecrets}
-          >
+          <Button variant={showAllSecrets ? 'default' : 'outline'} onClick={toggleAllSecrets}>
             {showAllSecrets ? (
               <>
                 <EyeOff className="h-4 w-4 mr-2" />
@@ -445,9 +487,7 @@ const CredentialManager = () => {
                 </DialogDescription>
               </DialogHeader>
               {/* Add credential form would go here */}
-              <div className="text-center py-8 text-gray-500">
-                Form thêm tài khoản...
-              </div>
+              <div className="text-center py-8 text-gray-500">Form thêm tài khoản...</div>
             </DialogContent>
           </Dialog>
         </div>
@@ -458,77 +498,83 @@ const CredentialManager = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             ⚡ Truy Cập Nhanh
-            <Badge variant="secondary" className="ml-2">Yêu thích</Badge>
+            <Badge variant="secondary" className="ml-2">
+              Yêu thích
+            </Badge>
           </CardTitle>
-          <CardDescription>
-            Các tài khoản thường dùng nhất để truy cập nhanh
-          </CardDescription>
+          <CardDescription>Các tài khoản thường dùng nhất để truy cập nhanh</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {credentials.filter(c => c.isFavorite).slice(0, 3).map(cred => (
-              <div key={cred.id} className="bg-card rounded-lg p-4 border shadow-sm hover:shadow-md transition-shadow dark:bg-slate-900">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`p-2 rounded-lg ${categoryColors[cred.category]}`}>
-                    {React.createElement(categoryIcons[cred.category], { className: "h-4 w-4" })}
+            {credentials
+              .filter((c) => c.isFavorite)
+              .slice(0, 3)
+              .map((cred) => (
+                <div
+                  key={cred.id}
+                  className="bg-card rounded-lg p-4 border shadow-sm hover:shadow-md transition-shadow dark:bg-slate-900"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`p-2 rounded-lg ${categoryColors[cred.category]}`}>
+                      {React.createElement(categoryIcons[cred.category], { className: 'h-4 w-4' })}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm truncate">{cred.name}</h4>
+                      <p className="text-xs text-gray-500">{cred.platform}</p>
+                    </div>
+                    <span className="text-yellow-500">⭐</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-sm truncate">{cred.name}</h4>
-                    <p className="text-xs text-gray-500">{cred.platform}</p>
-                  </div>
-                  <span className="text-yellow-500">⭐</span>
+                  {cred.apiKey && (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-gray-600">API Key</Label>
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type={showPasswords[cred.id] ? 'text' : 'password'}
+                          value={cred.apiKey}
+                          readOnly
+                          className="text-xs font-mono h-8"
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          onClick={() => togglePasswordVisibility(cred.id)}
+                        >
+                          {showPasswords[cred.id] ? (
+                            <EyeOff className="h-3 w-3" />
+                          ) : (
+                            <Eye className="h-3 w-3" />
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          onClick={() => copyToClipboard(cred.apiKey || '', 'API Key')}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  {cred.email && !cred.apiKey && (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-gray-600">Email</Label>
+                      <div className="flex items-center gap-1">
+                        <Input value={cred.email} readOnly className="text-xs h-8" />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          onClick={() => copyToClipboard(cred.email || '', 'Email')}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                {cred.apiKey && (
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">API Key</Label>
-                    <div className="flex items-center gap-1">
-                      <Input
-                        type={showPasswords[cred.id] ? "text" : "password"}
-                        value={cred.apiKey}
-                        readOnly
-                        className="text-xs font-mono h-8"
-                      />
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-8 w-8 p-0"
-                        onClick={() => togglePasswordVisibility(cred.id)}
-                      >
-                        {showPasswords[cred.id] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                        onClick={() => copyToClipboard(cred.apiKey || '', 'API Key')}
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                {cred.email && !cred.apiKey && (
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Email</Label>
-                    <div className="flex items-center gap-1">
-                      <Input
-                        value={cred.email}
-                        readOnly
-                        className="text-xs h-8"
-                      />
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                        onClick={() => copyToClipboard(cred.email || '', 'Email')}
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+              ))}
           </div>
         </CardContent>
       </Card>
@@ -563,7 +609,7 @@ const CredentialManager = () => {
           </SelectContent>
         </Select>
         <Button
-          variant={showAllSecrets ? "default" : "outline"}
+          variant={showAllSecrets ? 'default' : 'outline'}
           onClick={toggleAllSecrets}
           className="w-48"
         >
@@ -583,7 +629,7 @@ const CredentialManager = () => {
 
       {/* Credentials Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredCredentials.map(credential => (
+        {filteredCredentials.map((credential) => (
           <CredentialCard key={credential.id} credential={credential} />
         ))}
       </div>
@@ -593,7 +639,7 @@ const CredentialManager = () => {
           <Shield className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No credentials found</h3>
           <p className="text-gray-500 mb-4">
-            {searchTerm || selectedCategory !== 'all' 
+            {searchTerm || selectedCategory !== 'all'
               ? 'Try adjusting your search or filter criteria'
               : 'Add your first credential to get started'}
           </p>

@@ -11,7 +11,7 @@ export function processOrder(order: any) {
   return total;
 }
 
-// BUG 2: Array access without bounds checking  
+// BUG 2: Array access without bounds checking
 export function getFirstThreeUsers(users: any[]) {
   // This will throw if users has less than 3 items
   return [users[0].name, users[1].name, users[2].name];
@@ -58,6 +58,6 @@ export function createUser({ name, email, role }: any) {
   return {
     displayName: name.toUpperCase(),
     contactEmail: email.toLowerCase(),
-    accessLevel: role.permissions.level
+    accessLevel: role.permissions.level,
   };
 }

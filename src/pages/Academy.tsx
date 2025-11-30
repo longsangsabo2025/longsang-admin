@@ -11,22 +11,18 @@ import { GamingRightSidebar } from '@/components/academy/gaming/GamingRightSideb
 import { GamingStatsCard } from '@/components/academy/gaming/GamingStatsCard';
 import { GamingCourseCard } from '@/components/academy/gaming/GamingCourseCard';
 import { GamingHeroSection } from '@/components/academy/gaming/GamingHeroSection';
-import {
-  GraduationCap,
-  Search,
-  BookOpen,
-  AlertCircle,
-  Trophy,
-  Target,
-  Flame,
-} from 'lucide-react';
+import { GraduationCap, Search, BookOpen, AlertCircle, Trophy, Target, Flame } from 'lucide-react';
 
 export default function AcademyGaming() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tất cả');
   const [selectedTab, setSelectedTab] = useState('all');
 
-  const { data: coursesData, isLoading, error } = useCourses(
+  const {
+    data: coursesData,
+    isLoading,
+    error,
+  } = useCourses(
     {
       category: selectedCategory !== 'Tất cả' ? selectedCategory : undefined,
       is_free: selectedTab === 'free' ? true : undefined,
@@ -39,19 +35,27 @@ export default function AcademyGaming() {
   const enrollments = enrollmentsData?.data || [];
   const courses = coursesData?.data || [];
 
-  const categories = ['Tất cả', 'AI & Machine Learning', 'Web Development', 'Mobile Development', 'Data Science'];
+  const categories = [
+    'Tất cả',
+    'AI & Machine Learning',
+    'Web Development',
+    'Mobile Development',
+    'Data Science',
+  ];
 
   const totalCourses = courses.length;
   const enrolledCourses = enrollments.length;
   const totalStudents = courses.reduce((acc, course) => acc + (course.students_count || 0), 0);
-  const avgRating = courses.length > 0 
-    ? (courses.reduce((acc, course) => acc + (course.rating || 0), 0) / courses.length).toFixed(1) 
-    : '0.0';
+  const avgRating =
+    courses.length > 0
+      ? (courses.reduce((acc, course) => acc + (course.rating || 0), 0) / courses.length).toFixed(1)
+      : '0.0';
 
   const featuredCourse = courses[0] || {
     title: 'Complete AI Agent Development Masterclass',
     description: 'Build Production-Ready AI Agents • Real-World Projects • Expert Mentorship',
-    thumbnail_url: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80',
+    thumbnail_url:
+      'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80',
     instructor: 'AINewbieVN Expert Team',
     rating: 4.9,
     reviews_count: 2345,
@@ -103,7 +107,10 @@ export default function AcademyGaming() {
         {featuredCourse && (
           <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <GamingHeroSection
-              image={featuredCourse.thumbnail_url || 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80'}
+              image={
+                featuredCourse.thumbnail_url ||
+                'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80'
+              }
               badgeText="🔥 TRENDING THIS WEEK"
               title={featuredCourse.title}
               subtitle={featuredCourse.description || 'Build Production-Ready AI Agents'}
@@ -149,9 +156,10 @@ export default function AcademyGaming() {
                     key={category}
                     onClick={() => setSelectedCategory(category)}
                     variant={selectedCategory === category ? 'default' : 'outline'}
-                    className={selectedCategory === category 
-                      ? 'bg-gaming-purple hover:bg-gaming-purple/80 text-white' 
-                      : 'glass-card hover:border-gaming-cyan'
+                    className={
+                      selectedCategory === category
+                        ? 'bg-gaming-purple hover:bg-gaming-purple/80 text-white'
+                        : 'glass-card hover:border-gaming-cyan'
                     }
                     size="sm"
                   >
@@ -166,74 +174,73 @@ export default function AcademyGaming() {
           {error && (
             <Alert variant="destructive" className="mb-8">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Failed to load courses. Please try again later.
-              </AlertDescription>
+              <AlertDescription>Failed to load courses. Please try again later.</AlertDescription>
             </Alert>
           )}
 
           {/* Courses Grid */}
           <TabsContent value={selectedTab} className="mt-0">
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="glass-card">
-                  <Skeleton className="aspect-video" />
-                  <div className="p-4 space-y-3">
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : courses.length === 0 ? (
-            <Card className="glass-card p-12 text-center">
-              <GraduationCap className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">No courses found</h3>
-              <p className="text-muted-foreground">
-                Try adjusting your search or filters
-              </p>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.map((course, index) => {
-                const isEnrolled = enrollments.some(e => e.course_id === course.id);
-                const enrollment = enrollments.find(e => e.course_id === course.id);
-                const progress = enrollment?.progress || 0;
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="glass-card">
+                    <Skeleton className="aspect-video" />
+                    <div className="p-4 space-y-3">
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : courses.length === 0 ? (
+              <Card className="glass-card p-12 text-center">
+                <GraduationCap className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-semibold mb-2">No courses found</h3>
+                <p className="text-muted-foreground">Try adjusting your search or filters</p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {courses.map((course, index) => {
+                  const isEnrolled = enrollments.some((e) => e.course_id === course.id);
+                  const enrollment = enrollments.find((e) => e.course_id === course.id);
+                  const progress = enrollment?.progress || 0;
 
-                return (
-                  <div 
-                    key={course.id} 
-                    className="animate-fade-in" 
-                    style={{ animationDelay: `${0.3 + (index * 0.05)}s` }}
-                  >
-                    <GamingCourseCard
-                      image={course.thumbnail_url || 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=600&q=80'}
-                      title={course.title}
-                      instructor={course.instructor || 'AINewbieVN'}
-                      rating={course.rating || 4.5}
-                      reviews={course.reviews_count || 0}
-                      students={`${Math.floor((course.students_count || 0) / 1000)}K`}
-                      duration={`${course.duration_hours || 0}h`}
-                      price={course.price || 99}
-                      enrolled={isEnrolled}
-                      progress={progress}
-                      badge={
-                        course.students_count && course.students_count > 10000
-                          ? { text: 'Bestseller', variant: 'bestseller' }
-                          : course.is_new
-                          ? { text: 'New', variant: 'new' }
-                          : undefined
-                      }
-                      level={course.level || 'Intermediate'}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
+                  return (
+                    <div
+                      key={course.id}
+                      className="animate-fade-in"
+                      style={{ animationDelay: `${0.3 + index * 0.05}s` }}
+                    >
+                      <GamingCourseCard
+                        image={
+                          course.thumbnail_url ||
+                          'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=600&q=80'
+                        }
+                        title={course.title}
+                        instructor={course.instructor || 'AINewbieVN'}
+                        rating={course.rating || 4.5}
+                        reviews={course.reviews_count || 0}
+                        students={`${Math.floor((course.students_count || 0) / 1000)}K`}
+                        duration={`${course.duration_hours || 0}h`}
+                        price={course.price || 99}
+                        enrolled={isEnrolled}
+                        progress={progress}
+                        badge={
+                          course.students_count && course.students_count > 10000
+                            ? { text: 'Bestseller', variant: 'bestseller' }
+                            : course.is_new
+                              ? { text: 'New', variant: 'new' }
+                              : undefined
+                        }
+                        level={course.level || 'Intermediate'}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </main>
 

@@ -3,24 +3,35 @@
  * Main interface for AI Second Brain
  */
 
-import { BulkOperations } from "@/brain/components/BulkOperations";
-import { DomainManager } from "@/brain/components/DomainManager";
-import { DocumentationViewer } from "@/brain/components/DocumentationViewer";
-import { KnowledgeIngestion } from "@/brain/components/KnowledgeIngestion";
-import { KnowledgeManager } from "@/brain/components/KnowledgeManager";
-import { KnowledgeSearch } from "@/brain/components/KnowledgeSearch";
-import { MultiDomainQuery } from "@/brain/components/MultiDomainQuery";
-import { MasterBrainInterface } from "@/brain/components/MasterBrainInterface";
-import { KnowledgeGraphVisualizer } from "@/brain/components/KnowledgeGraphVisualizer";
-import { DomainRouter } from "@/brain/components/DomainRouter";
-import { useDomains } from "@/brain/hooks/useDomains";
-import { useCoreLogic } from "@/brain/hooks/useCoreLogic";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { BookOpen, Brain, FolderOpen, Search, Upload, Sparkles, Globe, Network, Route, Database } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { BulkOperations } from '@/brain/components/BulkOperations';
+import { DomainManager } from '@/brain/components/DomainManager';
+import { DocumentationViewer } from '@/brain/components/DocumentationViewer';
+import { KnowledgeIngestion } from '@/brain/components/KnowledgeIngestion';
+import { KnowledgeManager } from '@/brain/components/KnowledgeManager';
+import { KnowledgeSearch } from '@/brain/components/KnowledgeSearch';
+import { MultiDomainQuery } from '@/brain/components/MultiDomainQuery';
+import { MasterBrainInterface } from '@/brain/components/MasterBrainInterface';
+import { KnowledgeGraphVisualizer } from '@/brain/components/KnowledgeGraphVisualizer';
+import { DomainRouter } from '@/brain/components/DomainRouter';
+import { useDomains } from '@/brain/hooks/useDomains';
+import { useCoreLogic } from '@/brain/hooks/useCoreLogic';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import {
+  BookOpen,
+  Brain,
+  FolderOpen,
+  Search,
+  Upload,
+  Sparkles,
+  Globe,
+  Network,
+  Route,
+  Database,
+} from 'lucide-react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function BrainDashboard() {
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
@@ -180,7 +191,13 @@ export default function BrainDashboard() {
 /**
  * Domain Core Logic Preview Component
  */
-function DomainCoreLogicPreview({ domainId, domainName }: { readonly domainId: string; readonly domainName: string }) {
+function DomainCoreLogicPreview({
+  domainId,
+  domainName,
+}: {
+  readonly domainId: string;
+  readonly domainName: string;
+}) {
   const { data: coreLogic } = useCoreLogic(domainId);
 
   return (
@@ -202,16 +219,20 @@ function DomainCoreLogicPreview({ domainId, domainName }: { readonly domainId: s
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <span className="text-muted-foreground">Principles:</span> {coreLogic.firstPrinciples.length}
+                <span className="text-muted-foreground">Principles:</span>{' '}
+                {coreLogic.firstPrinciples.length}
               </div>
               <div>
-                <span className="text-muted-foreground">Models:</span> {coreLogic.mentalModels.length}
+                <span className="text-muted-foreground">Models:</span>{' '}
+                {coreLogic.mentalModels.length}
               </div>
               <div>
-                <span className="text-muted-foreground">Rules:</span> {coreLogic.decisionRules.length}
+                <span className="text-muted-foreground">Rules:</span>{' '}
+                {coreLogic.decisionRules.length}
               </div>
               <div>
-                <span className="text-muted-foreground">Anti-patterns:</span> {coreLogic.antiPatterns.length}
+                <span className="text-muted-foreground">Anti-patterns:</span>{' '}
+                {coreLogic.antiPatterns.length}
               </div>
             </div>
           </div>

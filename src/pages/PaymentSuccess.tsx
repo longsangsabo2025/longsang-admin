@@ -27,9 +27,7 @@ export default function PaymentSuccess() {
             <div className="flex flex-col items-center gap-4">
               <Loader2 className="h-12 w-12 animate-spin text-purple-500" />
               <p className="text-lg font-medium">Verifying your payment...</p>
-              <p className="text-sm text-muted-foreground">
-                Session ID: {sessionId}
-              </p>
+              <p className="text-sm text-muted-foreground">Session ID: {sessionId}</p>
             </div>
           </CardContent>
         </Card>
@@ -68,7 +66,7 @@ export default function PaymentSuccess() {
             <p className="text-sm text-muted-foreground">
               Thank you for subscribing! You now have access to all premium features.
             </p>
-            
+
             <ul className="text-sm space-y-2 text-muted-foreground">
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -86,17 +84,10 @@ export default function PaymentSuccess() {
           </div>
 
           <div className="flex gap-3">
-            <Button
-              onClick={() => navigate('/admin/subscription')}
-              className="flex-1"
-            >
+            <Button onClick={() => navigate('/admin/subscription')} className="flex-1">
               View Subscription
             </Button>
-            <Button
-              onClick={() => navigate('/admin')}
-              variant="outline"
-              className="flex-1"
-            >
+            <Button onClick={() => navigate('/admin')} variant="outline" className="flex-1">
               Go to Dashboard
             </Button>
           </div>

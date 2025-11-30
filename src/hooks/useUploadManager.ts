@@ -1,6 +1,6 @@
 /**
  * 🚀 useUploadManager Hook
- * 
+ *
  * React hook wrapper for the global UploadManager
  * Provides reactive state updates and convenient methods
  */
@@ -27,25 +27,25 @@ export function useUploadManager(options: UseUploadManagerOptions = {}) {
   useEffect(() => {
     const unsubscribe = uploadManager.subscribe((newState) => {
       setState(newState);
-      
+
       // Show toast for newly completed/failed tasks
       if (showToasts) {
-        newState.tasks.forEach(task => {
+        newState.tasks.forEach((task) => {
           if (notifiedTasks.has(task.id)) return;
-          
+
           if (task.status === 'completed') {
             toast({
               title: '✅ Upload thành công',
               description: `${task.fileName} đã được upload và index`,
             });
-            setNotifiedTasks(prev => new Set(prev).add(task.id));
+            setNotifiedTasks((prev) => new Set(prev).add(task.id));
           } else if (task.status === 'failed' && task.retryCount >= 3) {
             toast({
               title: '❌ Upload thất bại',
               description: `${task.fileName}: ${task.error}`,
               variant: 'destructive',
             });
-            setNotifiedTasks(prev => new Set(prev).add(task.id));
+            setNotifiedTasks((prev) => new Set(prev).add(task.id));
           }
         });
       }
@@ -57,67 +57,73 @@ export function useUploadManager(options: UseUploadManagerOptions = {}) {
   /**
    * Upload a file
    */
-  const uploadFile = useCallback((file: File) => {
-    if (!userId || !assistantType) {
+  const uploadFile = useCallback(
+    (file: File) => {
+      if (!userId || !assistantType) {
+        toast({
+          title: '❌ Lỗi',
+          description: 'Thiếu thông tin user hoặc assistant type',
+          variant: 'destructive',
+        });
+        return null;
+      }
+
+      // Validate file type
+      const allowedTypes = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword',
+        'text/plain',
+      ];
+
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: '❌ Lỗi',
+          description: 'Chỉ hỗ trợ file PDF, DOCX, và TXT',
+          variant: 'destructive',
+        });
+        return null;
+      }
+
+      // Validate file size (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: '❌ Lỗi',
+          description: 'File không được vượt quá 10MB',
+          variant: 'destructive',
+        });
+        return null;
+      }
+
+      const taskId = uploadManager.addToQueue(file, userId, assistantType);
+
       toast({
-        title: '❌ Lỗi',
-        description: 'Thiếu thông tin user hoặc assistant type',
-        variant: 'destructive',
+        title: '📤 Đang upload',
+        description: `${file.name} đã được thêm vào hàng đợi`,
       });
-      return null;
-    }
 
-    // Validate file type
-    const allowedTypes = [
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/msword',
-      'text/plain',
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: '❌ Lỗi',
-        description: 'Chỉ hỗ trợ file PDF, DOCX, và TXT',
-        variant: 'destructive',
-      });
-      return null;
-    }
-
-    // Validate file size (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: '❌ Lỗi',
-        description: 'File không được vượt quá 10MB',
-        variant: 'destructive',
-      });
-      return null;
-    }
-
-    const taskId = uploadManager.addToQueue(file, userId, assistantType);
-    
-    toast({
-      title: '📤 Đang upload',
-      description: `${file.name} đã được thêm vào hàng đợi`,
-    });
-
-    return taskId;
-  }, [userId, assistantType, toast]);
+      return taskId;
+    },
+    [userId, assistantType, toast]
+  );
 
   /**
    * Upload multiple files
    */
-  const uploadFiles = useCallback((files: FileList | File[]) => {
-    const fileArray = Array.from(files);
-    const taskIds: string[] = [];
+  const uploadFiles = useCallback(
+    (files: FileList | File[]) => {
+      const fileArray = Array.from(files);
+      const taskIds: string[] = [];
 
-    fileArray.forEach(file => {
-      const taskId = uploadFile(file);
-      if (taskId) taskIds.push(taskId);
-    });
+      fileArray.forEach((file) => {
+        const taskId = uploadFile(file);
+        if (taskId) taskIds.push(taskId);
+      });
 
-    return taskIds;
-  }, [uploadFile]);
+      return taskIds;
+    },
+    [uploadFile]
+  );
 
   /**
    * Cancel an upload
@@ -146,15 +152,15 @@ export function useUploadManager(options: UseUploadManagerOptions = {}) {
    */
   const getMyTasks = useCallback(() => {
     if (!assistantType) return state.tasks;
-    return state.tasks.filter(t => t.assistantType === assistantType);
+    return state.tasks.filter((t) => t.assistantType === assistantType);
   }, [state.tasks, assistantType]);
 
   // Computed values
-  const activeTasks = state.tasks.filter(t => 
-    t.status === 'pending' || t.status === 'uploading' || t.status === 'processing'
+  const activeTasks = state.tasks.filter(
+    (t) => t.status === 'pending' || t.status === 'uploading' || t.status === 'processing'
   );
-  const completedTasks = state.tasks.filter(t => t.status === 'completed');
-  const failedTasks = state.tasks.filter(t => t.status === 'failed');
+  const completedTasks = state.tasks.filter((t) => t.status === 'completed');
+  const failedTasks = state.tasks.filter((t) => t.status === 'failed');
 
   return {
     // State
@@ -164,7 +170,7 @@ export function useUploadManager(options: UseUploadManagerOptions = {}) {
     failedTasks,
     isProcessing: state.isProcessing,
     hasActiveUploads: activeTasks.length > 0,
-    
+
     // Methods
     uploadFile,
     uploadFiles,

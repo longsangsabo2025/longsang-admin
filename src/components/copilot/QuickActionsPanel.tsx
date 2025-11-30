@@ -125,13 +125,16 @@ export function QuickActionsPanel({ onCommandExecute, className = '' }: QuickAct
   };
 
   // Group actions by category
-  const actionsByCategory = QUICK_ACTIONS.reduce((acc, action) => {
-    if (!acc[action.category]) {
-      acc[action.category] = [];
-    }
-    acc[action.category].push(action);
-    return acc;
-  }, {} as Record<string, QuickAction[]>);
+  const actionsByCategory = QUICK_ACTIONS.reduce(
+    (acc, action) => {
+      if (!acc[action.category]) {
+        acc[action.category] = [];
+      }
+      acc[action.category].push(action);
+      return acc;
+    },
+    {} as Record<string, QuickAction[]>
+  );
 
   const categoryLabels = {
     content: '📝 Content',
@@ -179,9 +182,7 @@ export function QuickActionsPanel({ onCommandExecute, className = '' }: QuickAct
                         <div className="mt-0.5 text-primary">{action.icon}</div>
                         <div className="flex-1 text-left">
                           <div className="text-sm font-medium">{action.label}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {action.description}
-                          </div>
+                          <div className="text-xs text-muted-foreground">{action.description}</div>
                         </div>
                         {executing === action.id && (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary mt-1" />
@@ -207,4 +208,3 @@ export function QuickActionsPanel({ onCommandExecute, className = '' }: QuickAct
     </div>
   );
 }
-

@@ -226,7 +226,7 @@ class N8nDatabaseService {
       .insert(data)
       .select()
       .single();
-    
+
     if (error) throw error;
     return workflow;
   }
@@ -236,18 +236,14 @@ class N8nDatabaseService {
       .from('n8n_workflows')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
 
   async getWorkflow(id: string) {
-    const { data, error } = await supabase
-      .from('n8n_workflows')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
+    const { data, error } = await supabase.from('n8n_workflows').select('*').eq('id', id).single();
+
     if (error) throw error;
     return data;
   }
@@ -259,17 +255,14 @@ class N8nDatabaseService {
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
 
   async deleteWorkflow(id: string) {
-    const { error } = await supabase
-      .from('n8n_workflows')
-      .delete()
-      .eq('id', id);
-    
+    const { error } = await supabase.from('n8n_workflows').delete().eq('id', id);
+
     if (error) throw error;
   }
 
@@ -283,28 +276,26 @@ class N8nDatabaseService {
       })
       .select()
       .single();
-    
+
     if (error) throw error;
     return execution;
   }
 
   async getExecutions(workflowId?: string) {
-    let query = supabase
-      .from('n8n_executions')
-      .select(`
+    let query = supabase.from('n8n_executions').select(`
         *,
         n8n_workflows (
           name,
           category
         )
       `);
-    
+
     if (workflowId) {
       query = query.eq('workflow_id', workflowId);
     }
-    
+
     const { data, error } = await query.order('executed_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -312,16 +303,18 @@ class N8nDatabaseService {
   async getExecution(id: string) {
     const { data, error } = await supabase
       .from('n8n_executions')
-      .select(`
+      .select(
+        `
         *,
         n8n_workflows (
           name,
           category
         )
-      `)
+      `
+      )
       .eq('id', id)
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -333,7 +326,7 @@ class N8nDatabaseService {
       .insert(data)
       .select()
       .single();
-    
+
     if (error) throw error;
     return template;
   }
@@ -343,7 +336,7 @@ class N8nDatabaseService {
       .from('n8n_workflow_templates')
       .select('*')
       .order('usage_count', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -354,15 +347,14 @@ class N8nDatabaseService {
       .select('*')
       .eq('id', id)
       .single();
-    
+
     if (error) throw error;
     return data;
   }
 
   async incrementTemplateUsage(templateId: string) {
-    const { error } = await supabase
-      .rpc('increment_template_usage', { template_id: templateId });
-    
+    const { error } = await supabase.rpc('increment_template_usage', { template_id: templateId });
+
     if (error) throw error;
   }
 
@@ -371,12 +363,8 @@ class N8nDatabaseService {
   // ================================================
 
   async createMcpServer(data: McpServerCreateData) {
-    const server = await supabase
-      .from('mcp_servers')
-      .insert(data)
-      .select()
-      .single();
-    
+    const server = await supabase.from('mcp_servers').insert(data).select().single();
+
     if (server.error) throw server.error;
     return server.data;
   }
@@ -386,18 +374,14 @@ class N8nDatabaseService {
       .from('mcp_servers')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
 
   async getMcpServer(id: string) {
-    const { data, error } = await supabase
-      .from('mcp_servers')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
+    const { data, error } = await supabase.from('mcp_servers').select('*').eq('id', id).single();
+
     if (error) throw error;
     return data;
   }
@@ -409,24 +393,18 @@ class N8nDatabaseService {
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
 
   async deleteMcpServer(id: string) {
     // First delete related connections
-    await supabase
-      .from('mcp_workflow_connections')
-      .delete()
-      .eq('server_id', id);
+    await supabase.from('mcp_workflow_connections').delete().eq('server_id', id);
 
     // Then delete the server
-    const { error } = await supabase
-      .from('mcp_servers')
-      .delete()
-      .eq('id', id);
-    
+    const { error } = await supabase.from('mcp_servers').delete().eq('id', id);
+
     if (error) throw error;
   }
 
@@ -435,22 +413,20 @@ class N8nDatabaseService {
   // ================================================
 
   async getMcpTools(serverId?: string) {
-    let query = supabase
-      .from('mcp_tools')
-      .select(`
+    let query = supabase.from('mcp_tools').select(`
         *,
         mcp_servers (
           name,
           status
         )
       `);
-    
+
     if (serverId) {
       query = query.eq('server_id', serverId);
     }
-    
+
     const { data, error } = await query.order('last_used_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -458,17 +434,19 @@ class N8nDatabaseService {
   async getMcpTool(id: string) {
     const { data, error } = await supabase
       .from('mcp_tools')
-      .select(`
+      .select(
+        `
         *,
         mcp_servers (
           name,
           url,
           status
         )
-      `)
+      `
+      )
       .eq('id', id)
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -478,10 +456,10 @@ class N8nDatabaseService {
       .from('mcp_tools')
       .update({
         usage_count: supabase.rpc('increment', { x: 1, field_name: 'usage_count' }),
-        last_used_at: new Date().toISOString()
+        last_used_at: new Date().toISOString(),
       })
       .eq('id', toolId);
-    
+
     if (error) throw error;
   }
 
@@ -490,22 +468,20 @@ class N8nDatabaseService {
   // ================================================
 
   async getMcpResources(serverId?: string) {
-    let query = supabase
-      .from('mcp_resources')
-      .select(`
+    let query = supabase.from('mcp_resources').select(`
         *,
         mcp_servers (
           name,
           status
         )
       `);
-    
+
     if (serverId) {
       query = query.eq('server_id', serverId);
     }
-    
+
     const { data, error } = await query.order('last_accessed_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -515,10 +491,10 @@ class N8nDatabaseService {
       .from('mcp_resources')
       .update({
         access_count: supabase.rpc('increment', { x: 1, field_name: 'access_count' }),
-        last_accessed_at: new Date().toISOString()
+        last_accessed_at: new Date().toISOString(),
       })
       .eq('id', resourceId);
-    
+
     if (error) throw error;
   }
 
@@ -532,15 +508,13 @@ class N8nDatabaseService {
       .insert(data)
       .select()
       .single();
-    
+
     if (error) throw error;
     return connection;
   }
 
   async getMcpWorkflowConnections(workflowId?: string) {
-    let query = supabase
-      .from('mcp_workflow_connections')
-      .select(`
+    let query = supabase.from('mcp_workflow_connections').select(`
         *,
         mcp_servers (
           name,
@@ -548,23 +522,20 @@ class N8nDatabaseService {
           url
         )
       `);
-    
+
     if (workflowId) {
       query = query.eq('workflow_id', workflowId);
     }
-    
+
     const { data, error } = await query.order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
 
   async deleteMcpWorkflowConnection(id: string) {
-    const { error } = await supabase
-      .from('mcp_workflow_connections')
-      .delete()
-      .eq('id', id);
-    
+    const { error } = await supabase.from('mcp_workflow_connections').delete().eq('id', id);
+
     if (error) throw error;
   }
 
@@ -581,33 +552,27 @@ class N8nDatabaseService {
     status: 'success' | 'error';
     error_message?: string;
   }) {
-    const { error } = await supabase
-      .from('mcp_execution_logs')
-      .insert({
-        ...data,
-        executed_at: new Date().toISOString()
-      });
-    
+    const { error } = await supabase.from('mcp_execution_logs').insert({
+      ...data,
+      executed_at: new Date().toISOString(),
+    });
+
     if (error) throw error;
   }
 
   async getMcpAnalytics(serverId?: string, timeRange?: { start: string; end: string }) {
-    let query = supabase
-      .from('mcp_analytics')
-      .select('*');
-    
+    let query = supabase.from('mcp_analytics').select('*');
+
     if (serverId) {
       query = query.eq('server_id', serverId);
     }
-    
+
     if (timeRange) {
-      query = query
-        .gte('date', timeRange.start)
-        .lte('date', timeRange.end);
+      query = query.gte('date', timeRange.start).lte('date', timeRange.end);
     }
-    
+
     const { data, error } = await query.order('date', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -630,7 +595,7 @@ export class N8nIntegrationService {
   async createWorkflow(workflowData: any) {
     // First create in n8n
     const n8nWorkflow = await this.api.createWorkflow(workflowData);
-    
+
     // Then store in database
     const dbWorkflow = await this.db.createWorkflow({
       n8n_workflow_id: n8nWorkflow.id,
@@ -660,7 +625,7 @@ export class N8nIntegrationService {
     if (workflow.n8n_workflow_id) {
       await this.api.updateWorkflow(workflow.n8n_workflow_id, updates);
     }
-    
+
     return this.db.updateWorkflow(id, updates);
   }
 
@@ -669,7 +634,7 @@ export class N8nIntegrationService {
     if (workflow.n8n_workflow_id) {
       await this.api.deleteWorkflow(workflow.n8n_workflow_id);
     }
-    
+
     return this.db.deleteWorkflow(id);
   }
 
@@ -680,7 +645,7 @@ export class N8nIntegrationService {
     }
 
     const execution = await this.api.executeWorkflow(workflow.n8n_workflow_id, inputData);
-    
+
     // Log execution
     await this.db.logExecution({
       workflow_id: id,
@@ -718,10 +683,10 @@ export class N8nIntegrationService {
 
   async useTemplate(templateId: string, customizations?: any) {
     const template = await this.db.getWorkflowTemplate(templateId);
-    
+
     // Increment usage count
     await this.db.incrementTemplateUsage(templateId);
-    
+
     // Create workflow from template
     const workflowData = {
       ...template.template_data,
@@ -746,9 +711,9 @@ export class N8nIntegrationService {
       templates,
       stats: {
         totalWorkflows: workflows.length,
-        activeWorkflows: workflows.filter(w => w.status === 'active').length,
+        activeWorkflows: workflows.filter((w) => w.status === 'active').length,
         totalExecutions: executions.length,
-        successfulExecutions: executions.filter(e => e.status === 'success').length,
+        successfulExecutions: executions.filter((e) => e.status === 'success').length,
       },
     };
   }
@@ -823,7 +788,7 @@ export class N8nIntegrationService {
 
   async testMcpServer(serverId: string) {
     const server = await this.db.getMcpServer(serverId);
-    
+
     try {
       // Test server health check
       if (server.health_check_url) {
@@ -831,25 +796,25 @@ export class N8nIntegrationService {
         if (response.ok) {
           await this.db.updateMcpServer(serverId, {
             status: 'active',
-            last_ping_at: new Date().toISOString()
+            last_ping_at: new Date().toISOString(),
           });
           return { status: 'success', message: 'Server is healthy' };
         }
       }
-      
+
       // Update server status
       await this.db.updateMcpServer(serverId, {
         status: 'error',
-        last_ping_at: new Date().toISOString()
+        last_ping_at: new Date().toISOString(),
       });
-      
+
       return { status: 'error', message: 'Server health check failed' };
     } catch (error) {
       await this.db.updateMcpServer(serverId, {
         status: 'error',
-        last_ping_at: new Date().toISOString()
+        last_ping_at: new Date().toISOString(),
       });
-      
+
       return { status: 'error', message: error.message };
     }
   }
@@ -858,17 +823,17 @@ export class N8nIntegrationService {
     try {
       // This would integrate with the actual MCP protocol
       // For now, we'll simulate the discovery process
-      
+
       const capabilities = {
         tools: ['example_tool_1', 'example_tool_2'],
         resources: ['example_resource_1'],
-        prompts: ['example_prompt_1']
+        prompts: ['example_prompt_1'],
       };
 
       await this.db.updateMcpServer(serverId, {
         capabilities,
         status: 'active',
-        last_ping_at: new Date().toISOString()
+        last_ping_at: new Date().toISOString(),
       });
 
       return capabilities;
@@ -877,9 +842,9 @@ export class N8nIntegrationService {
         server_id: serverId,
         operation_type: 'capability_discovery',
         status: 'error',
-        error_message: error.message
+        error_message: error.message,
       });
-      
+
       throw error;
     }
   }

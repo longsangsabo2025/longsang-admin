@@ -7,18 +7,12 @@
  * @version 1.0.0
  */
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  AlertTriangle,
-  Info,
-  X,
-  CheckCircle,
-  Zap
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { AlertTriangle, Info, X, CheckCircle, Zap } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface Alert {
   id: string;
@@ -36,16 +30,16 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const SEVERITY_CONFIG = {
   critical: {
     color: 'bg-red-500/20 text-red-400 border-red-500/30',
-    icon: <AlertTriangle className="w-4 h-4" />
+    icon: <AlertTriangle className="w-4 h-4" />,
   },
   warning: {
     color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    icon: <AlertTriangle className="w-4 h-4" />
+    icon: <AlertTriangle className="w-4 h-4" />,
   },
   info: {
     color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    icon: <Info className="w-4 h-4" />
-  }
+    icon: <Info className="w-4 h-4" />,
+  },
 };
 
 export function IntelligentAlerts() {
@@ -80,23 +74,23 @@ export function IntelligentAlerts() {
   const handleResolve = async (id: string) => {
     try {
       const response = await fetch(`${API_BASE}/api/ai/alerts/${id}/resolve`, {
-        method: 'POST'
+        method: 'POST',
       });
       const data = await response.json();
 
       if (data.success) {
-        setAlerts(prev => prev.filter(a => a.id !== id));
+        setAlerts((prev) => prev.filter((a) => a.id !== id));
         toast({
-          title: "Đã giải quyết",
-          description: "Alert đã được resolve"
+          title: 'Đã giải quyết',
+          description: 'Alert đã được resolve',
         });
       }
     } catch (error) {
       console.error('Error resolving alert:', error);
       toast({
-        title: "Lỗi",
-        description: "Không thể resolve alert",
-        variant: "destructive"
+        title: 'Lỗi',
+        description: 'Không thể resolve alert',
+        variant: 'destructive',
       });
     }
   };
@@ -119,16 +113,16 @@ export function IntelligentAlerts() {
   }
 
   // Filter unresolved alerts
-  const unresolved = alerts.filter(a => !a.resolved_at);
+  const unresolved = alerts.filter((a) => !a.resolved_at);
 
   if (unresolved.length === 0) {
     return null;
   }
 
   // Group by severity
-  const critical = unresolved.filter(a => a.severity === 'critical');
-  const warnings = unresolved.filter(a => a.severity === 'warning');
-  const info = unresolved.filter(a => a.severity === 'info');
+  const critical = unresolved.filter((a) => a.severity === 'critical');
+  const warnings = unresolved.filter((a) => a.severity === 'warning');
+  const info = unresolved.filter((a) => a.severity === 'info');
 
   return (
     <div className="space-y-4 mb-6">
@@ -147,11 +141,7 @@ export function IntelligentAlerts() {
       {critical.length > 0 && (
         <div className="space-y-2">
           {critical.map((alert) => (
-            <AlertCard
-              key={alert.id}
-              alert={alert}
-              onResolve={handleResolve}
-            />
+            <AlertCard key={alert.id} alert={alert} onResolve={handleResolve} />
           ))}
         </div>
       )}
@@ -160,11 +150,7 @@ export function IntelligentAlerts() {
       {warnings.length > 0 && (
         <div className="space-y-2">
           {warnings.map((alert) => (
-            <AlertCard
-              key={alert.id}
-              alert={alert}
-              onResolve={handleResolve}
-            />
+            <AlertCard key={alert.id} alert={alert} onResolve={handleResolve} />
           ))}
         </div>
       )}
@@ -177,11 +163,7 @@ export function IntelligentAlerts() {
           </summary>
           <div className="mt-2 space-y-2">
             {info.map((alert) => (
-              <AlertCard
-                key={alert.id}
-                alert={alert}
-                onResolve={handleResolve}
-              />
+              <AlertCard key={alert.id} alert={alert} onResolve={handleResolve} />
             ))}
           </div>
         </details>
@@ -190,35 +172,29 @@ export function IntelligentAlerts() {
   );
 }
 
-function AlertCard({
-  alert,
-  onResolve
-}: {
-  alert: Alert;
-  onResolve: (id: string) => void;
-}) {
+function AlertCard({ alert, onResolve }: { alert: Alert; onResolve: (id: string) => void }) {
   const { toast } = useToast();
   const severityConfig = SEVERITY_CONFIG[alert.severity];
 
   return (
-    <Card className={`border-l-4 ${
-      alert.severity === 'critical' ? 'border-l-red-500' :
-      alert.severity === 'warning' ? 'border-l-yellow-500' :
-      'border-l-blue-500'
-    }`}>
+    <Card
+      className={`border-l-4 ${
+        alert.severity === 'critical'
+          ? 'border-l-red-500'
+          : alert.severity === 'warning'
+            ? 'border-l-yellow-500'
+            : 'border-l-blue-500'
+      }`}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               {severityConfig.icon}
               <CardTitle className="text-base">{alert.type}</CardTitle>
-              <Badge className={severityConfig.color}>
-                {alert.severity}
-              </Badge>
+              <Badge className={severityConfig.color}>{alert.severity}</Badge>
             </div>
-            <CardDescription className="text-sm">
-              {alert.message}
-            </CardDescription>
+            <CardDescription className="text-sm">{alert.message}</CardDescription>
             <div className="mt-2 text-xs text-muted-foreground">
               Detected: {new Date(alert.detected_at).toLocaleString('vi-VN')}
             </div>
@@ -234,8 +210,8 @@ function AlertCard({
               onClick={() => {
                 // TODO: Execute suggested workflow
                 toast({
-                  title: "Thực hiện workflow",
-                  description: "Workflow sẽ được thực hiện"
+                  title: 'Thực hiện workflow',
+                  description: 'Workflow sẽ được thực hiện',
                 });
               }}
             >
@@ -243,11 +219,7 @@ function AlertCard({
               Thực hiện workflow
             </Button>
           )}
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => onResolve(alert.id)}
-          >
+          <Button size="sm" variant="ghost" onClick={() => onResolve(alert.id)}>
             <CheckCircle className="w-4 h-4 mr-2" />
             Resolve
           </Button>
@@ -256,4 +228,3 @@ function AlertCard({
     </Card>
   );
 }
-

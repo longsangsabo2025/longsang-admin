@@ -9,7 +9,7 @@
 // Lấy credentials từ environment variable
 const getCredentials = () => {
   const credentialsJson = import.meta.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  
+
   if (!credentialsJson) {
     console.warn('⚠️ GOOGLE_SERVICE_ACCOUNT_JSON not found in .env');
     return null;
@@ -26,7 +26,7 @@ const getCredentials = () => {
 // Tạo authenticated client
 const getAuthClient = async () => {
   const credentials = getCredentials();
-  
+
   if (!credentials) {
     throw new Error('Google credentials not configured');
   }
@@ -55,7 +55,7 @@ export const searchConsoleAPI = {
     try {
       const authClient = await getAuthClient();
       const searchconsole = google.searchconsole({ version: 'v1', auth: authClient });
-      
+
       const response = await searchconsole.sites.list();
       return response.data.siteEntry || [];
     } catch (error) {
@@ -71,7 +71,7 @@ export const searchConsoleAPI = {
     try {
       const authClient = await getAuthClient();
       const searchconsole = google.searchconsole({ version: 'v1', auth: authClient });
-      
+
       const response = await searchconsole.searchanalytics.query({
         siteUrl,
         requestBody: {
@@ -96,7 +96,7 @@ export const searchConsoleAPI = {
     try {
       const authClient = await getAuthClient();
       const searchconsole = google.searchconsole({ version: 'v1', auth: authClient });
-      
+
       await searchconsole.sitemaps.submit({
         siteUrl,
         feedpath: sitemapUrl,
@@ -117,7 +117,7 @@ export const searchConsoleAPI = {
     try {
       const authClient = await getAuthClient();
       const searchconsole = google.searchconsole({ version: 'v1', auth: authClient });
-      
+
       const response = await searchconsole.urlInspection.index.inspect({
         requestBody: {
           siteUrl,
@@ -145,7 +145,7 @@ export const indexingAPI = {
     try {
       const authClient = await getAuthClient();
       const indexing = google.indexing({ version: 'v3', auth: authClient });
-      
+
       const response = await indexing.urlNotifications.publish({
         requestBody: {
           url,
@@ -168,7 +168,7 @@ export const indexingAPI = {
     try {
       const authClient = await getAuthClient();
       const indexing = google.indexing({ version: 'v3', auth: authClient });
-      
+
       const response = await indexing.urlNotifications.publish({
         requestBody: {
           url,
@@ -191,7 +191,7 @@ export const indexingAPI = {
     try {
       const authClient = await getAuthClient();
       const indexing = google.indexing({ version: 'v3', auth: authClient });
-      
+
       const response = await indexing.urlNotifications.getMetadata({ url });
       return response.data;
     } catch (error) {
@@ -213,15 +213,12 @@ export const analyticsAPI = {
     try {
       const authClient = await getAuthClient();
       const analyticsdata = google.analyticsdata({ version: 'v1beta', auth: authClient });
-      
+
       const response = await analyticsdata.properties.runReport({
         property: propertyId,
         requestBody: {
           dateRanges: [{ startDate, endDate }],
-          dimensions: [
-            { name: 'pagePath' },
-            { name: 'sessionSource' },
-          ],
+          dimensions: [{ name: 'pagePath' }, { name: 'sessionSource' }],
           metrics: [
             { name: 'sessions' },
             { name: 'screenPageViews' },
@@ -245,19 +242,18 @@ export const analyticsAPI = {
     try {
       const authClient = await getAuthClient();
       const analyticsdata = google.analyticsdata({ version: 'v1beta', auth: authClient });
-      
+
       const response = await analyticsdata.properties.runReport({
         property: propertyId,
         requestBody: {
-          dateRanges: [{ 
-            startDate: `${days}daysAgo`, 
-            endDate: 'today' 
-          }],
-          dimensions: [{ name: 'pagePath' }],
-          metrics: [
-            { name: 'screenPageViews' },
-            { name: 'averageSessionDuration' },
+          dateRanges: [
+            {
+              startDate: `${days}daysAgo`,
+              endDate: 'today',
+            },
           ],
+          dimensions: [{ name: 'pagePath' }],
+          metrics: [{ name: 'screenPageViews' }, { name: 'averageSessionDuration' }],
           orderBys: [
             {
               metric: { metricName: 'screenPageViews' },

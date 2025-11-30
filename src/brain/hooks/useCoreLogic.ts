@@ -3,24 +3,24 @@
  * Manages core logic operations
  */
 
-import { brainAPI } from "@/brain/lib/services/brain-api";
+import { brainAPI } from '@/brain/lib/services/brain-api';
 import type {
   CoreLogic,
   CoreLogicVersion,
   CoreLogicComparison,
   DistillationOptions,
-} from "@/brain/types/core-logic.types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+} from '@/brain/types/core-logic.types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 /**
  * Hook to get core logic for domain
  */
 export function useCoreLogic(domainId: string | null, version?: number) {
   return useQuery<CoreLogic>({
-    queryKey: ["brain", "core-logic", domainId, version],
+    queryKey: ['brain', 'core-logic', domainId, version],
     queryFn: () => {
-      if (!domainId) throw new Error("Domain ID is required");
+      if (!domainId) throw new Error('Domain ID is required');
       return brainAPI.getCoreLogic(domainId, version);
     },
     enabled: !!domainId,
@@ -33,9 +33,9 @@ export function useCoreLogic(domainId: string | null, version?: number) {
  */
 export function useCoreLogicVersions(domainId: string | null) {
   return useQuery<CoreLogicVersion[]>({
-    queryKey: ["brain", "core-logic-versions", domainId],
+    queryKey: ['brain', 'core-logic-versions', domainId],
     queryFn: () => {
-      if (!domainId) throw new Error("Domain ID is required");
+      if (!domainId) throw new Error('Domain ID is required');
       return brainAPI.getCoreLogicVersions(domainId);
     },
     enabled: !!domainId,
@@ -60,8 +60,10 @@ export function useDistillCoreLogic() {
       return brainAPI.distillCoreLogic(domainId, options);
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["brain", "core-logic", variables.domainId] });
-      queryClient.invalidateQueries({ queryKey: ["brain", "core-logic-versions", variables.domainId] });
+      queryClient.invalidateQueries({ queryKey: ['brain', 'core-logic', variables.domainId] });
+      queryClient.invalidateQueries({
+        queryKey: ['brain', 'core-logic-versions', variables.domainId],
+      });
       toast.success(`Core logic distilled successfully (version ${data.version})`);
     },
     onError: (error: Error) => {
@@ -75,13 +77,7 @@ export function useDistillCoreLogic() {
  */
 export function useCompareVersions() {
   return useMutation({
-    mutationFn: async ({
-      version1Id,
-      version2Id,
-    }: {
-      version1Id: string;
-      version2Id: string;
-    }) => {
+    mutationFn: async ({ version1Id, version2Id }: { version1Id: string; version2Id: string }) => {
       return brainAPI.compareCoreLogicVersions(version1Id, version2Id);
     },
     onError: (error: Error) => {
@@ -109,8 +105,10 @@ export function useRollbackVersion() {
       return brainAPI.rollbackCoreLogicVersion(domainId, targetVersion, reason);
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["brain", "core-logic", variables.domainId] });
-      queryClient.invalidateQueries({ queryKey: ["brain", "core-logic-versions", variables.domainId] });
+      queryClient.invalidateQueries({ queryKey: ['brain', 'core-logic', variables.domainId] });
+      queryClient.invalidateQueries({
+        queryKey: ['brain', 'core-logic-versions', variables.domainId],
+      });
       toast.success(`Rolled back to version ${variables.targetVersion}`);
     },
     onError: (error: Error) => {
@@ -118,4 +116,3 @@ export function useRollbackVersion() {
     },
   });
 }
-

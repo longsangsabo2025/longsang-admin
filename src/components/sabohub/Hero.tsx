@@ -1,14 +1,14 @@
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Play } from "lucide-react";
-import dashboardHero from "@/assets/dashboard-hero.png";
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, Play } from 'lucide-react';
+import dashboardHero from '@/assets/dashboard-hero.png';
 
 export const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Animated Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card animate-gradient" />
-      
+
       {/* Floating Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -61,16 +61,16 @@ export const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90 transition-opacity text-lg px-8 py-6 h-auto group"
             >
               Dùng Thử Miễn Phí
               <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
+            <Button
+              size="lg"
+              variant="outline"
               className="glass-card text-lg px-8 py-6 h-auto group border-2"
             >
               <Play className="mr-2 group-hover:scale-110 transition-transform" />
@@ -86,9 +86,9 @@ export const Hero = () => {
             transition={{ duration: 0.8, delay: 0.6 }}
           >
             <div className="glass-card p-4 rounded-2xl glow-purple">
-              <img 
-                src={dashboardHero} 
-                alt="SABOHUB Dashboard Interface" 
+              <img
+                src={dashboardHero}
+                alt="SABOHUB Dashboard Interface"
                 className="w-full rounded-lg shadow-2xl"
                 loading="eager"
               />

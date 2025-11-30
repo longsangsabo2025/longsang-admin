@@ -16,19 +16,20 @@ interface UseAssistantVercelOptions {
 }
 
 export function useAssistantVercel(options: UseAssistantVercelOptions) {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error, stop, reload } = useChat({
-    api: `/api/assistants/${options.assistantType}/chat`,
-    headers: {
-      ...(options.userId && { 'x-user-id': options.userId }),
-    },
-    body: {
-      userId: options.userId,
-      conversationId: options.conversationId,
-    },
-    onError: (err) => {
-      options.onError?.(err);
-    },
-  });
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error, stop, reload } =
+    useChat({
+      api: `/api/assistants/${options.assistantType}/chat`,
+      headers: {
+        ...(options.userId && { 'x-user-id': options.userId }),
+      },
+      body: {
+        userId: options.userId,
+        conversationId: options.conversationId,
+      },
+      onError: (err) => {
+        options.onError?.(err);
+      },
+    });
 
   const submit = useCallback(
     async (e?: React.FormEvent) => {
@@ -60,4 +61,3 @@ export function useAssistantVercel(options: UseAssistantVercelOptions) {
     clear,
   };
 }
-

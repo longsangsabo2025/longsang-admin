@@ -11,7 +11,15 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import {
   CheckCircle2,
   XCircle,
@@ -226,13 +234,15 @@ export function DecisionQueue() {
 
   // Transform and fallback to mock data
   const decisions: Decision[] = pendingDecisions?.map(transformDecision) || mockDecisions;
-  
+
   const [selectedDecision, setSelectedDecision] = useState<Decision | null>(null);
   const [feedback, setFeedback] = useState('');
 
-  const urgentCount = summary?.immediate_count || decisions.filter(d => d.urgency === 'immediate').length;
-  const todayCount = summary?.today_count || decisions.filter(d => d.urgency === 'today').length;
-  const highImpactCount = summary?.high_impact_count || decisions.filter(d => d.impact === 'high').length;
+  const urgentCount =
+    summary?.immediate_count || decisions.filter((d) => d.urgency === 'immediate').length;
+  const todayCount = summary?.today_count || decisions.filter((d) => d.urgency === 'today').length;
+  const highImpactCount =
+    summary?.high_impact_count || decisions.filter((d) => d.impact === 'high').length;
 
   const handleApprove = async (decisionId: string) => {
     await approveDecision.mutateAsync({ id: decisionId, feedback });
@@ -261,12 +271,10 @@ export function DecisionQueue() {
             <AlertTriangle className="h-6 w-6 text-orange-500" />
             Decision Queue
           </h1>
-          <p className="text-muted-foreground">
-            Các quyết định cần sự phê duyệt của bạn
-          </p>
+          <p className="text-muted-foreground">Các quyết định cần sự phê duyệt của bạn</p>
         </div>
         <Button variant="outline" onClick={() => refetch()} disabled={isLoading}>
-          <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+          <RefreshCw className={cn('h-4 w-4 mr-2', isLoading && 'animate-spin')} />
           Refresh
         </Button>
         <div className="flex gap-2">
@@ -334,9 +342,7 @@ export function DecisionQueue() {
       <Card>
         <CardHeader>
           <CardTitle>Pending Decisions</CardTitle>
-          <CardDescription>
-            Click vào decision để xem chi tiết và approve/reject
-          </CardDescription>
+          <CardDescription>Click vào decision để xem chi tiết và approve/reject</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[600px] pr-4">
@@ -388,8 +394,11 @@ export function DecisionQueue() {
                 {/* Badges */}
                 <div className="flex gap-2">
                   <Badge className={urgencyColors[selectedDecision.urgency]}>
-                    {selectedDecision.urgency === 'immediate' ? '🔥 Immediate' : 
-                     selectedDecision.urgency === 'today' ? '⏰ Today' : '📅 This Week'}
+                    {selectedDecision.urgency === 'immediate'
+                      ? '🔥 Immediate'
+                      : selectedDecision.urgency === 'today'
+                        ? '⏰ Today'
+                        : '📅 This Week'}
                   </Badge>
                   <Badge variant="outline" className={impactColors[selectedDecision.impact]}>
                     {selectedDecision.impact.toUpperCase()} Impact
@@ -447,7 +456,9 @@ export function DecisionQueue() {
                 {selectedDecision.details.cost && (
                   <div className="flex items-center gap-2 text-sm">
                     <DollarSign className="h-4 w-4 text-green-500" />
-                    <span>Estimated cost: <strong>${selectedDecision.details.cost}</strong></span>
+                    <span>
+                      Estimated cost: <strong>${selectedDecision.details.cost}</strong>
+                    </span>
                   </div>
                 )}
 
@@ -500,18 +511,25 @@ function DecisionCard({
   onViewDetails: () => void;
 }) {
   return (
-    <Card className={cn(
-      "p-4 transition-all hover:shadow-md cursor-pointer",
-      decision.urgency === 'immediate' && "border-red-500/50 bg-red-500/5"
-    )} onClick={onViewDetails}>
+    <Card
+      className={cn(
+        'p-4 transition-all hover:shadow-md cursor-pointer',
+        decision.urgency === 'immediate' && 'border-red-500/50 bg-red-500/5'
+      )}
+      onClick={onViewDetails}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3 flex-1">
           {typeIcons[decision.type]}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-medium">{decision.title}</h4>
-              <Badge className={cn("text-xs", urgencyColors[decision.urgency])}>
-                {decision.urgency === 'immediate' ? '🔥' : decision.urgency === 'today' ? '⏰' : '📅'}
+              <Badge className={cn('text-xs', urgencyColors[decision.urgency])}>
+                {decision.urgency === 'immediate'
+                  ? '🔥'
+                  : decision.urgency === 'today'
+                    ? '⏰'
+                    : '📅'}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground mb-2">{decision.description}</p>
@@ -527,10 +545,20 @@ function DecisionCard({
 
         {/* Quick Actions */}
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-500/10" onClick={onApprove}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-500/10"
+            onClick={onApprove}
+          >
             <CheckCircle2 className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-500/10" onClick={onReject}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+            onClick={onReject}
+          >
             <XCircle className="h-4 w-4" />
           </Button>
           <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onViewDetails}>

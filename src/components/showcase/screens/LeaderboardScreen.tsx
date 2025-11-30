@@ -1,12 +1,12 @@
-import { Crown, Medal, TrendingUp } from "lucide-react";
+import { Crown, Medal, TrendingUp } from 'lucide-react';
 
 export const LeaderboardScreen = () => {
   const players = [
-    { rank: 1, name: "Trần Minh", elo: 2150, badge: "🥇", color: "text-yellow-400" },
-    { rank: 2, name: "Lê Hoàng", elo: 2080, badge: "🥈", color: "text-gray-300" },
-    { rank: 3, name: "Phạm Tuấn", elo: 1990, badge: "🥉", color: "text-orange-400" },
-    { rank: 4, name: "Ngô Khoa", elo: 1920, badge: "", color: "text-foreground" },
-    { rank: 5, name: "Đặng Việt", elo: 1875, badge: "", color: "text-foreground" },
+    { rank: 1, name: 'Trần Minh', elo: 2150, badge: '🥇', color: 'text-yellow-400' },
+    { rank: 2, name: 'Lê Hoàng', elo: 2080, badge: '🥈', color: 'text-gray-300' },
+    { rank: 3, name: 'Phạm Tuấn', elo: 1990, badge: '🥉', color: 'text-orange-400' },
+    { rank: 4, name: 'Ngô Khoa', elo: 1920, badge: '', color: 'text-foreground' },
+    { rank: 5, name: 'Đặng Việt', elo: 1875, badge: '', color: 'text-foreground' },
   ];
 
   return (
@@ -39,13 +39,13 @@ export const LeaderboardScreen = () => {
           <p className="text-gray-300 text-xl">🥈</p>
           <p className="text-foreground text-xs font-bold truncate">Lê Hoàng</p>
         </div>
-        
+
         {/* 1st Place */}
         <div className="flex-1 glass-panel rounded-t-xl p-2 text-center h-20 flex flex-col justify-end border-2 border-neon-cyan shadow-[0_0_20px_rgba(0,217,255,0.3)]">
           <Crown className="w-5 h-5 text-neon-cyan mx-auto mb-1" />
           <p className="text-foreground text-xs font-bold truncate">Trần Minh</p>
         </div>
-        
+
         {/* 3rd Place */}
         <div className="flex-1 glass-panel rounded-t-xl p-2 text-center h-14 flex flex-col justify-end">
           <p className="text-orange-400 text-xl">🥉</p>

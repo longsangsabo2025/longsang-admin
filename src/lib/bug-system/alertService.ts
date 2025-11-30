@@ -1,6 +1,6 @@
 /**
  * Alert Service - Real-time notifications for critical errors
- * 
+ *
  * Supports: Slack, Discord, Email webhooks
  * "If there's a critical error at 3AM, someone needs to know." - Elon
  */
@@ -57,9 +57,9 @@ class AlertService {
 
   private readonly severityColors: Record<ErrorSeverity, number> = {
     critical: 0xff0000, // Red
-    high: 0xff8c00,     // Dark Orange
-    medium: 0xffd700,   // Gold
-    low: 0x00ff00,      // Green
+    high: 0xff8c00, // Dark Orange
+    medium: 0xffd700, // Gold
+    low: 0x00ff00, // Green
   };
 
   /**
@@ -103,8 +103,12 @@ class AlertService {
         icon_emoji: this.severityEmoji[payload.severity],
         attachments: [
           {
-            color: payload.severity === 'critical' ? 'danger' : 
-                   payload.severity === 'high' ? 'warning' : 'good',
+            color:
+              payload.severity === 'critical'
+                ? 'danger'
+                : payload.severity === 'high'
+                  ? 'warning'
+                  : 'good',
             title: `${this.severityEmoji[payload.severity]} ${payload.title}`,
             text: payload.message,
             fields: [
@@ -242,7 +246,7 @@ ${payload.stackTrace ? `📜 *Stack Trace:*\n\`\`\`${payload.stackTrace.slice(0,
       `.trim();
 
       const url = `https://api.telegram.org/bot${this.config.telegramBotToken}/sendMessage`;
-      
+
       await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -303,7 +307,8 @@ ${payload.stackTrace ? `📜 *Stack Trace:*\n\`\`\`${payload.stackTrace.slice(0,
   async testAlert(): Promise<{ success: boolean; channels: string[] }> {
     const testPayload: AlertPayload = {
       title: '🧪 Test Alert',
-      message: 'This is a test alert from LongSang Bug System. If you see this, alerts are working!',
+      message:
+        'This is a test alert from LongSang Bug System. If you see this, alerts are working!',
       severity: 'medium',
       timestamp: new Date().toISOString(),
       projectName: 'longsang-admin',

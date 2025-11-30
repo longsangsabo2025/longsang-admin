@@ -5,21 +5,21 @@
  * Modal to publish content from Content Queue to Social Media platforms
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { getSocialMediaManager } from "@/lib/social";
-import { supabase } from "@/lib/supabase";
-import type { ContentQueue } from "@/types/automation";
-import type { SocialPlatform, SocialPostRequest } from "@/types/social-media";
-import { AlertCircle, Loader2, Share2 } from "lucide-react";
-import { useState } from "react";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { getSocialMediaManager } from '@/lib/social';
+import { supabase } from '@/lib/supabase';
+import type { ContentQueue } from '@/types/automation';
+import type { SocialPlatform, SocialPostRequest } from '@/types/social-media';
+import { AlertCircle, Loader2, Share2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface PublishToSocialModalProps {
   open: boolean;
@@ -29,13 +29,13 @@ interface PublishToSocialModalProps {
 }
 
 const platformInfo: Record<SocialPlatform, { name: string; icon: string; limit: number }> = {
-  linkedin: { name: "LinkedIn", icon: "💼", limit: 3000 },
-  twitter: { name: "Twitter/X", icon: "𝕏", limit: 280 },
-  facebook: { name: "Facebook", icon: "👥", limit: 63206 },
-  instagram: { name: "Instagram", icon: "📸", limit: 2200 },
-  youtube: { name: "YouTube", icon: "▶️", limit: 5000 },
-  telegram: { name: "Telegram", icon: "✈️", limit: 4096 },
-  discord: { name: "Discord", icon: "🎮", limit: 2000 },
+  linkedin: { name: 'LinkedIn', icon: '💼', limit: 3000 },
+  twitter: { name: 'Twitter/X', icon: '𝕏', limit: 280 },
+  facebook: { name: 'Facebook', icon: '👥', limit: 63206 },
+  instagram: { name: 'Instagram', icon: '📸', limit: 2200 },
+  youtube: { name: 'YouTube', icon: '▶️', limit: 5000 },
+  telegram: { name: 'Telegram', icon: '✈️', limit: 4096 },
+  discord: { name: 'Discord', icon: '🎮', limit: 2000 },
 };
 
 export function PublishToSocialModal({
@@ -48,10 +48,10 @@ export function PublishToSocialModal({
   const manager = getSocialMediaManager();
 
   const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>([]);
-  const [postText, setPostText] = useState("");
-  const [hashtags, setHashtags] = useState("");
-  const [linkUrl, setLinkUrl] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [postText, setPostText] = useState('');
+  const [hashtags, setHashtags] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [publishing, setPublishing] = useState(false);
   const [results, setResults] = useState<any[]>([]);
 
@@ -59,14 +59,14 @@ export function PublishToSocialModal({
   if (content && open && !postText) {
     // Extract first 280 chars from content as social snippet
     const snippet = content.content?.body
-      ? content.content.body.replace(/[#*\n]+/g, " ").substring(0, 280)
-      : content.title || "";
+      ? content.content.body.replace(/[#*\n]+/g, ' ').substring(0, 280)
+      : content.title || '';
     setPostText(snippet);
 
     // Extract hashtags from content metadata if available
     const tags = content.metadata?.tags || content.content?.seo?.tags || [];
     if (tags.length > 0) {
-      setHashtags(tags.map((t: string) => `#${t}`).join(" "));
+      setHashtags(tags.map((t: string) => `#${t}`).join(' '));
     }
   }
 
@@ -95,27 +95,27 @@ export function PublishToSocialModal({
   const handlePublish = async () => {
     if (selectedPlatforms.length === 0) {
       toast({
-        title: "⚠️ No Platforms Selected",
-        description: "Please select at least one platform",
-        variant: "destructive",
+        title: '⚠️ No Platforms Selected',
+        description: 'Please select at least one platform',
+        variant: 'destructive',
       });
       return;
     }
 
     if (!postText.trim()) {
       toast({
-        title: "⚠️ No Content",
-        description: "Please enter some text to post",
-        variant: "destructive",
+        title: '⚠️ No Content',
+        description: 'Please enter some text to post',
+        variant: 'destructive',
       });
       return;
     }
 
     if (isOverLimit) {
       toast({
-        title: "⚠️ Content Too Long",
+        title: '⚠️ Content Too Long',
         description: `Your post exceeds the ${minCharLimit} character limit`,
-        variant: "destructive",
+        variant: 'destructive',
       });
       return;
     }
@@ -127,17 +127,17 @@ export function PublishToSocialModal({
       // Parse hashtags
       const hashtagList = hashtags
         .split(/[\s,]+/)
-        .filter((tag) => tag.startsWith("#"))
+        .filter((tag) => tag.startsWith('#'))
         .map((tag) => tag.substring(1));
 
       // Prepare post request
       const postRequest: SocialPostRequest = {
         platforms: selectedPlatforms,
-        contentType: "text",
+        contentType: 'text',
         text: postText,
         hashtags: hashtagList,
         linkUrl: linkUrl || undefined,
-        media: imageUrl ? [{ type: "image", url: imageUrl }] : undefined,
+        media: imageUrl ? [{ type: 'image', url: imageUrl }] : undefined,
       };
 
       // Post to social media
@@ -157,17 +157,17 @@ export function PublishToSocialModal({
         };
 
         await supabase
-          .from("content_queue")
+          .from('content_queue')
           .update({
             metadata: socialMetadata as any,
-            status: "published",
+            status: 'published',
           } as any)
-          .eq("id", content.id);
+          .eq('id', content.id);
       }
 
       // Show results
       toast({
-        title: "🎉 Publishing Complete!",
+        title: '🎉 Publishing Complete!',
         description: `Posted to ${response.summary.successful}/${response.summary.total} platforms`,
       });
 
@@ -175,11 +175,11 @@ export function PublishToSocialModal({
         onPublished();
       }
     } catch (error) {
-      console.error("Failed to publish:", error);
+      console.error('Failed to publish:', error);
       toast({
-        title: "❌ Publishing Failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        title: '❌ Publishing Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
       });
     } finally {
       setPublishing(false);
@@ -255,7 +255,7 @@ export function PublishToSocialModal({
               <Label htmlFor="post-text">Post Text</Label>
               <span
                 className={`text-sm ${
-                  isOverLimit ? "text-destructive font-semibold" : "text-muted-foreground"
+                  isOverLimit ? 'text-destructive font-semibold' : 'text-muted-foreground'
                 }`}
               >
                 {postText.length}
@@ -318,7 +318,7 @@ export function PublishToSocialModal({
                   alt="Preview"
                   className="max-w-xs rounded-lg border"
                   onError={(e) => {
-                    e.currentTarget.style.display = "none";
+                    e.currentTarget.style.display = 'none';
                   }}
                 />
               </div>
@@ -342,7 +342,7 @@ export function PublishToSocialModal({
                       <div>
                         <p className="font-medium capitalize">{result.platform}</p>
                         <p className="text-sm text-muted-foreground">
-                          {result.success ? "Published successfully" : result.error?.message}
+                          {result.success ? 'Published successfully' : result.error?.message}
                         </p>
                       </div>
                     </div>
@@ -376,7 +376,7 @@ export function PublishToSocialModal({
                 <>
                   <Share2 className="h-4 w-4 mr-2" />
                   Publish to {selectedPlatforms.length} Platform
-                  {selectedPlatforms.length === 1 ? "" : "s"}
+                  {selectedPlatforms.length === 1 ? '' : 's'}
                 </>
               )}
             </Button>

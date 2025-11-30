@@ -32,7 +32,9 @@ export function useAssistant(options: UseAssistantOptions) {
   const [isLoading, setIsLoading] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(options.conversationId);
+  const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(
+    options.conversationId
+  );
   const abortControllerRef = useRef<AbortController | null>(null);
   const prevConversationIdRef = useRef<string | undefined>(options.conversationId);
 
@@ -129,23 +131,19 @@ export function useAssistant(options: UseAssistantOptions) {
                     // Stream complete
                     setMessages((prev) =>
                       prev.map((msg) =>
-                        msg.id === assistantMessageId
-                          ? { ...msg, isStreaming: false }
-                          : msg
+                        msg.id === assistantMessageId ? { ...msg, isStreaming: false } : msg
                       )
                     );
                     continue;
                   }
-                  
+
                   try {
                     const parsed = JSON.parse(data);
                     if (parsed.content) {
                       fullContent += parsed.content;
                       setMessages((prev) =>
                         prev.map((msg) =>
-                          msg.id === assistantMessageId
-                            ? { ...msg, content: fullContent }
-                            : msg
+                          msg.id === assistantMessageId ? { ...msg, content: fullContent } : msg
                         )
                       );
                     }
@@ -196,13 +194,13 @@ export function useAssistant(options: UseAssistantOptions) {
           setIsThinking(false);
 
           const data = await response.json();
-          
+
           if (data.success && data.response) {
             if (data.conversationId && data.conversationId !== currentConversationId) {
               setCurrentConversationId(data.conversationId);
               options.onConversationCreated?.(data.conversationId);
             }
-            
+
             setMessages((prev) =>
               prev.map((msg) =>
                 msg.id === assistantMessageId
@@ -223,7 +221,11 @@ export function useAssistant(options: UseAssistantOptions) {
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === assistantMessageId
-                ? { ...msg, content: `❌ Lỗi: ${error.message || 'Không thể kết nối với AI'}`, isStreaming: false }
+                ? {
+                    ...msg,
+                    content: `❌ Lỗi: ${error.message || 'Không thể kết nối với AI'}`,
+                    isStreaming: false,
+                  }
                 : msg
             )
           );
@@ -285,12 +287,14 @@ export function useAssistant(options: UseAssistantOptions) {
 
         if (conversation?.messages) {
           // Convert conversation messages to Message format
-          const loadedMessages: Message[] = conversation.messages.map((msg: any, index: number) => ({
-            id: `${convId}-${index}`,
-            role: msg.role,
-            content: msg.content,
-            timestamp: new Date(conversation.created_at),
-          }));
+          const loadedMessages: Message[] = conversation.messages.map(
+            (msg: any, index: number) => ({
+              id: `${convId}-${index}`,
+              role: msg.role,
+              content: msg.content,
+              timestamp: new Date(conversation.created_at),
+            })
+          );
 
           setMessages(loadedMessages);
           setCurrentConversationId(convId);
@@ -306,10 +310,10 @@ export function useAssistant(options: UseAssistantOptions) {
 
   // Load conversation when conversationId changes - use ref to prevent infinite loop
   const loadedConversationRef = useRef<string | undefined>();
-  
+
   useEffect(() => {
     const convId = options.conversationId;
-    
+
     // Only load if conversationId changed and not already loaded
     if (convId && convId !== loadedConversationRef.current) {
       loadedConversationRef.current = convId;
@@ -337,4 +341,3 @@ export function useAssistant(options: UseAssistantOptions) {
     conversationId: currentConversationId,
   };
 }
-

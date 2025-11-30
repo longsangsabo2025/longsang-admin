@@ -9,16 +9,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { 
-  MapPin, 
-  Search, 
-  RefreshCw, 
+import {
+  MapPin,
+  Search,
+  RefreshCw,
   CheckCircle2,
   Loader2,
   Navigation,
-  Building2
+  Building2,
 } from 'lucide-react';
-import { geocodeAddress, getLocationStats, listLocations, GeocodingResult } from '@/lib/google/maps-api';
+import {
+  geocodeAddress,
+  getLocationStats,
+  listLocations,
+  GeocodingResult,
+} from '@/lib/google/maps-api';
 import { toast } from 'sonner';
 
 interface LocationStats {
@@ -39,14 +44,16 @@ export const MapsPanel = () => {
   const [loading, setLoading] = useState(true);
   const [geocoding, setGeocoding] = useState(false);
   const [stats, setStats] = useState<LocationStats | null>(null);
-  const [locations, setLocations] = useState<Array<{
-    id: string;
-    name: string;
-    address: string;
-    lat?: number;
-    lng?: number;
-  }>>([]);
-  
+  const [locations, setLocations] = useState<
+    Array<{
+      id: string;
+      name: string;
+      address: string;
+      lat?: number;
+      lng?: number;
+    }>
+  >([]);
+
   const [address, setAddress] = useState('');
   const [geocodeResult, setGeocodeResult] = useState<GeocodingResult | null>(null);
 
@@ -134,9 +141,7 @@ export const MapsPanel = () => {
             <Navigation className="h-5 w-5" />
             Geocode Address
           </CardTitle>
-          <CardDescription>
-            Convert address to coordinates (latitude/longitude)
-          </CardDescription>
+          <CardDescription>Convert address to coordinates (latitude/longitude)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -183,8 +188,8 @@ export const MapsPanel = () => {
                   <p className="font-mono text-xs truncate">{geocodeResult.placeId}</p>
                 </div>
               </div>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="outline"
                 onClick={() => {
                   window.open(
@@ -216,7 +221,10 @@ export const MapsPanel = () => {
           <CardContent>
             <div className="space-y-2">
               {locations.map((location) => (
-                <div key={location.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                <div
+                  key={location.id}
+                  className="flex items-center justify-between py-2 border-b last:border-0"
+                >
                   <div>
                     <div className="text-sm font-medium">{location.name}</div>
                     <div className="text-xs text-muted-foreground">{location.address}</div>

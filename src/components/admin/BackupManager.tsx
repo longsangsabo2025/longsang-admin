@@ -5,14 +5,14 @@
  * UI for managing backups - view history, trigger manual backup
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { API_URL } from "@/config/api";
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { API_URL } from '@/config/api';
 import {
   Database,
   HardDrive,
@@ -25,7 +25,7 @@ import {
   Download,
   ExternalLink,
   FolderArchive,
-} from "lucide-react";
+} from 'lucide-react';
 
 interface BackupRecord {
   id: string;
@@ -48,7 +48,7 @@ interface BackupStatus {
 
 const DEFAULT_TABLES = [
   'projects',
-  'project_social_accounts', 
+  'project_social_accounts',
   'social_posts',
   'profiles',
   'credentials',
@@ -105,12 +105,12 @@ export function BackupManager() {
           description: type === 'files' ? 'Manual file backup from admin' : undefined,
         }),
       });
-      
+
       const data = await res.json();
-      
+
       if (data.success) {
         toast({
-          title: "✅ Backup thành công!",
+          title: '✅ Backup thành công!',
           description: `${type === 'database' ? 'Database' : 'Files'} đã được backup lên Drive`,
         });
         // Reload data
@@ -120,9 +120,9 @@ export function BackupManager() {
       }
     } catch (error) {
       toast({
-        title: "❌ Backup thất bại",
+        title: '❌ Backup thất bại',
         description: error instanceof Error ? error.message : 'Unknown error',
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setBacking(false);
@@ -131,10 +131,8 @@ export function BackupManager() {
 
   // Toggle table selection
   const toggleTable = (table: string) => {
-    setSelectedTables(prev =>
-      prev.includes(table)
-        ? prev.filter(t => t !== table)
-        : [...prev, table]
+    setSelectedTables((prev) =>
+      prev.includes(table) ? prev.filter((t) => t !== table) : [...prev, table]
     );
   };
 
@@ -169,11 +167,15 @@ export function BackupManager() {
             <FolderArchive className="h-6 w-6" />
             Backup Manager
           </h2>
-          <p className="text-muted-foreground">
-            Backup dữ liệu lên Google Drive
-          </p>
+          <p className="text-muted-foreground">Backup dữ liệu lên Google Drive</p>
         </div>
-        <Button variant="outline" onClick={() => { loadStatus(); loadHistory(); }}>
+        <Button
+          variant="outline"
+          onClick={() => {
+            loadStatus();
+            loadHistory();
+          }}
+        >
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
@@ -192,19 +194,17 @@ export function BackupManager() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <Database className="h-8 w-8 text-green-500" />
             <div>
               <p className="text-sm text-muted-foreground">Recent Backups</p>
-              <p className="text-lg font-bold">
-                {status?.recentBackups?.length || 0}
-              </p>
+              <p className="text-lg font-bold">{status?.recentBackups?.length || 0}</p>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <Clock className="h-8 w-8 text-amber-500" />
@@ -227,15 +227,13 @@ export function BackupManager() {
               <Database className="h-5 w-5" />
               Database Backup
             </CardTitle>
-            <CardDescription>
-              Backup các tables từ Supabase lên Drive
-            </CardDescription>
+            <CardDescription>Backup các tables từ Supabase lên Drive</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Chọn tables:</Label>
               <div className="grid grid-cols-2 gap-2">
-                {DEFAULT_TABLES.map(table => (
+                {DEFAULT_TABLES.map((table) => (
                   <div key={table} className="flex items-center gap-2">
                     <Checkbox
                       id={table}
@@ -249,8 +247,8 @@ export function BackupManager() {
                 ))}
               </div>
             </div>
-            <Button 
-              className="w-full" 
+            <Button
+              className="w-full"
               onClick={() => triggerBackup('database')}
               disabled={backing || selectedTables.length === 0}
             >
@@ -271,17 +269,14 @@ export function BackupManager() {
               <HardDrive className="h-5 w-5" />
               Files Backup
             </CardTitle>
-            <CardDescription>
-              Backup manifest và metadata
-            </CardDescription>
+            <CardDescription>Backup manifest và metadata</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Tạo file manifest chứa thông tin backup. 
-              Actual file backup cần được cấu hình riêng.
+              Tạo file manifest chứa thông tin backup. Actual file backup cần được cấu hình riêng.
             </p>
-            <Button 
-              className="w-full" 
+            <Button
+              className="w-full"
               variant="outline"
               onClick={() => triggerBackup('files')}
               disabled={backing}
@@ -301,19 +296,15 @@ export function BackupManager() {
       <Card>
         <CardHeader>
           <CardTitle>Backup History</CardTitle>
-          <CardDescription>
-            Lịch sử các lần backup gần đây
-          </CardDescription>
+          <CardDescription>Lịch sử các lần backup gần đây</CardDescription>
         </CardHeader>
         <CardContent>
           {history.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              Chưa có backup nào
-            </p>
+            <p className="text-center text-muted-foreground py-8">Chưa có backup nào</p>
           ) : (
             <div className="space-y-2">
-              {history.map(record => (
-                <div 
+              {history.map((record) => (
+                <div
                   key={record.id}
                   className="flex items-center justify-between p-3 rounded-lg border bg-card"
                 >
@@ -372,7 +363,12 @@ export function BackupManager() {
               </div>
               <Button
                 variant="outline"
-                onClick={() => window.open(`https://drive.google.com/drive/folders/${status.backupFolder.id}`, '_blank')}
+                onClick={() =>
+                  window.open(
+                    `https://drive.google.com/drive/folders/${status.backupFolder.id}`,
+                    '_blank'
+                  )
+                }
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open in Drive

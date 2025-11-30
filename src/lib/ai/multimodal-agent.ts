@@ -57,17 +57,17 @@ export async function analyzeImage(
     const imageContent =
       'url' in imageInput
         ? { type: 'image_url' as const, image_url: { url: imageInput.url } }
-        : { type: 'image_url' as const, image_url: { url: `data:image/jpeg;base64,${imageInput.base64}` } };
+        : {
+            type: 'image_url' as const,
+            image_url: { url: `data:image/jpeg;base64,${imageInput.base64}` },
+          };
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
           role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            imageContent,
-          ],
+          content: [{ type: 'text', text: prompt }, imageContent],
         },
       ],
       max_tokens: 1000,
@@ -125,10 +125,7 @@ export async function analyzeImageSequence(
       messages: [
         {
           role: 'user',
-          content: [
-            { type: 'text', text: context },
-            ...imageContents,
-          ],
+          content: [{ type: 'text', text: context }, ...imageContents],
         },
       ],
       max_tokens: 1500,
@@ -339,7 +336,8 @@ export async function multimodalInteraction(input: MultimodalInput): Promise<{
 
     // Process audio
     if (input.audio) {
-      const audioFile = input.audio instanceof File ? input.audio : new File([input.audio], 'audio.mp3');
+      const audioFile =
+        input.audio instanceof File ? input.audio : new File([input.audio], 'audio.mp3');
       analyses.audio = await analyzeAudio(audioFile);
     }
 
@@ -351,9 +349,7 @@ export async function multimodalInteraction(input: MultimodalInput): Promise<{
     }
 
     if (analyses.vision) {
-      contextParts.push(
-        `Image analysis: ${analyses.vision.map((v) => v.description).join(' | ')}`
-      );
+      contextParts.push(`Image analysis: ${analyses.vision.map((v) => v.description).join(' | ')}`);
     }
 
     if (analyses.audio) {

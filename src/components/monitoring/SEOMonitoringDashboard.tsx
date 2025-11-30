@@ -1,8 +1,8 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, BarChart3, Globe, Target, TrendingDown, TrendingUp, Zap } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, BarChart3, Globe, Target, TrendingDown, TrendingUp, Zap } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 export const SEOMonitoringDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -11,27 +11,27 @@ export const SEOMonitoringDashboard: React.FC = () => {
   // Mock data for demonstration (since tables might not be accessible yet)
   const [dashboardData, setDashboardData] = useState({
     keywords: [
-      { keyword: "longsang automation", position: 1, change: 2, volume: 1200 },
-      { keyword: "sabo arena", position: 3, change: -1, volume: 800 },
-      { keyword: "gaming platform vietnam", position: 8, change: 5, volume: 2100 },
-      { keyword: "ai automation vietnam", position: 12, change: 0, volume: 950 },
-      { keyword: "billiards tournament", position: 6, change: 3, volume: 1500 },
+      { keyword: 'longsang automation', position: 1, change: 2, volume: 1200 },
+      { keyword: 'sabo arena', position: 3, change: -1, volume: 800 },
+      { keyword: 'gaming platform vietnam', position: 8, change: 5, volume: 2100 },
+      { keyword: 'ai automation vietnam', position: 12, change: 0, volume: 950 },
+      { keyword: 'billiards tournament', position: 6, change: 3, volume: 1500 },
     ],
     pages: [
-      { url: "longsang.org/arena", title: "SABO ARENA Platform", score: 95, traffic: 1500 },
+      { url: 'longsang.org/arena', title: 'SABO ARENA Platform', score: 95, traffic: 1500 },
       {
-        url: "longsang.org/arena/tournaments",
-        title: "Gaming Tournaments",
+        url: 'longsang.org/arena/tournaments',
+        title: 'Gaming Tournaments',
         score: 88,
         traffic: 800,
       },
-      { url: "longsang.org/automation", title: "AI Automation", score: 92, traffic: 1200 },
-      { url: "longsang.org/arena/blog", title: "Gaming Blog", score: 85, traffic: 600 },
+      { url: 'longsang.org/automation', title: 'AI Automation', score: 92, traffic: 1200 },
+      { url: 'longsang.org/arena/blog', title: 'Gaming Blog', score: 85, traffic: 600 },
     ],
     issues: [
-      { type: "Page Speed", severity: "medium", count: 3 },
-      { type: "Meta Description", severity: "high", count: 2 },
-      { type: "Alt Text", severity: "low", count: 5 },
+      { type: 'Page Speed', severity: 'medium', count: 3 },
+      { type: 'Meta Description', severity: 'high', count: 2 },
+      { type: 'Alt Text', severity: 'low', count: 5 },
     ],
     summary: {
       totalTraffic: 4100,
@@ -66,7 +66,7 @@ export const SEOMonitoringDashboard: React.FC = () => {
 
       setLastUpdated(new Date());
     } catch (error) {
-      console.error("Error refreshing monitoring data:", error);
+      console.error('Error refreshing monitoring data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -80,21 +80,21 @@ export const SEOMonitoringDashboard: React.FC = () => {
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "high":
-        return "destructive";
-      case "medium":
-        return "default";
-      case "low":
-        return "secondary";
+      case 'high':
+        return 'destructive';
+      case 'medium':
+        return 'default';
+      case 'low':
+        return 'secondary';
       default:
-        return "default";
+        return 'default';
     }
   };
 
   const getPositionTrend = (change: number) => {
-    if (change > 0) return { icon: TrendingUp, color: "text-green-600", text: `+${change}` };
-    if (change < 0) return { icon: TrendingDown, color: "text-red-600", text: `${change}` };
-    return { icon: Target, color: "text-gray-500", text: "0" };
+    if (change > 0) return { icon: TrendingUp, color: 'text-green-600', text: `+${change}` };
+    if (change < 0) return { icon: TrendingDown, color: 'text-red-600', text: `${change}` };
+    return { icon: Target, color: 'text-gray-500', text: '0' };
   };
 
   return (
@@ -113,7 +113,7 @@ export const SEOMonitoringDashboard: React.FC = () => {
           className="flex items-center gap-2"
         >
           <Zap className="h-4 w-4" />
-          {isLoading ? "Đang cập nhật..." : "Làm Mới Dữ Liệu"}
+          {isLoading ? 'Đang cập nhật...' : 'Làm Mới Dữ Liệu'}
         </Button>
       </div>
 
@@ -255,11 +255,11 @@ export const SEOMonitoringDashboard: React.FC = () => {
                   </div>
                 </div>
                 <Badge variant={getSeverityColor(issue.severity) as any}>
-                  {issue.severity === "high"
-                    ? "Cao"
-                    : issue.severity === "medium"
-                    ? "Trung bình"
-                    : "Thấp"}
+                  {issue.severity === 'high'
+                    ? 'Cao'
+                    : issue.severity === 'medium'
+                      ? 'Trung bình'
+                      : 'Thấp'}
                 </Badge>
               </div>
             ))}
@@ -270,7 +270,7 @@ export const SEOMonitoringDashboard: React.FC = () => {
       {/* Last Updated */}
       {lastUpdated && (
         <div className="text-center text-sm text-muted-foreground">
-          Cập nhật lần cuối: {lastUpdated.toLocaleString("vi-VN")}
+          Cập nhật lần cuối: {lastUpdated.toLocaleString('vi-VN')}
         </div>
       )}
     </div>

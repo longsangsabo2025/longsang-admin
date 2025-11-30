@@ -1,8 +1,8 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   FileText,
   Calendar,
@@ -13,14 +13,14 @@ import {
   Play,
   Trash2,
   Eye,
-} from "lucide-react";
-import { usePersistedState, useScrollRestore } from "@/hooks/usePersistedState";
+} from 'lucide-react';
+import { usePersistedState, useScrollRestore } from '@/hooks/usePersistedState';
 
 interface ContentItem {
   id: string;
   title: string;
   type: string;
-  status: "pending" | "processing" | "completed" | "failed";
+  status: 'pending' | 'processing' | 'completed' | 'failed';
   createdAt: string;
   scheduledFor?: string;
   workflow: string;
@@ -34,60 +34,60 @@ const AdminContentQueue = () => {
   // Mock data - replace with real data from Supabase
   const contentQueue: ContentItem[] = [
     {
-      id: "1",
-      title: "10 Tips for Better AI Automation",
-      type: "Blog Post",
-      status: "completed",
-      createdAt: "2025-01-11T10:30:00",
-      workflow: "AI Content Factory",
+      id: '1',
+      title: '10 Tips for Better AI Automation',
+      type: 'Blog Post',
+      status: 'completed',
+      createdAt: '2025-01-11T10:30:00',
+      workflow: 'AI Content Factory',
     },
     {
-      id: "2",
-      title: "LinkedIn Post: New AI Features",
-      type: "Social Media",
-      status: "processing",
-      createdAt: "2025-01-11T11:00:00",
-      scheduledFor: "2025-01-11T14:00:00",
-      workflow: "Social Media Manager",
+      id: '2',
+      title: 'LinkedIn Post: New AI Features',
+      type: 'Social Media',
+      status: 'processing',
+      createdAt: '2025-01-11T11:00:00',
+      scheduledFor: '2025-01-11T14:00:00',
+      workflow: 'Social Media Manager',
     },
     {
-      id: "3",
-      title: "Monthly Newsletter: AI Trends",
-      type: "Email",
-      status: "pending",
-      createdAt: "2025-01-11T09:00:00",
-      scheduledFor: "2025-01-15T08:00:00",
-      workflow: "Email Campaign Generator",
+      id: '3',
+      title: 'Monthly Newsletter: AI Trends',
+      type: 'Email',
+      status: 'pending',
+      createdAt: '2025-01-11T09:00:00',
+      scheduledFor: '2025-01-15T08:00:00',
+      workflow: 'Email Campaign Generator',
     },
     {
-      id: "4",
-      title: "Product Launch Announcement",
-      type: "Press Release",
-      status: "failed",
-      createdAt: "2025-01-10T15:00:00",
-      workflow: "Content Factory",
+      id: '4',
+      title: 'Product Launch Announcement',
+      type: 'Press Release',
+      status: 'failed',
+      createdAt: '2025-01-10T15:00:00',
+      workflow: 'Content Factory',
     },
   ];
 
-  const getStatusIcon = (status: ContentItem["status"]) => {
+  const getStatusIcon = (status: ContentItem['status']) => {
     switch (status) {
-      case "completed":
+      case 'completed':
         return <CheckCircle2 className="h-4 w-4 text-green-600" />;
-      case "processing":
+      case 'processing':
         return <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />;
-      case "failed":
+      case 'failed':
         return <AlertCircle className="h-4 w-4 text-red-600" />;
       default:
         return <Clock className="h-4 w-4 text-orange-600" />;
     }
   };
 
-  const getStatusBadge = (status: ContentItem["status"]) => {
+  const getStatusBadge = (status: ContentItem['status']) => {
     const variants = {
-      completed: "default",
-      processing: "secondary",
-      pending: "outline",
-      failed: "destructive",
+      completed: 'default',
+      processing: 'secondary',
+      pending: 'outline',
+      failed: 'destructive',
     };
 
     return (
@@ -98,7 +98,7 @@ const AdminContentQueue = () => {
     );
   };
 
-  const filterByStatus = (status: ContentItem["status"]) => {
+  const filterByStatus = (status: ContentItem['status']) => {
     return contentQueue.filter((item) => item.status === status);
   };
 
@@ -140,13 +140,13 @@ const AdminContentQueue = () => {
             <Eye className="h-3 w-3" />
             View
           </Button>
-          {item.status === "pending" && (
+          {item.status === 'pending' && (
             <Button size="sm" variant="outline" className="gap-2">
               <Play className="h-3 w-3" />
               Process Now
             </Button>
           )}
-          {item.status === "failed" && (
+          {item.status === 'failed' && (
             <Button size="sm" variant="outline" className="gap-2">
               <Play className="h-3 w-3" />
               Retry
@@ -183,7 +183,7 @@ const AdminContentQueue = () => {
           <CardHeader className="pb-2">
             <CardDescription>Pending</CardDescription>
             <CardTitle className="text-3xl text-orange-600">
-              {filterByStatus("pending").length}
+              {filterByStatus('pending').length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -191,7 +191,7 @@ const AdminContentQueue = () => {
           <CardHeader className="pb-2">
             <CardDescription>Processing</CardDescription>
             <CardTitle className="text-3xl text-blue-600">
-              {filterByStatus("processing").length}
+              {filterByStatus('processing').length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -199,7 +199,7 @@ const AdminContentQueue = () => {
           <CardHeader className="pb-2">
             <CardDescription>Completed</CardDescription>
             <CardTitle className="text-3xl text-green-600">
-              {filterByStatus("completed").length}
+              {filterByStatus('completed').length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -209,18 +209,14 @@ const AdminContentQueue = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="all">All ({contentQueue.length})</TabsTrigger>
-          <TabsTrigger value="pending">
-            Pending ({filterByStatus("pending").length})
-          </TabsTrigger>
+          <TabsTrigger value="pending">Pending ({filterByStatus('pending').length})</TabsTrigger>
           <TabsTrigger value="processing">
-            Processing ({filterByStatus("processing").length})
+            Processing ({filterByStatus('processing').length})
           </TabsTrigger>
           <TabsTrigger value="completed">
-            Completed ({filterByStatus("completed").length})
+            Completed ({filterByStatus('completed').length})
           </TabsTrigger>
-          <TabsTrigger value="failed">
-            Failed ({filterByStatus("failed").length})
-          </TabsTrigger>
+          <TabsTrigger value="failed">Failed ({filterByStatus('failed').length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -236,7 +232,7 @@ const AdminContentQueue = () => {
         <TabsContent value="pending" className="space-y-4">
           <ScrollArea className="h-[600px] pr-4">
             <div className="space-y-4">
-              {filterByStatus("pending").map((item) => (
+              {filterByStatus('pending').map((item) => (
                 <ContentCard key={item.id} item={item} />
               ))}
             </div>
@@ -246,7 +242,7 @@ const AdminContentQueue = () => {
         <TabsContent value="processing" className="space-y-4">
           <ScrollArea className="h-[600px] pr-4">
             <div className="space-y-4">
-              {filterByStatus("processing").map((item) => (
+              {filterByStatus('processing').map((item) => (
                 <ContentCard key={item.id} item={item} />
               ))}
             </div>
@@ -256,7 +252,7 @@ const AdminContentQueue = () => {
         <TabsContent value="completed" className="space-y-4">
           <ScrollArea className="h-[600px] pr-4">
             <div className="space-y-4">
-              {filterByStatus("completed").map((item) => (
+              {filterByStatus('completed').map((item) => (
                 <ContentCard key={item.id} item={item} />
               ))}
             </div>
@@ -266,7 +262,7 @@ const AdminContentQueue = () => {
         <TabsContent value="failed" className="space-y-4">
           <ScrollArea className="h-[600px] pr-4">
             <div className="space-y-4">
-              {filterByStatus("failed").map((item) => (
+              {filterByStatus('failed').map((item) => (
                 <ContentCard key={item.id} item={item} />
               ))}
             </div>

@@ -70,7 +70,9 @@ export const HelpGuide = () => {
                   </div>
                   <div className="flex items-start gap-2">
                     <strong className="min-w-32">Success Rate:</strong>
-                    <span className="text-muted-foreground">Tỷ lệ thành công (100 actions gần nhất)</span>
+                    <span className="text-muted-foreground">
+                      Tỷ lệ thành công (100 actions gần nhất)
+                    </span>
                   </div>
                   <div className="flex items-start gap-2">
                     <strong className="min-w-32">Queue Size:</strong>
@@ -83,7 +85,7 @@ export const HelpGuide = () => {
             <TabsContent value="agents" className="space-y-4">
               <div>
                 <h3 className="font-semibold mb-2">🤖 Các loại AI Agents</h3>
-                
+
                 <div className="space-y-4">
                   <div className="border rounded-lg p-3">
                     <h4 className="font-semibold text-blue-600 mb-1">✍️ Content Writer Agent</h4>
@@ -144,16 +146,14 @@ export const HelpGuide = () => {
             <TabsContent value="actions" className="space-y-4">
               <div>
                 <h3 className="font-semibold mb-3">⚙️ Các thao tác chính</h3>
-                
+
                 <div className="space-y-4">
                   <div className="border rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-2">
                       <Eye className="w-4 h-4 text-blue-500" />
                       <h4 className="font-semibold">Xem chi tiết Agent</h4>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Click vào agent card để xem:
-                    </p>
+                    <p className="text-sm text-muted-foreground">Click vào agent card để xem:</p>
                     <ul className="text-xs text-muted-foreground list-disc list-inside mt-1">
                       <li>Performance metrics</li>
                       <li>Configuration settings</li>
@@ -201,9 +201,7 @@ export const HelpGuide = () => {
                       <Settings className="w-4 h-4 text-gray-500" />
                       <h4 className="font-semibold">Xem Activity Logs</h4>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Activity logs cho thấy:
-                    </p>
+                    <p className="text-sm text-muted-foreground">Activity logs cho thấy:</p>
                     <ul className="text-xs text-muted-foreground list-disc list-inside mt-1">
                       <li>Tất cả hành động của agents</li>
                       <li>Status (success/error/warning)</li>
@@ -218,7 +216,7 @@ export const HelpGuide = () => {
             <TabsContent value="tips" className="space-y-4">
               <div>
                 <h3 className="font-semibold mb-3">💡 Tips & Best Practices</h3>
-                
+
                 <div className="space-y-3">
                   <div className="border-l-4 border-blue-500 bg-blue-500/10 p-3 rounded">
                     <h4 className="font-semibold text-blue-700 mb-1">🎯 Monitor Success Rate</h4>
@@ -228,21 +226,27 @@ export const HelpGuide = () => {
                   </div>
 
                   <div className="border-l-4 border-green-500 bg-green-500/10 p-3 rounded">
-                    <h4 className="font-semibold text-green-700 mb-1">⏰ Test với Manual Trigger</h4>
+                    <h4 className="font-semibold text-green-700 mb-1">
+                      ⏰ Test với Manual Trigger
+                    </h4>
                     <p className="text-sm text-muted-foreground">
-                      Trước khi enable auto-trigger, test agent với manual trigger để đảm bảo hoạt động đúng
+                      Trước khi enable auto-trigger, test agent với manual trigger để đảm bảo hoạt
+                      động đúng
                     </p>
                   </div>
 
                   <div className="border-l-4 border-purple-500 bg-purple-500/10 p-3 rounded">
                     <h4 className="font-semibold text-purple-700 mb-1">📝 Review Content Queue</h4>
                     <p className="text-sm text-muted-foreground">
-                      Thường xuyên check content queue để review và approve nội dung trước khi publish
+                      Thường xuyên check content queue để review và approve nội dung trước khi
+                      publish
                     </p>
                   </div>
 
                   <div className="border-l-4 border-orange-500 bg-orange-500/10 p-3 rounded">
-                    <h4 className="font-semibold text-orange-700 mb-1">🔧 Customize Agent Config</h4>
+                    <h4 className="font-semibold text-orange-700 mb-1">
+                      🔧 Customize Agent Config
+                    </h4>
                     <p className="text-sm text-muted-foreground">
                       Có thể customize AI model, prompts, và settings trong agent configuration
                     </p>
@@ -258,13 +262,29 @@ export const HelpGuide = () => {
 
                 <div className="mt-4 bg-muted p-4 rounded-lg">
                   <h4 className="font-semibold mb-2">📚 Tài liệu</h4>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Xem thêm tài liệu chi tiết:
-                  </p>
+                  <p className="text-sm text-muted-foreground mb-2">Xem thêm tài liệu chi tiết:</p>
                   <ul className="text-sm space-y-1">
-                    <li>• <code className="text-xs bg-background px-1 rounded">AUTOMATION_SETUP.md</code> - Setup guide</li>
-                    <li>• <code className="text-xs bg-background px-1 rounded">AUTOMATION_README.md</code> - Feature docs</li>
-                    <li>• <code className="text-xs bg-background px-1 rounded">IMPLEMENTATION_SUMMARY.md</code> - Overview</li>
+                    <li>
+                      •{' '}
+                      <code className="text-xs bg-background px-1 rounded">
+                        AUTOMATION_SETUP.md
+                      </code>{' '}
+                      - Setup guide
+                    </li>
+                    <li>
+                      •{' '}
+                      <code className="text-xs bg-background px-1 rounded">
+                        AUTOMATION_README.md
+                      </code>{' '}
+                      - Feature docs
+                    </li>
+                    <li>
+                      •{' '}
+                      <code className="text-xs bg-background px-1 rounded">
+                        IMPLEMENTATION_SUMMARY.md
+                      </code>{' '}
+                      - Overview
+                    </li>
                   </ul>
                 </div>
               </div>

@@ -1,8 +1,8 @@
 /**
  * 🧠 useConversationMemory Hook - Elon Musk Edition
- * 
+ *
  * Persistent conversation memory using localStorage + Supabase
- * 
+ *
  * Features:
  * - Local storage for instant access
  * - Supabase sync for cross-device
@@ -41,7 +41,7 @@ export interface UseConversationMemoryReturn {
   currentConversation: Conversation | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   createConversation: (title?: string) => Conversation;
   selectConversation: (id: string) => void;
@@ -76,7 +76,7 @@ export function useConversationMemory(
       if (stored) {
         const parsed = JSON.parse(stored) as Conversation[];
         setConversations(parsed);
-        
+
         // Auto-select most recent conversation
         if (parsed.length > 0) {
           const mostRecent = parsed.sort((a, b) => b.updatedAt - a.updatedAt)[0];
@@ -104,7 +104,7 @@ export function useConversationMemory(
         const toSave = conversations
           .sort((a, b) => b.updatedAt - a.updatedAt)
           .slice(0, MAX_LOCAL_CONVERSATIONS);
-        
+
         localStorage.setItem(storageKey, JSON.stringify(toSave));
         console.log('[ConversationMemory] Saved', toSave.length, 'conversations');
       } catch (err) {
@@ -120,83 +120,97 @@ export function useConversationMemory(
   }, [conversations, autoSave, isLoading, storageKey]);
 
   // Get current conversation
-  const currentConversation = conversations.find(c => c.id === currentConversationId) || null;
+  const currentConversation = conversations.find((c) => c.id === currentConversationId) || null;
 
   /**
    * Create new conversation
    */
-  const createConversation = useCallback((title?: string): Conversation => {
-    const newConversation: Conversation = {
-      id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      assistantType,
-      title: title || `New Chat ${new Date().toLocaleDateString('vi-VN')}`,
-      messages: [],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
+  const createConversation = useCallback(
+    (title?: string): Conversation => {
+      const newConversation: Conversation = {
+        id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        assistantType,
+        title: title || `New Chat ${new Date().toLocaleDateString('vi-VN')}`,
+        messages: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
 
-    setConversations(prev => [newConversation, ...prev]);
-    setCurrentConversationId(newConversation.id);
-    
-    console.log('[ConversationMemory] Created conversation:', newConversation.id);
-    return newConversation;
-  }, [assistantType]);
+      setConversations((prev) => [newConversation, ...prev]);
+      setCurrentConversationId(newConversation.id);
+
+      console.log('[ConversationMemory] Created conversation:', newConversation.id);
+      return newConversation;
+    },
+    [assistantType]
+  );
 
   /**
    * Select a conversation
    */
-  const selectConversation = useCallback((id: string) => {
-    const exists = conversations.find(c => c.id === id);
-    if (exists) {
-      setCurrentConversationId(id);
-    }
-  }, [conversations]);
+  const selectConversation = useCallback(
+    (id: string) => {
+      const exists = conversations.find((c) => c.id === id);
+      if (exists) {
+        setCurrentConversationId(id);
+      }
+    },
+    [conversations]
+  );
 
   /**
    * Add message to current conversation
    */
-  const addMessage = useCallback((role: 'user' | 'assistant', content: string) => {
-    if (!currentConversationId) {
-      // Create new conversation if none exists
-      const newConv = createConversation();
-      setCurrentConversationId(newConv.id);
-    }
-
-    const message: ConversationMessage = {
-      role,
-      content,
-      timestamp: Date.now(),
-    };
-
-    setConversations(prev => prev.map(conv => {
-      if (conv.id === currentConversationId) {
-        // Auto-generate title from first user message
-        let newTitle = conv.title;
-        if (role === 'user' && conv.messages.length === 0) {
-          newTitle = content.slice(0, 50) + (content.length > 50 ? '...' : '');
-        }
-
-        return {
-          ...conv,
-          title: newTitle,
-          messages: [...conv.messages, message],
-          updatedAt: Date.now(),
-        };
+  const addMessage = useCallback(
+    (role: 'user' | 'assistant', content: string) => {
+      if (!currentConversationId) {
+        // Create new conversation if none exists
+        const newConv = createConversation();
+        setCurrentConversationId(newConv.id);
       }
-      return conv;
-    }));
-  }, [currentConversationId, createConversation]);
+
+      const message: ConversationMessage = {
+        role,
+        content,
+        timestamp: Date.now(),
+      };
+
+      setConversations((prev) =>
+        prev.map((conv) => {
+          if (conv.id === currentConversationId) {
+            // Auto-generate title from first user message
+            let newTitle = conv.title;
+            if (role === 'user' && conv.messages.length === 0) {
+              newTitle = content.slice(0, 50) + (content.length > 50 ? '...' : '');
+            }
+
+            return {
+              ...conv,
+              title: newTitle,
+              messages: [...conv.messages, message],
+              updatedAt: Date.now(),
+            };
+          }
+          return conv;
+        })
+      );
+    },
+    [currentConversationId, createConversation]
+  );
 
   /**
    * Delete a conversation
    */
-  const deleteConversation = useCallback((id: string) => {
-    setConversations(prev => prev.filter(c => c.id !== id));
-    
-    if (currentConversationId === id) {
-      setCurrentConversationId(null);
-    }
-  }, [currentConversationId]);
+  const deleteConversation = useCallback(
+    (id: string) => {
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+
+      if (currentConversationId === id) {
+        setCurrentConversationId(null);
+      }
+    },
+    [currentConversationId]
+  );
 
   /**
    * Clear current conversation messages
@@ -204,28 +218,32 @@ export function useConversationMemory(
   const clearCurrentConversation = useCallback(() => {
     if (!currentConversationId) return;
 
-    setConversations(prev => prev.map(conv => {
-      if (conv.id === currentConversationId) {
-        return {
-          ...conv,
-          messages: [],
-          updatedAt: Date.now(),
-        };
-      }
-      return conv;
-    }));
+    setConversations((prev) =>
+      prev.map((conv) => {
+        if (conv.id === currentConversationId) {
+          return {
+            ...conv,
+            messages: [],
+            updatedAt: Date.now(),
+          };
+        }
+        return conv;
+      })
+    );
   }, [currentConversationId]);
 
   /**
    * Rename a conversation
    */
   const renameConversation = useCallback((id: string, title: string) => {
-    setConversations(prev => prev.map(conv => {
-      if (conv.id === id) {
-        return { ...conv, title, updatedAt: Date.now() };
-      }
-      return conv;
-    }));
+    setConversations((prev) =>
+      prev.map((conv) => {
+        if (conv.id === id) {
+          return { ...conv, title, updatedAt: Date.now() };
+        }
+        return conv;
+      })
+    );
   }, []);
 
   /**
@@ -233,9 +251,9 @@ export function useConversationMemory(
    */
   const getContextMessages = useCallback((): ConversationMessage[] => {
     if (!currentConversation) return [];
-    
+
     const messages = currentConversation.messages;
-    
+
     // Return last N messages for context
     if (messages.length <= maxMessages) {
       return messages;
@@ -243,7 +261,7 @@ export function useConversationMemory(
 
     // For long conversations, include summary + recent messages
     const recentMessages = messages.slice(-maxMessages);
-    
+
     // Add system message with context
     if (currentConversation.summary) {
       return [

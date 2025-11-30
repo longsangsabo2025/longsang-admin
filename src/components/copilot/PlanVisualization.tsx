@@ -63,9 +63,17 @@ export function PlanVisualization({
   const getStatusBadge = (status: PlanStep['status']) => {
     switch (status) {
       case 'completed':
-        return <Badge variant="default" className="bg-green-500">Hoàn thành</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-500">
+            Hoàn thành
+          </Badge>
+        );
       case 'running':
-        return <Badge variant="default" className="bg-blue-500">Đang chạy</Badge>;
+        return (
+          <Badge variant="default" className="bg-blue-500">
+            Đang chạy
+          </Badge>
+        );
       case 'failed':
         return <Badge variant="destructive">Thất bại</Badge>;
       default:
@@ -125,9 +133,7 @@ export function PlanVisualization({
         <CardTitle className="flex items-center justify-between">
           <span>Execution Plan</span>
           <div className="flex items-center gap-2">
-            {plan.canParallel && (
-              <Badge variant="outline">Parallel Execution</Badge>
-            )}
+            {plan.canParallel && <Badge variant="outline">Parallel Execution</Badge>}
             {plan.estimatedTotalTime && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
@@ -152,10 +158,7 @@ export function PlanVisualization({
                     </Badge>
                   </div>
                 )}
-                <div className={cn(
-                  'grid gap-2',
-                  level.length > 1 ? 'grid-cols-2' : 'grid-cols-1'
-                )}>
+                <div className={cn('grid gap-2', level.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
                   {level.map((stepId) => {
                     const step = plan.steps.find((s) => s.id === stepId);
                     if (!step) return null;
@@ -221,9 +224,7 @@ export function PlanVisualization({
             </div>
             <div>
               <div className="text-muted-foreground">Est. Time</div>
-              <div className="font-medium">
-                {formatTime(plan.estimatedTotalTime)}
-              </div>
+              <div className="font-medium">{formatTime(plan.estimatedTotalTime)}</div>
             </div>
           </div>
         </div>
@@ -231,4 +232,3 @@ export function PlanVisualization({
     </Card>
   );
 }
-

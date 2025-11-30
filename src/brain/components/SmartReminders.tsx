@@ -50,5 +50,3 @@ export function SmartReminders() {
     </Card>
   );
 }
-
-

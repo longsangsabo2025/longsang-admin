@@ -246,8 +246,8 @@ function SuggestionCard({
         suggestion.priority === 'high'
           ? 'border-l-red-500'
           : suggestion.priority === 'medium'
-          ? 'border-l-yellow-500'
-          : 'border-l-blue-500'
+            ? 'border-l-yellow-500'
+            : 'border-l-blue-500'
       }`}
     >
       <CardHeader className="pb-3">

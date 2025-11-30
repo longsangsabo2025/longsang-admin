@@ -1,6 +1,6 @@
 /**
  * 🔷 TypeScript Definitions for Electron API
- * 
+ *
  * These types are exposed via preload script.
  * Use in React/TypeScript components.
  */

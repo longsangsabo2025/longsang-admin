@@ -15,7 +15,7 @@ import {
   SocialPostRequest,
   SocialPostResponse,
   ValidationError,
-} from "@/types/social-media";
+} from '@/types/social-media';
 
 export abstract class BaseSocialPlatform {
   protected platform: SocialPlatform;
@@ -30,10 +30,10 @@ export abstract class BaseSocialPlatform {
     this.platform = platform;
     this.credentials = credentials;
     this.settings = {
-      defaultVisibility: "public",
+      defaultVisibility: 'public',
       autoHashtags: true,
       maxHashtags: 10,
-      imageQuality: "high",
+      imageQuality: 'high',
       maxPostsPerDay: 50,
       minIntervalMinutes: 5,
       autoScheduleOptimal: false,
@@ -77,7 +77,7 @@ export abstract class BaseSocialPlatform {
    */
   protected formatHashtags(hashtags: string[]): string[] {
     return hashtags
-      .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`))
+      .map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
       .slice(0, this.settings.maxHashtags || 10);
   }
 
@@ -92,7 +92,7 @@ export abstract class BaseSocialPlatform {
       throw new ValidationError(
         this.platform,
         `Text exceeds maximum length of ${capabilities.limits.textLength} characters`,
-        "text"
+        'text'
       );
     }
 
@@ -101,7 +101,7 @@ export abstract class BaseSocialPlatform {
       throw new ValidationError(
         this.platform,
         `Too many hashtags. Maximum is ${capabilities.limits.hashtagsMax}`,
-        "hashtags"
+        'hashtags'
       );
     }
 
@@ -110,7 +110,7 @@ export abstract class BaseSocialPlatform {
       throw new ValidationError(
         this.platform,
         `Too many media attachments. Maximum is ${capabilities.limits.imagesMax}`,
-        "media"
+        'media'
       );
     }
   }
@@ -126,14 +126,14 @@ export abstract class BaseSocialPlatform {
 
     if (err.response) {
       const status = err.response.status;
-      const message = err.response.data?.message || err.message || "Unknown error";
+      const message = err.response.data?.message || err.message || 'Unknown error';
 
       if (status === 401 || status === 403) {
         throw new AuthenticationError(this.platform, message);
       }
 
       if (status === 429) {
-        const retryAfter = err.response.headers?.["retry-after"];
+        const retryAfter = err.response.headers?.['retry-after'];
         throw new RateLimitError(
           this.platform,
           retryAfter ? Number.parseInt(retryAfter) : undefined,

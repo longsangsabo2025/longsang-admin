@@ -62,7 +62,9 @@ export function PredictiveSuggestions() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground text-center py-4">No task suggestions at this time</p>
+            <p className="text-muted-foreground text-center py-4">
+              No task suggestions at this time
+            </p>
           )}
         </CardContent>
       </Card>
@@ -116,5 +118,3 @@ export function PredictiveSuggestions() {
     </div>
   );
 }
-
-

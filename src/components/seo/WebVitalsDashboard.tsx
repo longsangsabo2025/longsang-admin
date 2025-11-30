@@ -24,7 +24,7 @@ export function WebVitalsDashboard() {
 
   async function loadWebVitals() {
     try {
-      const data = await getWebVitalsStatus() as WebVitalsData;
+      const data = (await getWebVitalsStatus()) as WebVitalsData;
       setMetrics(data);
     } catch (error) {
       console.error('Failed to load web vitals:', error);
@@ -35,19 +35,27 @@ export function WebVitalsDashboard() {
 
   function getRatingColor(rating?: string) {
     switch (rating) {
-      case 'good': return 'bg-green-500';
-      case 'needs-improvement': return 'bg-yellow-500';
-      case 'poor': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case 'good':
+        return 'bg-green-500';
+      case 'needs-improvement':
+        return 'bg-yellow-500';
+      case 'poor':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
     }
   }
 
   function getRatingBadge(rating?: string) {
     switch (rating) {
-      case 'good': return <Badge className="bg-green-500">Good</Badge>;
-      case 'needs-improvement': return <Badge className="bg-yellow-500">Needs Improvement</Badge>;
-      case 'poor': return <Badge className="bg-red-500">Poor</Badge>;
-      default: return <Badge variant="outline">N/A</Badge>;
+      case 'good':
+        return <Badge className="bg-green-500">Good</Badge>;
+      case 'needs-improvement':
+        return <Badge className="bg-yellow-500">Needs Improvement</Badge>;
+      case 'poor':
+        return <Badge className="bg-red-500">Poor</Badge>;
+      default:
+        return <Badge variant="outline">N/A</Badge>;
     }
   }
 
@@ -59,10 +67,14 @@ export function WebVitalsDashboard() {
 
   function getScorePercentage(rating?: string) {
     switch (rating) {
-      case 'good': return 100;
-      case 'needs-improvement': return 60;
-      case 'poor': return 30;
-      default: return 0;
+      case 'good':
+        return 100;
+      case 'needs-improvement':
+        return 60;
+      case 'poor':
+        return 30;
+      default:
+        return 0;
     }
   }
 
@@ -113,7 +125,7 @@ export function WebVitalsDashboard() {
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-4">
-            {[1, 2, 3, 4, 5].map(i => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="h-20 bg-gray-200 rounded" />
             ))}
           </div>
@@ -136,18 +148,16 @@ export function WebVitalsDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {vitalsConfig.map(config => {
+            {vitalsConfig.map((config) => {
               const metric = metrics[config.key as keyof WebVitalsData];
               const Icon = config.icon;
-              
+
               return (
                 <Card key={config.key}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-sm font-medium">
-                          {config.name}
-                        </CardTitle>
+                        <CardTitle className="text-sm font-medium">{config.name}</CardTitle>
                         <CardDescription className="text-xs mt-1">
                           {config.description}
                         </CardDescription>
@@ -162,12 +172,9 @@ export function WebVitalsDashboard() {
                       </span>
                       {getRatingBadge(metric?.rating)}
                     </div>
-                    
-                    <Progress 
-                      value={getScorePercentage(metric?.rating)} 
-                      className="h-2"
-                    />
-                    
+
+                    <Progress value={getScorePercentage(metric?.rating)} className="h-2" />
+
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>Target: {config.goodThreshold}</span>
                       {metric?.rating === 'good' ? (
@@ -194,11 +201,13 @@ export function WebVitalsDashboard() {
               <div className="text-center">
                 <h3 className="text-lg font-semibold mb-2">Overall Performance</h3>
                 <div className="flex items-center justify-center gap-8">
-                  {['LCP', 'FID', 'CLS'].map(key => {
+                  {['LCP', 'FID', 'CLS'].map((key) => {
                     const metric = metrics[key as keyof WebVitalsData];
                     return (
                       <div key={key} className="text-center">
-                        <div className={`w-16 h-16 rounded-full ${getRatingColor(metric?.rating)} flex items-center justify-center text-white font-bold mb-2`}>
+                        <div
+                          className={`w-16 h-16 rounded-full ${getRatingColor(metric?.rating)} flex items-center justify-center text-white font-bold mb-2`}
+                        >
                           {metric?.rating === 'good' ? '✓' : metric?.rating ? '!' : '?'}
                         </div>
                         <div className="text-sm font-medium">{key}</div>
@@ -238,12 +247,14 @@ export function WebVitalsDashboard() {
                     <span>Set explicit dimensions for images and iframes to reduce CLS</span>
                   </li>
                 )}
-                {metrics.LCP?.rating === 'good' && metrics.FID?.rating === 'good' && metrics.CLS?.rating === 'good' && (
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-500">✓</span>
-                    <span>All Core Web Vitals are in good range! Keep monitoring.</span>
-                  </li>
-                )}
+                {metrics.LCP?.rating === 'good' &&
+                  metrics.FID?.rating === 'good' &&
+                  metrics.CLS?.rating === 'good' && (
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500">✓</span>
+                      <span>All Core Web Vitals are in good range! Keep monitoring.</span>
+                    </li>
+                  )}
               </ul>
             </CardContent>
           </Card>

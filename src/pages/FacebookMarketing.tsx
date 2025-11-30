@@ -4,13 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -84,7 +78,9 @@ interface AdsInsight {
 
 const FacebookMarketingDashboard: React.FC = () => {
   // State
-  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'not_configured' | 'error'>('checking');
+  const [connectionStatus, setConnectionStatus] = useState<
+    'checking' | 'connected' | 'not_configured' | 'error'
+  >('checking');
   const [statusMessage, setStatusMessage] = useState('');
   const [pages, setPages] = useState<Page[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -92,13 +88,13 @@ const FacebookMarketingDashboard: React.FC = () => {
   const [adsInsights, setAdsInsights] = useState<AdsInsight | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedPage, setSelectedPage] = useState<string>('');
-  
+
   // Post Form
   const [postMessage, setPostMessage] = useState('');
   const [postLink, setPostLink] = useState('');
   const [scheduleTime, setScheduleTime] = useState('');
   const [isScheduled, setIsScheduled] = useState(false);
-  
+
   // Campaign Form
   const [campaignName, setCampaignName] = useState('');
   const [campaignObjective, setCampaignObjective] = useState('OUTCOME_AWARENESS');
@@ -114,7 +110,7 @@ const FacebookMarketingDashboard: React.FC = () => {
       setConnectionStatus('checking');
       const response = await fetch(`${API_BASE}/api/facebook/health`);
       const data = await response.json();
-      
+
       if (data.status === 'connected') {
         setConnectionStatus('connected');
         setStatusMessage(`Connected as: ${data.account?.name || 'Unknown'}`);
@@ -187,30 +183,32 @@ const FacebookMarketingDashboard: React.FC = () => {
 
   const handleCreatePost = async () => {
     if (!postMessage || !selectedPage) return;
-    
+
     setLoading(true);
     try {
-      const endpoint = isScheduled ? `${API_BASE}/api/facebook/schedule` : `${API_BASE}/api/facebook/pages/${selectedPage}/post`;
-      
+      const endpoint = isScheduled
+        ? `${API_BASE}/api/facebook/schedule`
+        : `${API_BASE}/api/facebook/pages/${selectedPage}/post`;
+
       const body: any = {
         message: postMessage,
-        pageId: selectedPage
+        pageId: selectedPage,
       };
-      
+
       if (postLink) body.link = postLink;
-      
+
       if (isScheduled && scheduleTime) {
         body.scheduled_publish_time = Math.floor(new Date(scheduleTime).getTime() / 1000);
       }
-      
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         alert(isScheduled ? 'Post scheduled successfully!' : 'Post published successfully!');
         setPostMessage('');
@@ -227,7 +225,7 @@ const FacebookMarketingDashboard: React.FC = () => {
 
   const handleCreateCampaign = async () => {
     if (!campaignName) return;
-    
+
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE}/api/facebook/ads/campaigns`, {
@@ -237,12 +235,12 @@ const FacebookMarketingDashboard: React.FC = () => {
           name: campaignName,
           objective: campaignObjective,
           daily_budget: campaignBudget ? parseInt(campaignBudget) * 100 : undefined, // Convert to cents
-          status: 'PAUSED'
-        })
+          status: 'PAUSED',
+        }),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         alert('Campaign created successfully!');
         setCampaignName('');
@@ -264,7 +262,7 @@ const FacebookMarketingDashboard: React.FC = () => {
   const formatCurrency = (amount: string | number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
-      currency: 'VND'
+      currency: 'VND',
     }).format(Number(amount) || 0);
   };
 
@@ -274,15 +272,17 @@ const FacebookMarketingDashboard: React.FC = () => {
       checking: { icon: RefreshCw, color: 'text-yellow-500', bg: 'bg-yellow-50' },
       connected: { icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-50' },
       not_configured: { icon: AlertCircle, color: 'text-orange-500', bg: 'bg-orange-50' },
-      error: { icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-50' }
+      error: { icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-50' },
     };
-    
+
     const config = statusConfig[connectionStatus];
     const Icon = config.icon;
-    
+
     return (
       <Alert className={config.bg}>
-        <Icon className={`h-4 w-4 ${config.color} ${connectionStatus === 'checking' ? 'animate-spin' : ''}`} />
+        <Icon
+          className={`h-4 w-4 ${config.color} ${connectionStatus === 'checking' ? 'animate-spin' : ''}`}
+        />
         <AlertDescription className="flex items-center justify-between">
           <span>{statusMessage || 'Checking connection...'}</span>
           <Button variant="outline" size="sm" onClick={checkConnection}>
@@ -322,7 +322,7 @@ const FacebookMarketingDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm overflow-x-auto">
-{`# Facebook Marketing API
+              {`# Facebook Marketing API
 VITE_FACEBOOK_APP_ID=your_app_id
 FACEBOOK_APP_SECRET=your_app_secret
 FACEBOOK_PAGE_ACCESS_TOKEN=your_page_token
@@ -373,33 +373,29 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
                   <p className="text-xs text-gray-500">Last 7 days</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Clicks</CardTitle>
                   <MousePointer className="h-4 w-4 text-gray-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
-                    {formatNumber(adsInsights?.clicks || 0)}
-                  </div>
+                  <div className="text-2xl font-bold">{formatNumber(adsInsights?.clicks || 0)}</div>
                   <p className="text-xs text-gray-500">CTR: {adsInsights?.ctr || '0'}%</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Reach</CardTitle>
                   <Users className="h-4 w-4 text-gray-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
-                    {formatNumber(adsInsights?.reach || 0)}
-                  </div>
+                  <div className="text-2xl font-bold">{formatNumber(adsInsights?.reach || 0)}</div>
                   <p className="text-xs text-gray-500">Unique users</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Spend</CardTitle>
@@ -409,7 +405,9 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
                   <div className="text-2xl font-bold">
                     {formatCurrency(adsInsights?.spend || 0)}
                   </div>
-                  <p className="text-xs text-gray-500">CPC: {formatCurrency(adsInsights?.cpc || 0)}</p>
+                  <p className="text-xs text-gray-500">
+                    CPC: {formatCurrency(adsInsights?.cpc || 0)}
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -421,7 +419,7 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {pages.map(page => (
+                  {pages.map((page) => (
                     <Card key={page.id} className="bg-gray-50">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg">{page.name}</CardTitle>
@@ -451,20 +449,21 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
             <Card>
               <CardHeader>
                 <CardTitle>Page Insights</CardTitle>
-                <CardDescription>
-                  Select a page to view detailed analytics
-                </CardDescription>
+                <CardDescription>Select a page to view detailed analytics</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Select value={selectedPage} onValueChange={(value) => {
-                  setSelectedPage(value);
-                  loadPageInsights(value);
-                }}>
+                <Select
+                  value={selectedPage}
+                  onValueChange={(value) => {
+                    setSelectedPage(value);
+                    loadPageInsights(value);
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a page" />
                   </SelectTrigger>
                   <SelectContent>
-                    {pages.map(page => (
+                    {pages.map((page) => (
                       <SelectItem key={page.id} value={page.id}>
                         {page.name}
                       </SelectItem>
@@ -500,8 +499,11 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {campaigns.map(campaign => (
-                      <div key={campaign.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    {campaigns.map((campaign) => (
+                      <div
+                        key={campaign.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
                         <div>
                           <div className="font-medium">{campaign.name}</div>
                           <div className="text-sm text-gray-500">{campaign.objective}</div>
@@ -529,13 +531,13 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label>Campaign Name</Label>
-                    <Input 
+                    <Input
                       placeholder="My Campaign"
                       value={campaignName}
                       onChange={(e) => setCampaignName(e.target.value)}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label>Objective</Label>
                     <Select value={campaignObjective} onValueChange={setCampaignObjective}>
@@ -551,19 +553,19 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label>Daily Budget (VND)</Label>
-                    <Input 
+                    <Input
                       type="number"
                       placeholder="100000"
                       value={campaignBudget}
                       onChange={(e) => setCampaignBudget(e.target.value)}
                     />
                   </div>
-                  
-                  <Button 
-                    className="w-full" 
+
+                  <Button
+                    className="w-full"
                     onClick={handleCreateCampaign}
                     disabled={loading || !campaignName}
                   >
@@ -591,7 +593,7 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
                       <SelectValue placeholder="Select a page" />
                     </SelectTrigger>
                     <SelectContent>
-                      {pages.map(page => (
+                      {pages.map((page) => (
                         <SelectItem key={page.id} value={page.id}>
                           {page.name}
                         </SelectItem>
@@ -599,41 +601,44 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Message</Label>
-                  <Textarea 
+                  <Textarea
                     placeholder="What's on your mind?"
                     rows={4}
                     value={postMessage}
                     onChange={(e) => setPostMessage(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Link (optional)</Label>
-                  <Input 
+                  <Input
                     placeholder="https://example.com"
                     value={postLink}
                     onChange={(e) => setPostLink(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="flex gap-4">
-                  <Button 
-                    onClick={() => { setIsScheduled(false); handleCreatePost(); }}
+                  <Button
+                    onClick={() => {
+                      setIsScheduled(false);
+                      handleCreatePost();
+                    }}
                     disabled={loading || !postMessage || !selectedPage}
                     className="flex-1"
                   >
                     <Send className="h-4 w-4 mr-2" />
                     Publish Now
                   </Button>
-                  
+
                   <Button variant="outline" className="flex-1" disabled>
                     <Image className="h-4 w-4 mr-2" />
                     Add Photo
                   </Button>
-                  
+
                   <Button variant="outline" className="flex-1" disabled>
                     <Video className="h-4 w-4 mr-2" />
                     Add Video
@@ -660,7 +665,7 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
                       <SelectValue placeholder="Select a page" />
                     </SelectTrigger>
                     <SelectContent>
-                      {pages.map(page => (
+                      {pages.map((page) => (
                         <SelectItem key={page.id} value={page.id}>
                           {page.name}
                         </SelectItem>
@@ -668,38 +673,41 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Message</Label>
-                  <Textarea 
+                  <Textarea
                     placeholder="What's on your mind?"
                     rows={4}
                     value={postMessage}
                     onChange={(e) => setPostMessage(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Link (optional)</Label>
-                  <Input 
+                  <Input
                     placeholder="https://example.com"
                     value={postLink}
                     onChange={(e) => setPostLink(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Schedule Time</Label>
-                  <Input 
+                  <Input
                     type="datetime-local"
                     value={scheduleTime}
                     onChange={(e) => setScheduleTime(e.target.value)}
                     min={new Date(Date.now() + 15 * 60 * 1000).toISOString().slice(0, 16)}
                   />
                 </div>
-                
-                <Button 
-                  onClick={() => { setIsScheduled(true); handleCreatePost(); }}
+
+                <Button
+                  onClick={() => {
+                    setIsScheduled(true);
+                    handleCreatePost();
+                  }}
                   disabled={loading || !postMessage || !selectedPage || !scheduleTime}
                   className="w-full"
                 >

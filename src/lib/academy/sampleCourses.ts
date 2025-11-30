@@ -10,7 +10,8 @@ export const SAMPLE_COURSES: Course[] = [
     id: 'sample-1',
     title: 'Xây dựng AI Agent với MCP',
     subtitle: 'Master Model Context Protocol để tạo AI agents mạnh mẽ',
-    description: 'Học cách xây dựng AI agents professional sử dụng Model Context Protocol (MCP). Từ cơ bản đến nâng cao với real-world projects.',
+    description:
+      'Học cách xây dựng AI agents professional sử dụng Model Context Protocol (MCP). Từ cơ bản đến nâng cao với real-world projects.',
     category: 'AI Agents',
     level: 'Advanced',
     duration_hours: 8,
@@ -25,7 +26,7 @@ export const SAMPLE_COURSES: Course[] = [
       'Xây dựng MCP servers với 10+ custom tools',
       'Tích hợp với Claude Desktop & VS Code',
       'Implement streaming responses & real-time updates',
-      'Deploy production-ready MCP servers'
+      'Deploy production-ready MCP servers',
     ],
     requirements: ['TypeScript cơ bản', 'Node.js experience'],
     features: ['8 hours video', '24 lessons', 'Certificate', 'Lifetime access'],
@@ -41,7 +42,8 @@ export const SAMPLE_COURSES: Course[] = [
     id: 'sample-2',
     title: 'Vector Database & RAG',
     subtitle: 'Build intelligent retrieval systems với vector search',
-    description: 'Deep dive vào Vector Databases và Retrieval-Augmented Generation. Xây dựng chatbots có khả năng tìm kiếm intelligent.',
+    description:
+      'Deep dive vào Vector Databases và Retrieval-Augmented Generation. Xây dựng chatbots có khả năng tìm kiếm intelligent.',
     category: 'AI Infrastructure',
     level: 'Intermediate',
     duration_hours: 6,
@@ -56,7 +58,7 @@ export const SAMPLE_COURSES: Course[] = [
       'Setup Pinecone, Weaviate, Supabase Vector',
       'Generate và store embeddings hiệu quả',
       'Implement RAG patterns với LangChain',
-      'Optimize retrieval quality và performance'
+      'Optimize retrieval quality và performance',
     ],
     requirements: ['Python basics', 'Basic AI knowledge'],
     features: ['6 hours video', '18 lessons', 'Projects', 'Support'],
@@ -72,7 +74,8 @@ export const SAMPLE_COURSES: Course[] = [
     id: 'sample-3',
     title: 'Giới thiệu về AI Agents',
     subtitle: 'Khóa học miễn phí cho beginners',
-    description: 'Khóa học miễn phí giới thiệu về AI Agents, cách chúng hoạt động và các ứng dụng thực tế.',
+    description:
+      'Khóa học miễn phí giới thiệu về AI Agents, cách chúng hoạt động và các ứng dụng thực tế.',
     category: 'AI Agents',
     level: 'Beginner',
     duration_hours: 2,
@@ -86,7 +89,7 @@ export const SAMPLE_COURSES: Course[] = [
       'AI Agents là gì và tại sao quan trọng',
       'Các loại agents phổ biến',
       'Tools và frameworks cho AI development',
-      'Career path trong AI engineering'
+      'Career path trong AI engineering',
     ],
     requirements: [],
     features: ['2 hours video', '8 lessons', 'Certificate', 'Community'],
@@ -102,7 +105,8 @@ export const SAMPLE_COURSES: Course[] = [
     id: 'sample-4',
     title: 'LangGraph Multi-Agent Orchestration',
     subtitle: 'Xây dựng hệ thống multi-agent phức tạp',
-    description: 'Master LangGraph để orchestrate nhiều AI agents làm việc cùng nhau. Build production-grade multi-agent systems.',
+    description:
+      'Master LangGraph để orchestrate nhiều AI agents làm việc cùng nhau. Build production-grade multi-agent systems.',
     category: 'AI Agents',
     level: 'Advanced',
     duration_hours: 10,
@@ -117,7 +121,7 @@ export const SAMPLE_COURSES: Course[] = [
       'LangGraph fundamentals & architecture',
       'Design multi-agent workflows',
       'Implement agent communication protocols',
-      'Deploy scalable agent systems'
+      'Deploy scalable agent systems',
     ],
     requirements: ['Python advanced', 'LangChain experience'],
     features: ['10 hours video', '32 lessons', 'Real projects', 'Mentorship'],
@@ -133,7 +137,8 @@ export const SAMPLE_COURSES: Course[] = [
     id: 'sample-5',
     title: 'Real-time Streaming Chat Interfaces',
     subtitle: 'Build responsive AI chat với streaming',
-    description: 'Tạo chat interfaces professional với streaming responses, typing indicators, và real-time updates.',
+    description:
+      'Tạo chat interfaces professional với streaming responses, typing indicators, và real-time updates.',
     category: 'Chat Interfaces',
     level: 'Intermediate',
     duration_hours: 5,
@@ -148,7 +153,7 @@ export const SAMPLE_COURSES: Course[] = [
       'Implement Server-Sent Events (SSE)',
       'Handle streaming responses from OpenAI',
       'Build responsive UIs với React',
-      'Optimize performance và UX'
+      'Optimize performance và UX',
     ],
     requirements: ['React basics', 'TypeScript'],
     features: ['5 hours video', '15 lessons', 'Source code', 'Updates'],
@@ -164,7 +169,8 @@ export const SAMPLE_COURSES: Course[] = [
     id: 'sample-6',
     title: 'Multimodal AI Development',
     subtitle: 'Work với text, images, audio và video',
-    description: 'Master multimodal AI models. Xây dựng applications xử lý text, hình ảnh, audio và video đồng thời.',
+    description:
+      'Master multimodal AI models. Xây dựng applications xử lý text, hình ảnh, audio và video đồng thời.',
     category: 'Multimodal AI',
     level: 'Advanced',
     duration_hours: 12,
@@ -179,7 +185,7 @@ export const SAMPLE_COURSES: Course[] = [
       'Work với GPT-4 Vision, DALL-E, Whisper',
       'Process và analyze images & videos',
       'Speech-to-text và text-to-speech',
-      'Build multimodal RAG systems'
+      'Build multimodal RAG systems',
     ],
     requirements: ['Python advanced', 'ML basics'],
     features: ['12 hours video', '36 lessons', 'Projects', '1-on-1 support'],
@@ -203,20 +209,21 @@ export const getSampleCourses = (filters?: {
 
   if (filters) {
     if (filters.category) {
-      courses = courses.filter(c => c.category === filters.category);
+      courses = courses.filter((c) => c.category === filters.category);
     }
     if (filters.level) {
-      courses = courses.filter(c => c.level === filters.level);
+      courses = courses.filter((c) => c.level === filters.level);
     }
     if (filters.is_free !== undefined) {
-      courses = courses.filter(c => c.is_free === filters.is_free);
+      courses = courses.filter((c) => c.is_free === filters.is_free);
     }
     if (filters.search) {
       const search = filters.search.toLowerCase();
-      courses = courses.filter(c =>
-        c.title.toLowerCase().includes(search) ||
-        c.description.toLowerCase().includes(search) ||
-        c.tags.some(tag => tag.toLowerCase().includes(search))
+      courses = courses.filter(
+        (c) =>
+          c.title.toLowerCase().includes(search) ||
+          c.description.toLowerCase().includes(search) ||
+          c.tags.some((tag) => tag.toLowerCase().includes(search))
       );
     }
   }

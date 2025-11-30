@@ -1,4 +1,4 @@
-export { supabase } from "../supabase";
+export { supabase } from '../supabase';
 
 // ================================================
 // SUBSCRIPTION TYPES
@@ -6,7 +6,7 @@ export { supabase } from "../supabase";
 
 export interface SubscriptionPlan {
   id: string;
-  name: "free" | "pro" | "enterprise";
+  name: 'free' | 'pro' | 'enterprise';
   display_name: string;
   description: string;
   price_monthly: number;
@@ -31,8 +31,8 @@ export interface UserSubscription {
   id: string;
   user_id: string;
   plan_id: string;
-  status: "active" | "cancelled" | "expired" | "trial" | "past_due";
-  billing_cycle: "monthly" | "yearly" | "lifetime";
+  status: 'active' | 'cancelled' | 'expired' | 'trial' | 'past_due';
+  billing_cycle: 'monthly' | 'yearly' | 'lifetime';
   trial_ends_at?: string;
   current_period_start: string;
   current_period_end?: string;
@@ -64,10 +64,10 @@ export interface UsageTracking {
  */
 export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
   const { data, error } = await supabase
-    .from("subscription_plans")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order");
+    .from('subscription_plans')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order');
 
   if (error) throw error;
   return data || [];
@@ -84,19 +84,19 @@ export async function getUserSubscription(userId?: string): Promise<{
   if (!uid) return null;
 
   const { data, error } = await supabase
-    .from("user_subscriptions")
+    .from('user_subscriptions')
     .select(
       `
       *,
       plan:subscription_plans(*)
     `
     )
-    .eq("user_id", uid)
-    .eq("status", "active")
+    .eq('user_id', uid)
+    .eq('status', 'active')
     .single();
 
   if (error) {
-    console.error("Error fetching subscription:", error);
+    console.error('Error fetching subscription:', error);
     return null;
   }
 
@@ -119,14 +119,14 @@ export async function getUserUsage(userId?: string): Promise<UsageTracking | nul
   periodStart.setHours(0, 0, 0, 0);
 
   const { data, error } = await supabase
-    .from("usage_tracking")
-    .select("*")
-    .eq("user_id", uid)
-    .gte("period_start", periodStart.toISOString())
+    .from('usage_tracking')
+    .select('*')
+    .eq('user_id', uid)
+    .gte('period_start', periodStart.toISOString())
     .single();
 
   if (error) {
-    console.error("Error fetching usage:", error);
+    console.error('Error fetching usage:', error);
     return null;
   }
 
@@ -140,13 +140,13 @@ export async function hasFeatureAccess(featureKey: string, userId?: string): Pro
   const uid = userId || (await supabase.auth.getUser()).data.user?.id;
   if (!uid) return false;
 
-  const { data, error } = await supabase.rpc("has_feature_access", {
+  const { data, error } = await supabase.rpc('has_feature_access', {
     p_user_id: uid,
     p_feature_key: featureKey,
   });
 
   if (error) {
-    console.error("Error checking feature access:", error);
+    console.error('Error checking feature access:', error);
     return false;
   }
 
@@ -160,12 +160,12 @@ export async function getUserPlanDetails(userId?: string) {
   const uid = userId || (await supabase.auth.getUser()).data.user?.id;
   if (!uid) return null;
 
-  const { data, error } = await supabase.rpc("get_user_plan", {
+  const { data, error } = await supabase.rpc('get_user_plan', {
     p_user_id: uid,
   });
 
   if (error) {
-    console.error("Error fetching plan details:", error);
+    console.error('Error fetching plan details:', error);
     return null;
   }
 
@@ -176,21 +176,21 @@ export async function getUserPlanDetails(userId?: string) {
  * Track usage metric
  */
 export async function trackUsage(
-  metric: "api_calls" | "workflows" | "agents",
+  metric: 'api_calls' | 'workflows' | 'agents',
   increment: number = 1,
   userId?: string
 ): Promise<void> {
   const uid = userId || (await supabase.auth.getUser()).data.user?.id;
   if (!uid) return;
 
-  const { error } = await supabase.rpc("track_usage", {
+  const { error } = await supabase.rpc('track_usage', {
     p_user_id: uid,
     p_metric: metric,
     p_increment: increment,
   });
 
   if (error) {
-    console.error("Error tracking usage:", error);
+    console.error('Error tracking usage:', error);
   }
 }
 
@@ -216,19 +216,19 @@ export async function checkUsageLimits(userId?: string): Promise<{
   const plan = subscription.plan;
 
   if (usage.api_calls_count >= plan.max_api_calls) {
-    exceeded.push("API calls");
+    exceeded.push('API calls');
   }
   if (usage.workflows_executed >= plan.max_workflows) {
-    exceeded.push("Workflows");
+    exceeded.push('Workflows');
   }
   if (usage.agents_created >= plan.max_agents) {
-    exceeded.push("AI Agents");
+    exceeded.push('AI Agents');
   }
   if (usage.storage_used_mb >= plan.max_storage_mb) {
-    exceeded.push("Storage");
+    exceeded.push('Storage');
   }
   if (usage.credentials_stored >= plan.max_credentials) {
-    exceeded.push("Credentials");
+    exceeded.push('Credentials');
   }
 
   return {
@@ -248,27 +248,27 @@ export async function checkUsageLimits(userId?: string): Promise<{
 /**
  * Upgrade user subscription
  */
-export async function upgradeSubscription(planName: "pro" | "enterprise", userId?: string) {
+export async function upgradeSubscription(planName: 'pro' | 'enterprise', userId?: string) {
   const uid = userId || (await supabase.auth.getUser()).data.user?.id;
-  if (!uid) throw new Error("User not authenticated");
+  if (!uid) throw new Error('User not authenticated');
 
   // Get target plan
   const { data: plan, error: planError } = await supabase
-    .from("subscription_plans")
-    .select("*")
-    .eq("name", planName)
+    .from('subscription_plans')
+    .select('*')
+    .eq('name', planName)
     .single();
 
   if (planError) throw planError;
 
   // Update subscription
   const { error } = await supabase
-    .from("user_subscriptions")
+    .from('user_subscriptions')
     .update({
       plan_id: plan.id,
       updated_at: new Date().toISOString(),
     })
-    .eq("user_id", uid);
+    .eq('user_id', uid);
 
   if (error) throw error;
 }

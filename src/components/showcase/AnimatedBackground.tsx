@@ -1,17 +1,17 @@
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 
 export const AnimatedBackground = () => {
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
       {/* Base gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-dark-bg via-dark-surface to-dark-bg" />
-      
+
       {/* Animated mesh gradient */}
       <div className="absolute inset-0 mesh-bg opacity-60" />
-      
+
       {/* Grid pattern */}
       <div className="absolute inset-0 grid-pattern opacity-40" />
-      
+
       {/* Floating geometric shapes */}
       <motion.div
         className="absolute top-20 left-10 w-64 h-64 rounded-full bg-neon-blue/20 blur-3xl"
@@ -23,10 +23,10 @@ export const AnimatedBackground = () => {
         transition={{
           duration: 20,
           repeat: Infinity,
-          ease: "easeInOut",
+          ease: 'easeInOut',
         }}
       />
-      
+
       <motion.div
         className="absolute top-1/3 right-20 w-96 h-96 rounded-full bg-primary/15 blur-3xl"
         animate={{
@@ -37,10 +37,10 @@ export const AnimatedBackground = () => {
         transition={{
           duration: 25,
           repeat: Infinity,
-          ease: "easeInOut",
+          ease: 'easeInOut',
         }}
       />
-      
+
       <motion.div
         className="absolute bottom-20 left-1/3 w-80 h-80 rounded-full bg-accent/20 blur-3xl"
         animate={{
@@ -51,10 +51,10 @@ export const AnimatedBackground = () => {
         transition={{
           duration: 22,
           repeat: Infinity,
-          ease: "easeInOut",
+          ease: 'easeInOut',
         }}
       />
-      
+
       {/* Smaller floating shapes */}
       {[...Array(8)].map((_, i) => (
         <motion.div
@@ -76,7 +76,7 @@ export const AnimatedBackground = () => {
           }}
         />
       ))}
-      
+
       {/* Geometric shapes */}
       <motion.div
         className="absolute top-40 right-40 w-20 h-20 border-2 border-neon-cyan/30 rotate-45"
@@ -89,7 +89,7 @@ export const AnimatedBackground = () => {
           repeat: Infinity,
         }}
       />
-      
+
       <motion.div
         className="absolute bottom-40 left-20 w-16 h-16 border-2 border-neon-blue/40 rounded-full"
         animate={{

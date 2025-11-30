@@ -1,6 +1,6 @@
 /**
  * 🖥️ Desktop-only components
- * 
+ *
  * These components only render when running in Electron desktop app.
  */
 

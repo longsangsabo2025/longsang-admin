@@ -22,16 +22,7 @@ import {
 } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Bot,
-  MessageSquare,
-  Sparkles,
-  X,
-  Loader2,
-  Send,
-  Lightbulb,
-  History,
-} from 'lucide-react';
+import { Bot, MessageSquare, Sparkles, X, Loader2, Send, Lightbulb, History } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useCopilot } from './useCopilot';
 import { SuggestionCard } from './SuggestionCard';
@@ -44,13 +35,17 @@ interface CopilotSidebarProps {
   projectId?: string | null;
 }
 
-export function CopilotSidebar({ open: controlledOpen, onOpenChange, projectId }: CopilotSidebarProps) {
+export function CopilotSidebar({
+  open: controlledOpen,
+  onOpenChange,
+  projectId,
+}: CopilotSidebarProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'suggestions'>('chat');
 
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
-  const setOpen = isControlled ? (onOpenChange || (() => {})) : setInternalOpen;
+  const setOpen = isControlled ? onOpenChange || (() => {}) : setInternalOpen;
 
   const {
     messages,
@@ -94,21 +89,18 @@ export function CopilotSidebar({ open: controlledOpen, onOpenChange, projectId }
               <Bot className="h-5 w-5 text-primary" />
               <SheetTitle>AI Copilot</SheetTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setOpen(false)}
-              className="h-8 w-8"
-            >
+            <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="h-8 w-8">
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <SheetDescription>
-            Hỗ trợ bạn với AI-powered suggestions và commands
-          </SheetDescription>
+          <SheetDescription>Hỗ trợ bạn với AI-powered suggestions và commands</SheetDescription>
         </SheetHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'chat' | 'suggestions')} className="flex-1 flex flex-col">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as 'chat' | 'suggestions')}
+          className="flex-1 flex flex-col"
+        >
           <TabsList className="mx-6 mt-4">
             <TabsTrigger value="chat" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
@@ -143,7 +135,9 @@ export function CopilotSidebar({ open: controlledOpen, onOpenChange, projectId }
                     key={index}
                     className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <Card className={`max-w-[80%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : ''}`}>
+                    <Card
+                      className={`max-w-[80%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : ''}`}
+                    >
                       <CardContent className="p-3">
                         <div className="flex items-start gap-2">
                           {message.role === 'assistant' && (
@@ -151,9 +145,7 @@ export function CopilotSidebar({ open: controlledOpen, onOpenChange, projectId }
                           )}
                           <div className="flex-1">
                             <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                            {message.streaming && (
-                              <Loader2 className="h-3 w-3 animate-spin mt-2" />
-                            )}
+                            {message.streaming && <Loader2 className="h-3 w-3 animate-spin mt-2" />}
                           </div>
                         </div>
                       </CardContent>
@@ -284,17 +276,10 @@ function CommandComposer({ onSend, disabled, projectId }: CommandComposerProps) 
           size="icon"
           className="h-auto"
         >
-          {disabled ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
+          {disabled ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Nhấn Enter để gửi, Shift+Enter để xuống dòng
-      </p>
+      <p className="text-xs text-muted-foreground">Nhấn Enter để gửi, Shift+Enter để xuống dòng</p>
     </div>
   );
 }
-

@@ -43,5 +43,3 @@ export function UserBehaviorChart({ hours = 24 }: UserBehaviorChartProps) {
     </Card>
   );
 }
-
-

@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Bot, 
-  Play, 
-  Trash2, 
-  TrendingUp, 
-  DollarSign, 
+import {
+  Bot,
+  Play,
+  Trash2,
+  TrendingUp,
+  DollarSign,
   Clock,
   Activity,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -70,8 +70,10 @@ export default function AgentDashboard() {
       setLoading(true);
 
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         toast.error('Please login to view your agents');
         navigate('/marketplace');
@@ -91,7 +93,8 @@ export default function AgentDashboard() {
       // Load execution history
       const { data: execHistory, error: execError } = await supabase
         .from('agent_executions')
-        .select(`
+        .select(
+          `
           id,
           agent_id,
           input,
@@ -101,7 +104,8 @@ export default function AgentDashboard() {
           cost,
           created_at,
           agents!inner(name)
-        `)
+        `
+        )
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -111,21 +115,22 @@ export default function AgentDashboard() {
       // Calculate stats
       const totalRuns = execHistory?.length || 0;
       const totalCost = execHistory?.reduce((sum, e) => sum + (e.cost || 0), 0) || 0;
-      const successCount = execHistory?.filter(e => e.status === 'completed').length || 0;
+      const successCount = execHistory?.filter((e) => e.status === 'completed').length || 0;
       const successRate = totalRuns > 0 ? (successCount / totalRuns) * 100 : 0;
 
       setActiveAgents(agents || []);
-      setExecutions(execHistory?.map(e => ({
-        ...e,
-        agent_name: e.agents?.name || 'Unknown'
-      })) || []);
+      setExecutions(
+        execHistory?.map((e) => ({
+          ...e,
+          agent_name: e.agents?.name || 'Unknown',
+        })) || []
+      );
       setStats({
         total_agents: agents?.length || 0,
         total_runs: totalRuns,
         total_cost: totalCost,
         success_rate: successRate,
       });
-
     } catch (error: any) {
       console.error('Failed to load dashboard:', error);
       toast.error('Failed to load dashboard data');
@@ -136,10 +141,7 @@ export default function AgentDashboard() {
 
   const handleDeleteAgent = async (agentId: string) => {
     try {
-      const { error } = await supabase
-        .from('agents')
-        .delete()
-        .eq('id', agentId);
+      const { error } = await supabase.from('agents').delete().eq('id', agentId);
 
       if (error) throw error;
 
@@ -151,7 +153,7 @@ export default function AgentDashboard() {
   };
 
   const handleExecuteAgent = (agentId: string) => {
-    const agent = activeAgents.find(a => a.id === agentId);
+    const agent = activeAgents.find((a) => a.id === agentId);
     if (agent) {
       navigate(`/marketplace/${agent.name}`);
     }
@@ -174,7 +176,11 @@ export default function AgentDashboard() {
             <h1 className="text-4xl font-bold text-white mb-2">My AI Agents</h1>
             <p className="text-gray-300">Manage and monitor your activated agents</p>
           </div>
-          <Button onClick={() => navigate('/marketplace')} variant="outline" className="bg-white/10 text-white border-white/20 hover:bg-white/20">
+          <Button
+            onClick={() => navigate('/marketplace')}
+            variant="outline"
+            className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+          >
             <Bot className="w-4 h-4 mr-2" />
             Browse Marketplace
           </Button>
@@ -234,7 +240,10 @@ export default function AgentDashboard() {
               <div className="text-center py-12">
                 <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-300 mb-4">No active agents yet</p>
-                <Button onClick={() => navigate('/marketplace')} className="bg-purple-600 hover:bg-purple-700">
+                <Button
+                  onClick={() => navigate('/marketplace')}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
                   Browse Marketplace
                 </Button>
               </div>
@@ -253,40 +262,40 @@ export default function AgentDashboard() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <p className="text-sm text-gray-300 line-clamp-2">{agent.description}</p>
-                      
+
                       <div className="flex items-center justify-between text-xs text-gray-400">
-                        <span>
-                          ${agent.metadata?.pricing?.base_cost || 0} per run
-                        </span>
-                        <span>
-                          {agent.metadata?.pricing?.free_runs || 0} free runs
-                        </span>
+                        <span>${agent.metadata?.pricing?.base_cost || 0} per run</span>
+                        <span>{agent.metadata?.pricing?.free_runs || 0} free runs</span>
                       </div>
 
                       {agent.metadata?.stats && (
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="bg-white/5 p-2 rounded">
                             <div className="text-gray-400">Runs</div>
-                            <div className="text-white font-semibold">{agent.metadata.stats.total_runs || 0}</div>
+                            <div className="text-white font-semibold">
+                              {agent.metadata.stats.total_runs || 0}
+                            </div>
                           </div>
                           <div className="bg-white/5 p-2 rounded">
                             <div className="text-gray-400">Success</div>
-                            <div className="text-white font-semibold">{agent.metadata.stats.success_rate || 0}%</div>
+                            <div className="text-white font-semibold">
+                              {agent.metadata.stats.success_rate || 0}%
+                            </div>
                           </div>
                         </div>
                       )}
 
                       <div className="flex gap-2">
-                        <Button 
-                          onClick={() => handleExecuteAgent(agent.id)} 
+                        <Button
+                          onClick={() => handleExecuteAgent(agent.id)}
                           className="flex-1 bg-purple-600 hover:bg-purple-700"
                           size="sm"
                         >
                           <Play className="w-3 h-3 mr-1" />
                           Execute
                         </Button>
-                        <Button 
-                          onClick={() => handleDeleteAgent(agent.id)} 
+                        <Button
+                          onClick={() => handleDeleteAgent(agent.id)}
                           variant="destructive"
                           size="sm"
                         >
@@ -321,7 +330,9 @@ export default function AgentDashboard() {
                           {new Date(exec.created_at).toLocaleString()}
                         </div>
                       </div>
-                      <Badge className={exec.status === 'completed' ? 'bg-green-600' : 'bg-red-600'}>
+                      <Badge
+                        className={exec.status === 'completed' ? 'bg-green-600' : 'bg-red-600'}
+                      >
                         {exec.status}
                       </Badge>
                     </div>
@@ -336,8 +347,7 @@ export default function AgentDashboard() {
                       <div>
                         <div className="text-gray-400">Cost</div>
                         <div className="text-white font-semibold flex items-center gap-1">
-                          <DollarSign className="w-3 h-3" />
-                          ${exec.cost.toFixed(4)}
+                          <DollarSign className="w-3 h-3" />${exec.cost.toFixed(4)}
                         </div>
                       </div>
                       <div>

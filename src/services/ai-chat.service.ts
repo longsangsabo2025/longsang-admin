@@ -90,7 +90,7 @@ export async function chatWithAgent(request: AgentChatRequest): Promise<AgentCha
       : ['marketing', 'content', 'sales'].includes(request.agentRole)
         ? '/api/solo-hub/chat-with-actions'
         : '/api/solo-hub/chat';
-      
+
     const response = await fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',
       headers: {
@@ -177,7 +177,7 @@ export async function* streamChatWithAgent(
         if (line.startsWith('data: ')) {
           const data = line.slice(6);
           if (data === '[DONE]') return;
-          
+
           try {
             const parsed = JSON.parse(data);
             if (parsed.content) {
@@ -200,51 +200,54 @@ export async function* streamChatWithAgent(
  */
 export const agentActions = {
   // Dev Agent actions
-  reviewCode: (code: string, language: string) => 
+  reviewCode: (code: string, language: string) =>
     chatWithAgent({
       agentRole: 'dev',
       message: `Review this ${language} code and suggest improvements:\n\`\`\`${language}\n${code}\n\`\`\``,
     }),
-  
+
   debugError: (error: string, context: string) =>
     chatWithAgent({
       agentRole: 'dev',
       message: `Debug this error:\nError: ${error}\nContext: ${context}`,
     }),
-  
+
   // Content Agent actions
   writeBlogOutline: (topic: string, keywords: string[]) =>
     chatWithAgent({
       agentRole: 'content',
       message: `Create a blog outline for: "${topic}"\nTarget keywords: ${keywords.join(', ')}`,
     }),
-  
+
   writeEmailCopy: (purpose: string, tone: string) =>
     chatWithAgent({
       agentRole: 'content',
       message: `Write an email for: ${purpose}\nTone: ${tone}`,
     }),
-  
+
   // Marketing Agent actions
   analyzeMetrics: (metrics: Record<string, number>) =>
     chatWithAgent({
       agentRole: 'marketing',
       message: `Analyze these marketing metrics and provide insights:\n${JSON.stringify(metrics, null, 2)}`,
     }),
-  
+
   suggestCampaign: (product: string, budget: number, goal: string) =>
     chatWithAgent({
       agentRole: 'marketing',
       message: `Suggest a marketing campaign:\nProduct: ${product}\nBudget: $${budget}\nGoal: ${goal}`,
     }),
-  
+
   // Sales Agent actions
-  writeOutreach: (prospect: { name: string; company: string; role: string }, valueProposition: string) =>
+  writeOutreach: (
+    prospect: { name: string; company: string; role: string },
+    valueProposition: string
+  ) =>
     chatWithAgent({
       agentRole: 'sales',
       message: `Write a cold outreach email:\nProspect: ${prospect.name}, ${prospect.role} at ${prospect.company}\nValue proposition: ${valueProposition}`,
     }),
-  
+
   // Advisor Agent actions
   analyzeDecision: (decision: string, options: string[], factors: string[]) =>
     chatWithAgent({

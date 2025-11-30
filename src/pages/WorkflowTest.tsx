@@ -1,6 +1,6 @@
 import React from 'react';
-import { Layout } from "@/components/Layout";
-import WorkflowTester from "@/components/WorkflowTester";
+import { Layout } from '@/components/Layout';
+import WorkflowTester from '@/components/WorkflowTester';
 
 const WorkflowTest = () => {
   return (

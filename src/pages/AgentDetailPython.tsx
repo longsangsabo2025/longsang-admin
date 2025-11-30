@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 export default function AgentDetailPython() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [agent, setAgent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [backendHealth, setBackendHealth] = useState(false);
@@ -40,11 +40,7 @@ export default function AgentDetailPython() {
 
   async function loadAgent() {
     try {
-      const { data, error } = await supabase
-        .from('ai_agents')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await supabase.from('ai_agents').select('*').eq('id', id).single();
 
       if (error) throw error;
       setAgent(data);
@@ -59,11 +55,8 @@ export default function AgentDetailPython() {
   async function handleToggleStatus() {
     try {
       const newStatus = agent.status === 'active' ? 'paused' : 'active';
-      
-      const { error } = await supabase
-        .from('ai_agents')
-        .update({ status: newStatus })
-        .eq('id', id);
+
+      const { error } = await supabase.from('ai_agents').update({ status: newStatus }).eq('id', id);
 
       if (error) throw error;
 
@@ -84,12 +77,12 @@ export default function AgentDetailPython() {
     try {
       // Parse context
       const context = JSON.parse(triggerContext);
-      
+
       toast.loading('Executing agent with Python AI...');
-      
+
       // Trigger via Python backend
       const result = await triggerAgent(agent.type, context);
-      
+
       toast.dismiss();
       toast.success(`Agent executed successfully!`, {
         description: `Duration: ${result.success ? 'completed' : 'failed'}`,
@@ -128,20 +121,15 @@ export default function AgentDetailPython() {
     );
   }
 
-  const successRate = agent.total_runs > 0
-    ? Math.round((agent.successful_runs / agent.total_runs) * 100)
-    : 0;
+  const successRate =
+    agent.total_runs > 0 ? Math.round((agent.successful_runs / agent.total_runs) * 100) : 0;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/automation')}
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate('/automation')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
@@ -149,29 +137,35 @@ export default function AgentDetailPython() {
             <p className="text-muted-foreground">{agent.description}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {/* Backend Status */}
-          <Badge variant={backendHealth ? "default" : "destructive"}>
+          <Badge variant={backendHealth ? 'default' : 'destructive'}>
             <Zap className="h-3 w-3 mr-1" />
             Python AI {backendHealth ? 'Online' : 'Offline'}
           </Badge>
-          
-          <Badge variant={
-            agent.status === 'active' ? 'default' :
-            agent.status === 'paused' ? 'secondary' : 'destructive'
-          }>
+
+          <Badge
+            variant={
+              agent.status === 'active'
+                ? 'default'
+                : agent.status === 'paused'
+                  ? 'secondary'
+                  : 'destructive'
+            }
+          >
             {agent.status}
           </Badge>
-          
-          <Button
-            variant="outline"
-            onClick={handleToggleStatus}
-          >
+
+          <Button variant="outline" onClick={handleToggleStatus}>
             {agent.status === 'active' ? (
-              <><Pause className="h-4 w-4 mr-2" /> Pause</>
+              <>
+                <Pause className="h-4 w-4 mr-2" /> Pause
+              </>
             ) : (
-              <><Play className="h-4 w-4 mr-2" /> Activate</>
+              <>
+                <Play className="h-4 w-4 mr-2" /> Activate
+              </>
             )}
           </Button>
         </div>
@@ -183,17 +177,17 @@ export default function AgentDetailPython() {
           <div className="text-sm text-muted-foreground">Total Runs</div>
           <div className="text-2xl font-bold">{agent.total_runs}</div>
         </Card>
-        
+
         <Card className="p-4">
           <div className="text-sm text-muted-foreground">Successful</div>
           <div className="text-2xl font-bold text-green-600">{agent.successful_runs}</div>
         </Card>
-        
+
         <Card className="p-4">
           <div className="text-sm text-muted-foreground">Success Rate</div>
           <div className="text-2xl font-bold">{successRate}%</div>
         </Card>
-        
+
         <Card className="p-4">
           <div className="text-sm text-muted-foreground">Last Run</div>
           <div className="text-sm font-medium">
@@ -217,7 +211,7 @@ export default function AgentDetailPython() {
               Real AI Powered
             </Badge>
           </div>
-          
+
           <div>
             <label className="text-sm font-medium">Context (JSON)</label>
             <Textarea
@@ -234,7 +228,7 @@ export default function AgentDetailPython() {
               {agent.type === 'analytics' && 'No context required'}
             </p>
           </div>
-          
+
           <Button
             onClick={handleManualTrigger}
             disabled={triggering || !backendHealth}
@@ -246,7 +240,9 @@ export default function AgentDetailPython() {
                 Executing with Python AI...
               </>
             ) : (
-              <><Play className="h-4 w-4 mr-2" /> Trigger Agent</>
+              <>
+                <Play className="h-4 w-4 mr-2" /> Trigger Agent
+              </>
             )}
           </Button>
         </div>

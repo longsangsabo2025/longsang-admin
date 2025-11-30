@@ -1,34 +1,26 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  RefreshCw, 
-  Globe,
-  ExternalLink,
-  Copy,
-  Check,
-  Trash2
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Plus, RefreshCw, Globe, ExternalLink, Copy, Check, Trash2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface Domain {
   id: string;
@@ -50,11 +42,11 @@ export function ProjectDomainsTab({ projectId }: ProjectDomainsTabProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newDomain, setNewDomain] = useState({
-    domain: "",
-    environment: "production",
+    domain: '',
+    environment: 'production',
     is_primary: false,
     ssl_enabled: true,
-    notes: ""
+    notes: '',
   });
 
   useEffect(() => {
@@ -65,16 +57,16 @@ export function ProjectDomainsTab({ projectId }: ProjectDomainsTabProps) {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("project_domains")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("is_primary", { ascending: false });
+        .from('project_domains')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('is_primary', { ascending: false });
 
       if (error) throw error;
       setDomains(data || []);
     } catch (error: any) {
-      console.error("Error fetching domains:", error);
-      toast.error("Không thể tải domains");
+      console.error('Error fetching domains:', error);
+      toast.error('Không thể tải domains');
     } finally {
       setLoading(false);
     }
@@ -84,55 +76,50 @@ export function ProjectDomainsTab({ projectId }: ProjectDomainsTabProps) {
     try {
       await navigator.clipboard.writeText(value);
       setCopiedId(id);
-      toast.success("Đã copy!");
+      toast.success('Đã copy!');
       setTimeout(() => setCopiedId(null), 2000);
     } catch (error) {
-      toast.error("Không thể copy");
+      toast.error('Không thể copy');
     }
   };
 
   const addDomain = async () => {
     try {
-      const { error } = await supabase
-        .from("project_domains")
-        .insert({
-          ...newDomain,
-          project_id: projectId
-        });
+      const { error } = await supabase.from('project_domains').insert({
+        ...newDomain,
+        project_id: projectId,
+      });
 
       if (error) throw error;
-      
-      toast.success("Đã thêm domain!");
+
+      toast.success('Đã thêm domain!');
       setShowAddDialog(false);
       setNewDomain({
-        domain: "",
-        environment: "production",
+        domain: '',
+        environment: 'production',
         is_primary: false,
         ssl_enabled: true,
-        notes: ""
+        notes: '',
       });
       fetchDomains();
     } catch (error: any) {
-      console.error("Error adding domain:", error);
-      toast.error("Không thể thêm domain");
+      console.error('Error adding domain:', error);
+      toast.error('Không thể thêm domain');
     }
   };
 
   const deleteDomain = async (id: string) => {
-    if (!confirm("Bạn có chắc muốn xóa domain này?")) return;
-    
+    if (!confirm('Bạn có chắc muốn xóa domain này?')) return;
+
     try {
-      const { error } = await supabase
-        .from("project_domains")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from('project_domains').delete().eq('id', id);
 
       if (error) throw error;
-      toast.success("Đã xóa domain!");
+      toast.success('Đã xóa domain!');
       fetchDomains();
     } catch (error: any) {
-      console.error("Error deleting domain:", error);
-      toast.error("Không thể xóa domain");
+      console.error('Error deleting domain:', error);
+      toast.error('Không thể xóa domain');
     }
   };
 
@@ -150,9 +137,7 @@ export function ProjectDomainsTab({ projectId }: ProjectDomainsTabProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Domains & URLs</h3>
-          <p className="text-sm text-muted-foreground">
-            Quản lý tất cả domains và URLs của dự án
-          </p>
+          <p className="text-sm text-muted-foreground">Quản lý tất cả domains và URLs của dự án</p>
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
@@ -168,17 +153,17 @@ export function ProjectDomainsTab({ projectId }: ProjectDomainsTabProps) {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Domain/URL</Label>
-                <Input 
+                <Input
                   placeholder="https://example.com"
                   value={newDomain.domain}
-                  onChange={(e) => setNewDomain({...newDomain, domain: e.target.value})}
+                  onChange={(e) => setNewDomain({ ...newDomain, domain: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Environment</Label>
-                <Select 
+                <Select
                   value={newDomain.environment}
-                  onValueChange={(v) => setNewDomain({...newDomain, environment: v})}
+                  onValueChange={(v) => setNewDomain({ ...newDomain, environment: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -192,29 +177,29 @@ export function ProjectDomainsTab({ projectId }: ProjectDomainsTabProps) {
                 </Select>
               </div>
               <div className="flex items-center gap-2">
-                <input 
+                <input
                   type="checkbox"
                   id="is_primary"
                   checked={newDomain.is_primary}
-                  onChange={(e) => setNewDomain({...newDomain, is_primary: e.target.checked})}
+                  onChange={(e) => setNewDomain({ ...newDomain, is_primary: e.target.checked })}
                 />
                 <Label htmlFor="is_primary">Domain chính</Label>
               </div>
               <div className="flex items-center gap-2">
-                <input 
+                <input
                   type="checkbox"
                   id="ssl_enabled"
                   checked={newDomain.ssl_enabled}
-                  onChange={(e) => setNewDomain({...newDomain, ssl_enabled: e.target.checked})}
+                  onChange={(e) => setNewDomain({ ...newDomain, ssl_enabled: e.target.checked })}
                 />
                 <Label htmlFor="ssl_enabled">SSL Enabled</Label>
               </div>
               <div className="space-y-2">
                 <Label>Ghi chú</Label>
-                <Input 
+                <Input
                   placeholder="Vercel, Cloudflare..."
                   value={newDomain.notes}
-                  onChange={(e) => setNewDomain({...newDomain, notes: e.target.value})}
+                  onChange={(e) => setNewDomain({ ...newDomain, notes: e.target.value })}
                 />
               </div>
               <Button onClick={addDomain} className="w-full">
@@ -250,9 +235,7 @@ export function ProjectDomainsTab({ projectId }: ProjectDomainsTabProps) {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-medium">{domain.domain}</span>
-                        {domain.is_primary && (
-                          <Badge variant="default">Primary</Badge>
-                        )}
+                        {domain.is_primary && <Badge variant="default">Primary</Badge>}
                         {domain.ssl_enabled && (
                           <Badge variant="outline" className="text-green-500">
                             🔒 SSL
@@ -282,7 +265,7 @@ export function ProjectDomainsTab({ projectId }: ProjectDomainsTabProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => window.open(domain.domain, "_blank")}
+                      onClick={() => window.open(domain.domain, '_blank')}
                     >
                       <ExternalLink className="h-4 w-4" />
                     </Button>

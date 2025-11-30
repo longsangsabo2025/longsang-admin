@@ -1,15 +1,21 @@
-import React, { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 import {
   Upload,
   FileJson,
@@ -31,11 +37,11 @@ import {
   Edit,
   Play,
   Globe,
-} from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 interface WorkflowAnalysis {
   summary: string;
@@ -84,23 +90,23 @@ interface SmartImportResult {
 
 const WorkflowImporter: React.FC = () => {
   const { toast } = useToast();
-  
+
   // State
-  const [workflowJson, setWorkflowJson] = useState<string>("");
+  const [workflowJson, setWorkflowJson] = useState<string>('');
   const [parsedWorkflow, setParsedWorkflow] = useState<any>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [purpose, setPurpose] = useState<string>("");
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [purpose, setPurpose] = useState<string>('');
   const [options, setOptions] = useState({
     customize: true,
     autoActivate: true,
     saveAsTemplate: false,
   });
-  
+
   // Loading states
   const [isValidating, setIsValidating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  
+
   // Results
   const [validationResult, setValidationResult] = useState<any>(null);
   const [analysisResult, setAnalysisResult] = useState<WorkflowAnalysis | null>(null);
@@ -109,13 +115,13 @@ const WorkflowImporter: React.FC = () => {
 
   // Fetch projects from Supabase directly
   const { data: projectsData } = useQuery({
-    queryKey: ["projects-for-import"],
+    queryKey: ['projects-for-import'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
         .select('id, name, slug, type, status')
         .order('name');
-      
+
       if (error) throw error;
       return { projects: data || [] };
     },
@@ -124,40 +130,43 @@ const WorkflowImporter: React.FC = () => {
   const projects = projectsData?.projects || [];
 
   // Dropzone for file upload
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        setWorkflowJson(content);
-        try {
-          const parsed = JSON.parse(content);
-          setParsedWorkflow(parsed);
-          setValidationResult(null);
-          setAnalysisResult(null);
-          setSmartResult(null);
-          setImportResult(null);
-          toast({
-            title: "📄 File loaded",
-            description: `Loaded: ${file.name}`,
-          });
-        } catch (err) {
-          toast({
-            title: "❌ Invalid JSON",
-            description: "File is not valid JSON",
-            variant: "destructive",
-          });
-        }
-      };
-      reader.readAsText(file);
-    }
-  }, [toast]);
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const content = e.target?.result as string;
+          setWorkflowJson(content);
+          try {
+            const parsed = JSON.parse(content);
+            setParsedWorkflow(parsed);
+            setValidationResult(null);
+            setAnalysisResult(null);
+            setSmartResult(null);
+            setImportResult(null);
+            toast({
+              title: '📄 File loaded',
+              description: `Loaded: ${file.name}`,
+            });
+          } catch (err) {
+            toast({
+              title: '❌ Invalid JSON',
+              description: 'File is not valid JSON',
+              variant: 'destructive',
+            });
+          }
+        };
+        reader.readAsText(file);
+      }
+    },
+    [toast]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "application/json": [".json"],
+      'application/json': ['.json'],
     },
     multiple: false,
   });
@@ -165,24 +174,28 @@ const WorkflowImporter: React.FC = () => {
   // Validate workflow
   const handleValidate = async () => {
     if (!workflowJson) return;
-    
+
     setIsValidating(true);
     try {
       const res = await fetch(`${API_URL}/api/workflow-import/validate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ workflow_json: workflowJson }),
       });
       const result = await res.json();
       setValidationResult(result);
-      
+
       if (result.valid) {
-        toast({ title: "✅ Valid workflow", description: `${result.nodeCount} nodes found` });
+        toast({ title: '✅ Valid workflow', description: `${result.nodeCount} nodes found` });
       } else {
-        toast({ title: "❌ Invalid workflow", description: result.errors[0], variant: "destructive" });
+        toast({
+          title: '❌ Invalid workflow',
+          description: result.errors[0],
+          variant: 'destructive',
+        });
       }
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
     } finally {
       setIsValidating(false);
     }
@@ -191,27 +204,27 @@ const WorkflowImporter: React.FC = () => {
   // Analyze with AI
   const handleAnalyze = async () => {
     if (!workflowJson) return;
-    
+
     setIsAnalyzing(true);
     try {
       const res = await fetch(`${API_URL}/api/workflow-import/analyze`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           workflow_json: workflowJson,
           project_id: selectedProjectId || undefined,
         }),
       });
       const result = await res.json();
-      
+
       if (result.success) {
         setAnalysisResult(result.analysis);
-        toast({ title: "🔍 Analysis complete", description: result.analysis.summary });
+        toast({ title: '🔍 Analysis complete', description: result.analysis.summary });
       } else {
         throw new Error(result.error);
       }
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
     } finally {
       setIsAnalyzing(false);
     }
@@ -220,32 +233,32 @@ const WorkflowImporter: React.FC = () => {
   // Smart import with AI recommendations
   const handleSmartAnalyze = async () => {
     if (!workflowJson) return;
-    
+
     setIsAnalyzing(true);
     try {
       const res = await fetch(`${API_URL}/api/workflow-import/smart-import`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           workflow_json: workflowJson,
           project_id: selectedProjectId || undefined,
           purpose,
         }),
       });
       const result = await res.json();
-      
+
       if (result.success) {
         setSmartResult(result);
         setAnalysisResult(result.analysis);
-        toast({ 
-          title: "🧠 Smart analysis complete", 
-          description: `${result.recommendations.length} recommendations` 
+        toast({
+          title: '🧠 Smart analysis complete',
+          description: `${result.recommendations.length} recommendations`,
         });
       } else {
         throw new Error(result.error);
       }
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
     } finally {
       setIsAnalyzing(false);
     }
@@ -254,19 +267,19 @@ const WorkflowImporter: React.FC = () => {
   // Import workflow to n8n
   const handleImport = async () => {
     if (!workflowJson || !selectedProjectId) {
-      toast({ 
-        title: "Missing info", 
-        description: "Please select a project first",
-        variant: "destructive" 
+      toast({
+        title: 'Missing info',
+        description: 'Please select a project first',
+        variant: 'destructive',
       });
       return;
     }
-    
+
     setIsImporting(true);
     try {
       const res = await fetch(`${API_URL}/api/workflow-import/import`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           workflow_json: workflowJson,
           project_id: selectedProjectId,
@@ -277,17 +290,17 @@ const WorkflowImporter: React.FC = () => {
       });
       const result = await res.json();
       setImportResult(result);
-      
+
       if (result.success) {
-        toast({ 
-          title: "🎉 Import successful!", 
+        toast({
+          title: '🎉 Import successful!',
           description: `Workflow "${result.workflow.name}" created`,
         });
       } else {
         throw new Error(result.error);
       }
     } catch (err: any) {
-      toast({ title: "Import failed", description: err.message, variant: "destructive" });
+      toast({ title: 'Import failed', description: err.message, variant: 'destructive' });
     } finally {
       setIsImporting(false);
     }
@@ -295,42 +308,42 @@ const WorkflowImporter: React.FC = () => {
 
   // Reset form
   const handleReset = () => {
-    setWorkflowJson("");
+    setWorkflowJson('');
     setParsedWorkflow(null);
     setValidationResult(null);
     setAnalysisResult(null);
     setSmartResult(null);
     setImportResult(null);
-    setPurpose("");
+    setPurpose('');
   };
 
   // Copy webhook URL
   const copyWebhookUrl = () => {
     if (importResult?.workflow?.webhookUrl) {
       navigator.clipboard.writeText(importResult.workflow.webhookUrl);
-      toast({ title: "Copied!", description: "Webhook URL copied to clipboard" });
+      toast({ title: 'Copied!', description: 'Webhook URL copied to clipboard' });
     }
   };
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      automation: "bg-blue-500",
-      marketing: "bg-purple-500",
-      support: "bg-green-500",
-      integration: "bg-orange-500",
-      content: "bg-pink-500",
-      "data-processing": "bg-cyan-500",
-      notification: "bg-yellow-500",
-      other: "bg-gray-500",
+      automation: 'bg-blue-500',
+      marketing: 'bg-purple-500',
+      support: 'bg-green-500',
+      integration: 'bg-orange-500',
+      content: 'bg-pink-500',
+      'data-processing': 'bg-cyan-500',
+      notification: 'bg-yellow-500',
+      other: 'bg-gray-500',
     };
     return colors[category] || colors.other;
   };
 
   const getComplexityColor = (complexity: string) => {
     const colors: Record<string, string> = {
-      simple: "bg-green-500",
-      moderate: "bg-yellow-500",
-      complex: "bg-red-500",
+      simple: 'bg-green-500',
+      moderate: 'bg-yellow-500',
+      complex: 'bg-red-500',
     };
     return colors[complexity] || colors.moderate;
   };
@@ -365,7 +378,7 @@ const WorkflowImporter: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.open("http://localhost:5678", "_blank")}
+              onClick={() => window.open('http://localhost:5678', '_blank')}
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               Open n8n
@@ -373,7 +386,7 @@ const WorkflowImporter: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.open("https://n8n.io/workflows", "_blank")}
+              onClick={() => window.open('https://n8n.io/workflows', '_blank')}
             >
               <Globe className="w-4 h-4 mr-2" />
               n8n Community
@@ -392,18 +405,16 @@ const WorkflowImporter: React.FC = () => {
                 <Upload className="w-5 h-5" />
                 Upload Workflow
               </CardTitle>
-              <CardDescription>
-                Kéo thả file JSON hoặc paste workflow từ n8n
-              </CardDescription>
+              <CardDescription>Kéo thả file JSON hoặc paste workflow từ n8n</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Dropzone */}
               <div
                 {...getRootProps()}
                 className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                  isDragActive 
-                    ? "border-primary bg-primary/5" 
-                    : "border-muted-foreground/25 hover:border-primary/50"
+                  isDragActive
+                    ? 'border-primary bg-primary/5'
+                    : 'border-muted-foreground/25 hover:border-primary/50'
                 }`}
               >
                 <input {...getInputProps()} />
@@ -413,9 +424,7 @@ const WorkflowImporter: React.FC = () => {
                 ) : (
                   <>
                     <p className="font-medium">Kéo thả file .json vào đây</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      hoặc click để chọn file
-                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">hoặc click để chọn file</p>
                   </>
                 )}
               </div>
@@ -452,8 +461,8 @@ const WorkflowImporter: React.FC = () => {
                 <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>
-                    Valid JSON: <strong>{parsedWorkflow.name || "Unnamed"}</strong>
-                    {" "}• {parsedWorkflow.nodes?.length || 0} nodes
+                    Valid JSON: <strong>{parsedWorkflow.name || 'Unnamed'}</strong> •{' '}
+                    {parsedWorkflow.nodes?.length || 0} nodes
                   </span>
                 </div>
               )}
@@ -528,9 +537,7 @@ const WorkflowImporter: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Lưu làm template</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Dùng lại cho các dự án khác
-                    </p>
+                    <p className="text-xs text-muted-foreground">Dùng lại cho các dự án khác</p>
                   </div>
                   <Switch
                     checked={options.saveAsTemplate}
@@ -604,7 +611,7 @@ const WorkflowImporter: React.FC = () => {
         <div className="space-y-6">
           {/* Validation Result */}
           {validationResult && (
-            <Card className={validationResult.valid ? "border-green-500/50" : "border-red-500/50"}>
+            <Card className={validationResult.valid ? 'border-green-500/50' : 'border-red-500/50'}>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   {validationResult.valid ? (
@@ -618,11 +625,11 @@ const WorkflowImporter: React.FC = () => {
               <CardContent className="space-y-3">
                 <div className="flex gap-4 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Nodes:</span>{" "}
+                    <span className="text-muted-foreground">Nodes:</span>{' '}
                     <strong>{validationResult.nodeCount}</strong>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Connections:</span>{" "}
+                    <span className="text-muted-foreground">Connections:</span>{' '}
                     <strong>{validationResult.connectionCount}</strong>
                   </div>
                 </div>
@@ -720,11 +727,11 @@ const WorkflowImporter: React.FC = () => {
                     <div
                       key={i}
                       className={`p-3 rounded-lg border ${
-                        rec.priority === "high"
-                          ? "border-red-500/50 bg-red-500/5"
-                          : rec.priority === "medium"
-                          ? "border-yellow-500/50 bg-yellow-500/5"
-                          : "border-gray-500/50"
+                        rec.priority === 'high'
+                          ? 'border-red-500/50 bg-red-500/5'
+                          : rec.priority === 'medium'
+                            ? 'border-yellow-500/50 bg-yellow-500/5'
+                            : 'border-gray-500/50'
                       }`}
                     >
                       <div className="flex items-start gap-2">
@@ -747,7 +754,7 @@ const WorkflowImporter: React.FC = () => {
 
           {/* Import Result */}
           {importResult && (
-            <Card className={importResult.success ? "border-green-500" : "border-red-500"}>
+            <Card className={importResult.success ? 'border-green-500' : 'border-red-500'}>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   {importResult.success ? (
@@ -801,7 +808,12 @@ const WorkflowImporter: React.FC = () => {
                       <Button
                         variant="outline"
                         className="flex-1"
-                        onClick={() => window.open(`http://localhost:5678/workflow/${importResult.workflow?.id}`, "_blank")}
+                        onClick={() =>
+                          window.open(
+                            `http://localhost:5678/workflow/${importResult.workflow?.id}`,
+                            '_blank'
+                          )
+                        }
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Open in n8n
@@ -809,7 +821,12 @@ const WorkflowImporter: React.FC = () => {
                       <Button
                         variant="secondary"
                         className="flex-1"
-                        onClick={() => window.open(`http://localhost:5678/workflow/${importResult.workflow?.id}/edit`, "_blank")}
+                        onClick={() =>
+                          window.open(
+                            `http://localhost:5678/workflow/${importResult.workflow?.id}/edit`,
+                            '_blank'
+                          )
+                        }
                       >
                         <Edit className="w-4 h-4 mr-2" />
                         Edit Workflow
@@ -821,7 +838,7 @@ const WorkflowImporter: React.FC = () => {
                         className="flex-1"
                         onClick={() => {
                           if (importResult.workflow?.webhookUrl) {
-                            window.open(importResult.workflow.webhookUrl, "_blank");
+                            window.open(importResult.workflow.webhookUrl, '_blank');
                           }
                         }}
                         disabled={!importResult.workflow?.webhookUrl}
@@ -829,11 +846,7 @@ const WorkflowImporter: React.FC = () => {
                         <Play className="w-4 h-4 mr-2" />
                         Test Webhook
                       </Button>
-                      <Button
-                        variant="default"
-                        className="flex-1"
-                        onClick={handleReset}
-                      >
+                      <Button variant="default" className="flex-1" onClick={handleReset}>
                         <ArrowRight className="w-4 h-4 mr-2" />
                         Import Another
                       </Button>

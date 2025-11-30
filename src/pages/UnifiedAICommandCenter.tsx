@@ -497,10 +497,12 @@ const UnifiedAICommandCenter = () => {
       </div>
 
       {/* Quick Actions Panel - Floating */}
-      <QuickActionsPanel onCommandExecute={(cmd) => {
-        // Could navigate to command input or execute directly
-        console.log('Quick action:', cmd);
-      }} />
+      <QuickActionsPanel
+        onCommandExecute={(cmd) => {
+          // Could navigate to command input or execute directly
+          console.log('Quick action:', cmd);
+        }}
+      />
     </div>
   );
 };

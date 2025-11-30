@@ -4,8 +4,8 @@
  * =================================================================
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -13,16 +13,16 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { getSocialMediaManager } from "@/lib/social";
-import type { BulkPostResponse, SocialPlatform } from "@/types/social-media";
-import { CheckCircle2, Image, Link, Loader2, Send, XCircle } from "lucide-react";
-import { useState } from "react";
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { getSocialMediaManager } from '@/lib/social';
+import type { BulkPostResponse, SocialPlatform } from '@/types/social-media';
+import { CheckCircle2, Image, Link, Loader2, Send, XCircle } from 'lucide-react';
+import { useState } from 'react';
 
 interface SocialPostComposerProps {
   availablePlatforms?: SocialPlatform[];
@@ -31,13 +31,13 @@ interface SocialPostComposerProps {
 }
 
 const PLATFORM_INFO: Record<SocialPlatform, { name: string; icon: string; limit: number }> = {
-  linkedin: { name: "LinkedIn", icon: "💼", limit: 3000 },
-  twitter: { name: "Twitter/X", icon: "𝕏", limit: 280 },
-  facebook: { name: "Facebook", icon: "👥", limit: 63206 },
-  instagram: { name: "Instagram", icon: "📸", limit: 2200 },
-  youtube: { name: "YouTube", icon: "▶️", limit: 5000 },
-  telegram: { name: "Telegram", icon: "✈️", limit: 4096 },
-  discord: { name: "Discord", icon: "🎮", limit: 2000 },
+  linkedin: { name: 'LinkedIn', icon: '💼', limit: 3000 },
+  twitter: { name: 'Twitter/X', icon: '𝕏', limit: 280 },
+  facebook: { name: 'Facebook', icon: '👥', limit: 63206 },
+  instagram: { name: 'Instagram', icon: '📸', limit: 2200 },
+  youtube: { name: 'YouTube', icon: '▶️', limit: 5000 },
+  telegram: { name: 'Telegram', icon: '✈️', limit: 4096 },
+  discord: { name: 'Discord', icon: '🎮', limit: 2000 },
 };
 
 export const SocialPostComposer = ({
@@ -48,10 +48,10 @@ export const SocialPostComposer = ({
   const { toast } = useToast();
   const manager = getSocialMediaManager();
 
-  const [text, setText] = useState("");
-  const [hashtags, setHashtags] = useState("");
-  const [linkUrl, setLinkUrl] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [text, setText] = useState('');
+  const [hashtags, setHashtags] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [selectedPlatforms, setSelectedPlatforms] = useState<Set<SocialPlatform>>(new Set());
   const [posting, setPosting] = useState(false);
   const [result, setResult] = useState<BulkPostResponse | null>(null);
@@ -86,18 +86,18 @@ export const SocialPostComposer = ({
   const handlePost = async () => {
     if (selectedPlatforms.size === 0) {
       toast({
-        title: "Select Platforms",
-        description: "Please select at least one platform",
-        variant: "destructive",
+        title: 'Select Platforms',
+        description: 'Please select at least one platform',
+        variant: 'destructive',
       });
       return;
     }
 
     if (!text.trim()) {
       toast({
-        title: "Add Content",
-        description: "Please enter some text",
-        variant: "destructive",
+        title: 'Add Content',
+        description: 'Please enter some text',
+        variant: 'destructive',
       });
       return;
     }
@@ -110,12 +110,12 @@ export const SocialPostComposer = ({
         .split(/[,\s]+/)
         .map((tag) => tag.trim())
         .filter((tag) => tag.length > 0)
-        .map((tag) => tag.replace(/^#/, ""));
+        .map((tag) => tag.replace(/^#/, ''));
 
       const media = imageUrl
         ? [
             {
-              type: "image" as const,
+              type: 'image' as const,
               url: imageUrl,
             },
           ]
@@ -124,7 +124,7 @@ export const SocialPostComposer = ({
       const postResult = await manager.postToMultiplePlatforms({
         platforms: Array.from(selectedPlatforms),
         text: text.trim(),
-        contentType: media ? "image" : "text",
+        contentType: media ? 'image' : 'text',
         hashtags: hashtagArray.length > 0 ? hashtagArray : undefined,
         linkUrl: linkUrl || undefined,
         media,
@@ -142,26 +142,26 @@ export const SocialPostComposer = ({
 
         // Clear form on success
         if (postResult.summary.successful === postResult.summary.total) {
-          setText("");
-          setHashtags("");
-          setLinkUrl("");
-          setImageUrl("");
+          setText('');
+          setHashtags('');
+          setLinkUrl('');
+          setImageUrl('');
           setSelectedPlatforms(new Set());
         }
       }
 
       if (postResult.summary.failed > 0) {
         toast({
-          title: "⚠️ Some Posts Failed",
+          title: '⚠️ Some Posts Failed',
           description: `${postResult.summary.failed}/${postResult.summary.total} platforms failed`,
-          variant: "destructive",
+          variant: 'destructive',
         });
       }
     } catch (error) {
       toast({
-        title: "❌ Posting Failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        title: '❌ Posting Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
       });
 
       onPostError?.(error as Error);
@@ -211,8 +211,8 @@ export const SocialPostComposer = ({
                     flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all
                     ${
                       isSelected
-                        ? "border-primary bg-primary/10"
-                        : "border-muted hover:border-primary/50"
+                        ? 'border-primary bg-primary/10'
+                        : 'border-muted hover:border-primary/50'
                     }
                   `}
                 >
@@ -241,7 +241,7 @@ export const SocialPostComposer = ({
           <div className="flex items-center justify-between">
             <Label htmlFor="post-text">Post Content</Label>
             <span
-              className={`text-sm ${isOverLimit ? "text-destructive" : "text-muted-foreground"}`}
+              className={`text-sm ${isOverLimit ? 'text-destructive' : 'text-muted-foreground'}`}
             >
               {text.length}
               {minLimit > 0 && ` / ${minLimit}`}
@@ -313,7 +313,7 @@ export const SocialPostComposer = ({
               alt="Preview"
               className="w-full max-w-md rounded-lg border"
               onError={(e) => {
-                e.currentTarget.style.display = "none";
+                e.currentTarget.style.display = 'none';
               }}
             />
           )}
@@ -376,14 +376,14 @@ export const SocialPostComposer = ({
           {posting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Posting to {selectedPlatforms.size} platform{selectedPlatforms.size !== 1 ? "s" : ""}
+              Posting to {selectedPlatforms.size} platform{selectedPlatforms.size !== 1 ? 's' : ''}
               ...
             </>
           ) : (
             <>
               <Send className="w-4 h-4 mr-2" />
-              Post to {selectedPlatforms.size > 0 ? selectedPlatforms.size : ""} Platform
-              {selectedPlatforms.size !== 1 ? "s" : ""}
+              Post to {selectedPlatforms.size > 0 ? selectedPlatforms.size : ''} Platform
+              {selectedPlatforms.size !== 1 ? 's' : ''}
             </>
           )}
         </Button>

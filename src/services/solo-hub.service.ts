@@ -31,7 +31,7 @@ export const briefingService = {
    */
   async getToday(): Promise<ApiResponse<MorningBriefing>> {
     const today = new Date().toISOString().split('T')[0];
-    
+
     const { data, error } = await supabase
       .from('morning_briefings')
       .select('*')
@@ -138,11 +138,7 @@ export const agentService = {
    * Get agent by ID
    */
   async getById(id: string): Promise<ApiResponse<AIAgent>> {
-    const { data, error } = await supabase
-      .from('ai_agents')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('ai_agents').select('*').eq('id', id).single();
 
     return {
       data,
@@ -157,9 +153,9 @@ export const agentService = {
   async updateStatus(id: string, status: AIAgent['status']): Promise<ApiResponse<AIAgent>> {
     const { data, error } = await supabase
       .from('ai_agents')
-      .update({ 
-        status, 
-        last_active_at: status === 'online' ? new Date().toISOString() : undefined 
+      .update({
+        status,
+        last_active_at: status === 'online' ? new Date().toISOString() : undefined,
       })
       .eq('id', id)
       .select()
@@ -194,9 +190,7 @@ export const agentService = {
    * Get agent performance summary
    */
   async getPerformance(): Promise<ApiResponse<AgentPerformanceSummary[]>> {
-    const { data, error } = await supabase
-      .from('v_agent_performance')
-      .select('*');
+    const { data, error } = await supabase.from('v_agent_performance').select('*');
 
     return {
       data: data || [],
@@ -266,10 +260,7 @@ export const agentService = {
       },
     ];
 
-    const { data, error } = await supabase
-      .from('ai_agents')
-      .insert(defaultAgents)
-      .select();
+    const { data, error } = await supabase.from('ai_agents').insert(defaultAgents).select();
 
     return {
       data: data || [],
@@ -293,17 +284,13 @@ export const taskService = {
     task_type?: AgentTask['task_type'];
     limit?: number;
   }): Promise<PaginatedResponse<AgentTask>> {
-    let query = supabase
-      .from('agent_tasks')
-      .select('*', { count: 'exact' });
+    let query = supabase.from('agent_tasks').select('*', { count: 'exact' });
 
     if (filters?.status) query = query.eq('status', filters.status);
     if (filters?.agent_id) query = query.eq('agent_id', filters.agent_id);
     if (filters?.task_type) query = query.eq('task_type', filters.task_type);
-    
-    query = query
-      .order('created_at', { ascending: false })
-      .limit(filters?.limit || 50);
+
+    query = query.order('created_at', { ascending: false }).limit(filters?.limit || 50);
 
     const { data, error, count } = await query;
 
@@ -359,19 +346,19 @@ export const taskService = {
    * Update task status
    */
   async updateStatus(
-    id: string, 
+    id: string,
     status: AgentTask['status'],
     output_data?: Record<string, unknown>
   ): Promise<ApiResponse<AgentTask>> {
     const updates: Partial<AgentTask> = { status };
-    
+
     if (status === 'in_progress') {
       updates.started_at = new Date().toISOString();
     } else if (status === 'completed' || status === 'failed') {
       updates.completed_at = new Date().toISOString();
       updates.progress = status === 'completed' ? 100 : updates.progress;
     }
-    
+
     if (output_data) {
       updates.output_data = output_data;
     }
@@ -436,10 +423,7 @@ export const decisionService = {
    * Get pending decisions summary
    */
   async getSummary(): Promise<ApiResponse<PendingDecisionsSummary>> {
-    const { data, error } = await supabase
-      .from('v_pending_decisions')
-      .select('*')
-      .single();
+    const { data, error } = await supabase.from('v_pending_decisions').select('*').single();
 
     return {
       data,
@@ -484,8 +468,8 @@ export const decisionService = {
    * Update decision status
    */
   async updateStatus(
-    id: string, 
-    status: DecisionStatus, 
+    id: string,
+    status: DecisionStatus,
     feedback?: string
   ): Promise<ApiResponse<Decision>> {
     const { data, error } = await supabase
@@ -558,10 +542,7 @@ export const memoryService = {
     importance?: AgentMemory['importance'];
     search?: string;
   }): Promise<ApiResponse<AgentMemory[]>> {
-    let query = supabase
-      .from('agent_memory')
-      .select('*')
-      .eq('is_active', true);
+    let query = supabase.from('agent_memory').select('*').eq('is_active', true);
 
     if (filters?.memory_type) query = query.eq('memory_type', filters.memory_type);
     if (filters?.category) query = query.eq('category', filters.category);
@@ -570,7 +551,9 @@ export const memoryService = {
       query = query.or(`title.ilike.%${filters.search}%,content.ilike.%${filters.search}%`);
     }
 
-    query = query.order('importance', { ascending: true }).order('used_count', { ascending: false });
+    query = query
+      .order('importance', { ascending: true })
+      .order('used_count', { ascending: false });
 
     const { data, error } = await query;
 
@@ -585,11 +568,7 @@ export const memoryService = {
    * Create a new memory
    */
   async create(input: CreateMemoryInput): Promise<ApiResponse<AgentMemory>> {
-    const { data, error } = await supabase
-      .from('agent_memory')
-      .insert(input)
-      .select()
-      .single();
+    const { data, error } = await supabase.from('agent_memory').insert(input).select().single();
 
     return {
       data,
@@ -620,10 +599,7 @@ export const memoryService = {
    * Delete (soft) a memory
    */
   async delete(id: string): Promise<ApiResponse<void>> {
-    const { error } = await supabase
-      .from('agent_memory')
-      .update({ is_active: false })
-      .eq('id', id);
+    const { error } = await supabase.from('agent_memory').update({ is_active: false }).eq('id', id);
 
     return {
       data: null,
@@ -667,7 +643,7 @@ export const memoryService = {
       .select('category')
       .eq('is_active', true);
 
-    const categories = [...new Set(data?.map(d => d.category) || [])];
+    const categories = [...new Set(data?.map((d) => d.category) || [])];
 
     return {
       data: categories,

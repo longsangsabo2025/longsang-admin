@@ -20,7 +20,15 @@ import { Button } from '@/components/ui/button';
 import { SettingsPanel } from '@/components/ai-workspace/SettingsPanel';
 import { KnowledgeManager } from '@/components/ai-workspace/KnowledgeManager';
 import { AssistantType } from '@/hooks/useAssistant';
-import { PanelLeft, PanelLeftClose, MessageSquare, FileText, Settings, BarChart3, Brain } from 'lucide-react';
+import {
+  PanelLeft,
+  PanelLeftClose,
+  MessageSquare,
+  FileText,
+  Settings,
+  BarChart3,
+  Brain,
+} from 'lucide-react';
 import { usePersistedState, useScrollRestore } from '@/hooks/usePersistedState';
 
 const supabase = createClient(
@@ -39,13 +47,15 @@ export default function AIWorkspace() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Persisted states - will survive navigation
-  const [currentAssistant, setCurrentAssistant] = usePersistedState<AssistantType>('ai-workspace-assistant', 'research');
+  const [currentAssistant, setCurrentAssistant] = usePersistedState<AssistantType>(
+    'ai-workspace-assistant',
+    'research'
+  );
   const [sidebarOpen, setSidebarOpen] = usePersistedState('ai-workspace-sidebar', true);
   const [activeTab, setActiveTab] = usePersistedState('ai-workspace-tab', 'chat');
 
   // Get default assistant from URL params
-  const defaultAssistant = (searchParams.get('assistant') ||
-    'research') as AssistantType;
+  const defaultAssistant = (searchParams.get('assistant') || 'research') as AssistantType;
 
   // Initialize currentAssistant from URL
   useEffect(() => {
@@ -63,7 +73,7 @@ export default function AIWorkspace() {
 
   // Handle new conversation created
   const handleConversationCreated = useCallback((conversationId: string) => {
-    setRefreshKey(prev => prev + 1);
+    setRefreshKey((prev) => prev + 1);
     console.log('[AIWorkspace] New conversation created:', conversationId);
   }, []);
 
@@ -107,11 +117,7 @@ export default function AIWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setSettingsOpen(true)}
-            >
+            <Button variant="outline" size="icon" onClick={() => setSettingsOpen(true)}>
               <Settings className="h-4 w-4" />
             </Button>
             <Button
@@ -120,7 +126,11 @@ export default function AIWorkspace() {
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="lg:hidden"
             >
-              {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+              {sidebarOpen ? (
+                <PanelLeftClose className="h-4 w-4" />
+              ) : (
+                <PanelLeft className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>
@@ -153,11 +163,7 @@ export default function AIWorkspace() {
                 <CardContent className="p-0 h-full">
                   <div className="p-4 border-b flex items-center justify-between">
                     <h3 className="font-semibold">Lịch sử</h3>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setSidebarOpen(false)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
                       <PanelLeftClose className="h-4 w-4" />
                     </Button>
                   </div>
@@ -216,7 +222,11 @@ export default function AIWorkspace() {
               <TabsContent value="documents" className="flex-1 m-0 mt-4 p-4 space-y-4">
                 <FileUpload assistantType={currentAssistant} userId={userId} />
                 <div className="border-t pt-4">
-                  <DocumentList assistantType={currentAssistant} userId={userId} className="h-[400px]" />
+                  <DocumentList
+                    assistantType={currentAssistant}
+                    userId={userId}
+                    className="h-[400px]"
+                  />
                 </div>
               </TabsContent>
               <TabsContent value="analytics" className="flex-1 m-0 mt-4 p-4">

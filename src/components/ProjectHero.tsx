@@ -1,8 +1,8 @@
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, ExternalLink } from "lucide-react";
-import { GlowCard } from "./GlowCard";
-import { ProjectData } from "@/data/projects-data";
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, ExternalLink } from 'lucide-react';
+import { GlowCard } from './GlowCard';
+import { ProjectData } from '@/data/projects-data';
 
 interface ProjectHeroProps {
   project: ProjectData;
@@ -14,11 +14,20 @@ export const ProjectHero = ({ project }: ProjectHeroProps) => {
   const handleViewDetails = () => {
     // Navigate to the project showcase detail page using slug
     // Use project.slug if available, otherwise generate from name
-    const slug = project.slug || project.name
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, ''); // Remove any special characters
-    console.log('Navigate to:', `/project-showcase/${slug}`, 'from project:', project.name, 'slug:', project.slug);
+    const slug =
+      project.slug ||
+      project.name
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, ''); // Remove any special characters
+    console.log(
+      'Navigate to:',
+      `/project-showcase/${slug}`,
+      'from project:',
+      project.name,
+      'slug:',
+      project.slug
+    );
     navigate(`/project-showcase/${slug}`);
   };
 
@@ -27,7 +36,10 @@ export const ProjectHero = ({ project }: ProjectHeroProps) => {
       {/* Animated Background */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-neon-cyan/20 rounded-full blur-3xl animate-pulse-glow" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-blue/20 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: "1s" }} />
+        <div
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-blue/20 rounded-full blur-3xl animate-pulse-glow"
+          style={{ animationDelay: '1s' }}
+        />
       </div>
 
       <motion.div
@@ -49,7 +61,7 @@ export const ProjectHero = ({ project }: ProjectHeroProps) => {
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
               {project.heroDescription}
             </p>
-            
+
             {/* Buttons Container */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               {/* View Details Button - Premium Design */}
@@ -61,7 +73,7 @@ export const ProjectHero = ({ project }: ProjectHeroProps) => {
               >
                 {/* Animated border glow */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-neon-cyan via-neon-blue to-neon-green rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-500 group-hover:duration-200 animate-pulse-glow"></div>
-                
+
                 {/* Button */}
                 <motion.button
                   onClick={handleViewDetails}
@@ -72,30 +84,31 @@ export const ProjectHero = ({ project }: ProjectHeroProps) => {
                   <span className="relative z-10 tracking-wide bg-gradient-to-r from-neon-cyan via-white to-neon-blue bg-clip-text text-transparent">
                     XEM CHI TIẾT SẢN PHẨM
                   </span>
-                  
+
                   {/* Arrow with animation */}
                   <motion.div
                     className="relative z-10 text-neon-cyan"
                     animate={{ x: [0, 5, 0] }}
-                    transition={{ 
-                      duration: 1.5, 
+                    transition={{
+                      duration: 1.5,
                       repeat: Infinity,
-                      ease: "easeInOut"
+                      ease: 'easeInOut',
                     }}
                   >
                     <ArrowRight className="w-6 h-6" strokeWidth={2.5} />
                   </motion.div>
-                  
+
                   {/* Shine effect */}
                   <motion.div
                     className="absolute inset-0 rounded-xl"
-                    initial={{ x: "-100%" }}
+                    initial={{ x: '-100%' }}
                     whileHover={{
-                      x: "100%",
-                      transition: { duration: 0.6, ease: "easeInOut" }
+                      x: '100%',
+                      transition: { duration: 0.6, ease: 'easeInOut' },
                     }}
                     style={{
-                      background: "linear-gradient(90deg, transparent, rgba(0,217,255,0.2), transparent)",
+                      background:
+                        'linear-gradient(90deg, transparent, rgba(0,217,255,0.2), transparent)',
                     }}
                   />
                 </motion.button>
@@ -111,7 +124,7 @@ export const ProjectHero = ({ project }: ProjectHeroProps) => {
                 >
                   {/* Animated border glow */}
                   <div className="absolute -inset-1 bg-gradient-to-r from-neon-green via-neon-cyan to-neon-blue rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-500 group-hover:duration-200 animate-pulse-glow"></div>
-                  
+
                   {/* Button */}
                   <motion.a
                     href={project.productionUrl}
@@ -124,30 +137,31 @@ export const ProjectHero = ({ project }: ProjectHeroProps) => {
                     <span className="relative z-10 tracking-wide bg-gradient-to-r from-neon-green via-white to-neon-cyan bg-clip-text text-transparent">
                       XEM TRANG WEB
                     </span>
-                    
+
                     {/* External Link Icon with animation */}
                     <motion.div
                       className="relative z-10 text-neon-green"
                       animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ 
-                        duration: 2, 
+                      transition={{
+                        duration: 2,
                         repeat: Infinity,
-                        ease: "easeInOut"
+                        ease: 'easeInOut',
                       }}
                     >
                       <ExternalLink className="w-6 h-6" strokeWidth={2.5} />
                     </motion.div>
-                    
+
                     {/* Shine effect */}
                     <motion.div
                       className="absolute inset-0 rounded-xl"
-                      initial={{ x: "-100%" }}
+                      initial={{ x: '-100%' }}
                       whileHover={{
-                        x: "100%",
-                        transition: { duration: 0.6, ease: "easeInOut" }
+                        x: '100%',
+                        transition: { duration: 0.6, ease: 'easeInOut' },
                       }}
                       style={{
-                        background: "linear-gradient(90deg, transparent, rgba(62,207,142,0.2), transparent)",
+                        background:
+                          'linear-gradient(90deg, transparent, rgba(62,207,142,0.2), transparent)',
                       }}
                     />
                   </motion.a>

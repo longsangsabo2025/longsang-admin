@@ -3,22 +3,22 @@
  * Form to add new knowledge to the brain
  */
 
-import { useDomains } from "@/brain/hooks/useDomains";
-import { useIngestKnowledge } from "@/brain/hooks/useKnowledge";
-import type { IngestKnowledgeInput } from "@/brain/types/brain.types";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useDomains } from '@/brain/hooks/useDomains';
+import { useIngestKnowledge } from '@/brain/hooks/useKnowledge';
+import type { IngestKnowledgeInput } from '@/brain/types/brain.types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Plus } from "lucide-react";
-import { useState } from "react";
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, Plus } from 'lucide-react';
+import { useState } from 'react';
 
 interface KnowledgeIngestionProps {
   readonly selectedDomainId?: string | null;
@@ -29,15 +29,15 @@ export function KnowledgeIngestion({ selectedDomainId }: KnowledgeIngestionProps
   const ingestKnowledge = useIngestKnowledge();
 
   const [formData, setFormData] = useState<IngestKnowledgeInput>({
-    domainId: selectedDomainId || "",
-    title: "",
-    content: "",
-    contentType: "document",
+    domainId: selectedDomainId || '',
+    title: '',
+    content: '',
+    contentType: 'document',
     tags: [],
     metadata: {},
   });
 
-  const [tagInput, setTagInput] = useState("");
+  const [tagInput, setTagInput] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,14 +50,14 @@ export function KnowledgeIngestion({ selectedDomainId }: KnowledgeIngestionProps
       await ingestKnowledge.mutateAsync(formData);
       // Reset form
       setFormData({
-        domainId: selectedDomainId || "",
-        title: "",
-        content: "",
-        contentType: "document",
+        domainId: selectedDomainId || '',
+        title: '',
+        content: '',
+        contentType: 'document',
         tags: [],
         metadata: {},
       });
-      setTagInput("");
+      setTagInput('');
     } catch {
       // Error handled by hook
     }
@@ -69,7 +69,7 @@ export function KnowledgeIngestion({ selectedDomainId }: KnowledgeIngestionProps
         ...formData,
         tags: [...(formData.tags || []), tagInput.trim()],
       });
-      setTagInput("");
+      setTagInput('');
     }
   };
 
@@ -146,7 +146,7 @@ export function KnowledgeIngestion({ selectedDomainId }: KnowledgeIngestionProps
         <Label htmlFor="contentType">Content Type</Label>
         <Select
           value={formData.contentType}
-          onValueChange={(value: IngestKnowledgeInput["contentType"]) =>
+          onValueChange={(value: IngestKnowledgeInput['contentType']) =>
             setFormData({ ...formData, contentType: value })
           }
         >
@@ -172,7 +172,7 @@ export function KnowledgeIngestion({ selectedDomainId }: KnowledgeIngestionProps
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === 'Enter') {
                 e.preventDefault();
                 addTag();
               }
@@ -218,7 +218,7 @@ export function KnowledgeIngestion({ selectedDomainId }: KnowledgeIngestionProps
             Adding Knowledge...
           </>
         ) : (
-          "Add Knowledge"
+          'Add Knowledge'
         )}
       </Button>
     </form>

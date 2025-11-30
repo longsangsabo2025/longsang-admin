@@ -1,29 +1,29 @@
 /**
  * 💡 AI Agent Ideas Dashboard
- * 
+ *
  * Nơi lập kế hoạch và định hình ý tưởng cho các AI Agents
  * - Brainstorm ý tưởng mới
  * - Định nghĩa mục tiêu và use cases
  * - Phác thảo workflow
  * - Đánh giá khả thi
  * - Import từ n8n workflows
- * 
+ *
  * @author LongSang Admin
  * @version 1.0.0
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Lightbulb, 
-  Plus, 
-  Search, 
-  Star, 
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Lightbulb,
+  Plus,
+  Search,
+  Star,
   StarOff,
   Rocket,
   Trash2,
@@ -37,10 +37,10 @@ import {
   ArrowRight,
   Filter,
   Workflow,
-  ExternalLink
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+  ExternalLink,
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -49,18 +49,18 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import N8nWorkflowLibrary from "./N8nWorkflowLibrary";
-import type { N8nWorkflow } from "@/services/n8n";
-import { agentsApi } from "@/services/agent-center.service";
-import type { CreateAgentDTO } from "@/types/agent-center.types";
+} from '@/components/ui/select';
+import N8nWorkflowLibrary from './N8nWorkflowLibrary';
+import type { N8nWorkflow } from '@/services/n8n';
+import { agentsApi } from '@/services/agent-center.service';
+import type { CreateAgentDTO } from '@/types/agent-center.types';
 
 // ============================================================
 // TYPES
@@ -94,12 +94,36 @@ interface AgentIdea {
 // ============================================================
 
 const STATUS_CONFIG: Record<IdeaStatus, { label: string; color: string; icon: React.ReactNode }> = {
-  brainstorm: { label: 'Brainstorm', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', icon: <Brain className="w-3 h-3" /> },
-  planning: { label: 'Planning', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: <Target className="w-3 h-3" /> },
-  ready: { label: 'Ready', color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: <CheckCircle className="w-3 h-3" /> },
-  in_development: { label: 'In Development', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', icon: <Zap className="w-3 h-3" /> },
-  completed: { label: 'Completed', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', icon: <Rocket className="w-3 h-3" /> },
-  archived: { label: 'Archived', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30', icon: <Clock className="w-3 h-3" /> },
+  brainstorm: {
+    label: 'Brainstorm',
+    color: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+    icon: <Brain className="w-3 h-3" />,
+  },
+  planning: {
+    label: 'Planning',
+    color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    icon: <Target className="w-3 h-3" />,
+  },
+  ready: {
+    label: 'Ready',
+    color: 'bg-green-500/20 text-green-400 border-green-500/30',
+    icon: <CheckCircle className="w-3 h-3" />,
+  },
+  in_development: {
+    label: 'In Development',
+    color: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+    icon: <Zap className="w-3 h-3" />,
+  },
+  completed: {
+    label: 'Completed',
+    color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    icon: <Rocket className="w-3 h-3" />,
+  },
+  archived: {
+    label: 'Archived',
+    color: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+    icon: <Clock className="w-3 h-3" />,
+  },
 };
 
 const PRIORITY_CONFIG: Record<IdeaPriority, { label: string; color: string }> = {
@@ -141,7 +165,7 @@ interface AgentIdeasDashboardProps {
 const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDashboardProps) => {
   const [ideas, setIdeas] = useState<AgentIdea[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<IdeaStatus | 'all'>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   // Reserved for future edit functionality
@@ -166,7 +190,7 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
   const fetchIdeas = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       // Try to fetch from Supabase
       const { data, error } = await supabase
         .from('agent_ideas')
@@ -208,7 +232,7 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
   // Create idea
   const handleCreateIdea = async () => {
     if (!formData.title.trim()) {
-      toast({ title: "Error", description: "Title is required", variant: "destructive" });
+      toast({ title: 'Error', description: 'Title is required', variant: 'destructive' });
       return;
     }
 
@@ -233,7 +257,7 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
     try {
       // @ts-expect-error - Table may not exist in Supabase types
       const { error } = await supabase.from('agent_ideas').insert(newIdea);
-      
+
       if (error) {
         // Save to local storage if Supabase fails
         const updatedIdeas = [newIdea, ...ideas];
@@ -243,14 +267,14 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
         await fetchIdeas();
       }
 
-      toast({ title: "✨ Idea Created!", description: `"${newIdea.title}" has been added` });
+      toast({ title: '✨ Idea Created!', description: `"${newIdea.title}" has been added` });
       setShowCreateDialog(false);
       resetForm();
     } catch {
       const updatedIdeas = [newIdea, ...ideas];
       setIdeas(updatedIdeas);
       saveToLocalStorage(updatedIdeas);
-      toast({ title: "Saved locally", description: "Idea saved to local storage" });
+      toast({ title: 'Saved locally', description: 'Idea saved to local storage' });
       setShowCreateDialog(false);
       resetForm();
     }
@@ -258,7 +282,7 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
 
   // Update idea
   const handleUpdateIdea = async (id: string, updates: Partial<AgentIdea>) => {
-    const updatedIdeas = ideas.map(idea => 
+    const updatedIdeas = ideas.map((idea) =>
       idea.id === id ? { ...idea, ...updates, updated_at: new Date().toISOString() } : idea
     );
     setIdeas(updatedIdeas);
@@ -281,28 +305,28 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
     switch (newStatus) {
       case 'planning':
         toast({
-          title: "📋 Planning Started",
+          title: '📋 Planning Started',
           description: `"${idea.title}" is now in planning phase. Define use cases and requirements.`,
         });
         break;
 
       case 'ready':
         toast({
-          title: "✅ Ready to Build!",
+          title: '✅ Ready to Build!',
           description: `"${idea.title}" is ready. Click 'Build Agent' to create the AI agent.`,
         });
         break;
 
       case 'in_development':
         toast({
-          title: "🚧 Development Started",
+          title: '🚧 Development Started',
           description: `"${idea.title}" agent is now being developed.`,
         });
         break;
 
       case 'completed':
         toast({
-          title: "🎉 Idea Completed!",
+          title: '🎉 Idea Completed!',
           description: `"${idea.title}" is complete! Navigating to Workflows tab...`,
         });
         // Call the callback to notify parent
@@ -315,7 +339,7 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
 
       case 'archived':
         toast({
-          title: "📦 Idea Archived",
+          title: '📦 Idea Archived',
           description: `"${idea.title}" has been archived.`,
         });
         break;
@@ -327,7 +351,7 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
 
   // Delete idea
   const handleDeleteIdea = async (id: string) => {
-    const updatedIdeas = ideas.filter(idea => idea.id !== id);
+    const updatedIdeas = ideas.filter((idea) => idea.id !== id);
     setIdeas(updatedIdeas);
     saveToLocalStorage(updatedIdeas);
 
@@ -337,12 +361,12 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
       // Fallback to local storage
     }
 
-    toast({ title: "Deleted", description: "Idea has been removed" });
+    toast({ title: 'Deleted', description: 'Idea has been removed' });
   };
 
   // Toggle star
   const toggleStar = (id: string) => {
-    const idea = ideas.find(i => i.id === id);
+    const idea = ideas.find((i) => i.id === id);
     if (idea) {
       handleUpdateIdea(id, { is_starred: !idea.is_starred });
     }
@@ -370,7 +394,10 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
     try {
       // Map idea category to valid AgentType
       // Valid types: 'work_agent' | 'research_agent' | 'content_creator' | 'data_analyst' | 'custom'
-      const typeMapping: Record<IdeaCategory, 'work_agent' | 'research_agent' | 'content_creator' | 'data_analyst' | 'custom'> = {
+      const typeMapping: Record<
+        IdeaCategory,
+        'work_agent' | 'research_agent' | 'content_creator' | 'data_analyst' | 'custom'
+      > = {
         automation: 'work_agent',
         content: 'content_creator',
         data: 'data_analyst',
@@ -401,7 +428,7 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
       handleUpdateIdea(idea.id, { status: 'in_development' });
 
       toast({
-        title: "🚀 Agent Created Successfully!",
+        title: '🚀 Agent Created Successfully!',
         description: `"${idea.title}" is now a real agent with ID: ${newAgent.id.slice(0, 8)}...`,
       });
 
@@ -409,16 +436,16 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
     } catch (error) {
       console.error('Failed to create agent:', error);
       toast({
-        title: "❌ Failed to Create Agent",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive",
+        title: '❌ Failed to Create Agent',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
       });
     }
   };
 
   // Filter ideas
-  const filteredIdeas = ideas.filter(idea => {
-    const matchesSearch = 
+  const filteredIdeas = ideas.filter((idea) => {
+    const matchesSearch =
       idea.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       idea.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || idea.status === statusFilter;
@@ -428,10 +455,10 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
   // Stats
   const stats = {
     total: ideas.length,
-    brainstorm: ideas.filter(i => i.status === 'brainstorm').length,
-    planning: ideas.filter(i => i.status === 'planning').length,
-    ready: ideas.filter(i => i.status === 'ready').length,
-    starred: ideas.filter(i => i.is_starred).length,
+    brainstorm: ideas.filter((i) => i.status === 'brainstorm').length,
+    planning: ideas.filter((i) => i.status === 'planning').length,
+    ready: ideas.filter((i) => i.status === 'ready').length,
+    starred: ideas.filter((i) => i.is_starred).length,
   };
 
   // Handler for promoting n8n workflow to agent
@@ -469,15 +496,15 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
       }
 
       toast({
-        title: "🚀 Workflow Promoted!",
+        title: '🚀 Workflow Promoted!',
         description: `"${workflow.name}" has been added to Ideas as Ready to Build`,
       });
     } catch (err) {
       console.error('Error promoting workflow:', err);
       toast({
-        title: "Error",
-        description: "Failed to promote workflow",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to promote workflow',
+        variant: 'destructive',
       });
     }
   };
@@ -493,15 +520,15 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
   return (
     <Tabs defaultValue="ideas" className="space-y-6">
       <TabsList className="bg-slate-800 border-slate-700">
-        <TabsTrigger 
-          value="ideas" 
+        <TabsTrigger
+          value="ideas"
           className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
         >
           <Lightbulb className="w-4 h-4 mr-2" />
           Ideas ({stats.total})
         </TabsTrigger>
-        <TabsTrigger 
-          value="n8n" 
+        <TabsTrigger
+          value="n8n"
           className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
         >
           <Workflow className="w-4 h-4 mr-2" />
@@ -512,391 +539,425 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
       <TabsContent value="ideas" className="space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="bg-gradient-to-br from-purple-950 to-purple-900 border-purple-700 shadow-lg shadow-purple-500/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-200">Total Ideas</CardTitle>
-            <Lightbulb className="h-4 w-4 text-purple-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.total}</div>
-          </CardContent>
-        </Card>
+          <Card className="bg-gradient-to-br from-purple-950 to-purple-900 border-purple-700 shadow-lg shadow-purple-500/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-200">Total Ideas</CardTitle>
+              <Lightbulb className="h-4 w-4 text-purple-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">{stats.total}</div>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gradient-to-br from-blue-950 to-blue-900 border-blue-700 shadow-lg shadow-blue-500/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-200">Brainstorming</CardTitle>
-            <Brain className="h-4 w-4 text-blue-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.brainstorm}</div>
-          </CardContent>
-        </Card>
+          <Card className="bg-gradient-to-br from-blue-950 to-blue-900 border-blue-700 shadow-lg shadow-blue-500/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-200">Brainstorming</CardTitle>
+              <Brain className="h-4 w-4 text-blue-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">{stats.brainstorm}</div>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gradient-to-br from-indigo-950 to-indigo-900 border-indigo-700 shadow-lg shadow-indigo-500/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-200">Planning</CardTitle>
-            <Target className="h-4 w-4 text-indigo-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.planning}</div>
-          </CardContent>
-        </Card>
+          <Card className="bg-gradient-to-br from-indigo-950 to-indigo-900 border-indigo-700 shadow-lg shadow-indigo-500/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-200">Planning</CardTitle>
+              <Target className="h-4 w-4 text-indigo-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">{stats.planning}</div>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gradient-to-br from-green-950 to-green-900 border-green-700 shadow-lg shadow-green-500/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-200">Ready to Build</CardTitle>
-            <Rocket className="h-4 w-4 text-green-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.ready}</div>
-          </CardContent>
-        </Card>
+          <Card className="bg-gradient-to-br from-green-950 to-green-900 border-green-700 shadow-lg shadow-green-500/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-200">Ready to Build</CardTitle>
+              <Rocket className="h-4 w-4 text-green-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">{stats.ready}</div>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-950 to-yellow-900 border-yellow-700 shadow-lg shadow-yellow-500/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-200">Starred</CardTitle>
-            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.starred}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Header with Search & Create */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-purple-400" />
-            AI Agent Ideas
-          </h2>
-          <p className="text-sm text-slate-400">
-            Brainstorm, plan, and shape your next AI agents
-          </p>
+          <Card className="bg-gradient-to-br from-yellow-950 to-yellow-900 border-yellow-700 shadow-lg shadow-yellow-500/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-200">Starred</CardTitle>
+              <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">{stats.starred}</div>
+            </CardContent>
+          </Card>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              placeholder="Search ideas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-slate-900 border-slate-700 text-slate-200"
-            />
+
+        {/* Header with Search & Create */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+              <Sparkles className="w-6 h-6 text-purple-400" />
+              AI Agent Ideas
+            </h2>
+            <p className="text-sm text-slate-400">
+              Brainstorm, plan, and shape your next AI agents
+            </p>
           </div>
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as IdeaStatus | 'all')}>
-            <SelectTrigger className="w-40 bg-slate-900 border-slate-700">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              {Object.entries(STATUS_CONFIG).map(([key, config]) => (
-                <SelectItem key={key} value={key}>{config.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
-                <Plus className="w-4 h-4" />
-                New Idea
+          <div className="flex gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Search ideas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-slate-900 border-slate-700 text-slate-200"
+              />
+            </div>
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => setStatusFilter(v as IdeaStatus | 'all')}
+            >
+              <SelectTrigger className="w-40 bg-slate-900 border-slate-700">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                  <SelectItem key={key} value={key}>
+                    {config.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
+                  <Plus className="w-4 h-4" />
+                  New Idea
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700">
+                <DialogHeader>
+                  <DialogTitle className="text-slate-100 flex items-center gap-2">
+                    <Lightbulb className="w-5 h-5 text-purple-400" />
+                    New AI Agent Idea
+                  </DialogTitle>
+                  <DialogDescription className="text-slate-400">
+                    Capture your idea for a new AI agent. Fill in as much as you can.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-200">Title *</label>
+                    <Input
+                      placeholder="e.g., Customer Support Bot"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      className="bg-slate-800 border-slate-600"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-200">Description</label>
+                    <Textarea
+                      placeholder="Describe what this agent will do..."
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      className="bg-slate-800 border-slate-600 min-h-[80px]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-200">Category</label>
+                      <Select
+                        value={formData.category}
+                        onValueChange={(v) =>
+                          setFormData({ ...formData, category: v as IdeaCategory })
+                        }
+                      >
+                        <SelectTrigger className="bg-slate-800 border-slate-600">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
+                            <SelectItem key={key} value={key}>
+                              {config.icon} {config.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-200">Priority</label>
+                      <Select
+                        value={formData.priority}
+                        onValueChange={(v) =>
+                          setFormData({ ...formData, priority: v as IdeaPriority })
+                        }
+                      >
+                        <SelectTrigger className="bg-slate-800 border-slate-600">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(PRIORITY_CONFIG).map(([key, config]) => (
+                            <SelectItem key={key} value={key}>
+                              {config.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-200">
+                      Use Cases (one per line)
+                    </label>
+                    <Textarea
+                      placeholder="- Automatically respond to customer inquiries&#10;- Route complex issues to humans&#10;- Track satisfaction metrics"
+                      value={formData.use_cases}
+                      onChange={(e) => setFormData({ ...formData, use_cases: e.target.value })}
+                      className="bg-slate-800 border-slate-600 min-h-[80px]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-200">Target Audience</label>
+                    <Input
+                      placeholder="e.g., Small business owners, e-commerce stores"
+                      value={formData.target_audience}
+                      onChange={(e) =>
+                        setFormData({ ...formData, target_audience: e.target.value })
+                      }
+                      className="bg-slate-800 border-slate-600"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-200">Expected Benefits</label>
+                    <Textarea
+                      placeholder="What value will this agent provide?"
+                      value={formData.expected_benefits}
+                      onChange={(e) =>
+                        setFormData({ ...formData, expected_benefits: e.target.value })
+                      }
+                      className="bg-slate-800 border-slate-600"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-200">
+                      Technical Requirements
+                    </label>
+                    <Textarea
+                      placeholder="APIs needed, models to use, integrations required..."
+                      value={formData.technical_requirements}
+                      onChange={(e) =>
+                        setFormData({ ...formData, technical_requirements: e.target.value })
+                      }
+                      className="bg-slate-800 border-slate-600"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-200">
+                      Estimated Complexity
+                    </label>
+                    <Select
+                      value={formData.estimated_complexity}
+                      onValueChange={(v) =>
+                        setFormData({
+                          ...formData,
+                          estimated_complexity: v as 'simple' | 'medium' | 'complex',
+                        })
+                      }
+                    >
+                      <SelectTrigger className="bg-slate-800 border-slate-600">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="simple">🟢 Simple (1-2 days)</SelectItem>
+                        <SelectItem value="medium">🟡 Medium (3-5 days)</SelectItem>
+                        <SelectItem value="complex">🔴 Complex (1+ week)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-200">Notes</label>
+                    <Textarea
+                      placeholder="Any additional thoughts or considerations..."
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      className="bg-slate-800 border-slate-600"
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateIdea} className="bg-purple-600 hover:bg-purple-700">
+                    <Lightbulb className="w-4 h-4 mr-2" />
+                    Create Idea
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        {/* Ideas Grid */}
+        {filteredIdeas.length === 0 ? (
+          <Card className="bg-slate-900 border-slate-700">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Lightbulb className="w-16 h-16 text-slate-500 mb-4" />
+              <h3 className="text-lg font-semibold mb-2 text-slate-200">No ideas yet</h3>
+              <p className="text-sm text-slate-400 mb-4">Start brainstorming your next AI agent!</p>
+              <Button
+                onClick={() => setShowCreateDialog(true)}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Idea
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700">
-              <DialogHeader>
-                <DialogTitle className="text-slate-100 flex items-center gap-2">
-                  <Lightbulb className="w-5 h-5 text-purple-400" />
-                  New AI Agent Idea
-                </DialogTitle>
-                <DialogDescription className="text-slate-400">
-                  Capture your idea for a new AI agent. Fill in as much as you can.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200">Title *</label>
-                  <Input
-                    placeholder="e.g., Customer Support Bot"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="bg-slate-800 border-slate-600"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200">Description</label>
-                  <Textarea
-                    placeholder="Describe what this agent will do..."
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="bg-slate-800 border-slate-600 min-h-[80px]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-200">Category</label>
-                    <Select 
-                      value={formData.category} 
-                      onValueChange={(v) => setFormData({ ...formData, category: v as IdeaCategory })}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredIdeas.map((idea) => (
+              <Card
+                key={idea.id}
+                className="bg-slate-900 border-slate-700 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 transition-all"
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{CATEGORY_CONFIG[idea.category].icon}</span>
+                      <div>
+                        <CardTitle className="text-lg text-slate-100 line-clamp-1">
+                          {idea.title}
+                        </CardTitle>
+                        <CardDescription className="text-slate-400 text-xs">
+                          {CATEGORY_CONFIG[idea.category].label}
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleStar(idea.id)}
+                      className="h-8 w-8"
                     >
-                      <SelectTrigger className="bg-slate-800 border-slate-600">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
-                          <SelectItem key={key} value={key}>
-                            {config.icon} {config.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      {idea.is_starred ? (
+                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                      ) : (
+                        <StarOff className="w-4 h-4 text-slate-500" />
+                      )}
+                    </Button>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-slate-400 line-clamp-2">
+                    {idea.description || 'No description yet'}
+                  </p>
+
+                  {/* Status & Priority */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge
+                      className={`${STATUS_CONFIG[idea.status].color} flex items-center gap-1`}
+                    >
+                      {STATUS_CONFIG[idea.status].icon}
+                      {STATUS_CONFIG[idea.status].label}
+                    </Badge>
+                    <Badge className={PRIORITY_CONFIG[idea.priority].color}>
+                      {PRIORITY_CONFIG[idea.priority].label}
+                    </Badge>
+                    <span
+                      className={`text-xs ${COMPLEXITY_CONFIG[idea.estimated_complexity].color}`}
+                    >
+                      {COMPLEXITY_CONFIG[idea.estimated_complexity].label}
+                    </span>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-200">Priority</label>
-                    <Select 
-                      value={formData.priority} 
-                      onValueChange={(v) => setFormData({ ...formData, priority: v as IdeaPriority })}
-                    >
-                      <SelectTrigger className="bg-slate-800 border-slate-600">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(PRIORITY_CONFIG).map(([key, config]) => (
-                          <SelectItem key={key} value={key}>{config.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                  {/* Use Cases Preview */}
+                  {idea.use_cases.length > 0 && (
+                    <div className="text-xs text-slate-500">
+                      {idea.use_cases.length} use case{idea.use_cases.length > 1 ? 's' : ''} defined
+                    </div>
+                  )}
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200">Use Cases (one per line)</label>
-                  <Textarea
-                    placeholder="- Automatically respond to customer inquiries&#10;- Route complex issues to humans&#10;- Track satisfaction metrics"
-                    value={formData.use_cases}
-                    onChange={(e) => setFormData({ ...formData, use_cases: e.target.value })}
-                    className="bg-slate-800 border-slate-600 min-h-[80px]"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200">Target Audience</label>
-                  <Input
-                    placeholder="e.g., Small business owners, e-commerce stores"
-                    value={formData.target_audience}
-                    onChange={(e) => setFormData({ ...formData, target_audience: e.target.value })}
-                    className="bg-slate-800 border-slate-600"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200">Expected Benefits</label>
-                  <Textarea
-                    placeholder="What value will this agent provide?"
-                    value={formData.expected_benefits}
-                    onChange={(e) => setFormData({ ...formData, expected_benefits: e.target.value })}
-                    className="bg-slate-800 border-slate-600"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200">Technical Requirements</label>
-                  <Textarea
-                    placeholder="APIs needed, models to use, integrations required..."
-                    value={formData.technical_requirements}
-                    onChange={(e) => setFormData({ ...formData, technical_requirements: e.target.value })}
-                    className="bg-slate-800 border-slate-600"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200">Estimated Complexity</label>
-                  <Select 
-                    value={formData.estimated_complexity} 
-                    onValueChange={(v) => setFormData({ ...formData, estimated_complexity: v as 'simple' | 'medium' | 'complex' })}
+                  {/* Status Selector */}
+                  <Select
+                    value={idea.status}
+                    onValueChange={(v) => handleStatusChange(idea, v as IdeaStatus)}
                   >
-                    <SelectTrigger className="bg-slate-800 border-slate-600">
+                    <SelectTrigger className="h-8 text-xs bg-slate-800 border-slate-600">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="simple">🟢 Simple (1-2 days)</SelectItem>
-                      <SelectItem value="medium">🟡 Medium (3-5 days)</SelectItem>
-                      <SelectItem value="complex">🔴 Complex (1+ week)</SelectItem>
+                      {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                        <SelectItem key={key} value={key} className="text-xs">
+                          <span className="flex items-center gap-2">
+                            {config.icon} {config.label}
+                          </span>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200">Notes</label>
-                  <Textarea
-                    placeholder="Any additional thoughts or considerations..."
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="bg-slate-800 border-slate-600"
-                  />
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateIdea} className="bg-purple-600 hover:bg-purple-700">
-                  <Lightbulb className="w-4 h-4 mr-2" />
-                  Create Idea
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      {/* Ideas Grid */}
-      {filteredIdeas.length === 0 ? (
-        <Card className="bg-slate-900 border-slate-700">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Lightbulb className="w-16 h-16 text-slate-500 mb-4" />
-            <h3 className="text-lg font-semibold mb-2 text-slate-200">No ideas yet</h3>
-            <p className="text-sm text-slate-400 mb-4">
-              Start brainstorming your next AI agent!
-            </p>
-            <Button onClick={() => setShowCreateDialog(true)} className="bg-purple-600 hover:bg-purple-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Idea
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredIdeas.map((idea) => (
-            <Card 
-              key={idea.id} 
-              className="bg-slate-900 border-slate-700 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 transition-all"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{CATEGORY_CONFIG[idea.category].icon}</span>
-                    <div>
-                      <CardTitle className="text-lg text-slate-100 line-clamp-1">
-                        {idea.title}
-                      </CardTitle>
-                      <CardDescription className="text-slate-400 text-xs">
-                        {CATEGORY_CONFIG[idea.category].label}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleStar(idea.id)}
-                    className="h-8 w-8"
-                  >
-                    {idea.is_starred ? (
-                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                    ) : (
-                      <StarOff className="w-4 h-4 text-slate-500" />
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-700">
+                    {/* Open in n8n button - show if idea has workflow ID */}
+                    {idea.technical_requirements?.includes('n8n Workflow ID:') && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-orange-500/50 text-orange-400 hover:bg-orange-500/20"
+                        onClick={() => {
+                          const match =
+                            idea.technical_requirements.match(/n8n Workflow ID: ([\w-]+)/);
+                          if (match) {
+                            window.open(`http://localhost:5678/workflow/${match[1]}`, '_blank');
+                          }
+                        }}
+                      >
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        n8n
+                      </Button>
                     )}
-                  </Button>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-3">
-                <p className="text-sm text-slate-400 line-clamp-2">
-                  {idea.description || "No description yet"}
-                </p>
-
-                {/* Status & Priority */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge className={`${STATUS_CONFIG[idea.status].color} flex items-center gap-1`}>
-                    {STATUS_CONFIG[idea.status].icon}
-                    {STATUS_CONFIG[idea.status].label}
-                  </Badge>
-                  <Badge className={PRIORITY_CONFIG[idea.priority].color}>
-                    {PRIORITY_CONFIG[idea.priority].label}
-                  </Badge>
-                  <span className={`text-xs ${COMPLEXITY_CONFIG[idea.estimated_complexity].color}`}>
-                    {COMPLEXITY_CONFIG[idea.estimated_complexity].label}
-                  </span>
-                </div>
-
-                {/* Use Cases Preview */}
-                {idea.use_cases.length > 0 && (
-                  <div className="text-xs text-slate-500">
-                    {idea.use_cases.length} use case{idea.use_cases.length > 1 ? 's' : ''} defined
+                    {idea.status === 'ready' && (
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        onClick={() => convertToAgent(idea)}
+                      >
+                        <Rocket className="w-3 h-3 mr-1" />
+                        Build Agent
+                        <ArrowRight className="w-3 h-3 ml-1" />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="sm" className="text-slate-400">
+                      <Edit3 className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-400 hover:text-red-300"
+                      onClick={() => handleDeleteIdea(idea.id)}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
                   </div>
-                )}
-
-                {/* Status Selector */}
-                <Select 
-                  value={idea.status} 
-                  onValueChange={(v) => handleStatusChange(idea, v as IdeaStatus)}
-                >
-                  <SelectTrigger className="h-8 text-xs bg-slate-800 border-slate-600">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(STATUS_CONFIG).map(([key, config]) => (
-                      <SelectItem key={key} value={key} className="text-xs">
-                        <span className="flex items-center gap-2">
-                          {config.icon} {config.label}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 pt-2 border-t border-slate-700">
-                  {/* Open in n8n button - show if idea has workflow ID */}
-                  {idea.technical_requirements?.includes('n8n Workflow ID:') && (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="border-orange-500/50 text-orange-400 hover:bg-orange-500/20"
-                      onClick={() => {
-                        const match = idea.technical_requirements.match(/n8n Workflow ID: ([\w-]+)/);
-                        if (match) {
-                          window.open(`http://localhost:5678/workflow/${match[1]}`, '_blank');
-                        }
-                      }}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-1" />
-                      n8n
-                    </Button>
-                  )}
-                  {idea.status === 'ready' && (
-                    <Button 
-                      size="sm" 
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      onClick={() => convertToAgent(idea)}
-                    >
-                      <Rocket className="w-3 h-3 mr-1" />
-                      Build Agent
-                      <ArrowRight className="w-3 h-3 ml-1" />
-                    </Button>
-                  )}
-                  <Button variant="ghost" size="sm" className="text-slate-400">
-                    <Edit3 className="w-3 h-3" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-red-400 hover:text-red-300"
-                    onClick={() => handleDeleteIdea(idea.id)}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </TabsContent>
 
       <TabsContent value="n8n">

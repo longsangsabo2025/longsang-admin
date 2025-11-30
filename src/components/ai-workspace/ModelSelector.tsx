@@ -1,6 +1,6 @@
 /**
  * 🤖 ModelSelector - AI Model Selection Component
- * 
+ *
  * Allows users to select from available AI models:
  * - OpenAI (GPT-4, GPT-4 Turbo, GPT-3.5)
  * - Anthropic (Claude 3.5 Sonnet, Claude 3 Opus)
@@ -9,14 +9,7 @@
  */
 
 import React from 'react';
-import { 
-  ChevronDown, 
-  Zap, 
-  Brain, 
-  Sparkles,
-  Server,
-  Check,
-} from 'lucide-react';
+import { ChevronDown, Zap, Brain, Sparkles, Server, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,12 +21,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // =============================================================================
 // TYPES & CONFIG
@@ -105,7 +93,7 @@ export const AI_MODELS: AIModel[] = [
     capabilities: ['code', 'chat'],
     icon: '⚪',
   },
-  
+
   // Anthropic Models
   {
     id: 'claude-3-5-sonnet-20241022',
@@ -143,7 +131,7 @@ export const AI_MODELS: AIModel[] = [
     capabilities: ['code', 'chat'],
     icon: '🔴',
   },
-  
+
   // Google Models
   {
     id: 'gemini-1.5-pro',
@@ -169,7 +157,7 @@ export const AI_MODELS: AIModel[] = [
     capabilities: ['vision', 'code', 'chat'],
     icon: '⚡',
   },
-  
+
   // Local Models
   {
     id: 'ollama/llama3.2',
@@ -197,23 +185,23 @@ export const AI_MODELS: AIModel[] = [
 
 // Provider icons & colors
 const PROVIDER_CONFIG = {
-  openai: { 
-    name: 'OpenAI', 
+  openai: {
+    name: 'OpenAI',
     color: 'text-green-500',
     bgColor: 'bg-green-500/10',
   },
-  anthropic: { 
-    name: 'Anthropic', 
+  anthropic: {
+    name: 'Anthropic',
     color: 'text-orange-500',
     bgColor: 'bg-orange-500/10',
   },
-  google: { 
-    name: 'Google', 
+  google: {
+    name: 'Google',
     color: 'text-blue-500',
     bgColor: 'bg-blue-500/10',
   },
-  local: { 
-    name: 'Local', 
+  local: {
+    name: 'Local',
     color: 'text-purple-500',
     bgColor: 'bg-purple-500/10',
   },
@@ -243,16 +231,19 @@ export function ModelSelector({
   compact = false,
   className,
 }: Readonly<ModelSelectorProps>) {
-  const model = AI_MODELS.find(m => m.id === selectedModel) || AI_MODELS[0];
+  const model = AI_MODELS.find((m) => m.id === selectedModel) || AI_MODELS[0];
   const providerConfig = PROVIDER_CONFIG[model.provider];
   const SpeedIcon = SPEED_CONFIG[model.speed].icon;
 
   // Group models by provider
-  const groupedModels = AI_MODELS.reduce((acc, m) => {
-    if (!acc[m.provider]) acc[m.provider] = [];
-    acc[m.provider].push(m);
-    return acc;
-  }, {} as Record<string, AIModel[]>);
+  const groupedModels = AI_MODELS.reduce(
+    (acc, m) => {
+      if (!acc[m.provider]) acc[m.provider] = [];
+      acc[m.provider].push(m);
+      return acc;
+    },
+    {} as Record<string, AIModel[]>
+  );
 
   if (compact) {
     return (
@@ -270,10 +261,15 @@ export function ModelSelector({
               <DropdownMenuContent align="start" className="w-72">
                 {Object.entries(groupedModels).map(([provider, models]) => (
                   <React.Fragment key={provider}>
-                    <DropdownMenuLabel className={cn('text-xs', PROVIDER_CONFIG[provider as keyof typeof PROVIDER_CONFIG].color)}>
+                    <DropdownMenuLabel
+                      className={cn(
+                        'text-xs',
+                        PROVIDER_CONFIG[provider as keyof typeof PROVIDER_CONFIG].color
+                      )}
+                    >
                       {PROVIDER_CONFIG[provider as keyof typeof PROVIDER_CONFIG].name}
                     </DropdownMenuLabel>
-                    {models.map(m => (
+                    {models.map((m) => (
                       <DropdownMenuItem
                         key={m.id}
                         onClick={() => onModelChange(m.id)}
@@ -289,7 +285,10 @@ export function ModelSelector({
                               </Badge>
                             )}
                             {m.isBeta && (
-                              <Badge variant="outline" className="text-[10px] px-1 py-0 text-yellow-500">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] px-1 py-0 text-yellow-500"
+                              >
                                 Beta
                               </Badge>
                             )}
@@ -323,13 +322,9 @@ export function ModelSelector({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="outline" 
-          className={cn(
-            'gap-3 justify-start h-auto py-2 px-3',
-            providerConfig.bgColor,
-            className
-          )}
+        <Button
+          variant="outline"
+          className={cn('gap-3 justify-start h-auto py-2 px-3', providerConfig.bgColor, className)}
         >
           <span className="text-2xl">{model.icon}</span>
           <div className="flex-1 text-left">
@@ -344,19 +339,21 @@ export function ModelSelector({
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      
+
       <DropdownMenuContent align="start" className="w-80">
         {Object.entries(groupedModels).map(([provider, models]) => (
           <React.Fragment key={provider}>
-            <DropdownMenuLabel className={cn(
-              'flex items-center gap-2',
-              PROVIDER_CONFIG[provider as keyof typeof PROVIDER_CONFIG].color
-            )}>
+            <DropdownMenuLabel
+              className={cn(
+                'flex items-center gap-2',
+                PROVIDER_CONFIG[provider as keyof typeof PROVIDER_CONFIG].color
+              )}
+            >
               <Sparkles className="h-3.5 w-3.5" />
               {PROVIDER_CONFIG[provider as keyof typeof PROVIDER_CONFIG].name}
             </DropdownMenuLabel>
-            
-            {models.map(m => {
+
+            {models.map((m) => {
               const MSpeedIcon = SPEED_CONFIG[m.speed].icon;
               return (
                 <DropdownMenuItem
@@ -375,9 +372,7 @@ export function ModelSelector({
                         </Badge>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {m.description}
-                    </div>
+                    <div className="text-xs text-muted-foreground">{m.description}</div>
                     <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
                       <span>{(m.contextWindow / 1000).toFixed(0)}K ctx</span>
                       <span>•</span>

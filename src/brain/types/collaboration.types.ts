@@ -67,4 +67,3 @@ export interface AddTeamMemberRequest {
   memberUserId: string;
   role?: TeamRole;
 }
-

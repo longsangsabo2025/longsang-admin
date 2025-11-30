@@ -1,25 +1,20 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Settings,
-  Save,
-  Trash2,
-  AlertTriangle
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Settings, Save, Trash2, AlertTriangle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,8 +25,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useNavigate } from "react-router-dom";
+} from '@/components/ui/alert-dialog';
+import { useNavigate } from 'react-router-dom';
 
 interface Project {
   id: string;
@@ -54,34 +49,34 @@ export function ProjectSettingsTab({ project, onRefresh }: ProjectSettingsTabPro
   const [formData, setFormData] = useState({
     name: project.name,
     slug: project.slug,
-    description: project.description || "",
+    description: project.description || '',
     status: project.status,
     icon: project.icon,
-    color: project.color
+    color: project.color,
   });
 
   const handleSave = async () => {
     try {
       setSaving(true);
       const { error } = await supabase
-        .from("projects")
+        .from('projects')
         .update({
           name: formData.name,
           description: formData.description,
           status: formData.status,
           icon: formData.icon,
           color: formData.color,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq("id", project.id);
+        .eq('id', project.id);
 
       if (error) throw error;
-      
-      toast.success("Đã lưu thay đổi!");
+
+      toast.success('Đã lưu thay đổi!');
       onRefresh();
     } catch (error: any) {
-      console.error("Error saving project:", error);
-      toast.error("Không thể lưu thay đổi");
+      console.error('Error saving project:', error);
+      toast.error('Không thể lưu thay đổi');
     } finally {
       setSaving(false);
     }
@@ -89,18 +84,15 @@ export function ProjectSettingsTab({ project, onRefresh }: ProjectSettingsTabPro
 
   const handleDelete = async () => {
     try {
-      const { error } = await supabase
-        .from("projects")
-        .delete()
-        .eq("id", project.id);
+      const { error } = await supabase.from('projects').delete().eq('id', project.id);
 
       if (error) throw error;
-      
-      toast.success("Đã xóa dự án!");
-      navigate("/admin/projects");
+
+      toast.success('Đã xóa dự án!');
+      navigate('/admin/projects');
     } catch (error: any) {
-      console.error("Error deleting project:", error);
-      toast.error("Không thể xóa dự án");
+      console.error('Error deleting project:', error);
+      toast.error('Không thể xóa dự án');
     }
   };
 
@@ -110,9 +102,7 @@ export function ProjectSettingsTab({ project, onRefresh }: ProjectSettingsTabPro
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Project Settings</h3>
-          <p className="text-sm text-muted-foreground">
-            Cấu hình và quản lý dự án
-          </p>
+          <p className="text-sm text-muted-foreground">Cấu hình và quản lý dự án</p>
         </div>
       </div>
 
@@ -128,27 +118,23 @@ export function ProjectSettingsTab({ project, onRefresh }: ProjectSettingsTabPro
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Tên Dự Án</Label>
-              <Input 
+              <Input
                 value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label>Slug</Label>
-              <Input 
-                value={formData.slug}
-                disabled
-                className="bg-muted"
-              />
+              <Input value={formData.slug} disabled className="bg-muted" />
               <p className="text-xs text-muted-foreground">Slug không thể thay đổi</p>
             </div>
           </div>
 
           <div className="space-y-2">
             <Label>Mô Tả</Label>
-            <Textarea 
+            <Textarea
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
             />
           </div>
@@ -156,9 +142,9 @@ export function ProjectSettingsTab({ project, onRefresh }: ProjectSettingsTabPro
           <div className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select 
+              <Select
                 value={formData.status}
-                onValueChange={(v) => setFormData({...formData, status: v})}
+                onValueChange={(v) => setFormData({ ...formData, status: v })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -173,24 +159,24 @@ export function ProjectSettingsTab({ project, onRefresh }: ProjectSettingsTabPro
             </div>
             <div className="space-y-2">
               <Label>Icon (Emoji)</Label>
-              <Input 
+              <Input
                 value={formData.icon}
-                onChange={(e) => setFormData({...formData, icon: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                 maxLength={4}
               />
             </div>
             <div className="space-y-2">
               <Label>Color</Label>
               <div className="flex gap-2">
-                <Input 
+                <Input
                   type="color"
                   value={formData.color}
-                  onChange={(e) => setFormData({...formData, color: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                   className="w-16 h-10 p-1"
                 />
-                <Input 
+                <Input
                   value={formData.color}
-                  onChange={(e) => setFormData({...formData, color: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                   placeholder="#3b82f6"
                 />
               </div>
@@ -200,7 +186,7 @@ export function ProjectSettingsTab({ project, onRefresh }: ProjectSettingsTabPro
           <div className="flex justify-end">
             <Button onClick={handleSave} disabled={saving}>
               <Save className="h-4 w-4 mr-2" />
-              {saving ? "Đang lưu..." : "Lưu Thay Đổi"}
+              {saving ? 'Đang lưu...' : 'Lưu Thay Đổi'}
             </Button>
           </div>
         </CardContent>
@@ -233,12 +219,16 @@ export function ProjectSettingsTab({ project, onRefresh }: ProjectSettingsTabPro
                 <AlertDialogHeader>
                   <AlertDialogTitle>Bạn có chắc chắn?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Hành động này sẽ xóa vĩnh viễn dự án "{project.name}" và tất cả dữ liệu liên quan bao gồm credentials, domains, social links, v.v.
+                    Hành động này sẽ xóa vĩnh viễn dự án "{project.name}" và tất cả dữ liệu liên
+                    quan bao gồm credentials, domains, social links, v.v.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Hủy</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
                     Xóa Vĩnh Viễn
                   </AlertDialogAction>
                 </AlertDialogFooter>

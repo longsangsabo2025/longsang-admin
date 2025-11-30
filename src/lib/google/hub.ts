@@ -3,12 +3,12 @@
  * Quản lý tất cả Google Services: Analytics, Sheets, Search Console, Calendar, Drive
  */
 
-import { 
-  getAnalyticsOverview, 
+import {
+  getAnalyticsOverview,
   getTrafficSources,
   comparePerformance,
   getDeviceBreakdown,
-  type AnalyticsMetrics 
+  type AnalyticsMetrics,
 } from './analytics-api';
 
 import { supabase } from '@/integrations/supabase/client';
@@ -20,24 +20,24 @@ import { supabase } from '@/integrations/supabase/client';
 export interface GoogleServicesConfig {
   id: string;
   user_id: string;
-  
+
   // Analytics
   analytics_property_id: string | null;
   analytics_enabled: boolean;
-  
+
   // Sheets
   reporting_spreadsheet_id: string | null;
   sheets_auto_sync: boolean;
-  
+
   // Search Console (từ SEO Center)
   search_console_enabled: boolean;
-  
+
   // Automation
   daily_sync_enabled: boolean;
   sync_time: string; // HH:MM format
   email_reports: boolean;
   report_recipients: string[]; // email addresses
-  
+
   created_at: string;
   updated_at: string;
 }
@@ -92,7 +92,9 @@ export interface DashboardMetrics {
  * Lấy Google Services config
  */
 export async function getGoogleConfig(): Promise<GoogleServicesConfig | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
   const { data, error } = await supabase
@@ -109,7 +111,9 @@ export async function getGoogleConfig(): Promise<GoogleServicesConfig | null> {
  * Cập nhật hoặc tạo config
  */
 export async function saveGoogleConfig(config: Partial<GoogleServicesConfig>) {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
   const existing = await getGoogleConfig();
@@ -151,9 +155,11 @@ export async function saveGoogleConfig(config: Partial<GoogleServicesConfig>) {
  */
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const config = await getGoogleConfig();
-  
+
   if (!config) {
-    throw new Error('Google Services not configured. Please set up your Google Analytics Property ID.');
+    throw new Error(
+      'Google Services not configured. Please set up your Google Analytics Property ID.'
+    );
   }
 
   // Analytics Data
@@ -182,11 +188,13 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       totalUsers: overview.reduce((sum, day) => sum + day.users, 0),
       avgBounceRate: overview.reduce((sum, day) => sum + day.bounceRate, 0) / overview.length,
       conversions: overview.reduce((sum, day) => sum + day.conversions, 0),
-      comparison: comparison ? {
-        sessionsChange: comparison.changes.sessions,
-        usersChange: comparison.changes.users,
-        conversionsChange: comparison.changes.conversions,
-      } : analyticsData.comparison,
+      comparison: comparison
+        ? {
+            sessionsChange: comparison.changes.sessions,
+            usersChange: comparison.changes.users,
+            conversionsChange: comparison.changes.conversions,
+          }
+        : analyticsData.comparison,
     };
   }
 
@@ -201,33 +209,37 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     totalClicks: 0,
     totalImpressions: 0,
     avgCTR: 0,
-    avgPosition: seoData?.reduce((sum, k) => sum + (k.current_position || 0), 0) / (seoData?.length || 1) || 0,
-    topKeywords: seoData?.map(k => ({
-      keyword: k.keyword,
-      clicks: 0, // Will be populated from Search Console API
-      position: k.current_position || 0,
-    })) || [],
+    avgPosition:
+      seoData?.reduce((sum, k) => sum + (k.current_position || 0), 0) / (seoData?.length || 1) || 0,
+    topKeywords:
+      seoData?.map((k) => ({
+        keyword: k.keyword,
+        clicks: 0, // Will be populated from Search Console API
+        position: k.current_position || 0,
+      })) || [],
   };
 
   // Traffic Sources
-  const trafficSources = config.analytics_enabled && config.analytics_property_id
-    ? await getTrafficSources(config.analytics_property_id)
-    : [];
+  const trafficSources =
+    config.analytics_enabled && config.analytics_property_id
+      ? await getTrafficSources(config.analytics_property_id)
+      : [];
 
   const totalTraffic = trafficSources.reduce((sum, s) => sum + s.sessions, 0);
   const traffic = {
-    sources: trafficSources.slice(0, 5).map(s => ({
+    sources: trafficSources.slice(0, 5).map((s) => ({
       source: s.source,
       sessions: s.sessions,
       percentage: totalTraffic > 0 ? (s.sessions / totalTraffic) * 100 : 0,
     })),
-    devices: config.analytics_enabled && config.analytics_property_id
-      ? (await getDeviceBreakdown(config.analytics_property_id)).map(d => ({
-          device: d.device,
-          sessions: d.sessions,
-          percentage: totalTraffic > 0 ? (d.sessions / totalTraffic) * 100 : 0,
-        }))
-      : [],
+    devices:
+      config.analytics_enabled && config.analytics_property_id
+        ? (await getDeviceBreakdown(config.analytics_property_id)).map((d) => ({
+            device: d.device,
+            sessions: d.sessions,
+            percentage: totalTraffic > 0 ? (d.sessions / totalTraffic) * 100 : 0,
+          }))
+        : [],
   };
 
   // Sheets Info
@@ -243,7 +255,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const sheets = {
     lastSyncTime: lastSync?.completed_at || null,
     totalReports: 0, // Will count from sheets
-    spreadsheetUrl: config.reporting_spreadsheet_id 
+    spreadsheetUrl: config.reporting_spreadsheet_id
       ? `https://docs.google.com/spreadsheets/d/${config.reporting_spreadsheet_id}`
       : null,
   };
@@ -263,7 +275,10 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 /**
  * Sync tất cả data vào Google Sheets
  */
-export async function syncToGoogleSheets(): Promise<{ recordsSynced: number; spreadsheetUrl: string }> {
+export async function syncToGoogleSheets(): Promise<{
+  recordsSynced: number;
+  spreadsheetUrl: string;
+}> {
   const config = await getGoogleConfig();
   if (!config?.reporting_spreadsheet_id) {
     throw new Error('Google Sheets not configured. Please set up a reporting spreadsheet first.');
@@ -308,18 +323,18 @@ export async function generateDashboardReport(): Promise<{ spreadsheetUrl: strin
     }
 
     const { spreadsheetId, spreadsheetUrl } = await createResponse.json();
-    
+
     // Save the spreadsheet ID to config
     await saveGoogleConfig({ reporting_spreadsheet_id: spreadsheetId });
-    
+
     return { spreadsheetUrl };
   }
 
   // Sync data to existing spreadsheet
   await syncToGoogleSheets();
-  
-  return { 
-    spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${config.reporting_spreadsheet_id}` 
+
+  return {
+    spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${config.reporting_spreadsheet_id}`,
   };
 }
 
@@ -409,10 +424,10 @@ export async function testGoogleConnection(analyticsPropertyId: string) {
     const response = await fetch('http://localhost:3001/api/google/analytics/overview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        propertyId: analyticsPropertyId, 
-        startDate: '1daysAgo', 
-        endDate: 'today' 
+      body: JSON.stringify({
+        propertyId: analyticsPropertyId,
+        startDate: '1daysAgo',
+        endDate: 'today',
       }),
     });
 

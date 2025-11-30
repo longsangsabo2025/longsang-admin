@@ -60,7 +60,7 @@ export function useTodayBriefing() {
  */
 export function useTriggerBriefing() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: () => soloHubApi.briefings.triggerGeneration(),
     onSuccess: () => {
@@ -81,7 +81,7 @@ export function useTriggerBriefing() {
  */
 export function useMarkBriefingRead() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => soloHubApi.briefings.markAsRead(id),
     onSuccess: () => {
@@ -144,7 +144,7 @@ export function useAgentPerformance() {
  */
 export function useUpdateAgentStatus() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: AIAgent['status'] }) =>
       soloHubApi.agents.updateStatus(id, status),
@@ -162,7 +162,7 @@ export function useUpdateAgentStatus() {
  */
 export function useCreateDefaultAgents() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: () => soloHubApi.agents.createDefaults(),
     onSuccess: () => {
@@ -217,7 +217,7 @@ export function useTasksByAgent(agentId: string) {
  */
 export function useCreateTask() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (input: CreateTaskInput) => soloHubApi.tasks.create(input),
     onSuccess: (result) => {
@@ -239,16 +239,16 @@ export function useCreateTask() {
  */
 export function useUpdateTaskStatus() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ 
-      id, 
-      status, 
-      output_data 
-    }: { 
-      id: string; 
-      status: AgentTask['status']; 
-      output_data?: Record<string, unknown> 
+    mutationFn: ({
+      id,
+      status,
+      output_data,
+    }: {
+      id: string;
+      status: AgentTask['status'];
+      output_data?: Record<string, unknown>;
     }) => soloHubApi.tasks.updateStatus(id, status, output_data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: soloHubKeys.tasks() });
@@ -296,7 +296,7 @@ export function useDecisionsSummary() {
  */
 export function useApproveDecision() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, feedback }: { id: string; feedback?: string }) =>
       soloHubApi.decisions.approve(id, feedback),
@@ -315,7 +315,7 @@ export function useApproveDecision() {
  */
 export function useRejectDecision() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, feedback }: { id: string; feedback?: string }) =>
       soloHubApi.decisions.reject(id, feedback),
@@ -334,7 +334,7 @@ export function useRejectDecision() {
  */
 export function useDeferDecision() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => soloHubApi.decisions.defer(id),
     onSuccess: () => {
@@ -387,7 +387,7 @@ export function useMemoryCategories() {
  */
 export function useCreateMemory() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (input: CreateMemoryInput) => soloHubApi.memory.create(input),
     onSuccess: () => {
@@ -405,7 +405,7 @@ export function useCreateMemory() {
  */
 export function useUpdateMemory() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: Partial<AgentMemory> }) =>
       soloHubApi.memory.update(id, updates),
@@ -424,7 +424,7 @@ export function useUpdateMemory() {
  */
 export function useDeleteMemory() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => soloHubApi.memory.delete(id),
     onSuccess: () => {
@@ -493,7 +493,7 @@ export function useUnreadCount() {
  */
 export function useMarkAsRead() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => soloHubApi.communications.markAsRead(id),
     onSuccess: () => {
@@ -508,7 +508,7 @@ export function useMarkAsRead() {
  */
 export function useMarkAllAsRead() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: () => soloHubApi.communications.markAllAsRead(),
     onSuccess: () => {

@@ -3,10 +3,10 @@
  * Smooth scroll to top with fade in/out animation
  */
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { ChevronUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { ChevronUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
@@ -21,17 +21,17 @@ export function ScrollToTop() {
       }
     };
 
-    window.addEventListener("scroll", toggleVisibility);
+    window.addEventListener('scroll', toggleVisibility);
 
     return () => {
-      window.removeEventListener("scroll", toggleVisibility);
+      window.removeEventListener('scroll', toggleVisibility);
     };
   }, []);
 
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: "smooth",
+      behavior: 'smooth',
     });
   };
 
@@ -40,10 +40,10 @@ export function ScrollToTop() {
       onClick={scrollToTop}
       size="icon"
       className={cn(
-        "fixed bottom-8 right-8 z-50 h-12 w-12 rounded-full shadow-lg transition-all duration-300",
-        "bg-primary hover:bg-primary/90",
-        "hover:scale-110 hover:shadow-xl",
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-16 pointer-events-none"
+        'fixed bottom-8 right-8 z-50 h-12 w-12 rounded-full shadow-lg transition-all duration-300',
+        'bg-primary hover:bg-primary/90',
+        'hover:scale-110 hover:shadow-xl',
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16 pointer-events-none'
       )}
       aria-label="Scroll to top"
     >

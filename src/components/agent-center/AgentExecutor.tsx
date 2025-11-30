@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Send, CheckCircle, XCircle, Clock, DollarSign } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { executeAgent, type AgentExecutionResult } from "@/lib/services/agentExecutionService";
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Send, CheckCircle, XCircle, Clock, DollarSign } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { executeAgent, type AgentExecutionResult } from '@/lib/services/agentExecutionService';
 
 interface AgentExecutorProps {
   readonly agentId: string;
@@ -13,7 +13,7 @@ interface AgentExecutorProps {
 }
 
 export default function AgentExecutor({ agentId, agentName }: Readonly<AgentExecutorProps>) {
-  const [task, setTask] = useState("");
+  const [task, setTask] = useState('');
   const [executing, setExecuting] = useState(false);
   const [result, setResult] = useState<AgentExecutionResult | null>(null);
   const { toast } = useToast();
@@ -21,9 +21,9 @@ export default function AgentExecutor({ agentId, agentName }: Readonly<AgentExec
   const handleExecute = async () => {
     if (!task.trim()) {
       toast({
-        title: "Empty Task",
-        description: "Please enter a task for the agent to execute",
-        variant: "destructive",
+        title: 'Empty Task',
+        description: 'Please enter a task for the agent to execute',
+        variant: 'destructive',
       });
       return;
     }
@@ -41,22 +41,22 @@ export default function AgentExecutor({ agentId, agentName }: Readonly<AgentExec
 
       if (executionResult.success) {
         toast({
-          title: "✅ Execution Complete!",
+          title: '✅ Execution Complete!',
           description: `Cost: $${executionResult.costUsd.toFixed(4)} | Time: ${executionResult.executionTimeMs}ms`,
         });
       } else {
         toast({
-          title: "❌ Execution Failed",
-          description: executionResult.error || "Unknown error",
-          variant: "destructive",
+          title: '❌ Execution Failed',
+          description: executionResult.error || 'Unknown error',
+          variant: 'destructive',
         });
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to execute agent";
+      const errorMessage = error instanceof Error ? error.message : 'Failed to execute agent';
       toast({
-        title: "Error",
+        title: 'Error',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setExecuting(false);
@@ -66,9 +66,7 @@ export default function AgentExecutor({ agentId, agentName }: Readonly<AgentExec
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          🤖 Test Agent: {agentName}
-        </CardTitle>
+        <CardTitle className="flex items-center gap-2">🤖 Test Agent: {agentName}</CardTitle>
         <CardDescription>
           Using GPT-4o mini (ultra cheap & fast!) - ~$0.0004 per 1K tokens 💰⚡
         </CardDescription>
@@ -76,7 +74,9 @@ export default function AgentExecutor({ agentId, agentName }: Readonly<AgentExec
       <CardContent className="space-y-4">
         {/* Task Input */}
         <div className="space-y-2">
-          <label htmlFor="task-input" className="text-sm font-medium">Task for Agent:</label>
+          <label htmlFor="task-input" className="text-sm font-medium">
+            Task for Agent:
+          </label>
           <Textarea
             id="task-input"
             placeholder="Enter task for the agent to execute... (e.g., 'Generate a marketing email for a new product launch')"
@@ -89,8 +89,8 @@ export default function AgentExecutor({ agentId, agentName }: Readonly<AgentExec
         </div>
 
         {/* Execute Button */}
-        <Button 
-          onClick={handleExecute} 
+        <Button
+          onClick={handleExecute}
           disabled={executing || !task.trim()}
           className="w-full"
           size="lg"
@@ -110,7 +110,7 @@ export default function AgentExecutor({ agentId, agentName }: Readonly<AgentExec
 
         {/* Result Display */}
         {result && (
-          <Card className={result.success ? "border-green-500" : "border-red-500"}>
+          <Card className={result.success ? 'border-green-500' : 'border-red-500'}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 {result.success ? (
@@ -134,8 +134,7 @@ export default function AgentExecutor({ agentId, agentName }: Readonly<AgentExec
                   {result.executionTimeMs}ms
                 </Badge>
                 <Badge variant="outline" className="gap-1">
-                  <DollarSign className="h-3 w-3" />
-                  ${result.costUsd.toFixed(6)}
+                  <DollarSign className="h-3 w-3" />${result.costUsd.toFixed(6)}
                 </Badge>
               </div>
 
@@ -144,9 +143,7 @@ export default function AgentExecutor({ agentId, agentName }: Readonly<AgentExec
                 <div className="space-y-2">
                   <div className="text-sm font-medium">AI Response:</div>
                   <div className="bg-muted p-4 rounded-lg">
-                    <pre className="whitespace-pre-wrap text-sm font-mono">
-                      {result.output}
-                    </pre>
+                    <pre className="whitespace-pre-wrap text-sm font-mono">{result.output}</pre>
                   </div>
                 </div>
               )}
@@ -156,9 +153,7 @@ export default function AgentExecutor({ agentId, agentName }: Readonly<AgentExec
                 <div className="space-y-2">
                   <div className="text-sm font-medium text-red-500">Error:</div>
                   <div className="bg-red-50 dark:bg-red-950 p-4 rounded-lg">
-                    <p className="text-sm text-red-600 dark:text-red-400">
-                      {result.error}
-                    </p>
+                    <p className="text-sm text-red-600 dark:text-red-400">{result.error}</p>
                   </div>
                 </div>
               )}

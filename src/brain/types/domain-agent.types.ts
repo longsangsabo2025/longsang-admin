@@ -108,12 +108,12 @@ export interface DomainTrends {
   domainId: string;
   growth: {
     rate: number;
-    direction: "up" | "down" | "stable";
+    direction: 'up' | 'down' | 'stable';
     current: number;
     previous: number;
   };
   activity: {
-    level: "very_active" | "active" | "moderate" | "low" | "none";
+    level: 'very_active' | 'active' | 'moderate' | 'low' | 'none';
     trend: string;
   };
   insights: string[];
@@ -169,7 +169,7 @@ export interface BulkIngestInput {
     domainId: string;
     title: string;
     content: string;
-    contentType?: "document" | "note" | "conversation" | "external" | "code";
+    contentType?: 'document' | 'note' | 'conversation' | 'external' | 'code';
     tags?: string[];
     metadata?: Record<string, any>;
   }>;
@@ -218,4 +218,3 @@ export interface DomainExportData {
   exported_at: string;
   version: string;
 }
-

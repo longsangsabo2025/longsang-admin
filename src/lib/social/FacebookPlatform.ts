@@ -13,14 +13,14 @@ import {
   PlatformSettings,
   SocialPostRequest,
   SocialPostResponse,
-} from "@/types/social-media";
-import { BaseSocialPlatform } from "./BaseSocialPlatform";
+} from '@/types/social-media';
+import { BaseSocialPlatform } from './BaseSocialPlatform';
 
 export class FacebookPlatform extends BaseSocialPlatform {
-  private readonly API_BASE = "https://graph.facebook.com/v18.0";
+  private readonly API_BASE = 'https://graph.facebook.com/v18.0';
 
   constructor(credentials: PlatformCredentials, settings?: PlatformSettings) {
-    super("facebook", credentials, settings);
+    super('facebook', credentials, settings);
   }
 
   async authenticate(): Promise<boolean> {
@@ -48,7 +48,7 @@ export class FacebookPlatform extends BaseSocialPlatform {
       this.validatePost(request);
 
       if (!this.credentials.pageId) {
-        throw new Error("Facebook Page ID not configured");
+        throw new Error('Facebook Page ID not configured');
       }
 
       // Format content
@@ -56,13 +56,13 @@ export class FacebookPlatform extends BaseSocialPlatform {
 
       if (this.settings.autoHashtags && request.hashtags && request.hashtags.length > 0) {
         const hashtags = this.formatHashtags(request.hashtags);
-        message = `${message}\n\n${hashtags.join(" ")}`;
+        message = `${message}\n\n${hashtags.join(' ')}`;
       }
 
       // Prepare payload based on content type
       const payload: Record<string, string> = {
         message: message,
-        access_token: this.credentials.accessToken || "",
+        access_token: this.credentials.accessToken || '',
       };
 
       // Add link if provided
@@ -80,12 +80,12 @@ export class FacebookPlatform extends BaseSocialPlatform {
 
       if (request.media && request.media.length > 0) {
         const media = request.media[0];
-        if (media.type === "image") {
+        if (media.type === 'image') {
           endpoint = `${this.API_BASE}/${this.credentials.pageId}/photos`;
           payload.url = media.url;
           payload.caption = message;
           delete payload.message;
-        } else if (media.type === "video") {
+        } else if (media.type === 'video') {
           endpoint = `${this.API_BASE}/${this.credentials.pageId}/videos`;
           payload.file_url = media.url;
           payload.description = message;
@@ -94,37 +94,37 @@ export class FacebookPlatform extends BaseSocialPlatform {
       }
 
       const response = await fetch(endpoint, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(`Facebook API error: ${error.error?.message || "Unknown error"}`);
+        throw new Error(`Facebook API error: ${error.error?.message || 'Unknown error'}`);
       }
 
       const data = (await response.json()) as { id: string; post_id?: string };
       const postId = data.post_id || data.id;
 
       return {
-        platform: "facebook",
+        platform: 'facebook',
         success: true,
         postId: postId,
         postUrl: `https://www.facebook.com/${postId}`,
-        status: "published",
+        status: 'published',
         publishedAt: new Date(),
       };
     } catch (error) {
       return {
-        platform: "facebook",
+        platform: 'facebook',
         success: false,
-        status: "failed",
+        status: 'failed',
         error: {
-          code: "POST_FAILED",
-          message: error instanceof Error ? error.message : "Unknown error",
+          code: 'POST_FAILED',
+          message: error instanceof Error ? error.message : 'Unknown error',
           details: error,
         },
       };
@@ -161,23 +161,23 @@ export class FacebookPlatform extends BaseSocialPlatform {
             avatarUrl: page.picture?.data?.url,
             followerCount: page.fan_count,
             verified:
-              page.verification_status === "blue_verified" ||
-              page.verification_status === "gray_verified",
+              page.verification_status === 'blue_verified' ||
+              page.verification_status === 'gray_verified',
           };
         }
       } catch (error) {
-        console.error("Failed to get Facebook page info:", error);
+        console.error('Failed to get Facebook page info:', error);
       }
     }
 
     return {
-      platform: "facebook",
+      platform: 'facebook',
       connected: isHealthy,
       accountInfo,
       health: {
-        status: isHealthy ? "healthy" : "error",
+        status: isHealthy ? 'healthy' : 'error',
         lastChecked: new Date(),
-        message: isHealthy ? "Connected" : "Authentication failed",
+        message: isHealthy ? 'Connected' : 'Authentication failed',
       },
       credentials: this.credentials,
       settings: this.settings,
@@ -186,7 +186,7 @@ export class FacebookPlatform extends BaseSocialPlatform {
 
   getCapabilities(): PlatformCapabilities {
     return {
-      platform: "facebook",
+      platform: 'facebook',
       features: {
         textPosts: true,
         imagePosts: true,

@@ -47,7 +47,8 @@ export const StatsCards = ({ stats, isLoading }: StatsCardsProps) => {
       icon: CheckCircle,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
-      description: 'Tỷ lệ thành công của 100 hành động gần nhất. Giá trị cao cho thấy hệ thống hoạt động ổn định',
+      description:
+        'Tỷ lệ thành công của 100 hành động gần nhất. Giá trị cao cho thấy hệ thống hoạt động ổn định',
     },
     {
       title: 'Queue Size',
@@ -72,9 +73,7 @@ export const StatsCards = ({ stats, isLoading }: StatsCardsProps) => {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="text-sm text-muted-foreground font-medium">
-                            {stat.title}
-                          </p>
+                          <p className="text-sm text-muted-foreground font-medium">{stat.title}</p>
                           <Info className="w-3 h-3 text-muted-foreground/50" />
                         </div>
                         <h3 className="text-3xl font-bold">{stat.value}</h3>

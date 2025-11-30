@@ -4,7 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Users, Plus, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -80,7 +87,11 @@ export function TeamWorkspace() {
                     rows={3}
                   />
                 </div>
-                <Button onClick={handleCreateTeam} disabled={createTeamMutation.isPending || !teamName.trim()} className="w-full">
+                <Button
+                  onClick={handleCreateTeam}
+                  disabled={createTeamMutation.isPending || !teamName.trim()}
+                  className="w-full"
+                >
                   {createTeamMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : null}
@@ -102,19 +113,24 @@ export function TeamWorkspace() {
                     Manage
                   </Button>
                 </div>
-                {team.description && <p className="text-sm text-muted-foreground mb-2">{team.description}</p>}
+                {team.description && (
+                  <p className="text-sm text-muted-foreground mb-2">{team.description}</p>
+                )}
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">{team.members?.length || 0} members</span>
+                  <span className="text-sm text-muted-foreground">
+                    {team.members?.length || 0} members
+                  </span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-muted-foreground text-center py-4">No team workspaces yet. Create one to get started.</p>
+          <p className="text-muted-foreground text-center py-4">
+            No team workspaces yet. Create one to get started.
+          </p>
         )}
       </CardContent>
     </Card>
   );
 }
-

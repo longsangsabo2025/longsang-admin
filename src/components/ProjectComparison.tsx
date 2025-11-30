@@ -1,6 +1,16 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Tag, ExternalLink, Github, TrendingUp, Users, Check, AlertCircle } from 'lucide-react';
+import {
+  X,
+  Calendar,
+  Tag,
+  ExternalLink,
+  Github,
+  TrendingUp,
+  Users,
+  Check,
+  AlertCircle,
+} from 'lucide-react';
 import { ProjectCardData } from './ProjectCard';
 
 interface ProjectComparisonProps {
@@ -28,8 +38,8 @@ const TechnologyComparison: React.FC<{
   projects: ProjectCardData[];
 }> = ({ projects }) => {
   // Get all unique technologies across projects
-  const allTechs = Array.from(new Set(projects.flatMap(p => p.technologies)));
-  
+  const allTechs = Array.from(new Set(projects.flatMap((p) => p.technologies)));
+
   return (
     <div className="space-y-3">
       <h4 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
@@ -37,7 +47,7 @@ const TechnologyComparison: React.FC<{
         Technology Stack Comparison
       </h4>
       <div className="grid grid-cols-1 gap-2">
-        {allTechs.map(tech => (
+        {allTechs.map((tech) => (
           <div key={tech} className="flex items-center gap-3 p-2 rounded bg-dark-surface/20">
             <span className="text-sm text-gray-300 flex-1">{tech}</span>
             <div className="flex gap-1">
@@ -45,9 +55,7 @@ const TechnologyComparison: React.FC<{
                 <div
                   key={idx}
                   className={`w-3 h-3 rounded-full ${
-                    project.technologies.includes(tech)
-                      ? 'bg-primary'
-                      : 'bg-gray-600'
+                    project.technologies.includes(tech) ? 'bg-primary' : 'bg-gray-600'
                   }`}
                   title={`${project.title}: ${project.technologies.includes(tech) ? 'Used' : 'Not used'}`}
                 />
@@ -64,8 +72,8 @@ const FeatureComparison: React.FC<{
   projects: ProjectCardData[];
 }> = ({ projects }) => {
   // Get all unique features across projects
-  const allFeatures = Array.from(new Set(projects.flatMap(p => p.features || [])));
-  
+  const allFeatures = Array.from(new Set(projects.flatMap((p) => p.features || [])));
+
   return (
     <div className="space-y-3">
       <h4 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
@@ -73,7 +81,7 @@ const FeatureComparison: React.FC<{
         Feature Comparison
       </h4>
       <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
-        {allFeatures.slice(0, 10).map(feature => (
+        {allFeatures.slice(0, 10).map((feature) => (
           <div key={feature} className="flex items-start gap-3 p-2 rounded bg-dark-surface/20">
             <span className="text-sm text-gray-300 flex-1">{feature}</span>
             <div className="flex gap-1">
@@ -81,9 +89,7 @@ const FeatureComparison: React.FC<{
                 <div
                   key={idx}
                   className={`w-3 h-3 rounded-full ${
-                    project.features?.includes(feature)
-                      ? 'bg-green-500'
-                      : 'bg-gray-600'
+                    project.features?.includes(feature) ? 'bg-green-500' : 'bg-gray-600'
                   }`}
                   title={`${project.title}: ${project.features?.includes(feature) ? 'Has feature' : 'No feature'}`}
                 />
@@ -104,7 +110,7 @@ const FeatureComparison: React.FC<{
 export const ProjectComparison: React.FC<ProjectComparisonProps> = ({
   projects,
   isOpen,
-  onClose
+  onClose,
 }) => {
   if (projects.length < 2) return null;
 
@@ -113,7 +119,7 @@ export const ProjectComparison: React.FC<ProjectComparisonProps> = ({
     const end = completionDate ? new Date(completionDate) : new Date();
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 30) return `${diffDays} days`;
     if (diffDays < 365) return `${Math.floor(diffDays / 30)} months`;
     return `${Math.floor(diffDays / 365)} years`;
@@ -175,7 +181,7 @@ export const ProjectComparison: React.FC<ProjectComparisonProps> = ({
                     </div>
                     <h3 className="text-lg font-bold text-gray-100 mb-2">{project.title}</h3>
                     <p className="text-sm text-gray-400 mb-4">{project.description}</p>
-                    
+
                     {/* Project Links */}
                     <div className="flex justify-center gap-2">
                       {project.demoUrl && (
@@ -212,7 +218,7 @@ export const ProjectComparison: React.FC<ProjectComparisonProps> = ({
                   <h3 className="text-lg font-semibold text-gray-200 border-b border-gray-700 pb-2">
                     Project Metrics
                   </h3>
-                  
+
                   {projects.slice(0, 3).map((project) => (
                     <div key={`metrics-${project.id}`} className="space-y-3">
                       <h4 className="font-medium text-primary">{project.title}</h4>
@@ -231,9 +237,13 @@ export const ProjectComparison: React.FC<ProjectComparisonProps> = ({
                           icon={<TrendingUp className="w-4 h-4" />}
                           label="Status"
                           value={project.status}
-                          color={project.status === 'Completed' ? 'text-green-400' : 
-                                 project.status === 'In Development' ? 'text-yellow-400' : 
-                                 'text-blue-400'}
+                          color={
+                            project.status === 'Completed'
+                              ? 'text-green-400'
+                              : project.status === 'In Development'
+                                ? 'text-yellow-400'
+                                : 'text-blue-400'
+                          }
                         />
                         <ComparisonMetric
                           icon={<Users className="w-4 h-4" />}

@@ -1,5 +1,5 @@
-import { LucideIcon } from "lucide-react";
-import { motion } from "framer-motion";
+import { LucideIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface IconRowProps {
   icons: LucideIcon[];
@@ -7,7 +7,7 @@ interface IconRowProps {
   spacing?: string;
 }
 
-export const IconRow = ({ icons, size = 24, spacing = "gap-6" }: IconRowProps) => {
+export const IconRow = ({ icons, size = 24, spacing = 'gap-6' }: IconRowProps) => {
   return (
     <div className={`flex ${spacing} justify-center`}>
       {icons.map((Icon, index) => (

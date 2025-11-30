@@ -11,11 +11,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Bell, Key, DollarSign, Brain, Save, Loader2, Server, Database } from 'lucide-react';
+import {
+  Settings,
+  Bell,
+  Key,
+  DollarSign,
+  Brain,
+  Save,
+  Loader2,
+  Server,
+  Database,
+} from 'lucide-react';
 import { MCPSupabaseStatus } from '@/components/admin/MCPSupabaseStatus';
 
 export default function AdminSettings() {
@@ -33,7 +49,7 @@ export default function AdminSettings() {
       secretary: 5173,
       portfolio: 5000,
       n8n: 5678,
-      api: 3001
+      api: 3001,
     };
     return standardPorts[key] || 0;
   };
@@ -46,7 +62,7 @@ export default function AdminSettings() {
       secretary: 'AI assistant frontend',
       portfolio: 'Personal portfolio website',
       n8n: 'Workflow automation engine',
-      api: 'Internal API server'
+      api: 'Internal API server',
     };
     return descriptions[key] || '';
   };
@@ -80,7 +96,7 @@ export default function AdminSettings() {
     secretary: { port: 5173, name: 'AI Secretary' },
     portfolio: { port: 5000, name: 'Portfolio' },
     n8n: { port: 5678, name: 'N8N Automation' },
-    api: { port: 3001, name: 'API Server' }
+    api: { port: 3001, name: 'API Server' },
   });
 
   useEffect(() => {
@@ -90,10 +106,7 @@ export default function AdminSettings() {
   const loadSettings = async () => {
     try {
       // Load admin settings from Supabase
-      const { data: settings, error } = await supabase
-        .from('admin_settings')
-        .select('*')
-        .single();
+      const { data: settings, error } = await supabase.from('admin_settings').select('*').single();
 
       if (error && error.code !== 'PGRST116') {
         console.warn('Failed to load settings:', error);
@@ -142,16 +155,14 @@ export default function AdminSettings() {
         alert_threshold: alertThreshold,
         port_policy: portPolicy,
         environment_variables: envVars,
-        last_updated: new Date().toISOString()
+        last_updated: new Date().toISOString(),
       };
 
       // Upsert to Supabase admin_settings table
-      const { error } = await supabase
-        .from('admin_settings')
-        .upsert({
-          id: 'system_config',
-          config: settingsConfig
-        });
+      const { error } = await supabase.from('admin_settings').upsert({
+        id: 'system_config',
+        config: settingsConfig,
+      });
 
       if (error) {
         throw error;
@@ -224,9 +235,7 @@ export default function AdminSettings() {
             <Card>
               <CardHeader>
                 <CardTitle>General Settings</CardTitle>
-                <CardDescription>
-                  Configure default behavior for all agents
-                </CardDescription>
+                <CardDescription>Configure default behavior for all agents</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
@@ -282,8 +291,9 @@ export default function AdminSettings() {
               <CardContent className="space-y-6">
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-900">
-                    <strong>Standard Port Map:</strong> These ports are finalized and should not be changed unless absolutely necessary.
-                    All launch scripts, docs, and configs must match this table.
+                    <strong>Standard Port Map:</strong> These ports are finalized and should not be
+                    changed unless absolutely necessary. All launch scripts, docs, and configs must
+                    match this table.
                   </p>
                 </div>
 
@@ -293,7 +303,10 @@ export default function AdminSettings() {
                     const isStandardPort = config.port === standardPort;
 
                     return (
-                      <div key={key} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div
+                        key={key}
+                        className="flex items-center justify-between p-4 border rounded-lg"
+                      >
                         <div className="flex-1">
                           <Label className="font-medium">{config.name}</Label>
                           <p className="text-sm text-muted-foreground mt-1">
@@ -306,9 +319,9 @@ export default function AdminSettings() {
                             value={config.port}
                             onChange={(e) => {
                               const newPort = Number(e.target.value);
-                              setPortPolicy(prev => ({
+                              setPortPolicy((prev) => ({
                                 ...prev,
-                                [key]: { ...prev[key], port: newPort }
+                                [key]: { ...prev[key], port: newPort },
                               }));
                             }}
                             className="w-20 text-center"
@@ -326,8 +339,8 @@ export default function AdminSettings() {
 
                 <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-900">
-                    <strong>⚠️ Warning:</strong> Changing ports requires updating all launch scripts,
-                    documentation, and may break existing automation workflows.
+                    <strong>⚠️ Warning:</strong> Changing ports requires updating all launch
+                    scripts, documentation, and may break existing automation workflows.
                   </p>
                 </div>
 
@@ -343,7 +356,7 @@ export default function AdminSettings() {
                       secretary: { port: 5173, name: 'AI Secretary' },
                       portfolio: { port: 5000, name: 'Portfolio' },
                       n8n: { port: 5678, name: 'N8N Automation' },
-                      api: { port: 3001, name: 'API Server' }
+                      api: { port: 3001, name: 'API Server' },
                     });
                   }}
                 >
@@ -358,9 +371,7 @@ export default function AdminSettings() {
             <Card>
               <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>
-                  Choose how you want to be notified
-                </CardDescription>
+                <CardDescription>Choose how you want to be notified</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -388,9 +399,7 @@ export default function AdminSettings() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <Label>Toast Notifications</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Show in-app notification toasts
-                    </p>
+                    <p className="text-sm text-muted-foreground">Show in-app notification toasts</p>
                   </div>
                   <Switch checked={toastNotifications} onCheckedChange={setToastNotifications} />
                 </div>
@@ -416,9 +425,7 @@ export default function AdminSettings() {
             <Card>
               <CardHeader>
                 <CardTitle>Global Budget Limits</CardTitle>
-                <CardDescription>
-                  Set system-wide spending limits across all agents
-                </CardDescription>
+                <CardDescription>Set system-wide spending limits across all agents</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
@@ -483,15 +490,16 @@ export default function AdminSettings() {
             <Card>
               <CardHeader>
                 <CardTitle>API Keys Management</CardTitle>
-                <CardDescription>
-                  Configure API keys for external services
-                </CardDescription>
+                <CardDescription>Configure API keys for external services</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-900">
-                    <strong>Security Note:</strong> API keys are stored securely in Supabase Secrets.
-                    For production, use the CLI: <code className="bg-blue-100 px-1 rounded">npx supabase secrets set KEY_NAME="value"</code>
+                    <strong>Security Note:</strong> API keys are stored securely in Supabase
+                    Secrets. For production, use the CLI:{' '}
+                    <code className="bg-blue-100 px-1 rounded">
+                      npx supabase secrets set KEY_NAME="value"
+                    </code>
                   </p>
                 </div>
 
@@ -504,7 +512,15 @@ export default function AdminSettings() {
                     onChange={(e) => setOpenaiKey(e.target.value)}
                   />
                   <p className="text-sm text-muted-foreground">
-                    Get from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" className="text-primary underline">platform.openai.com/api-keys</a>
+                    Get from{' '}
+                    <a
+                      href="https://platform.openai.com/api-keys"
+                      target="_blank"
+                      rel="noopener"
+                      className="text-primary underline"
+                    >
+                      platform.openai.com/api-keys
+                    </a>
                   </p>
                 </div>
 
@@ -517,7 +533,15 @@ export default function AdminSettings() {
                     onChange={(e) => setResendKey(e.target.value)}
                   />
                   <p className="text-sm text-muted-foreground">
-                    Get from <a href="https://resend.com/api-keys" target="_blank" rel="noopener" className="text-primary underline">resend.com/api-keys</a>
+                    Get from{' '}
+                    <a
+                      href="https://resend.com/api-keys"
+                      target="_blank"
+                      rel="noopener"
+                      className="text-primary underline"
+                    >
+                      resend.com/api-keys
+                    </a>
                   </p>
                 </div>
 
@@ -544,7 +568,7 @@ export default function AdminSettings() {
                     if (openaiKey) {
                       try {
                         const response = await fetch('https://api.openai.com/v1/models', {
-                          headers: { 'Authorization': `Bearer ${openaiKey}` }
+                          headers: { Authorization: `Bearer ${openaiKey}` },
                         });
                         results.push(`OpenAI: ${response.ok ? '✅ Connected' : '❌ Failed'}`);
                       } catch {
@@ -558,7 +582,7 @@ export default function AdminSettings() {
                         const response = await fetch(webhookUrl, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ test: true, timestamp: new Date().toISOString() })
+                          body: JSON.stringify({ test: true, timestamp: new Date().toISOString() }),
                         });
                         results.push(`Webhook: ${response.ok ? '✅ Connected' : '❌ Failed'}`);
                       } catch {
@@ -583,20 +607,41 @@ export default function AdminSettings() {
             <Card>
               <CardHeader>
                 <CardTitle>AI Models Overview</CardTitle>
-                <CardDescription>
-                  Compare models and their costs
-                </CardDescription>
+                <CardDescription>Compare models and their costs</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {[
                     { name: 'GPT-4o', cost: '$0.01/request', speed: 'Fast', quality: 'Excellent' },
-                    { name: 'GPT-4o Mini', cost: '$0.002/request', speed: 'Very Fast', quality: 'Very Good' },
-                    { name: 'GPT-3.5 Turbo', cost: '$0.001/request', speed: 'Fastest', quality: 'Good' },
-                    { name: 'Claude Sonnet 4', cost: '$0.015/request', speed: 'Fast', quality: 'Excellent' },
-                    { name: 'Claude Haiku', cost: '$0.0008/request', speed: 'Very Fast', quality: 'Good' },
+                    {
+                      name: 'GPT-4o Mini',
+                      cost: '$0.002/request',
+                      speed: 'Very Fast',
+                      quality: 'Very Good',
+                    },
+                    {
+                      name: 'GPT-3.5 Turbo',
+                      cost: '$0.001/request',
+                      speed: 'Fastest',
+                      quality: 'Good',
+                    },
+                    {
+                      name: 'Claude Sonnet 4',
+                      cost: '$0.015/request',
+                      speed: 'Fast',
+                      quality: 'Excellent',
+                    },
+                    {
+                      name: 'Claude Haiku',
+                      cost: '$0.0008/request',
+                      speed: 'Very Fast',
+                      quality: 'Good',
+                    },
                   ].map((model) => (
-                    <div key={model.name} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={model.name}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div>
                         <h4 className="font-semibold">{model.name}</h4>
                         <div className="flex gap-3 mt-1 text-sm text-muted-foreground">
@@ -635,13 +680,24 @@ export default function AdminSettings() {
                           if (response.ok) {
                             const vars = await response.json();
                             setEnvVars(vars);
-                            toast({ title: "Environment variables loaded", description: "Successfully loaded from system" });
+                            toast({
+                              title: 'Environment variables loaded',
+                              description: 'Successfully loaded from system',
+                            });
                           } else {
-                            toast({ title: "Load failed", description: "Could not load environment variables", variant: "destructive" });
+                            toast({
+                              title: 'Load failed',
+                              description: 'Could not load environment variables',
+                              variant: 'destructive',
+                            });
                           }
                         } catch (error) {
                           console.error('Failed to load environment variables:', error);
-                          toast({ title: "Load error", description: "Network error loading environment variables", variant: "destructive" });
+                          toast({
+                            title: 'Load error',
+                            description: 'Network error loading environment variables',
+                            variant: 'destructive',
+                          });
                         } finally {
                           setLoadingEnvVars(false);
                         }
@@ -657,7 +713,7 @@ export default function AdminSettings() {
                       onClick={() => {
                         const newKey = prompt('Variable name:');
                         if (newKey?.trim()) {
-                          setEnvVars(prev => ({ ...prev, [newKey.trim()]: '' }));
+                          setEnvVars((prev) => ({ ...prev, [newKey.trim()]: '' }));
                         }
                       }}
                     >
@@ -670,20 +726,33 @@ export default function AdminSettings() {
                       <div className="text-center py-8 text-muted-foreground">
                         <Server className="h-8 w-8 mx-auto mb-2 opacity-50" />
                         <p>No environment variables configured</p>
-                        <p className="text-sm">Click "Add Variable" or "Load from System" to get started</p>
+                        <p className="text-sm">
+                          Click "Add Variable" or "Load from System" to get started
+                        </p>
                       </div>
                     ) : (
                       Object.entries(envVars).map(([key, value]) => (
-                        <div key={key} className="grid grid-cols-12 gap-2 items-center p-3 border rounded-lg">
+                        <div
+                          key={key}
+                          className="grid grid-cols-12 gap-2 items-center p-3 border rounded-lg"
+                        >
                           <div className="col-span-4">
                             <Label className="text-xs font-mono">{key}</Label>
                           </div>
                           <div className="col-span-7">
                             <Input
-                              type={key.toLowerCase().includes('secret') || key.toLowerCase().includes('key') || key.toLowerCase().includes('token') ? 'password' : 'text'}
+                              type={
+                                key.toLowerCase().includes('secret') ||
+                                key.toLowerCase().includes('key') ||
+                                key.toLowerCase().includes('token')
+                                  ? 'password'
+                                  : 'text'
+                              }
                               placeholder={`Enter ${key} value...`}
                               value={value}
-                              onChange={(e) => setEnvVars(prev => ({ ...prev, [key]: e.target.value }))}
+                              onChange={(e) =>
+                                setEnvVars((prev) => ({ ...prev, [key]: e.target.value }))
+                              }
                               className="font-mono text-xs"
                             />
                           </div>
@@ -692,7 +761,7 @@ export default function AdminSettings() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                setEnvVars(prev => {
+                                setEnvVars((prev) => {
                                   const newVars = { ...prev };
                                   delete newVars[key];
                                   return newVars;
@@ -719,16 +788,27 @@ export default function AdminSettings() {
                               const response = await fetch('/api/env/deploy', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ variables: envVars })
+                                body: JSON.stringify({ variables: envVars }),
                               });
                               if (response.ok) {
-                                toast({ title: "Environment deployed", description: "Variables updated across all projects" });
+                                toast({
+                                  title: 'Environment deployed',
+                                  description: 'Variables updated across all projects',
+                                });
                               } else {
-                                toast({ title: "Deploy failed", description: await response.text(), variant: "destructive" });
+                                toast({
+                                  title: 'Deploy failed',
+                                  description: await response.text(),
+                                  variant: 'destructive',
+                                });
                               }
                             } catch (error) {
                               console.error('Failed to deploy environment variables:', error);
-                              toast({ title: "Deploy error", description: "Network error deploying variables", variant: "destructive" });
+                              toast({
+                                title: 'Deploy error',
+                                description: 'Network error deploying variables',
+                                variant: 'destructive',
+                              });
                             }
                           }}
                         >
@@ -748,7 +828,10 @@ export default function AdminSettings() {
                             a.download = '.env';
                             a.click();
                             URL.revokeObjectURL(url);
-                            toast({ title: "Downloaded", description: ".env file downloaded successfully" });
+                            toast({
+                              title: 'Downloaded',
+                              description: '.env file downloaded successfully',
+                            });
                           }}
                         >
                           Download .env
@@ -756,9 +839,13 @@ export default function AdminSettings() {
                       </div>
 
                       <div className="text-xs text-muted-foreground p-3 bg-muted rounded-lg">
-                        <strong>📋 Common Variables:</strong><br/>
-                        <code>OPENAI_API_KEY</code>, <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>, <code>VITE_API_URL</code><br/>
-                        <code>DATABASE_URL</code>, <code>RESEND_API_KEY</code>, <code>GOOGLE_CLIENT_ID</code>, <code>NODE_ENV</code>
+                        <strong>📋 Common Variables:</strong>
+                        <br />
+                        <code>OPENAI_API_KEY</code>, <code>SUPABASE_URL</code>,{' '}
+                        <code>SUPABASE_ANON_KEY</code>, <code>VITE_API_URL</code>
+                        <br />
+                        <code>DATABASE_URL</code>, <code>RESEND_API_KEY</code>,{' '}
+                        <code>GOOGLE_CLIENT_ID</code>, <code>NODE_ENV</code>
                       </div>
                     </div>
                   )}

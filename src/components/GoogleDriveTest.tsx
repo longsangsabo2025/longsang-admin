@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { googleDriveAPI } from '@/lib/api/google-drive-http';
 
@@ -15,7 +15,7 @@ export const GoogleDriveTest = () => {
   const testConnection = async () => {
     setIsLoading(true);
     setApiStatus('Testing connection...');
-    
+
     try {
       // Test basic API health - silently fail in dev mode
       const healthResponse = await fetch('http://localhost:3001/api/health').catch(() => null);
@@ -29,15 +29,15 @@ export const GoogleDriveTest = () => {
         }
         throw new Error('API server not responding');
       }
-      
+
       setApiStatus('API Server: ✅ Connected');
-      
+
       // Test Google Drive API
       const driveResponse = await googleDriveAPI.listFiles('root');
       setFiles(driveResponse.files || []);
       setIsConnected(true);
       setApiStatus('Google Drive API: ✅ Working');
-      
+
       toast.success('✅ Google Drive integration working!');
     } catch (error: any) {
       console.error('Connection test failed:', error);
@@ -64,8 +64,8 @@ export const GoogleDriveTest = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           🔗 Google Drive Integration Test
-          <Badge variant={isConnected ? "default" : "destructive"}>
-            {isConnected ? "Connected" : "Disconnected"}
+          <Badge variant={isConnected ? 'default' : 'destructive'}>
+            {isConnected ? 'Connected' : 'Disconnected'}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -74,11 +74,7 @@ export const GoogleDriveTest = () => {
           <p className="font-medium">Status: {apiStatus}</p>
         </div>
 
-        <Button 
-          onClick={testConnection} 
-          disabled={isLoading}
-          className="w-full"
-        >
+        <Button onClick={testConnection} disabled={isLoading} className="w-full">
           {isLoading ? 'Testing...' : '🔄 Test Connection'}
         </Button>
 
@@ -90,7 +86,10 @@ export const GoogleDriveTest = () => {
                 <p className="text-gray-500">No files found (empty or new Google Drive)</p>
               ) : (
                 files.map((file: any, index) => (
-                  <div key={index} className="text-sm py-1 border-b border-gray-200 last:border-b-0">
+                  <div
+                    key={index}
+                    className="text-sm py-1 border-b border-gray-200 last:border-b-0"
+                  >
                     📄 {file.name} ({file.mimeType})
                   </div>
                 ))

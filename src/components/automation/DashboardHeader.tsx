@@ -17,7 +17,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
 export const DashboardHeader = () => {
   const [showGuide, setShowGuide] = useState(false);
@@ -29,7 +29,7 @@ export const DashboardHeader = () => {
 
   const handleCleanupAgents = async () => {
     setIsDeleting(true);
-    
+
     try {
       // Delete all demo agents
       const { error } = await supabase
@@ -40,17 +40,17 @@ export const DashboardHeader = () => {
       if (error) throw error;
 
       toast({
-        title: "✅ Cleanup Successful",
-        description: "All demo agents have been removed.",
+        title: '✅ Cleanup Successful',
+        description: 'All demo agents have been removed.',
       });
 
       // Reload page to refresh agent list
       globalThis.location.reload();
     } catch (error: any) {
       toast({
-        title: "❌ Cleanup Failed",
-        description: error.message || "Failed to delete agents",
-        variant: "destructive",
+        title: '❌ Cleanup Failed',
+        description: error.message || 'Failed to delete agents',
+        variant: 'destructive',
       });
     } finally {
       setIsDeleting(false);
@@ -78,8 +78,8 @@ export const DashboardHeader = () => {
           <div className="flex items-center gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="default" 
+                <Button
+                  variant="default"
                   size="sm"
                   onClick={() => setShowCreateProject(true)}
                   className="gap-2"
@@ -94,8 +94,8 @@ export const DashboardHeader = () => {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => setShowGuide(true)}
                   className="gap-2"
@@ -110,8 +110,8 @@ export const DashboardHeader = () => {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => setShowCleanupDialog(true)}
                   className="gap-2 text-destructive hover:text-destructive"
@@ -126,8 +126,8 @@ export const DashboardHeader = () => {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => navigate('/analytics')}
                   className="gap-2"
@@ -154,30 +154,32 @@ export const DashboardHeader = () => {
           </div>
         </TooltipProvider>
       </div>
-      
+
       <AgentGuideModal open={showGuide} onOpenChange={setShowGuide} />
-      
-      <CreateProjectModal 
-        open={showCreateProject} 
+
+      <CreateProjectModal
+        open={showCreateProject}
         onOpenChange={setShowCreateProject}
         onSuccess={() => {
           toast({
-            title: "Success",
-            description: "Project created! Refreshing...",
+            title: 'Success',
+            description: 'Project created! Refreshing...',
           });
           setTimeout(() => globalThis.location.reload(), 1000);
         }}
       />
-      
+
       <AlertDialog open={showCleanupDialog} onOpenChange={setShowCleanupDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>🧹 Clean Up Demo Agents?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete all demo agents (names containing "Agent" or "Demo").
-              <br /><br />
+              <br />
+              <br />
               <strong>Agents created by you will NOT be affected.</strong>
-              <br /><br />
+              <br />
+              <br />
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -188,7 +190,7 @@ export const DashboardHeader = () => {
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? "Deleting..." : "Yes, Delete Demo Agents"}
+              {isDeleting ? 'Deleting...' : 'Yes, Delete Demo Agents'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

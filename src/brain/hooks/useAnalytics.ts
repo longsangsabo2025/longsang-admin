@@ -16,8 +16,17 @@ const QUERY_KEY_ANALYTICS = ['brain', 'analytics'];
  * Hook to track analytics event
  */
 export function useTrackEvent() {
-  return useMutation<void, Error, { eventType: AnalyticsEventType; eventData?: Record<string, any>; metadata?: Record<string, any> }>({
-    mutationFn: ({ eventType, eventData, metadata }) => brainAPI.trackEvent(eventType, eventData, metadata),
+  return useMutation<
+    void,
+    Error,
+    {
+      eventType: AnalyticsEventType;
+      eventData?: Record<string, any>;
+      metadata?: Record<string, any>;
+    }
+  >({
+    mutationFn: ({ eventType, eventData, metadata }) =>
+      brainAPI.trackEvent(eventType, eventData, metadata),
     onError: (error) => {
       // Silently fail - analytics should not break the main flow
       console.error('Failed to track event:', error);
@@ -52,7 +61,11 @@ export function useSystemMetrics(hours: number = 24, enabled: boolean = true) {
 /**
  * Hook to get domain usage statistics
  */
-export function useDomainUsageStatistics(domainId: string | null, days: number = 7, enabled: boolean = true) {
+export function useDomainUsageStatistics(
+  domainId: string | null,
+  days: number = 7,
+  enabled: boolean = true
+) {
   return useQuery<DomainUsageStatistics[]>({
     queryKey: [...QUERY_KEY_ANALYTICS, 'domain-usage', domainId, days],
     queryFn: () => {
@@ -87,5 +100,3 @@ export function useDailyUserActivity(days: number = 7, enabled: boolean = true) 
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
-
-

@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { MobileLayout } from "@/components/mobile/MobileLayout";
-import { 
-  GitBranch, 
-  GitCommit, 
+import { useState, useEffect } from 'react';
+import { MobileLayout } from '@/components/mobile/MobileLayout';
+import {
+  GitBranch,
+  GitCommit,
   GitPullRequest,
   RefreshCw,
   Check,
@@ -10,27 +10,27 @@ import {
   FileEdit,
   FilePlus,
   FileX,
-  ChevronRight
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+  ChevronRight,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface GitFile {
   path: string;
-  status: "modified" | "added" | "deleted" | "untracked";
+  status: 'modified' | 'added' | 'deleted' | 'untracked';
 }
 
 export function MobileGit() {
   const [loading, setLoading] = useState(false);
-  const [commitMessage, setCommitMessage] = useState("");
-  const [branch, setBranch] = useState("master");
+  const [commitMessage, setCommitMessage] = useState('');
+  const [branch, setBranch] = useState('master');
   const [changedFiles, setChangedFiles] = useState<GitFile[]>([
-    { path: "src/pages/mobile/MobileDashboard.tsx", status: "added" },
-    { path: "src/components/mobile/MobileLayout.tsx", status: "added" },
-    { path: "vite.config.ts", status: "modified" },
+    { path: 'src/pages/mobile/MobileDashboard.tsx', status: 'added' },
+    { path: 'src/components/mobile/MobileLayout.tsx', status: 'added' },
+    { path: 'vite.config.ts', status: 'modified' },
   ]);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const { toast } = useToast();
@@ -49,46 +49,46 @@ export function MobileGit() {
     if (selectedFiles.size === changedFiles.length) {
       setSelectedFiles(new Set());
     } else {
-      setSelectedFiles(new Set(changedFiles.map(f => f.path)));
+      setSelectedFiles(new Set(changedFiles.map((f) => f.path)));
     }
   };
 
   const handleCommit = async () => {
     if (!commitMessage.trim()) {
       toast({
-        title: "⚠️ Thiếu commit message",
-        description: "Vui lòng nhập nội dung commit",
-        variant: "destructive",
+        title: '⚠️ Thiếu commit message',
+        description: 'Vui lòng nhập nội dung commit',
+        variant: 'destructive',
       });
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch("/api/ai/workspace-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/ai/workspace-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: `git commit với message: "${commitMessage}"`,
-          sessionId: "mobile-git-commit",
+          sessionId: 'mobile-git-commit',
           useMCPTools: true,
         }),
       });
 
       if (response.ok) {
         toast({
-          title: "✅ Commit thành công!",
+          title: '✅ Commit thành công!',
           description: commitMessage,
         });
-        setCommitMessage("");
+        setCommitMessage('');
         setChangedFiles([]);
         setSelectedFiles(new Set());
       }
     } catch (error) {
       toast({
-        title: "❌ Lỗi commit",
-        description: "Vui lòng thử lại",
-        variant: "destructive",
+        title: '❌ Lỗi commit',
+        description: 'Vui lòng thử lại',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -98,27 +98,27 @@ export function MobileGit() {
   const handlePush = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/ai/workspace-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/ai/workspace-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: "git push origin master",
-          sessionId: "mobile-git-push",
+          message: 'git push origin master',
+          sessionId: 'mobile-git-push',
           useMCPTools: true,
         }),
       });
 
       if (response.ok) {
         toast({
-          title: "🚀 Push thành công!",
-          description: "Code đã được push lên remote",
+          title: '🚀 Push thành công!',
+          description: 'Code đã được push lên remote',
         });
       }
     } catch (error) {
       toast({
-        title: "❌ Lỗi push",
-        description: "Vui lòng thử lại",
-        variant: "destructive",
+        title: '❌ Lỗi push',
+        description: 'Vui lòng thử lại',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -128,48 +128,56 @@ export function MobileGit() {
   const handlePull = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/ai/workspace-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/ai/workspace-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: "git pull",
-          sessionId: "mobile-git-pull",
+          message: 'git pull',
+          sessionId: 'mobile-git-pull',
           useMCPTools: true,
         }),
       });
 
       if (response.ok) {
         toast({
-          title: "✅ Pull thành công!",
-          description: "Đã cập nhật code mới nhất",
+          title: '✅ Pull thành công!',
+          description: 'Đã cập nhật code mới nhất',
         });
       }
     } catch (error) {
       toast({
-        title: "❌ Lỗi pull",
-        description: "Vui lòng thử lại",
-        variant: "destructive",
+        title: '❌ Lỗi pull',
+        description: 'Vui lòng thử lại',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusIcon = (status: GitFile["status"]) => {
+  const getStatusIcon = (status: GitFile['status']) => {
     switch (status) {
-      case "modified": return <FileEdit className="w-4 h-4 text-yellow-400" />;
-      case "added": return <FilePlus className="w-4 h-4 text-green-400" />;
-      case "deleted": return <FileX className="w-4 h-4 text-red-400" />;
-      case "untracked": return <FilePlus className="w-4 h-4 text-gray-400" />;
+      case 'modified':
+        return <FileEdit className="w-4 h-4 text-yellow-400" />;
+      case 'added':
+        return <FilePlus className="w-4 h-4 text-green-400" />;
+      case 'deleted':
+        return <FileX className="w-4 h-4 text-red-400" />;
+      case 'untracked':
+        return <FilePlus className="w-4 h-4 text-gray-400" />;
     }
   };
 
-  const getStatusColor = (status: GitFile["status"]) => {
+  const getStatusColor = (status: GitFile['status']) => {
     switch (status) {
-      case "modified": return "text-yellow-400";
-      case "added": return "text-green-400";
-      case "deleted": return "text-red-400";
-      case "untracked": return "text-gray-400";
+      case 'modified':
+        return 'text-yellow-400';
+      case 'added':
+        return 'text-green-400';
+      case 'deleted':
+        return 'text-red-400';
+      case 'untracked':
+        return 'text-gray-400';
     }
   };
 
@@ -186,14 +194,14 @@ export function MobileGit() {
                 <p className="font-mono text-blue-400">{branch}</p>
               </div>
             </div>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={handlePull}
               disabled={loading}
               className="text-gray-400 hover:text-white"
             >
-              <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
+              <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
             </Button>
           </div>
         </Card>
@@ -236,7 +244,7 @@ export function MobileGit() {
               onClick={selectAll}
               className="text-xs text-blue-400 hover:text-blue-300"
             >
-              {selectedFiles.size === changedFiles.length ? "Deselect All" : "Select All"}
+              {selectedFiles.size === changedFiles.length ? 'Deselect All' : 'Select All'}
             </Button>
           </div>
 
@@ -251,27 +259,27 @@ export function MobileGit() {
                 <Card
                   key={file.path}
                   className={cn(
-                    "bg-gray-900 border-gray-800 p-3 cursor-pointer transition-colors",
-                    selectedFiles.has(file.path) && "border-blue-500 bg-blue-500/10"
+                    'bg-gray-900 border-gray-800 p-3 cursor-pointer transition-colors',
+                    selectedFiles.has(file.path) && 'border-blue-500 bg-blue-500/10'
                   )}
                   onClick={() => toggleFile(file.path)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
-                      selectedFiles.has(file.path) 
-                        ? "bg-blue-500 border-blue-500" 
-                        : "border-gray-600"
-                    )}>
-                      {selectedFiles.has(file.path) && (
-                        <Check className="w-3 h-3 text-white" />
+                    <div
+                      className={cn(
+                        'w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
+                        selectedFiles.has(file.path)
+                          ? 'bg-blue-500 border-blue-500'
+                          : 'border-gray-600'
                       )}
+                    >
+                      {selectedFiles.has(file.path) && <Check className="w-3 h-3 text-white" />}
                     </div>
                     {getStatusIcon(file.status)}
                     <span className="flex-1 text-sm font-mono truncate text-gray-300">
-                      {file.path.split("/").pop()}
+                      {file.path.split('/').pop()}
                     </span>
-                    <span className={cn("text-xs uppercase", getStatusColor(file.status))}>
+                    <span className={cn('text-xs uppercase', getStatusColor(file.status))}>
                       {file.status.charAt(0)}
                     </span>
                   </div>
@@ -301,7 +309,7 @@ export function MobileGit() {
               ) : (
                 <GitCommit className="w-4 h-4 mr-2" />
               )}
-              Commit {selectedFiles.size > 0 ? `(${selectedFiles.size} files)` : "All"}
+              Commit {selectedFiles.size > 0 ? `(${selectedFiles.size} files)` : 'All'}
             </Button>
           </section>
         )}

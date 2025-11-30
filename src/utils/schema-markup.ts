@@ -31,7 +31,8 @@ export function generateOrganizationSchema(): SchemaMarkup {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'SABO ARENA',
-    description: 'Leading sports and gaming platform in Vietnam. Experience world-class esports tournaments and gaming events.',
+    description:
+      'Leading sports and gaming platform in Vietnam. Experience world-class esports tournaments and gaming events.',
     url: 'https://longsang.org/arena',
     image: 'https://longsang.org/arena/logo.png',
   };
@@ -74,7 +75,7 @@ export function generateFAQSchema(faqs: Array<{ question: string; answer: string
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: faqs.map(faq => ({
+    mainEntity: faqs.map((faq) => ({
       '@type': 'Question',
       name: faq.question,
       acceptedAnswer: {
@@ -158,6 +159,6 @@ export function generateBreadcrumbSchema(breadcrumbs: Array<{ name: string; url:
 export function injectSchemaMarkup(schema: SchemaMarkup | SchemaMarkup[]): string {
   const schemaArray = Array.isArray(schema) ? schema : [schema];
   return schemaArray
-    .map(s => `<script type="application/ld+json">${JSON.stringify(s, null, 2)}</script>`)
+    .map((s) => `<script type="application/ld+json">${JSON.stringify(s, null, 2)}</script>`)
     .join('\n');
 }

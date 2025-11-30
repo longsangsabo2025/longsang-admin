@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { ExternalLink, Settings, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
-import { AppShowcaseService } from "@/services/app-showcase.service";
-import { AppShowcaseData } from "@/types/app-showcase.types";
-import { AnimatedBackground } from "@/components/showcase/AnimatedBackground";
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ExternalLink, Settings, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { AppShowcaseService } from '@/services/app-showcase.service';
+import { AppShowcaseData } from '@/types/app-showcase.types';
+import { AnimatedBackground } from '@/components/showcase/AnimatedBackground';
 
 const AppShowcaseList = () => {
   const [projects, setProjects] = useState<AppShowcaseData[]>([]);
@@ -37,7 +37,7 @@ const AppShowcaseList = () => {
       <AnimatedBackground />
 
       {/* Admin Button - Floating */}
-      <Link 
+      <Link
         to="/app-showcase/admin"
         className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full bg-neon-cyan text-dark-bg flex items-center justify-center shadow-lg shadow-neon-cyan/50 hover:scale-110 transition-transform"
         title="Vào trang Admin"
@@ -104,7 +104,7 @@ const AppShowcaseList = () => {
                     <div className="glass-panel rounded-2xl p-6 border border-white/10 hover:border-neon-cyan/50 transition-all h-full">
                       {/* App Icon/Logo */}
                       <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-neon-cyan to-neon-blue mb-4 flex items-center justify-center text-4xl">
-                        {project.icon || "🎮"}
+                        {project.icon || '🎮'}
                       </div>
 
                       {/* Title */}
@@ -113,9 +113,7 @@ const AppShowcaseList = () => {
                       </h3>
 
                       {/* Tagline */}
-                      <p className="text-sm text-neon-cyan mb-3 font-semibold">
-                        {project.tagline}
-                      </p>
+                      <p className="text-sm text-neon-cyan mb-3 font-semibold">{project.tagline}</p>
 
                       {/* Description */}
                       <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
@@ -126,11 +124,11 @@ const AppShowcaseList = () => {
                       <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
                         <div className="flex items-center gap-1">
                           <span className="text-accent">★★★★★</span>
-                          <span>{project.hero?.stats?.rating || "5.0"}</span>
+                          <span>{project.hero?.stats?.rating || '5.0'}</span>
                         </div>
                         <div>
                           <span className="text-neon-green font-bold">
-                            {project.hero?.stats?.users || "1000+"}
+                            {project.hero?.stats?.users || '1000+'}
                           </span>
                         </div>
                       </div>

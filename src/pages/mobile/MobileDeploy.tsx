@@ -1,24 +1,24 @@
-import { useState } from "react";
-import { MobileLayout } from "@/components/mobile/MobileLayout";
-import { 
-  Rocket, 
-  Loader2, 
-  CheckCircle2, 
+import { useState } from 'react';
+import { MobileLayout } from '@/components/mobile/MobileLayout';
+import {
+  Rocket,
+  Loader2,
+  CheckCircle2,
   AlertCircle,
   ExternalLink,
   RefreshCw,
   Globe,
   GitBranch,
-  Clock
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+  Clock,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface Deployment {
   id: string;
   url: string;
-  status: "ready" | "building" | "error";
+  status: 'ready' | 'building' | 'error';
   branch: string;
   commit: string;
   createdAt: string;
@@ -26,64 +26,66 @@ interface Deployment {
 
 export function MobileDeploy() {
   const [deploying, setDeploying] = useState(false);
-  const [deployStatus, setDeployStatus] = useState<"idle" | "deploying" | "success" | "error">("idle");
+  const [deployStatus, setDeployStatus] = useState<'idle' | 'deploying' | 'success' | 'error'>(
+    'idle'
+  );
   const [recentDeployments] = useState<Deployment[]>([
     {
-      id: "1",
-      url: "https://longsang-admin.vercel.app",
-      status: "ready",
-      branch: "main",
-      commit: "abc1234",
-      createdAt: "2 giờ trước",
+      id: '1',
+      url: 'https://longsang-admin.vercel.app',
+      status: 'ready',
+      branch: 'main',
+      commit: 'abc1234',
+      createdAt: '2 giờ trước',
     },
     {
-      id: "2",
-      url: "https://longsang-admin-preview.vercel.app",
-      status: "ready",
-      branch: "develop",
-      commit: "def5678",
-      createdAt: "5 giờ trước",
+      id: '2',
+      url: 'https://longsang-admin-preview.vercel.app',
+      status: 'ready',
+      branch: 'develop',
+      commit: 'def5678',
+      createdAt: '5 giờ trước',
     },
   ]);
 
   const handleDeploy = async () => {
     setDeploying(true);
-    setDeployStatus("deploying");
+    setDeployStatus('deploying');
 
     try {
-      const response = await fetch("/api/ai/workspace-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/ai/workspace-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: "Deploy project longsang-admin lên Vercel production",
-          sessionId: "mobile-deploy",
+          message: 'Deploy project longsang-admin lên Vercel production',
+          sessionId: 'mobile-deploy',
           useMCPTools: true,
         }),
       });
 
       if (response.ok) {
-        setDeployStatus("success");
+        setDeployStatus('success');
         // Auto reset after 5 seconds
         setTimeout(() => {
-          setDeployStatus("idle");
+          setDeployStatus('idle');
         }, 5000);
       } else {
-        setDeployStatus("error");
+        setDeployStatus('error');
       }
     } catch (error) {
-      setDeployStatus("error");
+      setDeployStatus('error');
     } finally {
       setDeploying(false);
     }
   };
 
-  const getStatusIcon = (status: Deployment["status"]) => {
+  const getStatusIcon = (status: Deployment['status']) => {
     switch (status) {
-      case "ready":
+      case 'ready':
         return <CheckCircle2 className="w-4 h-4 text-green-400" />;
-      case "building":
+      case 'building':
         return <Loader2 className="w-4 h-4 text-yellow-400 animate-spin" />;
-      case "error":
+      case 'error':
         return <AlertCircle className="w-4 h-4 text-red-400" />;
     }
   };
@@ -95,18 +97,16 @@ export function MobileDeploy() {
         <Card className="bg-gradient-to-br from-blue-900/50 to-purple-900/50 border-gray-800">
           <CardContent className="p-6">
             <div className="text-center space-y-4">
-              {deployStatus === "idle" && (
+              {deployStatus === 'idle' && (
                 <>
                   <div className="w-20 h-20 mx-auto rounded-full bg-blue-500/20 flex items-center justify-center">
                     <Rocket className="w-10 h-10 text-blue-400" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-white">Deploy to Production</h2>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Deploy code mới nhất lên Vercel
-                    </p>
+                    <p className="text-sm text-gray-400 mt-1">Deploy code mới nhất lên Vercel</p>
                   </div>
-                  <Button 
+                  <Button
                     onClick={handleDeploy}
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-6"
                   >
@@ -116,16 +116,14 @@ export function MobileDeploy() {
                 </>
               )}
 
-              {deployStatus === "deploying" && (
+              {deployStatus === 'deploying' && (
                 <>
                   <div className="w-20 h-20 mx-auto rounded-full bg-yellow-500/20 flex items-center justify-center">
                     <Loader2 className="w-10 h-10 text-yellow-400 animate-spin" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-white">Đang Deploy...</h2>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Vui lòng đợi trong giây lát
-                    </p>
+                    <p className="text-sm text-gray-400 mt-1">Vui lòng đợi trong giây lát</p>
                   </div>
                   <div className="bg-gray-900/50 rounded-lg p-3">
                     <div className="flex items-center gap-2 text-sm text-gray-400">
@@ -136,21 +134,19 @@ export function MobileDeploy() {
                 </>
               )}
 
-              {deployStatus === "success" && (
+              {deployStatus === 'success' && (
                 <>
                   <div className="w-20 h-20 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
                     <CheckCircle2 className="w-10 h-10 text-green-400" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-green-400">Deploy Thành Công!</h2>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Website đã được cập nhật
-                    </p>
+                    <p className="text-sm text-gray-400 mt-1">Website đã được cập nhật</p>
                   </div>
-                  <Button 
+                  <Button
                     variant="outline"
                     className="w-full border-green-500 text-green-400 hover:bg-green-500/10"
-                    onClick={() => window.open("https://longsang-admin.vercel.app", "_blank")}
+                    onClick={() => window.open('https://longsang-admin.vercel.app', '_blank')}
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Xem Website
@@ -158,18 +154,16 @@ export function MobileDeploy() {
                 </>
               )}
 
-              {deployStatus === "error" && (
+              {deployStatus === 'error' && (
                 <>
                   <div className="w-20 h-20 mx-auto rounded-full bg-red-500/20 flex items-center justify-center">
                     <AlertCircle className="w-10 h-10 text-red-400" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-red-400">Deploy Thất Bại</h2>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Có lỗi xảy ra, vui lòng thử lại
-                    </p>
+                    <p className="text-sm text-gray-400 mt-1">Có lỗi xảy ra, vui lòng thử lại</p>
                   </div>
-                  <Button 
+                  <Button
                     onClick={handleDeploy}
                     className="w-full bg-red-500 hover:bg-red-600 text-white"
                   >
@@ -199,7 +193,7 @@ export function MobileDeploy() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => window.open("https://longsang-admin.vercel.app", "_blank")}
+                onClick={() => window.open('https://longsang-admin.vercel.app', '_blank')}
               >
                 <ExternalLink className="w-4 h-4" />
               </Button>
@@ -235,7 +229,7 @@ export function MobileDeploy() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => window.open(deployment.url, "_blank")}
+                  onClick={() => window.open(deployment.url, '_blank')}
                 >
                   <ExternalLink className="w-4 h-4" />
                 </Button>
@@ -249,7 +243,7 @@ export function MobileDeploy() {
           <Button
             variant="outline"
             className="h-auto py-4 flex flex-col gap-2 bg-gray-900 border-gray-800 hover:bg-gray-800"
-            onClick={() => window.open("https://vercel.com/dashboard", "_blank")}
+            onClick={() => window.open('https://vercel.com/dashboard', '_blank')}
           >
             <Globe className="w-5 h-5 text-gray-400" />
             <span className="text-xs text-gray-400">Vercel Dashboard</span>
@@ -257,7 +251,7 @@ export function MobileDeploy() {
           <Button
             variant="outline"
             className="h-auto py-4 flex flex-col gap-2 bg-gray-900 border-gray-800 hover:bg-gray-800"
-            onClick={() => window.open("https://github.com", "_blank")}
+            onClick={() => window.open('https://github.com', '_blank')}
           >
             <GitBranch className="w-5 h-5 text-gray-400" />
             <span className="text-xs text-gray-400">GitHub Repo</span>

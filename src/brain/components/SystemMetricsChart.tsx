@@ -1,6 +1,14 @@
 import { useSystemMetrics } from '@/brain/hooks/useAnalytics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface SystemMetricsChartProps {
   hours?: number;
@@ -36,7 +44,9 @@ export function SystemMetricsChart({ hours = 24 }: SystemMetricsChartProps) {
         <div className="space-y-4">
           <div className="flex justify-between">
             <span>Average Response Time</span>
-            <span className="font-bold">{metrics.avg_query_response_time?.value?.toFixed(0) || 0}ms</span>
+            <span className="font-bold">
+              {metrics.avg_query_response_time?.value?.toFixed(0) || 0}ms
+            </span>
           </div>
           <div className="flex justify-between">
             <span>Total Queries</span>
@@ -51,5 +61,3 @@ export function SystemMetricsChart({ hours = 24 }: SystemMetricsChartProps) {
     </Card>
   );
 }
-
-

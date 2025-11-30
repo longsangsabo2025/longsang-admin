@@ -29,13 +29,13 @@ npm run supabase:link
 
 ## 📚 Documentation
 
-| File | Description |
-|------|-------------|
-| **[SYSTEM_ACTIVATED.md](SYSTEM_ACTIVATED.md)** | 🔥 System status & quick commands |
-| **[QUICK_START.md](QUICK_START.md)** | ⚡ Get started in 5 minutes |
-| **[AUTOMATION_README.md](AUTOMATION_README.md)** | 📖 Complete system overview |
-| **[PRODUCTION_DEPLOYMENT_GUIDE.md](PRODUCTION_DEPLOYMENT_GUIDE.md)** | 🚀 Production deployment guide |
-| **[COMPLETION_SUMMARY.md](COMPLETION_SUMMARY.md)** | ✅ Implementation summary |
+| File                                                                 | Description                       |
+| -------------------------------------------------------------------- | --------------------------------- |
+| **[SYSTEM_ACTIVATED.md](SYSTEM_ACTIVATED.md)**                       | 🔥 System status & quick commands |
+| **[QUICK_START.md](QUICK_START.md)**                                 | ⚡ Get started in 5 minutes       |
+| **[AUTOMATION_README.md](AUTOMATION_README.md)**                     | 📖 Complete system overview       |
+| **[PRODUCTION_DEPLOYMENT_GUIDE.md](PRODUCTION_DEPLOYMENT_GUIDE.md)** | 🚀 Production deployment guide    |
+| **[COMPLETION_SUMMARY.md](COMPLETION_SUMMARY.md)**                   | ✅ Implementation summary         |
 
 ---
 
@@ -102,15 +102,19 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1c78c058-532c-4f85-9cd5-a754c6ee895d) and start prompting.
+Simply visit the
+[Lovable Project](https://lovable.dev/projects/1c78c058-532c-4f85-9cd5-a754c6ee895d)
+and start prompting.
 
 Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you want to work locally using your own IDE, you can clone this repo and push
+changes. Pushed changes will also be reflected in Lovable.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+The only requirement is having Node.js & npm installed -
+[install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
 Follow these steps:
 
@@ -140,7 +144,8 @@ npm run dev
 - Click on the "Code" button (green button) near the top right.
 - Select the "Codespaces" tab.
 - Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Edit files directly within the Codespace and commit and push your changes once
+  you're done.
 
 ## What technologies are used for this project?
 
@@ -154,15 +159,20 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/1c78c058-532c-4f85-9cd5-a754c6ee895d) and click on Share -> Publish.
+Simply open
+[Lovable](https://lovable.dev/projects/1c78c058-532c-4f85-9cd5-a754c6ee895d) and
+click on Share -> Publish.
 
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+To connect a domain, navigate to Project > Settings > Domains and click Connect
+Domain.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Read more here:
+[Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
 # Secrets added at 2025-11-30 15:55:05
 
 # Secrets added 2025-11-30 15:55

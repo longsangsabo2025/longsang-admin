@@ -192,4 +192,3 @@ export function useDocumentUpload({ userId, assistantType }: UseDocumentUploadOp
     getDocument,
   };
 }
-

@@ -12,7 +12,7 @@ export function useNotifications(
   isRead?: boolean,
   type?: Notification['type'],
   limit: number = 50,
-  enabled: boolean = true,
+  enabled: boolean = true
 ) {
   return useQuery<Notification[]>({
     queryKey: [...QUERY_KEY_NOTIFICATIONS, isRead, type, limit],
@@ -56,4 +56,3 @@ export function useDeleteNotification() {
     },
   });
 }
-

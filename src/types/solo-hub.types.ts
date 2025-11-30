@@ -10,7 +10,7 @@ export interface MorningBriefing {
   id: string;
   user_id: string;
   date: string; // ISO date string
-  
+
   // Content
   summary: string | null;
   priorities: BriefingPriority[];
@@ -19,15 +19,15 @@ export interface MorningBriefing {
   pending_tasks: BriefingTask[];
   content_queue: BriefingContent[];
   decisions_needed: BriefingDecision[];
-  
+
   // AI Generated
   ai_insights: string | null;
   motivation_quote: string | null;
-  
+
   // Status
   is_read: boolean;
   read_at: string | null;
-  
+
   // Metadata
   generated_by: 'n8n' | 'manual' | 'api';
   created_at: string;
@@ -96,29 +96,29 @@ export type AgentStatus = 'online' | 'offline' | 'busy' | 'error';
 export interface AIAgent {
   id: string;
   user_id: string;
-  
+
   // Info
   name: string;
   role: AgentRole;
   description: string | null;
   avatar_url: string | null;
-  
+
   // Status
   status: AgentStatus;
   last_active_at: string | null;
-  
+
   // Configuration
   model: string;
   temperature: number;
   system_prompt: string | null;
   capabilities: string[];
-  
+
   // Metrics
   tasks_completed: number;
   tasks_pending: number;
   success_rate: number;
   avg_response_time: number;
-  
+
   // Metadata
   is_active: boolean;
   created_at: string;
@@ -141,27 +141,27 @@ export interface AgentTask {
   id: string;
   user_id: string;
   agent_id: string | null;
-  
+
   // Info
   title: string;
   description: string | null;
   task_type: TaskType;
   priority: TaskPriority;
-  
+
   // Status
   status: TaskStatus;
   progress: number;
-  
+
   // Input/Output
   input_data: Record<string, unknown>;
   output_data: Record<string, unknown>;
   error_message: string | null;
-  
+
   // Timing
   started_at: string | null;
   completed_at: string | null;
   due_date: string | null;
-  
+
   // Metadata
   created_at: string;
   updated_at: string;
@@ -184,20 +184,20 @@ export interface AgentResponse {
   id: string;
   task_id: string;
   agent_id: string | null;
-  
+
   // Response
   agent_type: string;
   response: Record<string, unknown>;
   raw_response: string | null;
-  
+
   // Status
   status: 'completed' | 'partial' | 'error';
-  
+
   // Metrics
   tokens_used: number | null;
   response_time_ms: number | null;
   model_used: string | null;
-  
+
   // Metadata
   created_at: string;
 }
@@ -216,32 +216,32 @@ export interface Decision {
   user_id: string;
   agent_id: string | null;
   task_id: string | null;
-  
+
   // Info
   title: string;
   description: string | null;
   decision_type: DecisionType;
-  
+
   // Assessment
   impact: DecisionImpact;
   urgency: DecisionUrgency;
-  
+
   // AI Recommendation
   recommendation: DecisionRecommendation;
   recommendation_reason: string | null;
-  
+
   // Details
   details: DecisionDetails;
   attachments: string[];
-  
+
   // User Action
   status: DecisionStatus;
   user_feedback: string | null;
   decided_at: string | null;
-  
+
   // Deadline
   deadline: string | null;
-  
+
   // Metadata
   created_at: string;
   updated_at: string;
@@ -271,28 +271,28 @@ export type MemorySource = 'manual' | 'auto' | 'agent' | 'imported';
 export interface AgentMemory {
   id: string;
   user_id: string;
-  
+
   // Info
   memory_type: MemoryType;
   category: string;
   title: string;
   content: string;
-  
+
   // Organization
   tags: string[];
   importance: MemoryImportance;
-  
+
   // Source
   source: MemorySource;
   source_agent_id: string | null;
-  
+
   // Usage
   used_count: number;
   last_used_at: string | null;
-  
+
   // Related
   linked_items: string[];
-  
+
   // Metadata
   is_active: boolean;
   created_at: string;
@@ -318,24 +318,24 @@ export type CommunicationType = 'info' | 'request' | 'response' | 'alert' | 'han
 export interface AgentCommunication {
   id: string;
   user_id: string;
-  
+
   // Parties
   from_agent_id: string | null;
   to_agent_id: string | null;
   to_user: boolean;
-  
+
   // Message
   message_type: CommunicationType;
   subject: string | null;
   content: string;
-  
+
   // Related
   related_task_id: string | null;
-  
+
   // Status
   is_read: boolean;
   read_at: string | null;
-  
+
   // Metadata
   created_at: string;
 }

@@ -5,38 +5,29 @@
  * Schedule and manage automatic social media posts
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { AutoUploadTextarea, ImagePicker } from "@/components/media";
-import {
-  Calendar,
-  Clock,
-  Plus,
-  XCircle,
-  Loader2,
-  Send,
-  RefreshCw,
-  Zap,
-} from "lucide-react";
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { AutoUploadTextarea, ImagePicker } from '@/components/media';
+import { Calendar, Clock, Plus, XCircle, Loader2, Send, RefreshCw, Zap } from 'lucide-react';
 
 // Platform icons
 const PLATFORM_ICONS: Record<string, string> = {
-  facebook: "📘",
-  instagram: "📸",
-  linkedin: "💼",
-  twitter: "🐦",
-  youtube: "▶️",
-  tiktok: "🎵",
-  telegram: "✈️",
-  discord: "🎮",
-  threads: "🧵",
+  facebook: '📘',
+  instagram: '📸',
+  linkedin: '💼',
+  twitter: '🐦',
+  youtube: '▶️',
+  tiktok: '🎵',
+  telegram: '✈️',
+  discord: '🎮',
+  threads: '🧵',
 };
 
 interface ScheduledPost {
@@ -61,19 +52,19 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
   const [posts, setPosts] = useState<ScheduledPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  
+
   // New post form
-  const [content, setContent] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [platforms, setPlatforms] = useState<string[]>(["facebook"]);
-  const [scheduleType, setScheduleType] = useState<"now" | "later">("now");
-  const [scheduleDate, setScheduleDate] = useState("");
-  const [scheduleTime, setScheduleTime] = useState("");
-  
+  const [content, setContent] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [platforms, setPlatforms] = useState<string[]>(['facebook']);
+  const [scheduleType, setScheduleType] = useState<'now' | 'later'>('now');
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
+
   // Auto-post settings
   const [autoPostEnabled, setAutoPostEnabled] = useState(false);
   // TODO: Implement interval selection UI
-  const _autoPostInterval = "daily";
+  const _autoPostInterval = 'daily';
 
   // Load scheduled posts
   const loadPosts = useCallback(async () => {
@@ -82,32 +73,32 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
       // For now using mock data - would query from Supabase
       const mockPosts: ScheduledPost[] = [
         {
-          id: "1",
+          id: '1',
           project_id: projectId,
-          content: "🚀 Exciting news coming soon! Stay tuned for our latest updates.",
-          image_url: "https://picsum.photos/800/600",
-          platforms: ["facebook", "instagram", "linkedin"],
+          content: '🚀 Exciting news coming soon! Stay tuned for our latest updates.',
+          image_url: 'https://picsum.photos/800/600',
+          platforms: ['facebook', 'instagram', 'linkedin'],
           scheduled_at: new Date(Date.now() + 3600000).toISOString(),
-          status: "pending",
+          status: 'pending',
           created_at: new Date().toISOString(),
         },
         {
-          id: "2",
+          id: '2',
           project_id: projectId,
-          content: "Thank you for 10K followers! 🎉",
-          platforms: ["twitter", "threads"],
+          content: 'Thank you for 10K followers! 🎉',
+          platforms: ['twitter', 'threads'],
           scheduled_at: new Date(Date.now() - 3600000).toISOString(),
-          status: "published",
+          status: 'published',
           created_at: new Date().toISOString(),
           results: {
-            twitter: { success: true, postId: "123456" },
-            threads: { success: true, postId: "789012" },
+            twitter: { success: true, postId: '123456' },
+            threads: { success: true, postId: '789012' },
           },
         },
       ];
       setPosts(mockPosts);
     } catch (error) {
-      console.error("Failed to load posts:", error);
+      console.error('Failed to load posts:', error);
     } finally {
       setLoading(false);
     }
@@ -119,10 +110,8 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
 
   // Toggle platform selection
   const togglePlatform = (platform: string) => {
-    setPlatforms(prev =>
-      prev.includes(platform)
-        ? prev.filter(p => p !== platform)
-        : [...prev, platform]
+    setPlatforms((prev) =>
+      prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]
     );
   };
 
@@ -130,18 +119,18 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
   const schedulePost = async () => {
     if (!content.trim()) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng nhập nội dung bài đăng",
-        variant: "destructive",
+        title: 'Lỗi',
+        description: 'Vui lòng nhập nội dung bài đăng',
+        variant: 'destructive',
       });
       return;
     }
 
     if (platforms.length === 0) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng chọn ít nhất 1 nền tảng",
-        variant: "destructive",
+        title: 'Lỗi',
+        description: 'Vui lòng chọn ít nhất 1 nền tảng',
+        variant: 'destructive',
       });
       return;
     }
@@ -149,8 +138,8 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
     setCreating(true);
     try {
       let scheduledAt = new Date().toISOString();
-      
-      if (scheduleType === "later" && scheduleDate && scheduleTime) {
+
+      if (scheduleType === 'later' && scheduleDate && scheduleTime) {
         scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
       }
 
@@ -161,53 +150,52 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
         image_url: imageUrl || undefined,
         platforms,
         scheduled_at: scheduledAt,
-        status: "pending",
+        status: 'pending',
         created_at: new Date().toISOString(),
       };
 
       // If posting now, trigger the post
-      if (scheduleType === "now") {
+      if (scheduleType === 'now') {
         // Call API to post
         toast({
-          title: "⏳ Đang đăng bài...",
+          title: '⏳ Đang đăng bài...',
           description: `Đăng lên ${platforms.length} nền tảng`,
         });
-        
+
         // Simulate posting (would call real API)
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        newPost.status = "published";
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        newPost.status = 'published';
         newPost.results = {};
         for (const platform of platforms) {
           newPost.results[platform] = { success: true, postId: `post_${Date.now()}` };
         }
-        
+
         toast({
-          title: "✅ Đăng bài thành công!",
+          title: '✅ Đăng bài thành công!',
           description: `Đã đăng lên ${platforms.length} nền tảng`,
         });
       } else {
         toast({
-          title: "📅 Đã lên lịch",
+          title: '📅 Đã lên lịch',
           description: `Bài viết sẽ được đăng vào ${new Date(scheduledAt).toLocaleString('vi-VN')}`,
         });
       }
 
-      setPosts(prev => [newPost, ...prev]);
-      
-      // Reset form
-      setContent("");
-      setImageUrl("");
-      setPlatforms(["facebook"]);
-      setScheduleType("now");
-      setScheduleDate("");
-      setScheduleTime("");
+      setPosts((prev) => [newPost, ...prev]);
 
+      // Reset form
+      setContent('');
+      setImageUrl('');
+      setPlatforms(['facebook']);
+      setScheduleType('now');
+      setScheduleDate('');
+      setScheduleTime('');
     } catch (error) {
       toast({
-        title: "❌ Lỗi",
-        description: error instanceof Error ? error.message : "Có lỗi xảy ra",
-        variant: "destructive",
+        title: '❌ Lỗi',
+        description: error instanceof Error ? error.message : 'Có lỗi xảy ra',
+        variant: 'destructive',
       });
     } finally {
       setCreating(false);
@@ -216,14 +204,12 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
 
   // Cancel a scheduled post
   const cancelPost = async (postId: string) => {
-    setPosts(prev =>
-      prev.map(p =>
-        p.id === postId ? { ...p, status: "cancelled" as const } : p
-      )
+    setPosts((prev) =>
+      prev.map((p) => (p.id === postId ? { ...p, status: 'cancelled' as const } : p))
     );
     toast({
-      title: "Đã hủy",
-      description: "Bài đăng đã được hủy",
+      title: 'Đã hủy',
+      description: 'Bài đăng đã được hủy',
     });
   };
 
@@ -234,9 +220,17 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
   const getStatusBadge = (status: ScheduledPost['status']) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="text-yellow-600 border-yellow-300">⏳ Chờ đăng</Badge>;
+        return (
+          <Badge variant="outline" className="text-yellow-600 border-yellow-300">
+            ⏳ Chờ đăng
+          </Badge>
+        );
       case 'published':
-        return <Badge variant="default" className="bg-green-500">✅ Đã đăng</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-500">
+            ✅ Đã đăng
+          </Badge>
+        );
       case 'failed':
         return <Badge variant="destructive">❌ Thất bại</Badge>;
       case 'cancelled':
@@ -261,16 +255,11 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
             <Zap className="h-6 w-6 text-yellow-500" />
             Auto Post Scheduler
           </h2>
-          <p className="text-muted-foreground">
-            {projectName || 'Lên lịch và tự động đăng bài'}
-          </p>
+          <p className="text-muted-foreground">{projectName || 'Lên lịch và tự động đăng bài'}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Switch
-              checked={autoPostEnabled}
-              onCheckedChange={setAutoPostEnabled}
-            />
+            <Switch checked={autoPostEnabled} onCheckedChange={setAutoPostEnabled} />
             <Label>Auto-post</Label>
           </div>
           <Button variant="outline" onClick={loadPosts}>
@@ -306,7 +295,7 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
             <Label>Hình ảnh</Label>
             <ImagePicker
               value={imageUrl}
-              onChange={(url) => setImageUrl(url || "")}
+              onChange={(url) => setImageUrl(url || '')}
               placeholder="Chọn hoặc upload ảnh"
               aspect="video"
             />
@@ -319,7 +308,7 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
               {Object.entries(PLATFORM_ICONS).map(([platform, icon]) => (
                 <Button
                   key={platform}
-                  variant={platforms.includes(platform) ? "default" : "outline"}
+                  variant={platforms.includes(platform) ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => togglePlatform(platform)}
                   className="gap-1"
@@ -332,7 +321,7 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
           </div>
 
           {/* Schedule */}
-          <Tabs value={scheduleType} onValueChange={(v) => setScheduleType(v as "now" | "later")}>
+          <Tabs value={scheduleType} onValueChange={(v) => setScheduleType(v as 'now' | 'later')}>
             <TabsList>
               <TabsTrigger value="now" className="gap-2">
                 <Send className="h-4 w-4" /> Đăng ngay
@@ -371,9 +360,9 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
             disabled={creating || !content.trim() || platforms.length === 0}
           >
             {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {!creating && scheduleType === "now" && <Send className="h-4 w-4 mr-2" />}
-            {!creating && scheduleType === "later" && <Calendar className="h-4 w-4 mr-2" />}
-            {scheduleType === "now" ? "Đăng ngay" : "Lên lịch"}
+            {!creating && scheduleType === 'now' && <Send className="h-4 w-4 mr-2" />}
+            {!creating && scheduleType === 'later' && <Calendar className="h-4 w-4 mr-2" />}
+            {scheduleType === 'now' ? 'Đăng ngay' : 'Lên lịch'}
           </Button>
         </CardContent>
       </Card>
@@ -382,22 +371,15 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
       <Card>
         <CardHeader>
           <CardTitle>Bài đăng đã lên lịch</CardTitle>
-          <CardDescription>
-            {posts.length} bài đăng
-          </CardDescription>
+          <CardDescription>{posts.length} bài đăng</CardDescription>
         </CardHeader>
         <CardContent>
           {posts.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              Chưa có bài đăng nào
-            </p>
+            <p className="text-center text-muted-foreground py-8">Chưa có bài đăng nào</p>
           ) : (
             <div className="space-y-3">
-              {posts.map(post => (
-                <div
-                  key={post.id}
-                  className="p-4 rounded-lg border bg-card"
-                >
+              {posts.map((post) => (
+                <div key={post.id} className="p-4 rounded-lg border bg-card">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-2">
                       {/* Status & Time */}
@@ -408,51 +390,43 @@ export function AutoPostScheduler({ projectId, projectName }: Readonly<AutoPostS
                           {formatDate(post.scheduled_at)}
                         </span>
                       </div>
-                      
+
                       {/* Content */}
                       <p className="text-sm line-clamp-2">{post.content}</p>
-                      
+
                       {/* Platforms */}
                       <div className="flex gap-1">
-                        {post.platforms.map(platform => (
+                        {post.platforms.map((platform) => (
                           <span key={platform} title={platform}>
                             {PLATFORM_ICONS[platform]}
                           </span>
                         ))}
                       </div>
-                      
+
                       {/* Results */}
                       {post.results && (
                         <div className="flex gap-2 flex-wrap">
                           {Object.entries(post.results).map(([platform, result]) => (
                             <Badge
                               key={platform}
-                              variant={result.success ? "default" : "destructive"}
+                              variant={result.success ? 'default' : 'destructive'}
                               className="text-xs"
                             >
-                              {PLATFORM_ICONS[platform]} {result.success ? "✓" : "✗"}
+                              {PLATFORM_ICONS[platform]} {result.success ? '✓' : '✗'}
                             </Badge>
                           ))}
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Image Preview */}
                     {post.image_url && (
-                      <img
-                        src={post.image_url}
-                        alt=""
-                        className="w-16 h-16 rounded object-cover"
-                      />
+                      <img src={post.image_url} alt="" className="w-16 h-16 rounded object-cover" />
                     )}
-                    
+
                     {/* Actions */}
-                    {post.status === "pending" && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => cancelPost(post.id)}
-                      >
+                    {post.status === 'pending' && (
+                      <Button variant="ghost" size="icon" onClick={() => cancelPost(post.id)}>
                         <XCircle className="h-4 w-4 text-red-500" />
                       </Button>
                     )}

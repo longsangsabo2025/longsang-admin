@@ -10,13 +10,13 @@ const initializeDriveClient = () => {
     }
 
     const credentials = JSON.parse(serviceAccountKey);
-    
+
     const auth = new google.auth.GoogleAuth({
       credentials,
       scopes: [
         'https://www.googleapis.com/auth/drive',
         'https://www.googleapis.com/auth/drive.file',
-        'https://www.googleapis.com/auth/drive.metadata'
+        'https://www.googleapis.com/auth/drive.metadata',
       ],
     });
 
@@ -57,17 +57,21 @@ export class GoogleDriveService {
   /**
    * List files and folders in a specific folder
    */
-  async listFiles(folderId: string = 'root', pageSize: number = 100): Promise<{ files: DriveFile[], folders: DriveFolder[] }> {
+  async listFiles(
+    folderId: string = 'root',
+    pageSize: number = 100
+  ): Promise<{ files: DriveFile[]; folders: DriveFolder[] }> {
     try {
       const response = await this.drive.files.list({
         q: `'${folderId}' in parents and trashed=false`,
         pageSize,
-        fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink,webContentLink,thumbnailLink,parents,owners)',
+        fields:
+          'files(id,name,mimeType,size,modifiedTime,webViewLink,webContentLink,thumbnailLink,parents,owners)',
         orderBy: 'modifiedTime desc',
       });
 
       const items = response.data.files || [];
-      
+
       const files: DriveFile[] = [];
       const folders: DriveFolder[] = [];
 
@@ -170,13 +174,16 @@ export class GoogleDriveService {
    */
   async downloadFile(fileId: string): Promise<Buffer> {
     try {
-      const response = await this.drive.files.get({
-        fileId,
-        alt: 'media',
-      }, { responseType: 'stream' });
+      const response = await this.drive.files.get(
+        {
+          fileId,
+          alt: 'media',
+        },
+        { responseType: 'stream' }
+      );
 
       const chunks: Buffer[] = [];
-      
+
       return new Promise((resolve, reject) => {
         response.data
           .on('data', (chunk: Buffer) => chunks.push(chunk))
@@ -240,7 +247,11 @@ export class GoogleDriveService {
   /**
    * Share a file with specific permissions
    */
-  async shareFile(fileId: string, email: string, role: 'reader' | 'writer' | 'owner' = 'reader'): Promise<void> {
+  async shareFile(
+    fileId: string,
+    email: string,
+    role: 'reader' | 'writer' | 'owner' = 'reader'
+  ): Promise<void> {
     try {
       await this.drive.permissions.create({
         fileId,
@@ -264,7 +275,8 @@ export class GoogleDriveService {
       const response = await this.drive.files.list({
         q: `name contains '${query}' and trashed=false`,
         pageSize: maxResults,
-        fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink,webContentLink,thumbnailLink)',
+        fields:
+          'files(id,name,mimeType,size,modifiedTime,webViewLink,webContentLink,thumbnailLink)',
         orderBy: 'modifiedTime desc',
       });
 
@@ -279,16 +291,18 @@ export class GoogleDriveService {
         thumbnailLink?: string;
       }
 
-      return response.data.files?.map((file: GoogleDriveFileResponse) => ({
-        id: file.id,
-        name: file.name,
-        mimeType: file.mimeType,
-        size: file.size,
-        modifiedTime: file.modifiedTime,
-        webViewLink: file.webViewLink,
-        webContentLink: file.webContentLink,
-        thumbnailLink: file.thumbnailLink,
-      })) || [];
+      return (
+        response.data.files?.map((file: GoogleDriveFileResponse) => ({
+          id: file.id,
+          name: file.name,
+          mimeType: file.mimeType,
+          size: file.size,
+          modifiedTime: file.modifiedTime,
+          webViewLink: file.webViewLink,
+          webContentLink: file.webContentLink,
+          thumbnailLink: file.thumbnailLink,
+        })) || []
+      );
     } catch (error) {
       console.error('Error searching files:', error);
       throw error;
@@ -302,7 +316,8 @@ export class GoogleDriveService {
     try {
       const response = await this.drive.files.get({
         fileId,
-        fields: 'id,name,mimeType,size,modifiedTime,webViewLink,webContentLink,thumbnailLink,parents,owners',
+        fields:
+          'id,name,mimeType,size,modifiedTime,webViewLink,webContentLink,thumbnailLink,parents,owners',
       });
 
       return {

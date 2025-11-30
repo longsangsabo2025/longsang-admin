@@ -11,11 +11,11 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Sun, 
-  Coffee, 
-  CheckCircle2, 
-  Clock, 
+import {
+  Sun,
+  Coffee,
+  CheckCircle2,
+  Clock,
   AlertTriangle,
   TrendingUp,
   FileText,
@@ -28,12 +28,12 @@ import {
   Target,
   Calendar,
   Mail,
-  BarChart3
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { 
-  useTodayBriefing, 
-  useTriggerBriefing, 
+import {
+  useTodayBriefing,
+  useTriggerBriefing,
   useMarkBriefingRead,
   useAgents,
   usePendingDecisions,
@@ -165,34 +165,50 @@ const mockAgentStatuses: AgentStatus[] = [
 
 const getGreeting = () => {
   const hour = new Date().getHours();
-  if (hour < 12) return { text: 'Chào buổi sáng', icon: <Sun className="h-6 w-6 text-yellow-500" /> };
-  if (hour < 18) return { text: 'Chào buổi chiều', icon: <Coffee className="h-6 w-6 text-orange-500" /> };
+  if (hour < 12)
+    return { text: 'Chào buổi sáng', icon: <Sun className="h-6 w-6 text-yellow-500" /> };
+  if (hour < 18)
+    return { text: 'Chào buổi chiều', icon: <Coffee className="h-6 w-6 text-orange-500" /> };
   return { text: 'Chào buổi tối', icon: <Coffee className="h-6 w-6 text-purple-500" /> };
 };
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
-    case 'high': return 'bg-red-500/10 text-red-500 border-red-500/20';
-    case 'medium': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
-    case 'low': return 'bg-green-500/10 text-green-500 border-green-500/20';
-    default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+    case 'high':
+      return 'bg-red-500/10 text-red-500 border-red-500/20';
+    case 'medium':
+      return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+    case 'low':
+      return 'bg-green-500/10 text-green-500 border-green-500/20';
+    default:
+      return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
   }
 };
 
 const getTypeIcon = (type: string) => {
   switch (type) {
-    case 'task': return <CheckCircle2 className="h-4 w-4 text-blue-500" />;
-    case 'content': return <FileText className="h-4 w-4 text-purple-500" />;
-    case 'decision': return <AlertTriangle className="h-4 w-4 text-orange-500" />;
-    case 'insight': return <TrendingUp className="h-4 w-4 text-green-500" />;
-    case 'alert': return <AlertTriangle className="h-4 w-4 text-red-500" />;
-    default: return <MessageSquare className="h-4 w-4" />;
+    case 'task':
+      return <CheckCircle2 className="h-4 w-4 text-blue-500" />;
+    case 'content':
+      return <FileText className="h-4 w-4 text-purple-500" />;
+    case 'decision':
+      return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+    case 'insight':
+      return <TrendingUp className="h-4 w-4 text-green-500" />;
+    case 'alert':
+      return <AlertTriangle className="h-4 w-4 text-red-500" />;
+    default:
+      return <MessageSquare className="h-4 w-4" />;
   }
 };
 
 export function MorningBriefing() {
   // Real data hooks
-  const { data: briefing, isLoading: briefingLoading, refetch: refetchBriefing } = useTodayBriefing();
+  const {
+    data: briefing,
+    isLoading: briefingLoading,
+    refetch: refetchBriefing,
+  } = useTodayBriefing();
   const { data: agentsData, isLoading: agentsLoading } = useAgents();
   const { data: decisions, isLoading: decisionsLoading } = usePendingDecisions();
   const triggerBriefing = useTriggerBriefing();
@@ -201,31 +217,31 @@ export function MorningBriefing() {
   // Fallback to mock data if no real data
   const [items, setItems] = useState<BriefingItem[]>(mockBriefingItems);
   const [agents, setAgents] = useState<AgentStatus[]>(mockAgentStatuses);
-  
+
   const isLoading = briefingLoading || agentsLoading || decisionsLoading;
   const greeting = getGreeting();
 
   // Transform real data to display format
-  const highPriorityCount = briefing?.priorities?.filter(p => p.urgency === 'high').length || 
-    items.filter(i => i.priority === 'high').length;
-  const decisionsCount = decisions?.length || items.filter(i => i.type === 'decision').length;
-  const totalAgentTasks = agentsData?.reduce((sum, a) => sum + a.tasks_completed, 0) || 
+  const highPriorityCount =
+    briefing?.priorities?.filter((p) => p.urgency === 'high').length ||
+    items.filter((i) => i.priority === 'high').length;
+  const decisionsCount = decisions?.length || items.filter((i) => i.type === 'decision').length;
+  const totalAgentTasks =
+    agentsData?.reduce((sum, a) => sum + a.tasks_completed, 0) ||
     agents.reduce((sum, a) => sum + a.completedTasks, 0);
 
   const handleApprove = (itemId: string) => {
-    setItems(prev => prev.filter(i => i.id !== itemId));
+    setItems((prev) => prev.filter((i) => i.id !== itemId));
     // TODO: Trigger actual approval action via API
   };
 
   const handleReject = (itemId: string) => {
-    setItems(prev => prev.filter(i => i.id !== itemId));
+    setItems((prev) => prev.filter((i) => i.id !== itemId));
     // TODO: Trigger actual rejection action via API
   };
 
   const handleDefer = (itemId: string) => {
-    setItems(prev => prev.map(i => 
-      i.id === itemId ? { ...i, priority: 'low' as const } : i
-    ));
+    setItems((prev) => prev.map((i) => (i.id === itemId ? { ...i, priority: 'low' as const } : i)));
   };
 
   const refreshBriefing = async () => {
@@ -250,26 +266,26 @@ export function MorningBriefing() {
           <div>
             <h1 className="text-2xl font-bold">{greeting.text}, Boss!</h1>
             <p className="text-muted-foreground">
-              {new Date().toLocaleDateString('vi-VN', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+              {new Date().toLocaleDateString('vi-VN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
               })}
             </p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={generateNewBriefing} 
+          <Button
+            variant="outline"
+            onClick={generateNewBriefing}
             disabled={triggerBriefing.isPending}
           >
-            <Brain className={cn("h-4 w-4 mr-2", triggerBriefing.isPending && "animate-pulse")} />
+            <Brain className={cn('h-4 w-4 mr-2', triggerBriefing.isPending && 'animate-pulse')} />
             Generate
           </Button>
           <Button variant="outline" onClick={refreshBriefing} disabled={isLoading}>
-            <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+            <RefreshCw className={cn('h-4 w-4 mr-2', isLoading && 'animate-spin')} />
             Refresh
           </Button>
         </div>
@@ -293,7 +309,7 @@ export function MorningBriefing() {
       {/* Quick Stats */}
       {isLoading ? (
         <div className="grid grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
+          {[1, 2, 3, 4].map((i) => (
             <Card key={i}>
               <CardContent className="p-4">
                 <Skeleton className="h-4 w-24 mb-2" />
@@ -346,7 +362,7 @@ export function MorningBriefing() {
                 <div>
                   <p className="text-sm text-muted-foreground">Agents active</p>
                   <p className="text-2xl font-bold text-blue-500">
-                    {agents.filter(a => a.status === 'active').length}/{agents.length}
+                    {agents.filter((a) => a.status === 'active').length}/{agents.length}
                   </p>
                 </div>
                 <Brain className="h-8 w-8 text-blue-500/50" />
@@ -366,25 +382,27 @@ export function MorningBriefing() {
                 <Calendar className="h-5 w-5" />
                 Today's Briefing
               </CardTitle>
-              <CardDescription>
-                Những việc cần attention của bạn hôm nay
-              </CardDescription>
+              <CardDescription>Những việc cần attention của bạn hôm nay</CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="all">
                 <TabsList className="mb-4">
                   <TabsTrigger value="all">Tất cả ({items.length})</TabsTrigger>
                   <TabsTrigger value="decisions">Quyết định ({decisionsCount})</TabsTrigger>
-                  <TabsTrigger value="tasks">Tasks ({items.filter(i => i.type === 'task').length})</TabsTrigger>
-                  <TabsTrigger value="content">Content ({items.filter(i => i.type === 'content').length})</TabsTrigger>
+                  <TabsTrigger value="tasks">
+                    Tasks ({items.filter((i) => i.type === 'task').length})
+                  </TabsTrigger>
+                  <TabsTrigger value="content">
+                    Content ({items.filter((i) => i.type === 'content').length})
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="all">
                   <ScrollArea className="h-[400px] pr-4">
                     <div className="space-y-3">
                       {items.map((item) => (
-                        <BriefingCard 
-                          key={item.id} 
+                        <BriefingCard
+                          key={item.id}
                           item={item}
                           onApprove={() => handleApprove(item.id)}
                           onReject={() => handleReject(item.id)}
@@ -398,15 +416,17 @@ export function MorningBriefing() {
                 <TabsContent value="decisions">
                   <ScrollArea className="h-[400px] pr-4">
                     <div className="space-y-3">
-                      {items.filter(i => i.type === 'decision').map((item) => (
-                        <BriefingCard 
-                          key={item.id} 
-                          item={item}
-                          onApprove={() => handleApprove(item.id)}
-                          onReject={() => handleReject(item.id)}
-                          onDefer={() => handleDefer(item.id)}
-                        />
-                      ))}
+                      {items
+                        .filter((i) => i.type === 'decision')
+                        .map((item) => (
+                          <BriefingCard
+                            key={item.id}
+                            item={item}
+                            onApprove={() => handleApprove(item.id)}
+                            onReject={() => handleReject(item.id)}
+                            onDefer={() => handleDefer(item.id)}
+                          />
+                        ))}
                     </div>
                   </ScrollArea>
                 </TabsContent>
@@ -414,15 +434,17 @@ export function MorningBriefing() {
                 <TabsContent value="tasks">
                   <ScrollArea className="h-[400px] pr-4">
                     <div className="space-y-3">
-                      {items.filter(i => i.type === 'task').map((item) => (
-                        <BriefingCard 
-                          key={item.id} 
-                          item={item}
-                          onApprove={() => handleApprove(item.id)}
-                          onReject={() => handleReject(item.id)}
-                          onDefer={() => handleDefer(item.id)}
-                        />
-                      ))}
+                      {items
+                        .filter((i) => i.type === 'task')
+                        .map((item) => (
+                          <BriefingCard
+                            key={item.id}
+                            item={item}
+                            onApprove={() => handleApprove(item.id)}
+                            onReject={() => handleReject(item.id)}
+                            onDefer={() => handleDefer(item.id)}
+                          />
+                        ))}
                     </div>
                   </ScrollArea>
                 </TabsContent>
@@ -430,15 +452,17 @@ export function MorningBriefing() {
                 <TabsContent value="content">
                   <ScrollArea className="h-[400px] pr-4">
                     <div className="space-y-3">
-                      {items.filter(i => i.type === 'content').map((item) => (
-                        <BriefingCard 
-                          key={item.id} 
-                          item={item}
-                          onApprove={() => handleApprove(item.id)}
-                          onReject={() => handleReject(item.id)}
-                          onDefer={() => handleDefer(item.id)}
-                        />
-                      ))}
+                      {items
+                        .filter((i) => i.type === 'content')
+                        .map((item) => (
+                          <BriefingCard
+                            key={item.id}
+                            item={item}
+                            onApprove={() => handleApprove(item.id)}
+                            onReject={() => handleReject(item.id)}
+                            onDefer={() => handleDefer(item.id)}
+                          />
+                        ))}
                     </div>
                   </ScrollArea>
                 </TabsContent>
@@ -455,9 +479,7 @@ export function MorningBriefing() {
                 <Brain className="h-5 w-5" />
                 AI Agents Status
               </CardTitle>
-              <CardDescription>
-                Các agents đang làm việc cho bạn
-              </CardDescription>
+              <CardDescription>Các agents đang làm việc cho bạn</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -474,12 +496,12 @@ export function MorningBriefing() {
 }
 
 // Sub-components
-function BriefingCard({ 
-  item, 
-  onApprove, 
-  onReject, 
-  onDefer 
-}: { 
+function BriefingCard({
+  item,
+  onApprove,
+  onReject,
+  onDefer,
+}: {
   item: BriefingItem;
   onApprove: () => void;
   onReject: () => void;
@@ -493,28 +515,47 @@ function BriefingCard({
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-medium">{item.title}</h4>
-              <Badge variant="outline" className={cn("text-xs", getPriorityColor(item.priority))}>
+              <Badge variant="outline" className={cn('text-xs', getPriorityColor(item.priority))}>
                 {item.priority}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="secondary" className="text-xs">{item.source}</Badge>
+              <Badge variant="secondary" className="text-xs">
+                {item.source}
+              </Badge>
               <Clock className="h-3 w-3" />
-              <span>{item.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+              <span>
+                {item.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+              </span>
             </div>
           </div>
         </div>
-        
+
         {/* Action Buttons */}
         <div className="flex items-center gap-1">
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-500/10" onClick={onApprove}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-500/10"
+            onClick={onApprove}
+          >
             <ThumbsUp className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-500/10" onClick={onReject}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+            onClick={onReject}
+          >
             <ThumbsDown className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground" onClick={onDefer}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+            onClick={onDefer}
+          >
             <Clock className="h-4 w-4" />
           </Button>
         </div>
@@ -537,10 +578,12 @@ function AgentStatusCard({ agent }: { agent: AgentStatus }) {
           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
             {agent.icon}
           </div>
-          <div className={cn(
-            "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
-            statusColor[agent.status]
-          )} />
+          <div
+            className={cn(
+              'absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background',
+              statusColor[agent.status]
+            )}
+          />
         </div>
         <div className="flex-1">
           <div className="flex items-center justify-between">

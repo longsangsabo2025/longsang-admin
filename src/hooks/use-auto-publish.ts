@@ -5,9 +5,9 @@
  * React hook to manage auto-publish functionality
  */
 
-import { useToast } from "@/hooks/use-toast";
-import { getAutoPublishService } from "@/lib/automation/auto-publish-service";
-import { useEffect, useState } from "react";
+import { useToast } from '@/hooks/use-toast';
+import { getAutoPublishService } from '@/lib/automation/auto-publish-service';
+import { useEffect, useState } from 'react';
 
 export function useAutoPublish() {
   const [enabled, setEnabled] = useState(false);
@@ -24,7 +24,7 @@ export function useAutoPublish() {
       const isEnabled = await service.isEnabled();
       setEnabled(isEnabled);
     } catch (error) {
-      console.error("Failed to check auto-publish status:", error);
+      console.error('Failed to check auto-publish status:', error);
     } finally {
       setLoading(false);
     }
@@ -34,15 +34,15 @@ export function useAutoPublish() {
     try {
       await service.processContent(contentId);
       toast({
-        title: "✅ Auto-Publish Triggered",
-        description: "Content is being published to social media",
+        title: '✅ Auto-Publish Triggered',
+        description: 'Content is being published to social media',
       });
     } catch (error) {
-      console.error("Failed to auto-publish:", error);
+      console.error('Failed to auto-publish:', error);
       toast({
-        title: "❌ Auto-Publish Failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        title: '❌ Auto-Publish Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
       });
     }
   };

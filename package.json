@@ -1,20 +1,8 @@
 {
   "name": "longsang-admin",
-  "description": "Master Admin Dashboard - Manage all LongSang projects, automations, and integrations",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
-  "main": "electron/main.cjs",
-  "author": "LongSang Team",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/longsang/long-sang-forge.git"
-  },
-  "bugs": {
-    "url": "https://github.com/longsang/long-sang-forge/issues"
-  },
-  "homepage": "https://github.com/longsang/long-sang-forge#readme",
+  "description": "Master Admin Dashboard - Manage all LongSang projects, automations, and integrations",
   "keywords": [
     "automation",
     "ai",
@@ -28,63 +16,83 @@
     "electron",
     "desktop"
   ],
+  "homepage": "https://github.com/longsang/long-sang-forge#readme",
+  "bugs": {
+    "url": "https://github.com/longsang/long-sang-forge/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/longsang/long-sang-forge.git"
+  },
+  "license": "MIT",
+  "author": "LongSang Team",
+  "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
-    "dev": "concurrently -n \"VITE,API\" -c \"cyan,green\" \"npm run dev:frontend\" \"npm run dev:api\"",
-    "dev:frontend": "vite",
-    "dev:kb-api": "node kb-api-server.mjs",
-    "dev:api": "cd api && node server.js",
-    "start": "npm run dev",
+    "admin:set-role": "tsx scripts/set-admin.ts",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "desktop": "electron .",
-    "desktop:dev": "cross-env NODE_ENV=development electron .",
-    "desktop:build": "npm run build && electron-builder",
-    "desktop:build:win": "npm run build && electron-builder --win",
-    "desktop:build:mac": "npm run build && electron-builder --mac",
-    "desktop:build:linux": "npm run build && electron-builder --linux",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
-    "test:run": "vitest run",
-    "test:all": "node scripts/run-all-tests.js",
-    "test:unit": "vitest run src/**/*.test.ts",
-    "test:integration": "vitest run tests/integration/**/*.test.ts",
-    "test:e2e": "vitest run tests/e2e/**/*.test.ts",
-    "test:marketplace": "node scripts/test-marketplace-e2e.mjs",
-    "test:system": "node scripts/test-system.js",
-    "test:fix": "node scripts/test-system.js --fix",
-    "setup:phase1": "node scripts/setup-phase1-auto.js",
-    "migrate:bug-system": "node scripts/auto-migrate-bug-system.mjs",
-    "test:bug-system": "node scripts/test-bug-system.mjs",
-    "setup:bug-system": "node scripts/setup-bug-system-auto.mjs",
-    "fix:auto": "node scripts/auto-fix-errors-from-db.mjs",
-    "fix:loop": "node scripts/auto-fix-errors-from-db.mjs",
-    "index:all": "node scripts/index-all-data.js",
-    "test:phase1": "node scripts/test-phase1-endpoints.js",
     "debug:activate": "node scripts/debug-activate.mjs",
     "deploy:all": "powershell -ExecutionPolicy Bypass -File ./scripts/deploy-all.ps1",
     "deploy:db": "supabase db push",
     "deploy:functions": "supabase functions deploy trigger-content-writer && supabase functions deploy send-scheduled-emails && supabase functions deploy publish-social-posts && supabase functions deploy generate-sitemap",
-    "supabase:link": "supabase link --project-ref diexsbzqwsbpilsymnfb",
-    "setup:hooks": "node scripts/setup-husky.js",
-    "supabase:status": "supabase functions list && supabase secrets list",
-    "setup": "npm install && npm run supabase:link && npm run deploy:db",
-    "workflows": "powershell -ExecutionPolicy Bypass -File ./scripts/start-n8n.ps1",
+    "desktop": "electron .",
+    "desktop:build": "npm run build && electron-builder",
+    "desktop:build:linux": "npm run build && electron-builder --linux",
+    "desktop:build:mac": "npm run build && electron-builder --mac",
+    "desktop:build:win": "npm run build && electron-builder --win",
+    "desktop:dev": "cross-env NODE_ENV=development electron .",
+    "dev": "concurrently -n \"VITE,API\" -c \"cyan,green\" \"npm run dev:frontend\" \"npm run dev:api\"",
+    "dev:api": "cd api && node server.js",
+    "dev:frontend": "vite",
+    "dev:kb-api": "node kb-api-server.mjs",
+    "fix:auto": "node scripts/auto-fix-errors-from-db.mjs",
+    "fix:loop": "node scripts/auto-fix-errors-from-db.mjs",
+    "index:all": "node scripts/index-all-data.js",
+    "lint": "eslint .",
+    "migrate:bug-system": "node scripts/auto-migrate-bug-system.mjs",
+    "prepare": "husky",
+    "preview": "vite preview",
     "seo:analyze": "node scripts/seo-analyzer.mjs",
-    "seo:monitor": "node scripts/seo-performance-monitor.mjs",
-    "seo:generate-sitemap": "node scripts/generate-sitemap.mjs",
     "seo:audit": "node scripts/seo-audit.mjs",
+    "seo:full-report": "npm run seo:analyze && npm run seo:monitor && echo 'SEO Analysis Complete!'",
+    "seo:generate-sitemap": "node scripts/generate-sitemap.mjs",
     "seo:keywords": "node scripts/keyword-research.mjs",
+    "seo:monitor": "node scripts/seo-performance-monitor.mjs",
     "seo:score": "node scripts/calculate-seo-scores.mjs",
     "seo:sync-gsc": "supabase functions invoke search-console-sync --method POST",
-    "seo:full-report": "npm run seo:analyze && npm run seo:monitor && echo 'SEO Analysis Complete!'",
-    "admin:set-role": "tsx scripts/set-admin.ts",
-    "test:mcp-supabase": "node scripts/test-mcp-supabase.js",
+    "setup": "npm install && npm run supabase:link && npm run deploy:db",
+    "setup:bug-system": "node scripts/setup-bug-system-auto.mjs",
+    "setup:hooks": "node scripts/setup-husky.js",
     "setup:mcp-supabase": "node scripts/setup-mcp-supabase.js",
+    "setup:phase1": "node scripts/setup-phase1-auto.js",
+    "start": "npm run dev",
+    "supabase:link": "supabase link --project-ref diexsbzqwsbpilsymnfb",
+    "supabase:status": "supabase functions list && supabase secrets list",
+    "test": "vitest",
+    "test:all": "node scripts/run-all-tests.js",
+    "test:bug-system": "node scripts/test-bug-system.mjs",
     "test:connection": "node scripts/compare-connection.js",
-    "prepare": "husky"
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "vitest run tests/e2e/**/*.test.ts",
+    "test:fix": "node scripts/test-system.js --fix",
+    "test:integration": "vitest run tests/integration/**/*.test.ts",
+    "test:marketplace": "node scripts/test-marketplace-e2e.mjs",
+    "test:mcp-supabase": "node scripts/test-mcp-supabase.js",
+    "test:phase1": "node scripts/test-phase1-endpoints.js",
+    "test:run": "vitest run",
+    "test:system": "node scripts/test-system.js",
+    "test:ui": "vitest --ui",
+    "test:unit": "vitest run src/**/*.test.ts",
+    "workflows": "powershell -ExecutionPolicy Bypass -File ./scripts/start-n8n.ps1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix --max-warnings=0"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",
@@ -258,13 +266,5 @@
       ],
       "icon": "electron/icon.png"
     }
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix --max-warnings=0"
-    ],
-    "*.{json,md,css}": [
-      "prettier --write"
-    ]
   }
 }

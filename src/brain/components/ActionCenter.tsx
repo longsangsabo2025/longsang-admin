@@ -2,35 +2,35 @@ import {
   useActionHistory,
   useExecutePendingActions,
   useQueueAction,
-} from "@/brain/hooks/useActions";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from '@/brain/hooks/useActions';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
-import { History, Loader2, Play, Plus } from "lucide-react";
-import { useState } from "react";
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { format } from 'date-fns';
+import { History, Loader2, Play, Plus } from 'lucide-react';
+import { useState } from 'react';
 
 export function ActionCenter() {
-  const [actionType, setActionType] = useState("create_task");
-  const [payload, setPayload] = useState("");
+  const [actionType, setActionType] = useState('create_task');
+  const [payload, setPayload] = useState('');
   const [filterStatus, setFilterStatus] = useState<
-    "pending" | "running" | "success" | "failed" | "cancelled" | "all" | undefined
+    'pending' | 'running' | 'success' | 'failed' | 'cancelled' | 'all' | undefined
   >(undefined);
 
   const queueActionMutation = useQueueAction();
   const executePendingActionsMutation = useExecutePendingActions();
   const { data: actions, isLoading: isLoadingActions } = useActionHistory(
-    filterStatus && filterStatus !== "all" ? filterStatus : undefined,
+    filterStatus && filterStatus !== 'all' ? filterStatus : undefined,
     undefined,
     50
   );
@@ -40,24 +40,24 @@ export function ActionCenter() {
     try {
       const parsedPayload = payload ? JSON.parse(payload) : {};
       await queueActionMutation.mutateAsync({ actionType, payload: parsedPayload });
-      setPayload("");
+      setPayload('');
     } catch (error) {
-      console.error("Failed to queue action:", error);
+      console.error('Failed to queue action:', error);
     }
   };
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case "success":
-        return "default";
-      case "failed":
-        return "destructive";
-      case "pending":
-        return "secondary";
-      case "running":
-        return "outline";
+      case 'success':
+        return 'default';
+      case 'failed':
+        return 'destructive';
+      case 'pending':
+        return 'secondary';
+      case 'running':
+        return 'outline';
       default:
-        return "outline";
+        return 'outline';
     }
   };
 
@@ -125,9 +125,9 @@ export function ActionCenter() {
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2">
             <Select
-              value={filterStatus || "all"}
+              value={filterStatus || 'all'}
               onValueChange={(
-                value: "pending" | "running" | "success" | "failed" | "cancelled" | "all"
+                value: 'pending' | 'running' | 'success' | 'failed' | 'cancelled' | 'all'
               ) => setFilterStatus(value)}
             >
               <SelectTrigger className="w-[180px]">
@@ -169,7 +169,7 @@ export function ActionCenter() {
                     <div className="flex items-center justify-between mb-1">
                       <Badge variant={getStatusVariant(action.status)}>{action.status}</Badge>
                       <span className="text-xs text-muted-foreground">
-                        {format(new Date(action.created_at), "MMM dd, HH:mm")}
+                        {format(new Date(action.created_at), 'MMM dd, HH:mm')}
                       </span>
                     </div>
                     <p className="font-semibold">{action.action_type}</p>
@@ -178,10 +178,10 @@ export function ActionCenter() {
                         Payload: {JSON.stringify(action.payload)}
                       </p>
                     )}
-                    {action.status === "failed" && action.error_log && (
+                    {action.status === 'failed' && action.error_log && (
                       <p className="text-destructive text-xs mt-1">Error: {action.error_log}</p>
                     )}
-                    {action.status === "success" && action.result && (
+                    {action.status === 'success' && action.result && (
                       <p className="text-green-600 text-xs mt-1">
                         Result: {JSON.stringify(action.result)}
                       </p>
@@ -198,4 +198,3 @@ export function ActionCenter() {
     </div>
   );
 }
-

@@ -28,20 +28,17 @@ interface ProjectCardProps {
 
 const statusColors = {
   'In Development': 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-  'Completed': 'bg-green-500/20 text-green-300 border-green-500/30',
-  'Planning': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-  'Beta': 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-  'Live': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-  'Maintenance': 'bg-orange-500/20 text-orange-300 border-orange-500/30'
+  Completed: 'bg-green-500/20 text-green-300 border-green-500/30',
+  Planning: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+  Beta: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+  Live: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+  Maintenance: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
 };
 
-export const ProjectCard: React.FC<ProjectCardProps> = ({ 
-  project, 
-  onClick, 
-  isActive = false 
-}) => {
-  const statusStyle = statusColors[project.status as keyof typeof statusColors] || 
-                     'bg-gray-500/20 text-gray-300 border-gray-500/30';
+export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, isActive = false }) => {
+  const statusStyle =
+    statusColors[project.status as keyof typeof statusColors] ||
+    'bg-gray-500/20 text-gray-300 border-gray-500/30';
 
   return (
     <motion.div
@@ -51,15 +48,15 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
       exit={{ opacity: 0, y: -20 }}
       whileHover={{ y: -8, scale: 1.02 }}
       className={`relative group cursor-pointer overflow-hidden rounded-xl border transition-all duration-300 ${
-        isActive 
-          ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20' 
+        isActive
+          ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
           : 'border-gray-700 bg-dark-surface/50 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10'
       }`}
       onClick={onClick}
     >
       {/* Background Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
+
       {/* Active Indicator */}
       {isActive && (
         <motion.div
@@ -75,14 +72,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             <h3 className="text-xl font-bold text-gray-100 mb-2 group-hover:text-primary transition-colors">
               {project.title}
             </h3>
-            <p className="text-gray-400 text-sm line-clamp-2 mb-3">
-              {project.description}
-            </p>
+            <p className="text-gray-400 text-sm line-clamp-2 mb-3">{project.description}</p>
           </div>
-          
+
           <div className="flex gap-2 ml-4">
             {project.demoUrl && (
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   window.open(project.demoUrl, '_blank');
@@ -94,7 +89,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               </button>
             )}
             {project.githubUrl && (
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   window.open(project.githubUrl, '_blank');
@@ -176,20 +171,20 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           <span className="text-sm text-gray-400">
             {isActive ? 'Currently viewing' : 'Click to explore'}
           </span>
-          <ArrowRight className={`w-4 h-4 transition-all duration-300 ${
-            isActive ? 'text-primary' : 'text-gray-400 group-hover:text-primary group-hover:translate-x-1'
-          }`} />
+          <ArrowRight
+            className={`w-4 h-4 transition-all duration-300 ${
+              isActive
+                ? 'text-primary'
+                : 'text-gray-400 group-hover:text-primary group-hover:translate-x-1'
+            }`}
+          />
         </motion.div>
       </div>
 
       {/* Hover Effect - Image Preview (if available) */}
       {project.image && (
         <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300">
-          <img
-            src={project.image}
-            alt={project.title}
-            className="w-full h-full object-cover"
-          />
+          <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
         </div>
       )}
     </motion.div>

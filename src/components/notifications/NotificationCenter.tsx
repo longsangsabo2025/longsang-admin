@@ -1,13 +1,9 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 import {
   Bell,
   BellRing,
@@ -21,9 +17,9 @@ import {
   Workflow,
   Settings,
   Trash2,
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface Notification {
   id: string;
@@ -98,7 +94,7 @@ export const NotificationCenter = () => {
     ];
 
     setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => !n.is_read).length);
+    setUnreadCount(mockNotifications.filter((n) => !n.is_read).length);
 
     // TODO: Setup Supabase Realtime subscription
     // const subscription = supabase
@@ -145,30 +141,28 @@ export const NotificationCenter = () => {
   };
 
   const handleMarkAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, is_read: true } : n))
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
+    setUnreadCount((prev) => Math.max(0, prev - 1));
     // TODO: Update in Supabase
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     setUnreadCount(0);
     toast({
-      title: "Đã đánh dấu tất cả",
-      description: "Tất cả thông báo đã được đánh dấu là đã đọc",
+      title: 'Đã đánh dấu tất cả',
+      description: 'Tất cả thông báo đã được đánh dấu là đã đọc',
     });
     // TODO: Update in Supabase
   };
 
   const handleDelete = (id: string) => {
-    setNotifications(prev => {
-      const notification = prev.find(n => n.id === id);
+    setNotifications((prev) => {
+      const notification = prev.find((n) => n.id === id);
       if (notification && !notification.is_read) {
-        setUnreadCount(count => Math.max(0, count - 1));
+        setUnreadCount((count) => Math.max(0, count - 1));
       }
-      return prev.filter(n => n.id !== id);
+      return prev.filter((n) => n.id !== id);
     });
     // TODO: Delete from Supabase
   };
@@ -186,11 +180,7 @@ export const NotificationCenter = () => {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
-          {unreadCount > 0 ? (
-            <BellRing className="h-5 w-5" />
-          ) : (
-            <Bell className="h-5 w-5" />
-          )}
+          {unreadCount > 0 ? <BellRing className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
@@ -210,12 +200,7 @@ export const NotificationCenter = () => {
             </p>
           </div>
           {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleMarkAllAsRead}
-              className="gap-2"
-            >
+            <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead} className="gap-2">
               <CheckCheck className="h-4 w-4" />
               Đánh dấu tất cả
             </Button>
@@ -234,8 +219,8 @@ export const NotificationCenter = () => {
                 <div
                   key={notification.id}
                   className={cn(
-                    "p-4 hover:bg-muted/50 transition-colors group relative",
-                    !notification.is_read && "bg-blue-50/50 dark:bg-blue-950/20"
+                    'p-4 hover:bg-muted/50 transition-colors group relative',
+                    !notification.is_read && 'bg-blue-50/50 dark:bg-blue-950/20'
                   )}
                 >
                   <div
@@ -243,14 +228,10 @@ export const NotificationCenter = () => {
                     onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5">
-                        {getNotificationIcon(notification.type)}
-                      </div>
+                      <div className="mt-0.5">{getNotificationIcon(notification.type)}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
-                          <p className="font-medium text-sm">
-                            {notification.title}
-                          </p>
+                          <p className="font-medium text-sm">{notification.title}</p>
                           {!notification.is_read && (
                             <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0 mt-1" />
                           )}

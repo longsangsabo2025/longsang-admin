@@ -1,6 +1,6 @@
-import { N8nController } from "@/components/automation/N8nController";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Database, Settings, Workflow, Zap } from "lucide-react";
+import { N8nController } from '@/components/automation/N8nController';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Database, Settings, Workflow, Zap } from 'lucide-react';
 
 export default function N8nManagement() {
   return (

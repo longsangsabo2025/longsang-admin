@@ -3,16 +3,16 @@
  * Manages knowledge analysis operations
  */
 
-import { brainAPI } from "@/brain/lib/services/brain-api";
+import { brainAPI } from '@/brain/lib/services/brain-api';
 import type {
   KnowledgeAnalysisResult,
   KnowledgePattern,
   KeyConcept,
   KnowledgeRelationship,
   KnowledgeTopic,
-} from "@/brain/types/core-logic.types";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+} from '@/brain/types/core-logic.types';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 /**
  * Hook to analyze domain knowledge
@@ -20,7 +20,7 @@ import { toast } from "sonner";
 export function useAnalyzeDomain(domainId: string | null) {
   return useMutation({
     mutationFn: async () => {
-      if (!domainId) throw new Error("Domain ID is required");
+      if (!domainId) throw new Error('Domain ID is required');
       return brainAPI.analyzeDomainKnowledge(domainId);
     },
     onError: (error: Error) => {
@@ -34,9 +34,9 @@ export function useAnalyzeDomain(domainId: string | null) {
  */
 export function useKnowledgePatterns(domainId: string | null) {
   return useQuery<KnowledgePattern[]>({
-    queryKey: ["brain", "knowledge-patterns", domainId],
+    queryKey: ['brain', 'knowledge-patterns', domainId],
     queryFn: () => {
-      if (!domainId) throw new Error("Domain ID is required");
+      if (!domainId) throw new Error('Domain ID is required');
       return brainAPI.getKnowledgePatterns(domainId);
     },
     enabled: !!domainId,
@@ -49,9 +49,9 @@ export function useKnowledgePatterns(domainId: string | null) {
  */
 export function useKeyConcepts(domainId: string | null) {
   return useQuery<KeyConcept[]>({
-    queryKey: ["brain", "key-concepts", domainId],
+    queryKey: ['brain', 'key-concepts', domainId],
     queryFn: () => {
-      if (!domainId) throw new Error("Domain ID is required");
+      if (!domainId) throw new Error('Domain ID is required');
       return brainAPI.getKeyConcepts(domainId);
     },
     enabled: !!domainId,
@@ -64,9 +64,9 @@ export function useKeyConcepts(domainId: string | null) {
  */
 export function useRelationships(domainId: string | null) {
   return useQuery<KnowledgeRelationship[]>({
-    queryKey: ["brain", "relationships", domainId],
+    queryKey: ['brain', 'relationships', domainId],
     queryFn: () => {
-      if (!domainId) throw new Error("Domain ID is required");
+      if (!domainId) throw new Error('Domain ID is required');
       return brainAPI.getRelationships(domainId);
     },
     enabled: !!domainId,
@@ -79,13 +79,12 @@ export function useRelationships(domainId: string | null) {
  */
 export function useTopics(domainId: string | null) {
   return useQuery<KnowledgeTopic[]>({
-    queryKey: ["brain", "topics", domainId],
+    queryKey: ['brain', 'topics', domainId],
     queryFn: () => {
-      if (!domainId) throw new Error("Domain ID is required");
+      if (!domainId) throw new Error('Domain ID is required');
       return brainAPI.getTopics(domainId);
     },
     enabled: !!domainId,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
-

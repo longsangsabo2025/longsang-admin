@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: longsang-frontend
     ports:
-      - "5173:5173"
+      - '5173:5173'
     environment:
       - VITE_AI_BACKEND_URL=http://ai-backend:8000
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
@@ -30,23 +30,23 @@ services:
       target: development
     container_name: longsang-ai-backend
     ports:
-      - "8000:8000"
+      - '8000:8000'
     environment:
       # LLM APIs
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      
+
       # Supabase (for data sync)
       - SUPABASE_URL=${VITE_SUPABASE_URL}
       - SUPABASE_KEY=${VITE_SUPABASE_ANON_KEY}
-      
+
       # Memory System
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      
+
       # System Config
       - LOG_LEVEL=INFO
       - ENVIRONMENT=development
@@ -67,8 +67,8 @@ services:
     image: qdrant/qdrant:latest
     container_name: longsang-qdrant
     ports:
-      - "6333:6333"
-      - "6334:6334"
+      - '6333:6333'
+      - '6334:6334'
     volumes:
       - qdrant_storage:/qdrant/storage
     environment:
@@ -82,7 +82,7 @@ services:
     image: redis:7-alpine
     container_name: longsang-redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -90,7 +90,7 @@ services:
       - app-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 3
@@ -100,7 +100,7 @@ services:
     image: prom/prometheus:latest
     container_name: longsang-prometheus
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./personal-ai-system/config/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
@@ -118,7 +118,7 @@ services:
     image: grafana/grafana:latest
     container_name: longsang-grafana
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
       - grafana_data:/var/lib/grafana
     environment:

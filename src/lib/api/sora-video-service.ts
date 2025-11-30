@@ -68,13 +68,13 @@ class SoraVideoService {
   async generateVideo(request: SoraVideoRequest): Promise<SoraVideoResponse> {
     try {
       const url = `${this.webhookUrl}/sora-generate-video`;
-      
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.webhookSecret}`,
-          'X-Webhook-Source': 'longsang-admin'
+          Authorization: `Bearer ${this.webhookSecret}`,
+          'X-Webhook-Source': 'longsang-admin',
         },
         body: JSON.stringify({
           prompt: request.prompt,
@@ -83,8 +83,8 @@ class SoraVideoService {
           aspect_ratio: request.aspect_ratio || '16:9',
           duration: request.duration || 5,
           folder_id: request.folder_id || 'root',
-          video_name: request.video_name || `sora_video_${Date.now()}`
-        })
+          video_name: request.video_name || `sora_video_${Date.now()}`,
+        }),
       });
 
       if (!response.ok) {
@@ -99,7 +99,7 @@ class SoraVideoService {
       return {
         success: false,
         message: 'Failed to generate video',
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -114,7 +114,7 @@ class SoraVideoService {
       use_ai_enhance: true,
       model: 'sora-2-text-to-video',
       aspect_ratio: '16:9',
-      duration: 5
+      duration: 5,
     });
   }
 
@@ -128,7 +128,7 @@ class SoraVideoService {
       use_ai_enhance: true,
       model: 'sora-2-text-to-video',
       aspect_ratio: '9:16',
-      duration
+      duration,
     });
   }
 
@@ -142,7 +142,7 @@ class SoraVideoService {
       use_ai_enhance: true,
       model: 'sora-2-text-to-video',
       aspect_ratio: '16:9',
-      duration
+      duration,
     });
   }
 
@@ -167,7 +167,7 @@ class SoraVideoService {
       aspect_ratio: options.aspectRatio || '16:9',
       duration: options.duration || 5,
       folder_id: options.folderId,
-      video_name: options.videoName
+      video_name: options.videoName,
     });
   }
 
@@ -181,9 +181,9 @@ class SoraVideoService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.webhookSecret}`
+          Authorization: `Bearer ${this.webhookSecret}`,
         },
-        body: JSON.stringify({ task_id: taskId })
+        body: JSON.stringify({ task_id: taskId }),
       });
 
       if (!response.ok) {
@@ -195,7 +195,7 @@ class SoraVideoService {
       console.error('Failed to check task status');
       return {
         task_id: taskId,
-        status: 'failed'
+        status: 'failed',
       };
     }
   }

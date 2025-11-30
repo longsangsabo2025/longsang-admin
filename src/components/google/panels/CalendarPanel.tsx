@@ -10,15 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Calendar, 
-  Plus, 
-  RefreshCw, 
-  CheckCircle2, 
-  Clock,
-  Loader2,
-  MapPin
-} from 'lucide-react';
+import { Calendar, Plus, RefreshCw, CheckCircle2, Clock, Loader2, MapPin } from 'lucide-react';
 import { createCalendarEvent, getCalendarStats, CalendarEvent } from '@/lib/google/calendar-api';
 import { toast } from 'sonner';
 
@@ -26,7 +18,7 @@ export const CalendarPanel = () => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [stats, setStats] = useState<any>(null);
-  
+
   const [eventForm, setEventForm] = useState({
     summary: '',
     description: '',
@@ -62,12 +54,13 @@ export const CalendarPanel = () => {
 
     try {
       setCreating(true);
-      
+
       const calendarEmail = eventForm.calendarEmail || 'primary';
       const startDateTime = `${eventForm.startDate}T${eventForm.startTime}:00`;
-      const endDateTime = eventForm.endDate && eventForm.endTime 
-        ? `${eventForm.endDate}T${eventForm.endTime}:00`
-        : `${eventForm.startDate}T${eventForm.endTime || eventForm.startTime}:00`;
+      const endDateTime =
+        eventForm.endDate && eventForm.endTime
+          ? `${eventForm.endDate}T${eventForm.endTime}:00`
+          : `${eventForm.startDate}T${eventForm.endTime || eventForm.startTime}:00`;
 
       const event: CalendarEvent = {
         summary: eventForm.summary,
@@ -142,9 +135,7 @@ export const CalendarPanel = () => {
             <Plus className="h-5 w-5" />
             Create Event
           </CardTitle>
-          <CardDescription>
-            Create a new calendar event
-          </CardDescription>
+          <CardDescription>Create a new calendar event</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -154,7 +145,7 @@ export const CalendarPanel = () => {
                 id="summary"
                 placeholder="Meeting with client"
                 value={eventForm.summary}
-                onChange={(e) => setEventForm(prev => ({ ...prev, summary: e.target.value }))}
+                onChange={(e) => setEventForm((prev) => ({ ...prev, summary: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
@@ -166,7 +157,7 @@ export const CalendarPanel = () => {
                   className="pl-9"
                   placeholder="Office or address"
                   value={eventForm.location}
-                  onChange={(e) => setEventForm(prev => ({ ...prev, location: e.target.value }))}
+                  onChange={(e) => setEventForm((prev) => ({ ...prev, location: e.target.value }))}
                 />
               </div>
             </div>
@@ -179,7 +170,7 @@ export const CalendarPanel = () => {
                 id="startDate"
                 type="date"
                 value={eventForm.startDate}
-                onChange={(e) => setEventForm(prev => ({ ...prev, startDate: e.target.value }))}
+                onChange={(e) => setEventForm((prev) => ({ ...prev, startDate: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
@@ -188,7 +179,7 @@ export const CalendarPanel = () => {
                 id="startTime"
                 type="time"
                 value={eventForm.startTime}
-                onChange={(e) => setEventForm(prev => ({ ...prev, startTime: e.target.value }))}
+                onChange={(e) => setEventForm((prev) => ({ ...prev, startTime: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
@@ -197,7 +188,7 @@ export const CalendarPanel = () => {
                 id="endDate"
                 type="date"
                 value={eventForm.endDate}
-                onChange={(e) => setEventForm(prev => ({ ...prev, endDate: e.target.value }))}
+                onChange={(e) => setEventForm((prev) => ({ ...prev, endDate: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
@@ -206,7 +197,7 @@ export const CalendarPanel = () => {
                 id="endTime"
                 type="time"
                 value={eventForm.endTime}
-                onChange={(e) => setEventForm(prev => ({ ...prev, endTime: e.target.value }))}
+                onChange={(e) => setEventForm((prev) => ({ ...prev, endTime: e.target.value }))}
               />
             </div>
           </div>
@@ -218,7 +209,7 @@ export const CalendarPanel = () => {
               placeholder="Event details..."
               rows={3}
               value={eventForm.description}
-              onChange={(e) => setEventForm(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) => setEventForm((prev) => ({ ...prev, description: e.target.value }))}
             />
           </div>
 
@@ -229,7 +220,7 @@ export const CalendarPanel = () => {
               type="email"
               placeholder="Leave empty for primary calendar"
               value={eventForm.calendarEmail}
-              onChange={(e) => setEventForm(prev => ({ ...prev, calendarEmail: e.target.value }))}
+              onChange={(e) => setEventForm((prev) => ({ ...prev, calendarEmail: e.target.value }))}
             />
           </div>
 
@@ -265,7 +256,10 @@ export const CalendarPanel = () => {
           <CardContent>
             <div className="space-y-2">
               {stats.recentEvents.map((event: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between py-2 border-b last:border-0">
+                <div
+                  key={idx}
+                  className="flex items-center justify-between py-2 border-b last:border-0"
+                >
                   <div>
                     <div className="text-sm font-medium">{event.summary || 'Untitled'}</div>
                     <div className="text-xs text-muted-foreground">

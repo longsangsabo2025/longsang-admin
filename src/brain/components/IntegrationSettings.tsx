@@ -1,11 +1,23 @@
-import { useIntegrations, useCreateIntegration, useDeleteIntegration, useTestSlackIntegration } from '@/brain/hooks/useIntegrations';
+import {
+  useIntegrations,
+  useCreateIntegration,
+  useDeleteIntegration,
+  useTestSlackIntegration,
+} from '@/brain/hooks/useIntegrations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Loader2, Settings, Plus, Trash2, TestTube } from 'lucide-react';
 import { useState } from 'react';
 
@@ -92,7 +104,11 @@ export function IntegrationSettings() {
                     onChange={(e) => setWebhookUrl(e.target.value)}
                   />
                 </div>
-                <Button onClick={handleCreateIntegration} disabled={createIntegrationMutation.isPending || !webhookUrl} className="w-full">
+                <Button
+                  onClick={handleCreateIntegration}
+                  disabled={createIntegrationMutation.isPending || !webhookUrl}
+                  className="w-full"
+                >
                   {createIntegrationMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : null}
@@ -107,7 +123,10 @@ export function IntegrationSettings() {
         {integrations && integrations.length > 0 ? (
           <div className="space-y-3">
             {integrations.map((integration) => (
-              <div key={integration.id} className="flex items-center justify-between p-3 border rounded">
+              <div
+                key={integration.id}
+                className="flex items-center justify-between p-3 border rounded"
+              >
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium capitalize">{integration.integration_type}</span>
@@ -151,4 +170,3 @@ export function IntegrationSettings() {
     </Card>
   );
 }
-

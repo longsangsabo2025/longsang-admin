@@ -1,4 +1,4 @@
-import { Facebook, Twitter, Linkedin, Mail } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Mail } from 'lucide-react';
 
 export const Footer = () => {
   return (
@@ -36,10 +36,26 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Sản Phẩm</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">AI Solutions</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Automation Tools</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">API Services</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Custom Development</a></li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  AI Solutions
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Automation Tools
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  API Services
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Custom Development
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -47,10 +63,26 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Cộng Đồng</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Workflows</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Forum</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Events</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Workflows
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Forum
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Events
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Blog
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -58,10 +90,26 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Công Ty</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Về Chúng Tôi</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Tuyển Dụng</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Liên Hệ</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Điều Khoản</a></li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Về Chúng Tôi
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Tuyển Dụng
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Liên Hệ
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Điều Khoản
+                </a>
+              </li>
             </ul>
           </div>
         </div>

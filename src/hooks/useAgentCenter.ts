@@ -42,31 +42,34 @@ export function useAgents() {
 
   const createAgent = useCallback(async (agent: CreateAgentData) => {
     const newAgent = await agentCenterApi.agents.create(agent);
-    setAgents(prev => [...prev, newAgent]);
+    setAgents((prev) => [...prev, newAgent]);
     return newAgent;
   }, []);
 
   const updateAgent = useCallback(async (id: string, updates: Partial<AIAgent>) => {
     const updated = await agentCenterApi.agents.update(id, updates);
-    setAgents(prev => prev.map(a => a.id === id ? updated : a));
+    setAgents((prev) => prev.map((a) => (a.id === id ? updated : a)));
     return updated;
   }, []);
 
   const deleteAgent = useCallback(async (id: string) => {
     await agentCenterApi.agents.delete(id);
-    setAgents(prev => prev.filter(a => a.id !== id));
+    setAgents((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
-  const toggleAgentStatus = useCallback(async (id: string, status: AgentStatus) => {
-    return updateAgent(id, { status });
-  }, [updateAgent]);
+  const toggleAgentStatus = useCallback(
+    async (id: string, status: AgentStatus) => {
+      return updateAgent(id, { status });
+    },
+    [updateAgent]
+  );
 
   useEffect(() => {
     fetchAgents();
   }, [fetchAgents]);
 
-  const activeAgents = agents.filter(a => a.status === 'active');
-  const inactiveAgents = agents.filter(a => a.status === 'inactive');
+  const activeAgents = agents.filter((a) => a.status === 'active');
+  const inactiveAgents = agents.filter((a) => a.status === 'inactive');
 
   return {
     agents,
@@ -105,31 +108,34 @@ export function useWorkflows() {
 
   const createWorkflow = useCallback(async (workflow: CreateWorkflowData) => {
     const newWorkflow = await agentCenterApi.workflows.create(workflow);
-    setWorkflows(prev => [...prev, newWorkflow]);
+    setWorkflows((prev) => [...prev, newWorkflow]);
     return newWorkflow;
   }, []);
 
   const updateWorkflow = useCallback(async (id: string, updates: Partial<Workflow>) => {
     const updated = await agentCenterApi.workflows.update(id, updates);
-    setWorkflows(prev => prev.map(w => w.id === id ? updated : w));
+    setWorkflows((prev) => prev.map((w) => (w.id === id ? updated : w)));
     return updated;
   }, []);
 
   const deleteWorkflow = useCallback(async (id: string) => {
     await agentCenterApi.workflows.delete(id);
-    setWorkflows(prev => prev.filter(w => w.id !== id));
+    setWorkflows((prev) => prev.filter((w) => w.id !== id));
   }, []);
 
-  const toggleWorkflowStatus = useCallback(async (id: string, status: WorkflowStatus) => {
-    return updateWorkflow(id, { status });
-  }, [updateWorkflow]);
+  const toggleWorkflowStatus = useCallback(
+    async (id: string, status: WorkflowStatus) => {
+      return updateWorkflow(id, { status });
+    },
+    [updateWorkflow]
+  );
 
   useEffect(() => {
     fetchWorkflows();
   }, [fetchWorkflows]);
 
-  const activeWorkflows = workflows.filter(w => w.status === 'active');
-  const inactiveWorkflows = workflows.filter(w => w.status === 'inactive');
+  const activeWorkflows = workflows.filter((w) => w.status === 'active');
+  const inactiveWorkflows = workflows.filter((w) => w.status === 'inactive');
 
   return {
     workflows,
@@ -170,18 +176,16 @@ export function useExecutions(limit = 50) {
     fetchExecutions();
   }, [fetchExecutions]);
 
-  const runningExecutions = executions.filter(e => e.status === 'running');
-  const completedExecutions = executions.filter(e => e.status === 'completed');
-  const failedExecutions = executions.filter(e => e.status === 'failed');
+  const runningExecutions = executions.filter((e) => e.status === 'running');
+  const completedExecutions = executions.filter((e) => e.status === 'completed');
+  const failedExecutions = executions.filter((e) => e.status === 'failed');
 
   const stats = {
     total: executions.length,
     running: runningExecutions.length,
     completed: completedExecutions.length,
     failed: failedExecutions.length,
-    successRate: executions.length > 0 
-      ? (completedExecutions.length / executions.length) * 100 
-      : 0,
+    successRate: executions.length > 0 ? (completedExecutions.length / executions.length) * 100 : 0,
   };
 
   return {
@@ -221,16 +225,19 @@ export function useTools() {
     fetchTools();
   }, [fetchTools]);
 
-  const freeTools = tools.filter(t => t.isFree);
-  const paidTools = tools.filter(t => !t.isFree);
+  const freeTools = tools.filter((t) => t.isFree);
+  const paidTools = tools.filter((t) => !t.isFree);
 
-  const toolsByCategory = tools.reduce((acc, tool) => {
-    if (!acc[tool.category]) {
-      acc[tool.category] = [];
-    }
-    acc[tool.category].push(tool);
-    return acc;
-  }, {} as Record<string, AITool[]>);
+  const toolsByCategory = tools.reduce(
+    (acc, tool) => {
+      if (!acc[tool.category]) {
+        acc[tool.category] = [];
+      }
+      acc[tool.category].push(tool);
+      return acc;
+    },
+    {} as Record<string, AITool[]>
+  );
 
   return {
     tools,
@@ -254,11 +261,16 @@ export function useAnalytics(timeRange: '24h' | '7d' | '30d' | '90d' = '7d') {
   // Convert time range string to days number
   const getDays = (range: string): number => {
     switch (range) {
-      case '24h': return 1;
-      case '7d': return 7;
-      case '30d': return 30;
-      case '90d': return 90;
-      default: return 7;
+      case '24h':
+        return 1;
+      case '7d':
+        return 7;
+      case '30d':
+        return 30;
+      case '90d':
+        return 90;
+      default:
+        return 7;
     }
   };
 
@@ -268,7 +280,7 @@ export function useAnalytics(timeRange: '24h' | '7d' | '30d' | '90d' = '7d') {
       setError(null);
       const days = getDays(timeRange);
       const overview = await agentCenterApi.analytics.getOverview(days);
-      
+
       // Transform AnalyticsOverview to AnalyticsData
       setAnalytics({
         totalExecutions: overview.executions.total,
@@ -309,16 +321,16 @@ export function useDashboardStats() {
   const stats = {
     agents: {
       total: agents.length,
-      active: agents.filter(a => a.status === 'active').length,
+      active: agents.filter((a) => a.status === 'active').length,
     },
     workflows: {
       total: workflows.length,
-      active: workflows.filter(w => w.status === 'active').length,
+      active: workflows.filter((w) => w.status === 'active').length,
     },
     executions: executionStats,
     tools: {
       total: tools.length,
-      free: tools.filter(t => t.isFree).length,
+      free: tools.filter((t) => t.isFree).length,
     },
   };
 

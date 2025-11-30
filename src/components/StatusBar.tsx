@@ -4,11 +4,11 @@
  */
 
 import { useEffect, useState } from 'react';
-import { 
-  Activity, 
-  Server, 
-  Database, 
-  Cloud, 
+import {
+  Activity,
+  Server,
+  Database,
+  Cloud,
   Cpu,
   Wifi,
   WifiOff,
@@ -18,14 +18,10 @@ import {
   Zap,
   Bot,
   GitBranch,
-  Terminal
+  Terminal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ServiceStatus {
   name: string;
@@ -36,18 +32,21 @@ interface ServiceStatus {
   url?: string;
 }
 
-const checkServiceHealth = async (url: string, timeout = 3000): Promise<{ ok: boolean; latency: number }> => {
+const checkServiceHealth = async (
+  url: string,
+  timeout = 3000
+): Promise<{ ok: boolean; latency: number }> => {
   const start = Date.now();
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
-    const response = await fetch(url, { 
+
+    const response = await fetch(url, {
       method: 'GET',
       signal: controller.signal,
-      mode: 'no-cors' // Avoid CORS errors for external services
+      mode: 'no-cors', // Avoid CORS errors for external services
     });
-    
+
     clearTimeout(timeoutId);
     // With no-cors mode, we can't read response.ok, so we assume success if no error
     return { ok: true, latency: Date.now() - start };
@@ -64,7 +63,7 @@ export function StatusBar() {
     { name: 'Supabase', status: 'checking', icon: Database },
     { name: 'Sentry', status: 'checking', icon: AlertCircle },
   ]);
-  
+
   const [wsStatus, setWsStatus] = useState<'connected' | 'disconnected'>('disconnected');
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
@@ -78,10 +77,10 @@ export function StatusBar() {
             ...service,
             status: result.ok ? 'online' : 'offline',
             latency: result.latency,
-            message: result.ok ? `${result.latency}ms` : 'Unreachable'
+            message: result.ok ? `${result.latency}ms` : 'Unreachable',
           } as ServiceStatus;
         }
-        
+
         // Special checks for services without direct URL
         if (service.name === 'Supabase') {
           try {
@@ -89,27 +88,27 @@ export function StatusBar() {
             return {
               ...service,
               status: result.ok ? 'online' : 'offline',
-              message: result.ok ? 'Connected' : 'Disconnected'
+              message: result.ok ? 'Connected' : 'Disconnected',
             } as ServiceStatus;
           } catch {
             return { ...service, status: 'offline', message: 'Error' } as ServiceStatus;
           }
         }
-        
+
         if (service.name === 'Sentry') {
           // Sentry is considered online if the DSN is configured
           const hasSentry = !!import.meta.env.VITE_SENTRY_DSN;
           return {
             ...service,
             status: hasSentry ? 'online' : 'warning',
-            message: hasSentry ? 'Monitoring' : 'Not configured'
+            message: hasSentry ? 'Monitoring' : 'Not configured',
           } as ServiceStatus;
         }
-        
+
         return service;
       })
     );
-    
+
     setServices(updatedServices);
     setLastUpdate(new Date());
   };
@@ -118,23 +117,23 @@ export function StatusBar() {
   useEffect(() => {
     let ws: WebSocket | null = null;
     let reconnectTimeout: ReturnType<typeof setTimeout>;
-    
+
     const connectWs = () => {
       // Don't attempt WebSocket in development if server isn't running
       const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3003';
-      
+
       try {
         ws = new WebSocket(wsUrl);
-        
+
         ws.onopen = () => {
           setWsStatus('connected');
         };
-        
+
         ws.onclose = () => {
           setWsStatus('disconnected');
           // Don't auto-reconnect to avoid console spam
         };
-        
+
         ws.onerror = () => {
           // Silently handle error - WebSocket server may not be running
           setWsStatus('disconnected');
@@ -143,10 +142,10 @@ export function StatusBar() {
         setWsStatus('disconnected');
       }
     };
-    
+
     // Delay initial connection to avoid startup errors
     reconnectTimeout = setTimeout(connectWs, 2000);
-    
+
     return () => {
       clearTimeout(reconnectTimeout);
       if (ws && ws.readyState === WebSocket.OPEN) {
@@ -164,25 +163,35 @@ export function StatusBar() {
 
   const getStatusColor = (status: ServiceStatus['status']) => {
     switch (status) {
-      case 'online': return 'text-green-400';
-      case 'offline': return 'text-red-400';
-      case 'warning': return 'text-yellow-400';
-      case 'checking': return 'text-blue-400';
-      default: return 'text-gray-400';
+      case 'online':
+        return 'text-green-400';
+      case 'offline':
+        return 'text-red-400';
+      case 'warning':
+        return 'text-yellow-400';
+      case 'checking':
+        return 'text-blue-400';
+      default:
+        return 'text-gray-400';
     }
   };
 
   const getStatusIcon = (status: ServiceStatus['status']) => {
     switch (status) {
-      case 'online': return CheckCircle2;
-      case 'offline': return AlertCircle;
-      case 'warning': return AlertCircle;
-      case 'checking': return Loader2;
-      default: return Activity;
+      case 'online':
+        return CheckCircle2;
+      case 'offline':
+        return AlertCircle;
+      case 'warning':
+        return AlertCircle;
+      case 'checking':
+        return Loader2;
+      default:
+        return Activity;
     }
   };
 
-  const onlineCount = services.filter(s => s.status === 'online').length;
+  const onlineCount = services.filter((s) => s.status === 'online').length;
   const totalCount = services.length;
 
   return (
@@ -203,12 +212,14 @@ export function StatusBar() {
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <button 
+            <button
               onClick={checkAllServices}
               className="flex items-center gap-1 hover:bg-white/10 px-1.5 py-0.5 rounded transition-colors"
             >
               <Activity className="w-3.5 h-3.5" />
-              <span>{onlineCount}/{totalCount} Services</span>
+              <span>
+                {onlineCount}/{totalCount} Services
+              </span>
             </button>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">
@@ -222,22 +233,21 @@ export function StatusBar() {
         {services.map((service) => {
           const StatusIcon = getStatusIcon(service.status);
           const ServiceIcon = service.icon;
-          
+
           return (
             <Tooltip key={service.name}>
               <TooltipTrigger asChild>
-                <button 
+                <button
                   className={cn(
-                    "flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors hover:bg-white/10",
+                    'flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors hover:bg-white/10',
                     getStatusColor(service.status)
                   )}
                 >
                   <ServiceIcon className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">{service.name}</span>
-                  <StatusIcon className={cn(
-                    "w-3 h-3",
-                    service.status === 'checking' && "animate-spin"
-                  )} />
+                  <StatusIcon
+                    className={cn('w-3 h-3', service.status === 'checking' && 'animate-spin')}
+                  />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">
@@ -247,9 +257,7 @@ export function StatusBar() {
                     {service.status.charAt(0).toUpperCase() + service.status.slice(1)}
                     {service.message && ` - ${service.message}`}
                   </div>
-                  {service.url && (
-                    <div className="text-gray-400">{service.url}</div>
-                  )}
+                  {service.url && <div className="text-gray-400">{service.url}</div>}
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -259,10 +267,12 @@ export function StatusBar() {
         {/* WebSocket Status */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <button className={cn(
-              "flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors hover:bg-white/10",
-              wsStatus === 'connected' ? 'text-green-400' : 'text-red-400'
-            )}>
+            <button
+              className={cn(
+                'flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors hover:bg-white/10',
+                wsStatus === 'connected' ? 'text-green-400' : 'text-red-400'
+              )}
+            >
               {wsStatus === 'connected' ? (
                 <Wifi className="w-3.5 h-3.5" />
               ) : (
@@ -303,9 +313,7 @@ export function StatusBar() {
           </TooltipContent>
         </Tooltip>
 
-        <span className="text-gray-400 text-[10px]">
-          {lastUpdate.toLocaleTimeString()}
-        </span>
+        <span className="text-gray-400 text-[10px]">{lastUpdate.toLocaleTimeString()}</span>
       </div>
     </div>
   );

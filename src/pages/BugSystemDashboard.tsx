@@ -40,7 +40,20 @@ import {
   triggerAutoFix,
 } from '@/lib/bug-system/api';
 import { supabase } from '@/lib/supabase';
-import { AlertTriangle, Bell, Brain, Play, RefreshCw, Search, Sparkles, TrendingUp, Wrench, CheckCircle, XCircle, Clock } from 'lucide-react';
+import {
+  AlertTriangle,
+  Bell,
+  Brain,
+  Play,
+  RefreshCw,
+  Search,
+  Sparkles,
+  TrendingUp,
+  Wrench,
+  CheckCircle,
+  XCircle,
+  Clock,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { usePersistedState, useScrollRestore } from '@/hooks/usePersistedState';
 
@@ -280,8 +293,8 @@ export default function BugSystemDashboard() {
   const loadData = async () => {
     setLoading(true);
     await Promise.all([
-      fetchErrors(), 
-      fetchHealingActions(), 
+      fetchErrors(),
+      fetchHealingActions(),
       fetchStatistics(),
       fetchAlertLogs(),
       fetchAISuggestions(),
@@ -671,7 +684,8 @@ export default function BugSystemDashboard() {
                             <Wrench className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                             <p>No Copilot fixes recorded yet.</p>
                             <p className="text-sm mt-2">
-                              Fixes will appear here when Sentry detects errors and Copilot auto-fixes them.
+                              Fixes will appear here when Sentry detects errors and Copilot
+                              auto-fixes them.
                             </p>
                           </div>
                         </TableCell>
@@ -708,9 +722,7 @@ export default function BugSystemDashboard() {
                           <TableCell className="font-mono text-sm text-blue-600">
                             {fix.file?.split('/').pop() || fix.file}
                           </TableCell>
-                          <TableCell className="text-center font-mono">
-                            {fix.line || '-'}
-                          </TableCell>
+                          <TableCell className="text-center font-mono">{fix.line || '-'}</TableCell>
                           <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
                             {fix.fixApplied || '-'}
                           </TableCell>
@@ -723,21 +735,22 @@ export default function BugSystemDashboard() {
                   </TableBody>
                 </Table>
               </div>
-              
+
               {/* Quick Actions */}
               <div className="mt-4 flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={fetchCopilotFixes}
-                >
+                <Button variant="outline" size="sm" onClick={fetchCopilotFixes}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Refresh
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open('vscode://file/D:/0.PROJECTS/.copilot-errors/fix-history.json', '_blank')}
+                  onClick={() =>
+                    window.open(
+                      'vscode://file/D:/0.PROJECTS/.copilot-errors/fix-history.json',
+                      '_blank'
+                    )
+                  }
                 >
                   Open in VS Code
                 </Button>
@@ -793,7 +806,15 @@ export default function BugSystemDashboard() {
                           </TableCell>
                           <TableCell className="max-w-md truncate">{alert.message}</TableCell>
                           <TableCell>
-                            <Badge className={alert.status === 'sent' ? 'bg-green-500' : alert.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500'}>
+                            <Badge
+                              className={
+                                alert.status === 'sent'
+                                  ? 'bg-green-500'
+                                  : alert.status === 'failed'
+                                    ? 'bg-red-500'
+                                    : 'bg-yellow-500'
+                              }
+                            >
                               {alert.status}
                             </Badge>
                           </TableCell>
@@ -850,15 +871,20 @@ export default function BugSystemDashboard() {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <div className="w-16 bg-gray-200 rounded-full h-2">
-                                <div 
+                                <div
                                   className={`h-2 rounded-full ${
-                                    suggestion.confidence >= 0.8 ? 'bg-green-500' : 
-                                    suggestion.confidence >= 0.5 ? 'bg-yellow-500' : 'bg-red-500'
+                                    suggestion.confidence >= 0.8
+                                      ? 'bg-green-500'
+                                      : suggestion.confidence >= 0.5
+                                        ? 'bg-yellow-500'
+                                        : 'bg-red-500'
                                   }`}
                                   style={{ width: `${suggestion.confidence * 100}%` }}
                                 />
                               </div>
-                              <span className="text-sm">{Math.round(suggestion.confidence * 100)}%</span>
+                              <span className="text-sm">
+                                {Math.round(suggestion.confidence * 100)}%
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -931,10 +957,13 @@ export default function BugSystemDashboard() {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <div className="w-16 bg-gray-200 rounded-full h-2">
-                                <div 
+                                <div
                                   className={`h-2 rounded-full ${
-                                    pred.probability >= 0.7 ? 'bg-red-500' : 
-                                    pred.probability >= 0.4 ? 'bg-yellow-500' : 'bg-green-500'
+                                    pred.probability >= 0.7
+                                      ? 'bg-red-500'
+                                      : pred.probability >= 0.4
+                                        ? 'bg-yellow-500'
+                                        : 'bg-green-500'
                                   }`}
                                   style={{ width: `${pred.probability * 100}%` }}
                                 />

@@ -1,6 +1,6 @@
 /**
  * MTTR (Mean Time To Recovery) Metrics Service
- * 
+ *
  * Tracks and calculates key reliability metrics
  * "You measure what you manage." - Elon
  */
@@ -9,10 +9,10 @@ import { supabase } from '../supabase';
 import { logger } from '../utils/logger';
 
 export interface MTTRMetrics {
-  mttr: number;           // Mean Time To Recovery (minutes)
-  mtbf: number;           // Mean Time Between Failures (minutes)
-  mttd: number;           // Mean Time To Detect (minutes)
-  availability: number;   // Percentage 0-100
+  mttr: number; // Mean Time To Recovery (minutes)
+  mtbf: number; // Mean Time Between Failures (minutes)
+  mttd: number; // Mean Time To Detect (minutes)
+  availability: number; // Percentage 0-100
   errorCount: number;
   resolvedCount: number;
   pendingCount: number;
@@ -27,7 +27,7 @@ export interface ErrorTimeline {
   acknowledgedAt?: string;
   resolvedAt?: string;
   status: 'detected' | 'acknowledged' | 'in_progress' | 'resolved';
-  timeToDetect?: number;    // ms
+  timeToDetect?: number; // ms
   timeToAcknowledge?: number;
   timeToResolve?: number;
 }
@@ -76,22 +76,25 @@ class MetricsService {
 
       // Calculate metrics
       const errorCount = errors?.length || 0;
-      const resolvedBugs = bugs?.filter(b => b.status === 'fixed') || [];
+      const resolvedBugs = bugs?.filter((b) => b.status === 'fixed') || [];
       const resolvedCount = resolvedBugs.length;
-      const pendingCount = (bugs?.filter(b => b.status !== 'fixed' && b.status !== 'closed') || []).length;
+      const pendingCount = (
+        bugs?.filter((b) => b.status !== 'fixed' && b.status !== 'closed') || []
+      ).length;
 
       // Calculate MTTR (Mean Time To Recovery)
       let totalResolutionTime = 0;
-      resolvedBugs.forEach(bug => {
+      resolvedBugs.forEach((bug) => {
         if (bug.first_seen_at && bug.fixed_at) {
           const detectedTime = new Date(bug.first_seen_at).getTime();
           const resolvedTime = new Date(bug.fixed_at).getTime();
-          totalResolutionTime += (resolvedTime - detectedTime);
+          totalResolutionTime += resolvedTime - detectedTime;
         }
       });
-      const mttr = resolvedCount > 0 
-        ? Math.round(totalResolutionTime / resolvedCount / 60000) // in minutes
-        : 0;
+      const mttr =
+        resolvedCount > 0
+          ? Math.round(totalResolutionTime / resolvedCount / 60000) // in minutes
+          : 0;
 
       // Calculate MTTD (Mean Time To Detect)
       // For now, assume instant detection (0 minutes)
@@ -99,25 +102,28 @@ class MetricsService {
 
       // Calculate MTBF (Mean Time Between Failures)
       const periodMs = days * 24 * 60 * 60 * 1000;
-      const mtbf = errorCount > 1 
-        ? Math.round(periodMs / (errorCount - 1) / 60000)
-        : Math.round(periodMs / 60000);
+      const mtbf =
+        errorCount > 1
+          ? Math.round(periodMs / (errorCount - 1) / 60000)
+          : Math.round(periodMs / 60000);
 
       // Calculate availability
       const totalDowntimeMinutes = mttr * errorCount;
       const totalPeriodMinutes = days * 24 * 60;
-      const availability = Math.max(0, Math.min(100, 
-        ((totalPeriodMinutes - totalDowntimeMinutes) / totalPeriodMinutes) * 100
-      ));
+      const availability = Math.max(
+        0,
+        Math.min(100, ((totalPeriodMinutes - totalDowntimeMinutes) / totalPeriodMinutes) * 100)
+      );
 
       // Average resolution time from healing actions
-      const successfulHealings = healings?.filter(h => h.action_result === 'success') || [];
-      const avgResolutionTime = successfulHealings.length > 0
-        ? Math.round(
-            successfulHealings.reduce((sum, h) => sum + (h.execution_time_ms || 0), 0) 
-            / successfulHealings.length
-          )
-        : 0;
+      const successfulHealings = healings?.filter((h) => h.action_result === 'success') || [];
+      const avgResolutionTime =
+        successfulHealings.length > 0
+          ? Math.round(
+              successfulHealings.reduce((sum, h) => sum + (h.execution_time_ms || 0), 0) /
+                successfulHealings.length
+            )
+          : 0;
 
       return {
         mttr,
@@ -153,7 +159,8 @@ class MetricsService {
     try {
       const { data, error } = await supabase
         .from('error_logs')
-        .select(`
+        .select(
+          `
           id,
           error_type,
           created_at,
@@ -161,14 +168,15 @@ class MetricsService {
             status,
             fixed_at
           )
-        `)
+        `
+        )
         .eq('project_name', this.projectName)
         .order('created_at', { ascending: false })
         .limit(limit);
 
       if (error) throw error;
 
-      return (data || []).map(item => {
+      return (data || []).map((item) => {
         const bugReport = item.bug_reports?.[0];
         const detectedAt = item.created_at;
         const resolvedAt = bugReport?.fixed_at;
@@ -186,7 +194,7 @@ class MetricsService {
           detectedAt,
           resolvedAt,
           status,
-          timeToResolve: resolvedAt 
+          timeToResolve: resolvedAt
             ? new Date(resolvedAt).getTime() - new Date(detectedAt).getTime()
             : undefined,
         };
@@ -203,12 +211,12 @@ class MetricsService {
   async getReliabilityTrends(days: number = 30): Promise<ReliabilityTrend[]> {
     try {
       const trends: ReliabilityTrend[] = [];
-      
+
       for (let i = days - 1; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         date.setHours(0, 0, 0, 0);
-        
+
         const nextDate = new Date(date);
         nextDate.setDate(nextDate.getDate() + 1);
 
@@ -232,7 +240,9 @@ class MetricsService {
         if (resolvedBugs && resolvedBugs.length > 0) {
           const totalTime = resolvedBugs.reduce((sum, bug) => {
             if (bug.first_seen_at && bug.fixed_at) {
-              return sum + (new Date(bug.fixed_at).getTime() - new Date(bug.first_seen_at).getTime());
+              return (
+                sum + (new Date(bug.fixed_at).getTime() - new Date(bug.first_seen_at).getTime())
+              );
             }
             return sum;
           }, 0);
@@ -279,7 +289,7 @@ class MetricsService {
       // Update bug report if exists
       await supabase
         .from('bug_reports')
-        .update({ 
+        .update({
           status: 'fixed',
           fixed_at: new Date().toISOString(),
           fix_description: fixDescription,
@@ -313,9 +323,10 @@ class MetricsService {
       let compliant = 0;
       let nonCompliant = 0;
 
-      bugs.forEach(bug => {
+      bugs.forEach((bug) => {
         if (bug.first_seen_at && bug.fixed_at) {
-          const resolutionTime = (new Date(bug.fixed_at).getTime() - new Date(bug.first_seen_at).getTime()) / 60000;
+          const resolutionTime =
+            (new Date(bug.fixed_at).getTime() - new Date(bug.first_seen_at).getTime()) / 60000;
           if (resolutionTime <= targetMttrMinutes) {
             compliant++;
           } else {

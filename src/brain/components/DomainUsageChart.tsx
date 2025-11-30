@@ -20,7 +20,11 @@ export function DomainUsageChart({ domainId, days = 7 }: DomainUsageChartProps) 
   }
 
   if (!stats || stats.length === 0) {
-    return <p className="text-muted-foreground text-center py-4">No usage data available for this domain</p>;
+    return (
+      <p className="text-muted-foreground text-center py-4">
+        No usage data available for this domain
+      </p>
+    );
   }
 
   const chartData = stats.map((s) => ({
@@ -50,5 +54,3 @@ export function DomainUsageChart({ domainId, days = 7 }: DomainUsageChartProps) 
     </Card>
   );
 }
-
-

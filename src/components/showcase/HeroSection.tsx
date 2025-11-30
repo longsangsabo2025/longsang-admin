@@ -1,7 +1,7 @@
-import { motion } from "framer-motion";
-import { ChevronDown, Sparkles, ExternalLink } from "lucide-react";
-import { ActionButton } from "./ui/ActionButton";
-import { AppShowcaseData } from "@/types/app-showcase.types";
+import { motion } from 'framer-motion';
+import { ChevronDown, Sparkles, ExternalLink } from 'lucide-react';
+import { ActionButton } from './ui/ActionButton';
+import { AppShowcaseData } from '@/types/app-showcase.types';
 
 interface HeroSectionProps {
   data: AppShowcaseData;
@@ -31,12 +31,12 @@ export const HeroSection = ({ data }: HeroSectionProps) => {
               duration: 3 + Math.random() * 3,
               repeat: Infinity,
               delay: Math.random() * 5,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
           />
         ))}
       </div>
-      
+
       {/* Floating blurred phones in background */}
       <div className="absolute inset-0 overflow-hidden opacity-10">
         <motion.div
@@ -78,15 +78,15 @@ export const HeroSection = ({ data }: HeroSectionProps) => {
           <motion.span
             className="block gradient-text"
             animate={{
-              backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
             }}
             transition={{
               duration: 8,
               repeat: Infinity,
-              ease: "linear",
+              ease: 'linear',
             }}
             style={{
-              backgroundSize: "200% 200%",
+              backgroundSize: '200% 200%',
             }}
           >
             {data.hero.title}
@@ -120,14 +120,14 @@ export const HeroSection = ({ data }: HeroSectionProps) => {
             <span className="relative z-10">Tải Ứng Dụng</span>
             <motion.div
               className="absolute inset-0 bg-white/20"
-              initial={{ x: "-100%" }}
-              whileHover={{ x: "100%" }}
+              initial={{ x: '-100%' }}
+              whileHover={{ x: '100%' }}
               transition={{ duration: 0.5 }}
             />
           </motion.button>
-          
+
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
             whileTap={{ scale: 0.95 }}
             className="h-16 px-10 rounded-full glass-panel border-2 text-foreground font-bold text-lg transition-all font-display"
           >
@@ -138,7 +138,7 @@ export const HeroSection = ({ data }: HeroSectionProps) => {
             href="https://longsang.org"
             target="_blank"
             rel="noopener noreferrer"
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(0, 217, 255, 0.15)" }}
+            whileHover={{ scale: 1.05, backgroundColor: 'rgba(0, 217, 255, 0.15)' }}
             whileTap={{ scale: 0.95 }}
             className="h-16 px-10 rounded-full glass-panel border-2 border-neon-cyan/50 text-neon-cyan font-bold text-lg transition-all font-display flex items-center gap-2"
           >
@@ -146,7 +146,7 @@ export const HeroSection = ({ data }: HeroSectionProps) => {
             <ExternalLink size={20} />
           </motion.a>
         </motion.div>
-        
+
         {/* Trust indicators */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -157,7 +157,10 @@ export const HeroSection = ({ data }: HeroSectionProps) => {
           <div className="flex items-center gap-2">
             <div className="flex -space-x-2">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-neon-blue to-primary border-2 border-dark-bg" />
+                <div
+                  key={i}
+                  className="w-8 h-8 rounded-full bg-gradient-to-br from-neon-blue to-primary border-2 border-dark-bg"
+                />
               ))}
             </div>
             <span>{data.hero.stats.users}</span>
@@ -167,7 +170,9 @@ export const HeroSection = ({ data }: HeroSectionProps) => {
             <span>{data.hero.stats.rating}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-neon-green font-bold">{data.hero.stats.tournaments.split('+')[0]}+</span>
+            <span className="text-neon-green font-bold">
+              {data.hero.stats.tournaments.split('+')[0]}+
+            </span>
             <span>{data.hero.stats.tournaments.split(' ').slice(1).join(' ')}</span>
           </div>
         </motion.div>
@@ -180,7 +185,7 @@ export const HeroSection = ({ data }: HeroSectionProps) => {
         >
           <motion.div
             animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           >
             <ChevronDown size={36} className="text-muted-foreground" />
           </motion.div>

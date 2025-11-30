@@ -1,27 +1,27 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 import {
   Bot,
   Plus,
@@ -33,7 +33,7 @@ import {
   RefreshCw,
   CheckCircle,
   XCircle,
-} from "lucide-react";
+} from 'lucide-react';
 
 interface Project {
   id: string;
@@ -75,15 +75,15 @@ const ProjectAgentsManager = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProject, setSelectedProject] = useState<string>("all");
+  const [selectedProject, setSelectedProject] = useState<string>('all');
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [newAssignment, setNewAssignment] = useState({
-    project_id: "",
-    agent_id: "",
+    project_id: '',
+    agent_id: '',
     priority: 1,
-    schedule_cron: "",
+    schedule_cron: '',
     auto_trigger_events: [] as string[],
-    notes: "",
+    notes: '',
   });
 
   useEffect(() => {
@@ -93,34 +93,33 @@ const ProjectAgentsManager = () => {
   const fetchAll = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch project agents with joins
       const { data: paData, error: paError } = await supabase
-        .from("project_agents")
-        .select("*, projects(id, name, slug, icon), ai_agents(id, name, type, description, status)")
-        .order("priority", { ascending: true });
+        .from('project_agents')
+        .select('*, projects(id, name, slug, icon), ai_agents(id, name, type, description, status)')
+        .order('priority', { ascending: true });
 
       if (paError) throw paError;
       setProjectAgents(paData || []);
 
       // Fetch all projects
       const { data: projData } = await supabase
-        .from("projects")
-        .select("id, name, slug, icon")
-        .order("name");
+        .from('projects')
+        .select('id, name, slug, icon')
+        .order('name');
       setProjects(projData || []);
 
       // Fetch all agents
       const { data: agentData } = await supabase
-        .from("ai_agents")
-        .select("id, name, type, description, status")
-        .eq("status", "active")
-        .order("name");
+        .from('ai_agents')
+        .select('id, name, type, description, status')
+        .eq('status', 'active')
+        .order('name');
       setAgents(agentData || []);
-
     } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Không thể tải dữ liệu");
+      console.error('Error fetching data:', error);
+      toast.error('Không thể tải dữ liệu');
     } finally {
       setLoading(false);
     }
@@ -128,62 +127,61 @@ const ProjectAgentsManager = () => {
 
   const assignAgentToProject = async () => {
     if (!newAssignment.project_id || !newAssignment.agent_id) {
-      toast.error("Vui lòng chọn project và agent");
+      toast.error('Vui lòng chọn project và agent');
       return;
     }
 
     try {
-      const { error } = await supabase.from("project_agents").insert({
+      const { error } = await supabase.from('project_agents').insert({
         project_id: newAssignment.project_id,
         agent_id: newAssignment.agent_id,
         priority: newAssignment.priority,
         schedule_cron: newAssignment.schedule_cron || null,
-        auto_trigger_events: newAssignment.auto_trigger_events.length > 0 
-          ? newAssignment.auto_trigger_events 
-          : null,
+        auto_trigger_events:
+          newAssignment.auto_trigger_events.length > 0 ? newAssignment.auto_trigger_events : null,
         notes: newAssignment.notes || null,
         is_enabled: true,
       });
 
       if (error) {
-        if (error.code === "23505") {
-          toast.error("Agent này đã được assign cho project này rồi");
+        if (error.code === '23505') {
+          toast.error('Agent này đã được assign cho project này rồi');
           return;
         }
         throw error;
       }
 
-      toast.success("Đã assign agent cho project");
+      toast.success('Đã assign agent cho project');
       setIsAssignDialogOpen(false);
       setNewAssignment({
-        project_id: "",
-        agent_id: "",
+        project_id: '',
+        agent_id: '',
         priority: 1,
-        schedule_cron: "",
+        schedule_cron: '',
         auto_trigger_events: [],
-        notes: "",
+        notes: '',
       });
       fetchAll();
     } catch (error) {
-      console.error("Error assigning agent:", error);
-      toast.error("Không thể assign agent");
+      console.error('Error assigning agent:', error);
+      toast.error('Không thể assign agent');
     }
   };
 
   const toggleAgentEnabled = async (id: string, currentEnabled: boolean) => {
     try {
       const { error } = await supabase
-        .from("project_agents")
+        .from('project_agents')
         .update({ is_enabled: !currentEnabled })
-        .eq("id", id);
+        .eq('id', id);
 
       if (error) throw error;
 
-      toast.success(currentEnabled ? "Đã tắt agent" : "Đã bật agent");
+      toast.success(currentEnabled ? 'Đã tắt agent' : 'Đã bật agent');
       fetchAll();
     } catch (error) {
-      console.error("Error toggling agent:", error);
-      toast.error("Không thể cập nhật");
+      console.error('Error toggling agent:', error);
+      toast.error('Không thể cập nhật');
     }
   };
 
@@ -191,69 +189,70 @@ const ProjectAgentsManager = () => {
     if (!confirm(`Xóa "${agentName}" khỏi project này?`)) return;
 
     try {
-      const { error } = await supabase
-        .from("project_agents")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from('project_agents').delete().eq('id', id);
 
       if (error) throw error;
 
-      toast.success("Đã xóa assignment");
+      toast.success('Đã xóa assignment');
       fetchAll();
     } catch (error) {
-      console.error("Error removing assignment:", error);
-      toast.error("Không thể xóa");
+      console.error('Error removing assignment:', error);
+      toast.error('Không thể xóa');
     }
   };
 
   const executeAgent = async (pa: ProjectAgent) => {
     toast.info(`🚀 Đang chạy ${pa.ai_agents?.name}...`);
-    
+
     // TODO: Call actual agent execution API
     try {
       // Simulate execution
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // Update stats
       const { error } = await supabase
-        .from("project_agents")
+        .from('project_agents')
         .update({
           total_runs: pa.total_runs + 1,
           successful_runs: pa.successful_runs + 1,
           last_run_at: new Date().toISOString(),
         })
-        .eq("id", pa.id);
+        .eq('id', pa.id);
 
       if (error) throw error;
 
       toast.success(`✅ ${pa.ai_agents?.name} hoàn thành!`);
       fetchAll();
     } catch (error) {
-      console.error("Error executing agent:", error);
-      toast.error("Agent execution failed");
+      console.error('Error executing agent:', error);
+      toast.error('Agent execution failed');
     }
   };
 
-  const filteredProjectAgents = selectedProject === "all"
-    ? projectAgents
-    : projectAgents.filter(pa => pa.project_id === selectedProject);
+  const filteredProjectAgents =
+    selectedProject === 'all'
+      ? projectAgents
+      : projectAgents.filter((pa) => pa.project_id === selectedProject);
 
   // Group by project
-  const groupedByProject = filteredProjectAgents.reduce((acc, pa) => {
-    const projectName = pa.projects?.name || "Unknown";
-    if (!acc[projectName]) {
-      acc[projectName] = { project: pa.projects, agents: [] };
-    }
-    acc[projectName].agents.push(pa);
-    return acc;
-  }, {} as Record<string, { project: Project | undefined; agents: ProjectAgent[] }>);
+  const groupedByProject = filteredProjectAgents.reduce(
+    (acc, pa) => {
+      const projectName = pa.projects?.name || 'Unknown';
+      if (!acc[projectName]) {
+        acc[projectName] = { project: pa.projects, agents: [] };
+      }
+      acc[projectName].agents.push(pa);
+      return acc;
+    },
+    {} as Record<string, { project: Project | undefined; agents: ProjectAgent[] }>
+  );
 
   const TRIGGER_EVENTS = [
-    { value: "new_contact", label: "New Contact Form" },
-    { value: "form_submission", label: "Form Submission" },
-    { value: "new_order", label: "New Order" },
-    { value: "schedule", label: "Scheduled" },
-    { value: "manual", label: "Manual Only" },
+    { value: 'new_contact', label: 'New Contact Form' },
+    { value: 'form_submission', label: 'Form Submission' },
+    { value: 'new_order', label: 'New Order' },
+    { value: 'schedule', label: 'Scheduled' },
+    { value: 'manual', label: 'Manual Only' },
   ];
 
   if (loading) {
@@ -294,9 +293,7 @@ const ProjectAgentsManager = () => {
                 <Label>Project</Label>
                 <Select
                   value={newAssignment.project_id}
-                  onValueChange={(v) =>
-                    setNewAssignment({ ...newAssignment, project_id: v })
-                  }
+                  onValueChange={(v) => setNewAssignment({ ...newAssignment, project_id: v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn project" />
@@ -315,9 +312,7 @@ const ProjectAgentsManager = () => {
                 <Label>AI Agent</Label>
                 <Select
                   value={newAssignment.agent_id}
-                  onValueChange={(v) =>
-                    setNewAssignment({ ...newAssignment, agent_id: v })
-                  }
+                  onValueChange={(v) => setNewAssignment({ ...newAssignment, agent_id: v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn agent" />
@@ -356,8 +351,8 @@ const ProjectAgentsManager = () => {
                       key={event.value}
                       variant={
                         newAssignment.auto_trigger_events.includes(event.value)
-                          ? "default"
-                          : "outline"
+                          ? 'default'
+                          : 'outline'
                       }
                       className="cursor-pointer"
                       onClick={() => {
@@ -389,9 +384,7 @@ const ProjectAgentsManager = () => {
                 <Textarea
                   placeholder="Ghi chú..."
                   value={newAssignment.notes}
-                  onChange={(e) =>
-                    setNewAssignment({ ...newAssignment, notes: e.target.value })
-                  }
+                  onChange={(e) => setNewAssignment({ ...newAssignment, notes: e.target.value })}
                 />
               </div>
 
@@ -436,7 +429,7 @@ const ProjectAgentsManager = () => {
         <Card key={projectName}>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
-              <span className="text-2xl">{project?.icon || "📁"}</span>
+              <span className="text-2xl">{project?.icon || '📁'}</span>
               {projectName}
               <Badge variant="secondary">{pas.length} agents</Badge>
             </CardTitle>
@@ -448,8 +441,8 @@ const ProjectAgentsManager = () => {
                   key={pa.id}
                   className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
                     pa.is_enabled
-                      ? "bg-muted/50 border-border"
-                      : "bg-muted/20 border-muted opacity-60"
+                      ? 'bg-muted/50 border-border'
+                      : 'bg-muted/20 border-muted opacity-60'
                   }`}
                 >
                   <div className="flex items-center gap-4 flex-1">
@@ -491,13 +484,13 @@ const ProjectAgentsManager = () => {
                           <span>{pa.failed_runs}</span>
                         </div>
                         <div className="text-muted-foreground">
-                          ${pa.total_cost_usd?.toFixed(2) || "0.00"}
+                          ${pa.total_cost_usd?.toFixed(2) || '0.00'}
                         </div>
                       </div>
                       {pa.last_run_at && (
                         <div className="text-xs text-muted-foreground flex items-center gap-1 justify-end mt-1">
                           <Clock className="h-3 w-3" />
-                          {new Date(pa.last_run_at).toLocaleString("vi-VN")}
+                          {new Date(pa.last_run_at).toLocaleString('vi-VN')}
                         </div>
                       )}
                     </div>
@@ -520,7 +513,7 @@ const ProjectAgentsManager = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeAssignment(pa.id, pa.ai_agents?.name || "")}
+                      onClick={() => removeAssignment(pa.id, pa.ai_agents?.name || '')}
                       className="text-destructive hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />

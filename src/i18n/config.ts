@@ -11,18 +11,18 @@ i18n
   .init({
     resources: {
       vi: { translation: vi },
-      en: { translation: en }
+      en: { translation: en },
     },
     lng: 'vi', // Default language is Vietnamese
     fallbackLng: 'vi',
     interpolation: {
-      escapeValue: false
+      escapeValue: false,
     },
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
-      lookupLocalStorage: 'longsang-language'
-    }
+      lookupLocalStorage: 'longsang-language',
+    },
   });
 
 export default i18n;

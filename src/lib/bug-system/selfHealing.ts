@@ -20,7 +20,9 @@ export interface SelfHealingOptions {
   onHealingAction?: (action: string, result: 'success' | 'failed') => void;
 }
 
-const DEFAULT_OPTIONS: Required<Omit<SelfHealingOptions, 'retryOptions' | 'fallbackValue' | 'onHealingAction'>> = {
+const DEFAULT_OPTIONS: Required<
+  Omit<SelfHealingOptions, 'retryOptions' | 'fallbackValue' | 'onHealingAction'>
+> = {
   enableRetry: true,
   enableCircuitBreaker: true,
   enableFallback: false,
@@ -31,10 +33,7 @@ class SelfHealing {
   /**
    * Execute a function with self-healing capabilities
    */
-  async execute<T>(
-    fn: () => Promise<T>,
-    options: SelfHealingOptions = {}
-  ): Promise<T> {
+  async execute<T>(fn: () => Promise<T>, options: SelfHealingOptions = {}): Promise<T> {
     const opts = { ...DEFAULT_OPTIONS, ...options };
     const startTime = Date.now();
 
@@ -69,12 +68,7 @@ class SelfHealing {
       const classified = errorClassifier.classify(error);
 
       // Log healing action attempt
-      await this.logHealingAction(
-        error,
-        classified,
-        executionTime,
-        opts.circuitKey
-      );
+      await this.logHealingAction(error, classified, executionTime, opts.circuitKey);
 
       // Try fallback if enabled
       if (opts.enableFallback && opts.fallbackValue !== undefined) {
@@ -157,4 +151,3 @@ class SelfHealing {
 export const selfHealing = new SelfHealing();
 
 export default selfHealing;
-

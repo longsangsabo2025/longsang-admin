@@ -26,16 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  CheckCircle2,
-  Clock,
-  FileText,
-  Play,
-  Settings,
-  Sparkles,
-  X,
-  Zap,
-} from 'lucide-react';
+import { CheckCircle2, Clock, FileText, Play, Settings, Sparkles, X, Zap } from 'lucide-react';
 
 interface ExecutionStep {
   id: string;
@@ -113,9 +104,7 @@ export function ExecutionPlanPreview({
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">{plan.functionName}</Badge>
                     {plan.workflowCount && (
-                      <Badge variant="secondary">
-                        {plan.workflowCount} workflow(s)
-                      </Badge>
+                      <Badge variant="secondary">{plan.workflowCount} workflow(s)</Badge>
                     )}
                   </div>
                   {plan.functionArgs && Object.keys(plan.functionArgs).length > 0 && (
@@ -139,9 +128,7 @@ export function ExecutionPlanPreview({
                 Execution Steps ({plan.steps.length})
               </CardTitle>
               {plan.estimatedTotalTime && (
-                <CardDescription>
-                  Estimated time: {plan.estimatedTotalTime}
-                </CardDescription>
+                <CardDescription>Estimated time: {plan.estimatedTotalTime}</CardDescription>
               )}
             </CardHeader>
             <CardContent>
@@ -164,9 +151,7 @@ export function ExecutionPlanPreview({
                         <h4 className="text-sm font-medium">{step.name}</h4>
                       </div>
                       {step.description && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {step.description}
-                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">{step.description}</p>
                       )}
                       {step.estimatedTime && (
                         <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
@@ -210,4 +195,3 @@ export function ExecutionPlanPreview({
     </Dialog>
   );
 }
-

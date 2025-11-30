@@ -1,72 +1,72 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useSearchShortcut } from "@/hooks/useSearchShortcut";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useSearchShortcut } from '@/hooks/useSearchShortcut';
 import {
-    Bot,
-    FileText,
-    GraduationCap,
-    LogOut,
-    Mail,
-    Menu,
-    Settings,
-    Shield,
-    Sparkles,
-    User,
-    X,
-    FolderOpen,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import { SearchDialog, SearchTrigger } from "./SearchDialog";
-import { useAuth } from "./auth/AuthProvider";
-import { LoginModal } from "./auth/LoginModal";
+  Bot,
+  FileText,
+  GraduationCap,
+  LogOut,
+  Mail,
+  Menu,
+  Settings,
+  Shield,
+  Sparkles,
+  User,
+  X,
+  FolderOpen,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { SearchDialog, SearchTrigger } from './SearchDialog';
+import { useAuth } from './auth/AuthProvider';
+import { LoginModal } from './auth/LoginModal';
 
 // Main navigation links
 const mainNavLinks = [
-  { name: "Dịch Vụ", href: "#services" },
-  { name: "Dự Án", href: "#projects" },
+  { name: 'Dịch Vụ', href: '#services' },
+  { name: 'Dự Án', href: '#projects' },
   // { name: "Công Nghệ", href: "#tech-stack" }, // Hidden
-  { name: "Liên Hệ", href: "#contact" },
+  { name: 'Liên Hệ', href: '#contact' },
 ];
 
 // Product links (in dropdown for better organization)
 const productLinks = [
-  { name: "Dự án", href: "/project-showcase", icon: FileText, description: "Showcase các dự án" },
-  { name: "Academy", href: "/academy", icon: GraduationCap, description: "Học viện đào tạo" },
-  { name: "AI Marketplace", href: "/marketplace", icon: Sparkles, description: "Chợ AI agents" },
-  { name: "My CV", href: "/cv", icon: User, description: "Hồ sơ cá nhân" },
+  { name: 'Dự án', href: '/project-showcase', icon: FileText, description: 'Showcase các dự án' },
+  { name: 'Academy', href: '/academy', icon: GraduationCap, description: 'Học viện đào tạo' },
+  { name: 'AI Marketplace', href: '/marketplace', icon: Sparkles, description: 'Chợ AI agents' },
+  { name: 'My CV', href: '/cv', icon: User, description: 'Hồ sơ cá nhân' },
 ];
 
 // User menu links (when logged in)
 const userMenuLinks = [
-  { name: "My Agents", href: "/dashboard", icon: Bot },
-  { name: "Analytics", href: "/analytics", icon: Settings },
+  { name: 'My Agents', href: '/dashboard', icon: Bot },
+  { name: 'Analytics', href: '/analytics', icon: Settings },
 ];
 
 // Core system navigation (admin only)
 const coreSystemLinks = [
-  { name: "Projects", href: "/admin", icon: FolderOpen, description: "Quản lý dự án" },
-  { name: "Settings", href: "/admin/settings", icon: Settings, description: "Cấu hình hệ thống" },
+  { name: 'Projects', href: '/admin', icon: FolderOpen, description: 'Quản lý dự án' },
+  { name: 'Settings', href: '/admin/settings', icon: Settings, description: 'Cấu hình hệ thống' },
 ];
 
 // Admin menu links (admin only)
 const adminMenuLinks = [
-  { name: "Workflows", href: "/admin/workflows", icon: Bot },
-  { name: "Analytics", href: "/admin/analytics", icon: Shield },
-  { name: "Automation", href: "/automation", icon: Settings },
+  { name: 'Workflows', href: '/admin/workflows', icon: Bot },
+  { name: 'Analytics', href: '/admin/analytics', icon: Shield },
+  { name: 'Automation', href: '/automation', icon: Settings },
 ];
 
 export const Navigation = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("home");
+  const [activeSection, setActiveSection] = useState('home');
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -79,8 +79,8 @@ export const Navigation = () => {
   const isAuthenticated = !!user;
 
   // Get user info from metadata
-  const userRole = user?.user_metadata?.role as "user" | "admin" | undefined;
-  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
+  const userRole = user?.user_metadata?.role as 'user' | 'admin' | undefined;
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
   // Scroll effect for header shadow
   useEffect(() => {
@@ -88,14 +88,14 @@ export const Navigation = () => {
       setScrolled(window.scrollY > 20);
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
     const observerOptions = {
       root: null,
-      rootMargin: "-50% 0px",
+      rootMargin: '-50% 0px',
       threshold: 0,
     };
 
@@ -109,7 +109,7 @@ export const Navigation = () => {
 
     const observer = new IntersectionObserver(observerCallback, observerOptions);
 
-    const sections = document.querySelectorAll("section[id]");
+    const sections = document.querySelectorAll('section[id]');
     for (const section of sections) {
       observer.observe(section);
     }
@@ -125,7 +125,7 @@ export const Navigation = () => {
     e.preventDefault();
 
     // Check if it's a route (starts with /)
-    if (href?.startsWith("/")) {
+    if (href?.startsWith('/')) {
       navigate(href);
       setIsMenuOpen(false);
       return;
@@ -135,7 +135,7 @@ export const Navigation = () => {
     if (href) {
       const element = document.querySelector(href);
       if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
+        element.scrollIntoView({ behavior: 'smooth' });
       }
     }
     setIsMenuOpen(false);
@@ -147,11 +147,11 @@ export const Navigation = () => {
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/");
+    navigate('/');
   };
 
   const isLinkActive = (href: string) => {
-    if (href.startsWith("#")) {
+    if (href.startsWith('#')) {
       return activeSection === href.substring(1);
     }
     return false;
@@ -163,8 +163,8 @@ export const Navigation = () => {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-background/98 backdrop-blur-xl shadow-lg border-b border-border/50"
-            : "bg-background/95 backdrop-blur-md border-b border-border/10"
+            ? 'bg-background/98 backdrop-blur-xl shadow-lg border-b border-border/50'
+            : 'bg-background/95 backdrop-blur-md border-b border-border/10'
         }`}
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
@@ -172,7 +172,7 @@ export const Navigation = () => {
             {/* Logo - Enhanced */}
             <a
               href="#home"
-              onClick={(e) => handleNavClick(e, "#home")}
+              onClick={(e) => handleNavClick(e, '#home')}
               className="flex items-center gap-3 group"
             >
               <div className="relative">
@@ -195,8 +195,8 @@ export const Navigation = () => {
                     px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
                     ${
                       isLinkActive(link.href)
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                     }
                   `}
                 >
@@ -266,7 +266,7 @@ export const Navigation = () => {
               <Button
                 variant="default"
                 size="sm"
-                onClick={() => navigate("/consultation")}
+                onClick={() => navigate('/consultation')}
                 className="hidden md:flex items-center gap-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700"
               >
                 <Mail className="w-4 h-4" />
@@ -305,11 +305,13 @@ export const Navigation = () => {
                     })}
 
                     {/* Admin Links */}
-                    {userRole === "admin" && (
+                    {userRole === 'admin' && (
                       <>
                         <DropdownMenuSeparator />
                         <div className="px-2 py-1.5">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Admin Tools</p>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                            Admin Tools
+                          </p>
                         </div>
                         {adminMenuLinks.map((link) => {
                           const IconComponent = link.icon;
@@ -393,13 +395,13 @@ export const Navigation = () => {
                       animate-slide-up opacity-0 will-change-transform
                       ${
                         isLinkActive(link.href)
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground hover:bg-accent"
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-foreground hover:bg-accent'
                       }
                     `}
                     style={{
                       animationDelay: `${0.2 + index * 0.05}s`,
-                      animationFillMode: "forwards",
+                      animationFillMode: 'forwards',
                     }}
                   >
                     {link.name}
@@ -408,7 +410,7 @@ export const Navigation = () => {
               </div>
 
               {/* Core System Section - Admin Only */}
-              {userRole === "admin" && (
+              {userRole === 'admin' && (
                 <div className="space-y-2 mb-8">
                   <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Hệ thống
@@ -480,7 +482,7 @@ export const Navigation = () => {
                 {/* CTA Button */}
                 <Button
                   onClick={() => {
-                    navigate("/consultation");
+                    navigate('/consultation');
                     setIsMenuOpen(false);
                   }}
                   className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700"
@@ -521,7 +523,7 @@ export const Navigation = () => {
                       );
                     })}
 
-                    {userRole === "admin" && (
+                    {userRole === 'admin' && (
                       <>
                         <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-4 pt-4 pb-2">
                           Admin Tools
@@ -584,7 +586,7 @@ export const Navigation = () => {
         onOpenChange={setLoginOpen}
         onSuccess={() => {
           // Redirect to user dashboard after successful login
-          navigate("/dashboard");
+          navigate('/dashboard');
         }}
       />
     </>

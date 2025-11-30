@@ -154,7 +154,7 @@ export const useAIWorkspaceStore = create<AIWorkspaceStore>()(
             conversations: filtered,
             currentConversationId:
               state.currentConversationId === id
-                ? filtered[0]?.id ?? null
+                ? (filtered[0]?.id ?? null)
                 : state.currentConversationId,
           };
         });
@@ -232,6 +232,4 @@ export const useCurrentConversation = () =>
   });
 
 export const useConversationsByAssistant = (assistantId: string) =>
-  useAIWorkspaceStore((state) =>
-    state.conversations.filter((c) => c.assistantId === assistantId)
-  );
+  useAIWorkspaceStore((state) => state.conversations.filter((c) => c.assistantId === assistantId));

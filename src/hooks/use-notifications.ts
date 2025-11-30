@@ -27,7 +27,7 @@ export function useNotifications(agentId?: string) {
         },
         (payload) => {
           const log = payload.new as ActivityLog;
-          
+
           // Show toast based on status
           if (log.status === 'error') {
             toast({
@@ -68,7 +68,7 @@ export function useBudgetAlerts(agentId?: string) {
         },
         (payload) => {
           const alert = payload.new as Database['public']['Tables']['budget_alerts']['Row'];
-          
+
           toast({
             title: '⚠️ Budget Alert',
             description: `${alert.alert_type}: ${alert.message}`,
@@ -102,7 +102,7 @@ export function useContentNotifications(agentId?: string) {
         (payload) => {
           const content = payload.new as Database['public']['Tables']['content_queue']['Row'];
           const oldContent = payload.old as Database['public']['Tables']['content_queue']['Row'];
-          
+
           // Notify when content is published
           if (oldContent.status !== 'published' && content.status === 'published') {
             toast({
@@ -110,7 +110,7 @@ export function useContentNotifications(agentId?: string) {
               description: content.title || 'Content published successfully',
             });
           }
-          
+
           // Notify when content fails
           if (content.status === 'failed') {
             toast({

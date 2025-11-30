@@ -3,22 +3,32 @@
  * Dedicated page for viewing and managing a single domain
  */
 
-import { CoreLogicDistillation } from "@/brain/components/CoreLogicDistillation";
-import { CoreLogicViewer } from "@/brain/components/CoreLogicViewer";
-import { CoreLogicComparison } from "@/brain/components/CoreLogicComparison";
-import { KnowledgeAnalysis } from "@/brain/components/KnowledgeAnalysis";
-import { DomainAgent } from "@/brain/components/DomainAgent";
-import { DomainSettings } from "@/brain/components/DomainSettings";
-import { DomainStatistics } from "@/brain/components/DomainStatistics";
-import { KnowledgeIngestion } from "@/brain/components/KnowledgeIngestion";
-import { KnowledgeSearch } from "@/brain/components/KnowledgeSearch";
-import { useDomain } from "@/brain/hooks/useDomains";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useParams, Navigate } from "react-router-dom";
-import { ArrowLeft, BarChart3, Bot, BookOpen, Search, Settings, Sparkles, GitCompare, TrendingUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { CoreLogicDistillation } from '@/brain/components/CoreLogicDistillation';
+import { CoreLogicViewer } from '@/brain/components/CoreLogicViewer';
+import { CoreLogicComparison } from '@/brain/components/CoreLogicComparison';
+import { KnowledgeAnalysis } from '@/brain/components/KnowledgeAnalysis';
+import { DomainAgent } from '@/brain/components/DomainAgent';
+import { DomainSettings } from '@/brain/components/DomainSettings';
+import { DomainStatistics } from '@/brain/components/DomainStatistics';
+import { KnowledgeIngestion } from '@/brain/components/KnowledgeIngestion';
+import { KnowledgeSearch } from '@/brain/components/KnowledgeSearch';
+import { useDomain } from '@/brain/hooks/useDomains';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useParams, Navigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  BarChart3,
+  Bot,
+  BookOpen,
+  Search,
+  Settings,
+  Sparkles,
+  GitCompare,
+  TrendingUp,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 export default function DomainView() {
   const { id } = useParams<{ id: string }>();
@@ -49,9 +59,7 @@ export default function DomainView() {
           </Link>
           <div>
             <h1 className="text-3xl font-bold">{domain.name}</h1>
-            {domain.description && (
-              <p className="text-muted-foreground">{domain.description}</p>
-            )}
+            {domain.description && <p className="text-muted-foreground">{domain.description}</p>}
           </div>
         </div>
       </div>
@@ -161,4 +169,3 @@ export default function DomainView() {
     </div>
   );
 }
-

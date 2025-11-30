@@ -1,10 +1,28 @@
-import { Gem, Sparkles, Tag } from "lucide-react";
+import { Gem, Sparkles, Tag } from 'lucide-react';
 
 export const VoucherShopScreen = () => {
   const vouchers = [
-    { name: "Bronze Voucher", spa: 100, discount: "10%", color: "from-orange-600 to-orange-800", available: true },
-    { name: "Silver Voucher", spa: 200, discount: "20%", color: "from-gray-400 to-gray-600", available: true },
-    { name: "Gold Voucher", spa: 500, discount: "35%", color: "from-yellow-400 to-yellow-600", available: false },
+    {
+      name: 'Bronze Voucher',
+      spa: 100,
+      discount: '10%',
+      color: 'from-orange-600 to-orange-800',
+      available: true,
+    },
+    {
+      name: 'Silver Voucher',
+      spa: 200,
+      discount: '20%',
+      color: 'from-gray-400 to-gray-600',
+      available: true,
+    },
+    {
+      name: 'Gold Voucher',
+      spa: 500,
+      discount: '35%',
+      color: 'from-yellow-400 to-yellow-600',
+      available: false,
+    },
   ];
 
   return (
@@ -29,17 +47,19 @@ export const VoucherShopScreen = () => {
               voucher.available ? 'border-neon-cyan/30' : 'border-muted/20 opacity-60'
             }`}
           >
-            <div className={`h-20 rounded-lg bg-gradient-to-br ${voucher.color} p-3 flex flex-col justify-between mb-2 relative overflow-hidden`}>
+            <div
+              className={`h-20 rounded-lg bg-gradient-to-br ${voucher.color} p-3 flex flex-col justify-between mb-2 relative overflow-hidden`}
+            >
               {/* Discount Badge */}
               <div className="absolute top-2 right-2 px-2 py-1 bg-white/90 rounded-full">
                 <span className="text-dark-bg text-xs font-bold">{voucher.discount} OFF</span>
               </div>
-              
+
               <div>
                 <Sparkles className="w-4 h-4 text-white mb-1" />
                 <p className="text-white text-sm font-bold">{voucher.name}</p>
               </div>
-              
+
               <div className="flex items-center gap-1">
                 <Tag className="w-3 h-3 text-white" />
                 <span className="text-white text-xs">Available at 15+ clubs</span>

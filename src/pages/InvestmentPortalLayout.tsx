@@ -1,34 +1,34 @@
-import { motion } from "framer-motion";
-import { useParams, useNavigate, Outlet, useLocation } from "react-router-dom";
-import { ArrowLeft, BarChart3, Map, DollarSign, FileText, TrendingUp } from "lucide-react";
-import { projectsData } from "@/data/projects-data";
+import { motion } from 'framer-motion';
+import { useParams, useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { ArrowLeft, BarChart3, Map, DollarSign, FileText, TrendingUp } from 'lucide-react';
+import { projectsData } from '@/data/projects-data';
 
 const InvestmentPortalLayout = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  const project = projectsData.find(p => p.slug === slug) || projectsData[0];
+
+  const project = projectsData.find((p) => p.slug === slug) || projectsData[0];
 
   const navItems = [
     {
       path: `/project-showcase/${slug}/investment`,
-      label: "Tổng Quan",
+      label: 'Tổng Quan',
       icon: TrendingUp,
     },
     {
       path: `/project-showcase/${slug}/investment/roadmap`,
-      label: "Lộ Trình",
+      label: 'Lộ Trình',
       icon: Map,
     },
     {
       path: `/project-showcase/${slug}/investment/financials`,
-      label: "Tài Chính",
+      label: 'Tài Chính',
       icon: BarChart3,
     },
     {
       path: `/project-showcase/${slug}/investment/apply`,
-      label: "Đăng Ký",
+      label: 'Đăng Ký',
       icon: FileText,
     },
   ];
@@ -90,7 +90,7 @@ const InvestmentPortalLayout = () => {
             {navItems.map((item, index) => {
               const Icon = item.icon;
               const active = isActive(item.path);
-              
+
               return (
                 <motion.button
                   key={item.path}
@@ -100,23 +100,20 @@ const InvestmentPortalLayout = () => {
                   onClick={() => navigate(item.path)}
                   className={`
                     relative px-6 py-4 font-semibold transition-all whitespace-nowrap
-                    ${active 
-                      ? 'text-yellow-500' 
-                      : 'text-muted-foreground hover:text-foreground'
-                    }
+                    ${active ? 'text-yellow-500' : 'text-muted-foreground hover:text-foreground'}
                   `}
                 >
                   <div className="flex items-center gap-2">
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
                   </div>
-                  
+
                   {/* Active Indicator */}
                   {active && (
                     <motion.div
                       layoutId="activeTab"
                       className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-t-full"
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                     />
                   )}
                 </motion.button>

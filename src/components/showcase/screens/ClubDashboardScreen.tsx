@@ -1,4 +1,4 @@
-import { Plus, Users, TrendingUp, Calendar, Table } from "lucide-react";
+import { Plus, Users, TrendingUp, Calendar, Table } from 'lucide-react';
 
 export const ClubDashboardScreen = () => {
   return (

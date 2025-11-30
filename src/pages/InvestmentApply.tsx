@@ -1,12 +1,12 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { projectsData } from "@/data/projects-data";
-import { GlowCard } from "@/components/GlowCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { 
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { projectsData } from '@/data/projects-data';
+import { GlowCard } from '@/components/GlowCard';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
   User,
   Mail,
   Phone,
@@ -18,8 +18,8 @@ import {
   ArrowLeft,
   Award,
   Shield,
-  TrendingUp
-} from "lucide-react";
+  TrendingUp,
+} from 'lucide-react';
 
 interface FormData {
   // Step 1: Personal Information
@@ -27,18 +27,18 @@ interface FormData {
   email: string;
   phone: string;
   address: string;
-  
+
   // Step 2: Investment Details
   investmentAmount: string;
   investmentPurpose: string;
   companyName?: string;
-  investorType: "individual" | "institution" | "fund" | "";
-  
+  investorType: 'individual' | 'institution' | 'fund' | '';
+
   // Step 3: Experience & Verification
   investmentExperience: string;
-  riskTolerance: "low" | "medium" | "high" | "";
+  riskTolerance: 'low' | 'medium' | 'high' | '';
   identityDocument: string;
-  
+
   // Step 4: Legal Agreements
   agreeTerms: boolean;
   agreeRisk: boolean;
@@ -49,23 +49,23 @@ const InvestmentApply = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const project = projectsData.find((p) => p.slug === slug);
-  
+
   const [currentStep, setCurrentStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const totalSteps = 4;
 
   const [formData, setFormData] = useState<FormData>({
-    fullName: "",
-    email: "",
-    phone: "",
-    address: "",
-    investmentAmount: "",
-    investmentPurpose: "",
-    companyName: "",
-    investorType: "",
-    investmentExperience: "",
-    riskTolerance: "",
-    identityDocument: "",
+    fullName: '',
+    email: '',
+    phone: '',
+    address: '',
+    investmentAmount: '',
+    investmentPurpose: '',
+    companyName: '',
+    investorType: '',
+    investmentExperience: '',
+    riskTolerance: '',
+    identityDocument: '',
     agreeTerms: false,
     agreeRisk: false,
     agreePrivacy: false,
@@ -77,14 +77,14 @@ const InvestmentApply = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
       // Final submission to API
       try {
-        const projectData = project || { id: 0, name: "Unknown Project" };
-        
+        const projectData = project || { id: 0, name: 'Unknown Project' };
+
         const response = await fetch('http://localhost:3001/api/investment/apply', {
           method: 'POST',
           headers: {
@@ -107,8 +107,8 @@ const InvestmentApply = () => {
             identityDocument: formData.identityDocument,
             agreeTerms: formData.agreeTerms,
             agreeRisk: formData.agreeRisk,
-            agreePrivacy: formData.agreePrivacy
-          })
+            agreePrivacy: formData.agreePrivacy,
+          }),
         });
 
         const result = await response.json();
@@ -118,11 +118,10 @@ const InvestmentApply = () => {
         }
 
         setSubmitted(true);
-        
+
         setTimeout(() => {
           navigate(`/project-showcase/${slug}`);
         }, 5000);
-        
       } catch (error) {
         console.error('Error submitting application:', error);
         alert('Có lỗi xảy ra khi gửi đơn. Vui lòng thử lại.');
@@ -162,20 +161,21 @@ const InvestmentApply = () => {
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.2 }}
+              transition={{ type: 'spring', delay: 0.2 }}
               className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center"
             >
               <CheckCircle2 className="w-12 h-12 text-white" />
             </motion.div>
-            
-            <h2 className="text-3xl font-bold mb-4">
-              Đăng Ký Thành Công! 🎉
-            </h2>
+
+            <h2 className="text-3xl font-bold mb-4">Đăng Ký Thành Công! 🎉</h2>
             <p className="text-gray-400 mb-6">
-              Cảm ơn bạn đã quan tâm đầu tư vào <span className="text-yellow-400 font-semibold">{project.name}</span>.
+              Cảm ơn bạn đã quan tâm đầu tư vào{' '}
+              <span className="text-yellow-400 font-semibold">{project.name}</span>.
             </p>
             <p className="text-gray-400 mb-8">
-              Đội ngũ chúng tôi sẽ xem xét hồ sơ và liên hệ với bạn trong vòng <span className="text-cyan-400 font-semibold">48 giờ</span> để thảo luận chi tiết về cơ hội đầu tư.
+              Đội ngũ chúng tôi sẽ xem xét hồ sơ và liên hệ với bạn trong vòng{' '}
+              <span className="text-cyan-400 font-semibold">48 giờ</span> để thảo luận chi tiết về
+              cơ hội đầu tư.
             </p>
 
             <div className="grid md:grid-cols-3 gap-4 mb-8">
@@ -193,9 +193,7 @@ const InvestmentApply = () => {
               </div>
             </div>
 
-            <p className="text-sm text-gray-500">
-              Tự động quay lại trang dự án sau 5 giây...
-            </p>
+            <p className="text-sm text-gray-500">Tự động quay lại trang dự án sau 5 giây...</p>
           </GlowCard>
         </motion.div>
       </div>
@@ -205,15 +203,9 @@ const InvestmentApply = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header with Progress */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <h1 className="text-3xl md:text-4xl font-bold text-center mb-6">
-          Đăng Ký Đầu Tư
-        </h1>
-        
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-6">Đăng Ký Đầu Tư</h1>
+
         {/* Progress Steps */}
         <div className="flex items-center justify-center gap-2 mb-8">
           {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
@@ -221,10 +213,10 @@ const InvestmentApply = () => {
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
                   step === currentStep
-                    ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white scale-110"
+                    ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white scale-110'
                     : step < currentStep
-                    ? "bg-green-500 text-white"
-                    : "bg-white/10 text-gray-500"
+                      ? 'bg-green-500 text-white'
+                      : 'bg-white/10 text-gray-500'
                 }`}
               >
                 {step < currentStep ? <CheckCircle2 className="w-5 h-5" /> : step}
@@ -232,7 +224,7 @@ const InvestmentApply = () => {
               {step < totalSteps && (
                 <div
                   className={`w-12 h-1 mx-1 transition-colors ${
-                    step < currentStep ? "bg-green-500" : "bg-white/10"
+                    step < currentStep ? 'bg-green-500' : 'bg-white/10'
                   }`}
                 />
               )}
@@ -243,10 +235,10 @@ const InvestmentApply = () => {
         {/* Step Title */}
         <div className="text-center">
           <h2 className="text-xl font-semibold text-yellow-400">
-            {currentStep === 1 && "Bước 1: Thông Tin Cá Nhân"}
-            {currentStep === 2 && "Bước 2: Chi Tiết Đầu Tư"}
-            {currentStep === 3 && "Bước 3: Kinh Nghiệm & Xác Minh"}
-            {currentStep === 4 && "Bước 4: Điều Khoản & Cam Kết"}
+            {currentStep === 1 && 'Bước 1: Thông Tin Cá Nhân'}
+            {currentStep === 2 && 'Bước 2: Chi Tiết Đầu Tư'}
+            {currentStep === 3 && 'Bước 3: Kinh Nghiệm & Xác Minh'}
+            {currentStep === 4 && 'Bước 4: Điều Khoản & Cam Kết'}
           </h2>
         </div>
       </motion.div>
@@ -272,7 +264,7 @@ const InvestmentApply = () => {
                   <Input
                     type="text"
                     value={formData.fullName}
-                    onChange={(e) => updateFormData("fullName", e.target.value)}
+                    onChange={(e) => updateFormData('fullName', e.target.value)}
                     placeholder="Nguyễn Văn A"
                     className="bg-white/5 border-white/10"
                     required
@@ -287,7 +279,7 @@ const InvestmentApply = () => {
                   <Input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => updateFormData("email", e.target.value)}
+                    onChange={(e) => updateFormData('email', e.target.value)}
                     placeholder="email@example.com"
                     className="bg-white/5 border-white/10"
                     required
@@ -302,7 +294,7 @@ const InvestmentApply = () => {
                   <Input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => updateFormData("phone", e.target.value)}
+                    onChange={(e) => updateFormData('phone', e.target.value)}
                     placeholder="0901234567"
                     className="bg-white/5 border-white/10"
                     required
@@ -316,7 +308,7 @@ const InvestmentApply = () => {
                   </label>
                   <Textarea
                     value={formData.address}
-                    onChange={(e) => updateFormData("address", e.target.value)}
+                    onChange={(e) => updateFormData('address', e.target.value)}
                     placeholder="Số nhà, đường, quận/huyện, thành phố"
                     className="bg-white/5 border-white/10 min-h-[80px]"
                     required
@@ -342,7 +334,7 @@ const InvestmentApply = () => {
                   <Input
                     type="number"
                     value={formData.investmentAmount}
-                    onChange={(e) => updateFormData("investmentAmount", e.target.value)}
+                    onChange={(e) => updateFormData('investmentAmount', e.target.value)}
                     placeholder="100,000,000"
                     className="bg-white/5 border-white/10"
                     min="50000000"
@@ -355,19 +347,19 @@ const InvestmentApply = () => {
                   <label className="block text-sm font-medium mb-2">Loại Nhà Đầu Tư *</label>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { value: "individual", label: "Cá Nhân" },
-                      { value: "institution", label: "Tổ Chức" },
-                      { value: "fund", label: "Quỹ Đầu Tư" },
+                      { value: 'individual', label: 'Cá Nhân' },
+                      { value: 'institution', label: 'Tổ Chức' },
+                      { value: 'fund', label: 'Quỹ Đầu Tư' },
                     ].map((type) => (
                       <Button
                         key={type.value}
                         type="button"
-                        variant={formData.investorType === type.value ? "default" : "outline"}
-                        onClick={() => updateFormData("investorType", type.value)}
+                        variant={formData.investorType === type.value ? 'default' : 'outline'}
+                        onClick={() => updateFormData('investorType', type.value)}
                         className={
                           formData.investorType === type.value
-                            ? "bg-gradient-to-r from-yellow-500 to-orange-500"
-                            : "border-white/10"
+                            ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
+                            : 'border-white/10'
                         }
                       >
                         {type.label}
@@ -376,10 +368,10 @@ const InvestmentApply = () => {
                   </div>
                 </div>
 
-                {formData.investorType === "institution" && (
+                {formData.investorType === 'institution' && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
+                    animate={{ opacity: 1, height: 'auto' }}
                   >
                     <label className="block text-sm font-medium mb-2">
                       <Building2 className="w-4 h-4 inline mr-2" />
@@ -388,7 +380,7 @@ const InvestmentApply = () => {
                     <Input
                       type="text"
                       value={formData.companyName}
-                      onChange={(e) => updateFormData("companyName", e.target.value)}
+                      onChange={(e) => updateFormData('companyName', e.target.value)}
                       placeholder="ABC Investment Co., Ltd"
                       className="bg-white/5 border-white/10"
                     />
@@ -402,7 +394,7 @@ const InvestmentApply = () => {
                   </label>
                   <Textarea
                     value={formData.investmentPurpose}
-                    onChange={(e) => updateFormData("investmentPurpose", e.target.value)}
+                    onChange={(e) => updateFormData('investmentPurpose', e.target.value)}
                     placeholder="Mô tả ngắn gọn mục đích và kỳ vọng đầu tư của bạn"
                     className="bg-white/5 border-white/10 min-h-[100px]"
                     required
@@ -424,7 +416,7 @@ const InvestmentApply = () => {
                   <label className="block text-sm font-medium mb-2">Kinh Nghiệm Đầu Tư *</label>
                   <Textarea
                     value={formData.investmentExperience}
-                    onChange={(e) => updateFormData("investmentExperience", e.target.value)}
+                    onChange={(e) => updateFormData('investmentExperience', e.target.value)}
                     placeholder="Mô tả kinh nghiệm đầu tư của bạn (nếu có)"
                     className="bg-white/5 border-white/10 min-h-[100px]"
                     required
@@ -432,22 +424,28 @@ const InvestmentApply = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Mức Độ Chấp Nhận Rủi Ro *</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Mức Độ Chấp Nhận Rủi Ro *
+                  </label>
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { value: "low", label: "Thấp", color: "from-green-500 to-emerald-500" },
-                      { value: "medium", label: "Trung Bình", color: "from-yellow-500 to-orange-500" },
-                      { value: "high", label: "Cao", color: "from-red-500 to-pink-500" },
+                      { value: 'low', label: 'Thấp', color: 'from-green-500 to-emerald-500' },
+                      {
+                        value: 'medium',
+                        label: 'Trung Bình',
+                        color: 'from-yellow-500 to-orange-500',
+                      },
+                      { value: 'high', label: 'Cao', color: 'from-red-500 to-pink-500' },
                     ].map((risk) => (
                       <Button
                         key={risk.value}
                         type="button"
-                        variant={formData.riskTolerance === risk.value ? "default" : "outline"}
-                        onClick={() => updateFormData("riskTolerance", risk.value)}
+                        variant={formData.riskTolerance === risk.value ? 'default' : 'outline'}
+                        onClick={() => updateFormData('riskTolerance', risk.value)}
                         className={
                           formData.riskTolerance === risk.value
                             ? `bg-gradient-to-r ${risk.color}`
-                            : "border-white/10"
+                            : 'border-white/10'
                         }
                       >
                         {risk.label}
@@ -464,14 +462,12 @@ const InvestmentApply = () => {
                   <Input
                     type="text"
                     value={formData.identityDocument}
-                    onChange={(e) => updateFormData("identityDocument", e.target.value)}
+                    onChange={(e) => updateFormData('identityDocument', e.target.value)}
                     placeholder="001234567890"
                     className="bg-white/5 border-white/10"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Thông tin này được bảo mật tuyệt đối
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Thông tin này được bảo mật tuyệt đối</p>
                 </div>
               </motion.div>
             )}
@@ -490,15 +486,15 @@ const InvestmentApply = () => {
                     <input
                       type="checkbox"
                       checked={formData.agreeTerms}
-                      onChange={(e) => updateFormData("agreeTerms", e.target.checked)}
+                      onChange={(e) => updateFormData('agreeTerms', e.target.checked)}
                       className="mt-1"
                       required
                     />
                     <span className="text-sm">
-                      Tôi đã đọc và đồng ý với{" "}
+                      Tôi đã đọc và đồng ý với{' '}
                       <a href="#" className="text-yellow-400 hover:underline">
                         Điều Khoản & Điều Kiện
-                      </a>{" "}
+                      </a>{' '}
                       của chương trình đầu tư
                     </span>
                   </label>
@@ -507,15 +503,15 @@ const InvestmentApply = () => {
                     <input
                       type="checkbox"
                       checked={formData.agreeRisk}
-                      onChange={(e) => updateFormData("agreeRisk", e.target.checked)}
+                      onChange={(e) => updateFormData('agreeRisk', e.target.checked)}
                       className="mt-1"
                       required
                     />
                     <span className="text-sm">
-                      Tôi hiểu và chấp nhận{" "}
+                      Tôi hiểu và chấp nhận{' '}
                       <a href="#" className="text-red-400 hover:underline">
                         Các Rủi Ro
-                      </a>{" "}
+                      </a>{' '}
                       có thể xảy ra khi đầu tư vào dự án khởi nghiệp
                     </span>
                   </label>
@@ -524,15 +520,15 @@ const InvestmentApply = () => {
                     <input
                       type="checkbox"
                       checked={formData.agreePrivacy}
-                      onChange={(e) => updateFormData("agreePrivacy", e.target.checked)}
+                      onChange={(e) => updateFormData('agreePrivacy', e.target.checked)}
                       className="mt-1"
                       required
                     />
                     <span className="text-sm">
-                      Tôi đồng ý với{" "}
+                      Tôi đồng ý với{' '}
                       <a href="#" className="text-cyan-400 hover:underline">
                         Chính Sách Bảo Mật
-                      </a>{" "}
+                      </a>{' '}
                       về việc thu thập và sử dụng thông tin cá nhân
                     </span>
                   </label>
@@ -542,7 +538,8 @@ const InvestmentApply = () => {
                   <p className="text-sm text-yellow-400">
                     <Shield className="w-4 h-4 inline mr-2" />
                     <strong>Lưu ý:</strong> Thông tin của bạn được bảo mật theo tiêu chuẩn quốc tế.
-                    Chúng tôi cam kết không chia sẻ dữ liệu với bên thứ ba mà không có sự đồng ý của bạn.
+                    Chúng tôi cam kết không chia sẻ dữ liệu với bên thứ ba mà không có sự đồng ý của
+                    bạn.
                   </p>
                 </div>
               </motion.div>

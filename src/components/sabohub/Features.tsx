@@ -1,21 +1,21 @@
-import { motion } from "framer-motion";
-import { LayoutDashboard, Zap, ShieldCheck } from "lucide-react";
+import { motion } from 'framer-motion';
+import { LayoutDashboard, Zap, ShieldCheck } from 'lucide-react';
 
 const features = [
   {
     icon: LayoutDashboard,
-    title: "Quản Lý Toàn Diện",
-    description: "8 hệ thống quản lý tích hợp - từ nhân sự đến thanh toán, đơn hàng đến chấm công",
+    title: 'Quản Lý Toàn Diện',
+    description: '8 hệ thống quản lý tích hợp - từ nhân sự đến thanh toán, đơn hàng đến chấm công',
   },
   {
     icon: Zap,
-    title: "Đồng Bộ Thời Gian Thực",
-    description: "Mọi thay đổi được cập nhật ngay lập tức trên tất cả thiết bị",
+    title: 'Đồng Bộ Thời Gian Thực',
+    description: 'Mọi thay đổi được cập nhật ngay lập tức trên tất cả thiết bị',
   },
   {
     icon: ShieldCheck,
-    title: "Bảo Mật Cao Cấp",
-    description: "Phân quyền theo vai trò, bảo vệ dữ liệu với tiêu chuẩn cao nhất",
+    title: 'Bảo Mật Cao Cấp',
+    description: 'Phân quyền theo vai trò, bảo vệ dữ liệu với tiêu chuẩn cao nhất',
   },
 ];
 

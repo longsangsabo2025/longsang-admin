@@ -3,7 +3,7 @@
  * LongSang, VungTauLand, SABO Arena, LS Secretary
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -17,51 +17,51 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+} from 'recharts';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   useAnalyticsData,
   getDailyStats,
   getProductOverview,
   get24HourOverview,
   type ProductName,
-} from "@/lib/analytics";
+} from '@/lib/analytics';
 
 const COLORS = {
-  longsang: "#6366f1",
-  vungtau: "#10b981",
-  "sabo-arena": "#f59e0b",
-  "ls-secretary": "#ec4899",
+  longsang: '#6366f1',
+  vungtau: '#10b981',
+  'sabo-arena': '#f59e0b',
+  'ls-secretary': '#ec4899',
 };
 
 const PRODUCT_LABELS = {
-  longsang: "LongSang Forge",
-  vungtau: "VungTauLand",
-  "sabo-arena": "SABO Arena",
-  "ls-secretary": "LS Secretary",
+  longsang: 'LongSang Forge',
+  vungtau: 'VungTauLand',
+  'sabo-arena': 'SABO Arena',
+  'ls-secretary': 'LS Secretary',
 };
 
 interface MetricCardProps {
   title: string;
   value: string | number;
   change?: string;
-  trend?: "up" | "down" | "neutral";
+  trend?: 'up' | 'down' | 'neutral';
   icon?: string;
   color?: string;
 }
 
 function MetricCard({ title, value, change, trend, icon, color }: MetricCardProps) {
   const trendColor =
-    trend === "up" ? "text-green-600" : trend === "down" ? "text-red-600" : "text-gray-600";
+    trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-gray-600';
 
   return (
     <Card className="p-6">
@@ -73,8 +73,8 @@ function MetricCard({ title, value, change, trend, icon, color }: MetricCardProp
           </h3>
           {change && (
             <p className={`text-sm mt-2 ${trendColor}`}>
-              {trend === "up" && "↑ "}
-              {trend === "down" && "↓ "}
+              {trend === 'up' && '↑ '}
+              {trend === 'down' && '↓ '}
               {change}
             </p>
           )}
@@ -86,7 +86,7 @@ function MetricCard({ title, value, change, trend, icon, color }: MetricCardProp
 }
 
 export function UnifiedAnalyticsDashboard() {
-  const [selectedProduct, setSelectedProduct] = useState<ProductName | "all">("all");
+  const [selectedProduct, setSelectedProduct] = useState<ProductName | 'all'>('all');
   const [timeRange, setTimeRange] = useState<7 | 30 | 90>(7);
   const [allProductsData, setAllProductsData] = useState<any[]>([]);
   const [overview24h, setOverview24h] = useState<any[]>([]);
@@ -96,13 +96,13 @@ export function UnifiedAnalyticsDashboard() {
     stats,
     overview,
     loading: dataLoading,
-  } = useAnalyticsData(selectedProduct === "all" ? undefined : selectedProduct, timeRange);
+  } = useAnalyticsData(selectedProduct === 'all' ? undefined : selectedProduct, timeRange);
 
   useEffect(() => {
     async function fetchAllData() {
       setLoading(true);
 
-      const products: ProductName[] = ["longsang", "vungtau", "sabo-arena", "ls-secretary"];
+      const products: ProductName[] = ['longsang', 'vungtau', 'sabo-arena', 'ls-secretary'];
       const allStats = await Promise.all(
         products.map(async (product) => {
           const stats = await getDailyStats(product, timeRange);
@@ -125,7 +125,7 @@ export function UnifiedAnalyticsDashboard() {
   const avgUptime =
     overview.length > 0
       ? (overview.reduce((sum, p) => sum + (p.uptime || 0), 0) / overview.length).toFixed(2)
-      : "0";
+      : '0';
   const totalErrors = overview24h.reduce((sum, p) => sum + (p.error_count || 0), 0);
 
   return (
@@ -156,7 +156,7 @@ export function UnifiedAnalyticsDashboard() {
 
           <Select
             value={selectedProduct}
-            onValueChange={(v) => setSelectedProduct(v as ProductName | "all")}
+            onValueChange={(v) => setSelectedProduct(v as ProductName | 'all')}
           >
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Product" />
@@ -193,10 +193,10 @@ export function UnifiedAnalyticsDashboard() {
         <MetricCard
           title="Total Errors (24h)"
           value={totalErrors}
-          change={totalErrors < 10 ? "Within limits" : "Review needed"}
-          trend={totalErrors < 10 ? "neutral" : "down"}
+          change={totalErrors < 10 ? 'Within limits' : 'Review needed'}
+          trend={totalErrors < 10 ? 'neutral' : 'down'}
           icon="🐛"
-          color={totalErrors < 10 ? COLORS["sabo-arena"] : "#ef4444"}
+          color={totalErrors < 10 ? COLORS['sabo-arena'] : '#ef4444'}
         />
         <MetricCard
           title="Products Online"
@@ -204,7 +204,7 @@ export function UnifiedAnalyticsDashboard() {
           change="All systems operational"
           trend="up"
           icon="✅"
-          color={COLORS["ls-secretary"]}
+          color={COLORS['ls-secretary']}
         />
       </div>
 
@@ -233,8 +233,8 @@ export function UnifiedAnalyticsDashboard() {
                 <Area
                   type="monotone"
                   dataKey="pageViews"
-                  stroke={COLORS[selectedProduct as ProductName] || "#6366f1"}
-                  fill={COLORS[selectedProduct as ProductName] || "#6366f1"}
+                  stroke={COLORS[selectedProduct as ProductName] || '#6366f1'}
+                  fill={COLORS[selectedProduct as ProductName] || '#6366f1'}
                   fillOpacity={0.6}
                   name="Page Views"
                 />
@@ -372,7 +372,7 @@ export function UnifiedAnalyticsDashboard() {
         <TabsContent value="products" className="space-y-6">
           {/* Product Status Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(["longsang", "vungtau", "sabo-arena", "ls-secretary"] as ProductName[]).map(
+            {(['longsang', 'vungtau', 'sabo-arena', 'ls-secretary'] as ProductName[]).map(
               (product) => {
                 const productStats = allProductsData.find((p) => p.product === product);
                 const productOverview = overview.find((p) => p.product === product);
@@ -393,11 +393,11 @@ export function UnifiedAnalyticsDashboard() {
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-semibold ${
                           productOverview?.uptime > 99
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
                         }`}
                       >
-                        {productOverview?.uptime > 99 ? "Healthy" : "Warning"}
+                        {productOverview?.uptime > 99 ? 'Healthy' : 'Warning'}
                       </span>
                     </div>
 

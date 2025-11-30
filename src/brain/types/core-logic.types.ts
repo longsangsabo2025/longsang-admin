@@ -130,7 +130,7 @@ export interface CoreLogicComparison {
 export interface DistillationJob {
   id: string;
   domainId: string;
-  status: "pending" | "processing" | "completed" | "failed" | "cancelled";
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
   priority: number;
   triggeredBy: string;
   triggeredAt: string;
@@ -162,7 +162,7 @@ export interface DistillationOptions {
 export interface KnowledgePattern {
   name: string;
   description: string;
-  frequency: "high" | "medium" | "low";
+  frequency: 'high' | 'medium' | 'low';
   examples?: string[];
 }
 
@@ -172,7 +172,7 @@ export interface KnowledgePattern {
 export interface KeyConcept {
   term: string;
   definition: string;
-  importance: "high" | "medium" | "low";
+  importance: 'high' | 'medium' | 'low';
   relatedTerms?: string[];
 }
 
@@ -183,7 +183,7 @@ export interface KnowledgeRelationship {
   concept1: string;
   concept2: string;
   type: string;
-  strength: "strong" | "medium" | "weak";
+  strength: 'strong' | 'medium' | 'weak';
 }
 
 /**
@@ -208,4 +208,3 @@ export interface KnowledgeAnalysisResult {
   knowledgeItemsAnalyzed: number;
   tokensUsed?: number;
 }
-

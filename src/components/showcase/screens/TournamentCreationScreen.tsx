@@ -1,11 +1,11 @@
-import { CheckCircle2, Zap, Target, Trophy, Users, MessageCircle } from "lucide-react";
+import { CheckCircle2, Zap, Target, Trophy, Users, MessageCircle } from 'lucide-react';
 
 export const TournamentCreationScreen = () => {
   const formats = [
-    { name: "Single Elimination", icon: Target, selected: false },
-    { name: "Double Elimination", icon: Trophy, selected: true },
-    { name: "Round Robin", icon: Users, selected: false },
-    { name: "Swiss System", icon: Zap, selected: false },
+    { name: 'Single Elimination', icon: Target, selected: false },
+    { name: 'Double Elimination', icon: Trophy, selected: true },
+    { name: 'Round Robin', icon: Users, selected: false },
+    { name: 'Swiss System', icon: Zap, selected: false },
   ];
 
   return (

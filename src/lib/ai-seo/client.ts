@@ -1,6 +1,6 @@
 /**
  * AI SEO Auto - Frontend Client
- * 
+ *
  * This module provides a frontend-safe client for AI SEO automation.
  * All API calls go through the backend to avoid exposing OpenAI API key.
  */
@@ -42,8 +42,8 @@ export async function analyzeDomain(
     body: JSON.stringify({
       domain,
       language: options?.language || 'en',
-      country: options?.country
-    })
+      country: options?.country,
+    }),
   });
 
   if (!response.ok) {
@@ -73,8 +73,8 @@ export async function executeSEOAutomation(
       domain,
       keywords,
       plan,
-      autoIndex: options?.autoIndex ?? true
-    })
+      autoIndex: options?.autoIndex ?? true,
+    }),
   });
 
   if (!response.ok) {
@@ -93,7 +93,7 @@ export async function getQuickWins(domain: string) {
   const response = await fetch(`${API_BASE}/api/seo/quick-wins`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ domain })
+    body: JSON.stringify({ domain }),
   });
 
   if (!response.ok) {
@@ -108,14 +108,11 @@ export async function getQuickWins(domain: string) {
 /**
  * Generate content outline for keyword
  */
-export async function generateContentOutline(
-  keyword: string,
-  wordCount?: number
-) {
+export async function generateContentOutline(keyword: string, wordCount?: number) {
   const response = await fetch(`${API_BASE}/api/seo/content-outline`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ keyword, wordCount })
+    body: JSON.stringify({ keyword, wordCount }),
   });
 
   if (!response.ok) {
@@ -130,14 +127,11 @@ export async function generateContentOutline(
 /**
  * Analyze competitors
  */
-export async function analyzeCompetitors(
-  domain: string,
-  competitors: string[]
-) {
+export async function analyzeCompetitors(domain: string, competitors: string[]) {
   const response = await fetch(`${API_BASE}/api/seo/competitors`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ domain, competitors })
+    body: JSON.stringify({ domain, competitors }),
   });
 
   if (!response.ok) {

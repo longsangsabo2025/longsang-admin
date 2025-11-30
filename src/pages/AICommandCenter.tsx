@@ -50,7 +50,7 @@ export default function AICommandCenter() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     // TODO: Refresh all data from APIs
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsRefreshing(false);
   };
 
@@ -91,12 +91,7 @@ export default function AICommandCenter() {
             </Button>
 
             {/* Refresh */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
               <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
@@ -130,7 +125,10 @@ export default function AICommandCenter() {
               <AlertTriangle className="h-4 w-4" />
               <span className="hidden sm:inline">Decisions</span>
               {pendingCounts.decisions > 0 && (
-                <Badge variant="destructive" className="ml-1 h-5 min-w-5 p-0 flex items-center justify-center text-xs">
+                <Badge
+                  variant="destructive"
+                  className="ml-1 h-5 min-w-5 p-0 flex items-center justify-center text-xs"
+                >
                   {pendingCounts.decisions}
                 </Badge>
               )}
@@ -148,7 +146,7 @@ export default function AICommandCenter() {
           <TabsContent value="chat" className="space-y-4">
             {/* Agent Selector */}
             <div className="flex gap-2 mb-4">
-              {CHAT_AGENTS.map(agent => (
+              {CHAT_AGENTS.map((agent) => (
                 <Button
                   key={agent.id}
                   variant={selectedChatAgent === agent.id ? 'default' : 'outline'}
@@ -159,11 +157,7 @@ export default function AICommandCenter() {
                 </Button>
               ))}
             </div>
-            <AIChatPanel 
-              agentRole={selectedChatAgent} 
-              height="h-[600px]"
-              showStats={true}
-            />
+            <AIChatPanel agentRole={selectedChatAgent} height="h-[600px]" showStats={true} />
           </TabsContent>
 
           <TabsContent value="agents" className="space-y-4">

@@ -3,19 +3,19 @@
  * LongSang, VungTauLand, SABO Arena, LS Secretary
  */
 
-import React from "react";
-import { supabase } from "./supabase";
+import React from 'react';
+import { supabase } from './supabase';
 
-export type ProductName = "longsang" | "vungtau" | "sabo-arena" | "ls-secretary";
+export type ProductName = 'longsang' | 'vungtau' | 'sabo-arena' | 'ls-secretary';
 
 export type EventType =
-  | "page_view"
-  | "click"
-  | "form_submit"
-  | "error"
-  | "conversion"
-  | "feature_used"
-  | "user_action";
+  | 'page_view'
+  | 'click'
+  | 'form_submit'
+  | 'error'
+  | 'conversion'
+  | 'feature_used'
+  | 'user_action';
 
 export interface AnalyticsEvent {
   productName: ProductName;
@@ -28,7 +28,7 @@ export interface AnalyticsEvent {
   pageUrl?: string;
   pageTitle?: string;
   referrer?: string;
-  deviceType?: "desktop" | "mobile" | "tablet";
+  deviceType?: 'desktop' | 'mobile' | 'tablet';
   browser?: string;
   os?: string;
   country?: string;
@@ -70,11 +70,11 @@ class AnalyticsTracker {
     this.pageStartTime = Date.now();
 
     // Track page load time using modern Performance API
-    if (typeof globalThis.window !== "undefined") {
-      globalThis.window.addEventListener("load", () => {
+    if (typeof globalThis.window !== 'undefined') {
+      globalThis.window.addEventListener('load', () => {
         // Use modern PerformanceNavigationTiming API
         const perfEntries = globalThis.window.performance.getEntriesByType(
-          "navigation"
+          'navigation'
         ) as PerformanceNavigationTiming[];
         if (perfEntries.length > 0) {
           const perfData = perfEntries[0];
@@ -118,7 +118,7 @@ class AnalyticsTracker {
       }
 
       // Send to Supabase
-      const { error } = await supabase.rpc("track_analytics_event", {
+      const { error } = await supabase.rpc('track_analytics_event', {
         p_product_name: event.productName,
         p_event_type: event.eventType,
         p_event_name: event.eventName,
@@ -128,10 +128,10 @@ class AnalyticsTracker {
       });
 
       if (error) {
-        console.error("Analytics tracking error:", error);
+        console.error('Analytics tracking error:', error);
       }
     } catch (error) {
-      console.error("Failed to track event:", error);
+      console.error('Failed to track event:', error);
     }
   }
 
@@ -139,7 +139,7 @@ class AnalyticsTracker {
    * Track page view
    */
   async trackPageView(pageName?: string): Promise<void> {
-    await this.track("page_view", pageName || document.title, {
+    await this.track('page_view', pageName || document.title, {
       url: globalThis.window.location.href,
       path: globalThis.window.location.pathname,
       referrer: document.referrer,
@@ -150,21 +150,21 @@ class AnalyticsTracker {
    * Track button click
    */
   async trackClick(buttonName: string, properties?: Record<string, any>): Promise<void> {
-    await this.track("click", buttonName, properties);
+    await this.track('click', buttonName, properties);
   }
 
   /**
    * Track form submission
    */
   async trackFormSubmit(formName: string, properties?: Record<string, any>): Promise<void> {
-    await this.track("form_submit", formName, properties);
+    await this.track('form_submit', formName, properties);
   }
 
   /**
    * Track error
    */
   async trackError(error: Error, context?: Record<string, any>): Promise<void> {
-    await this.track("error", error.message, {
+    await this.track('error', error.message, {
       stack: error.stack,
       ...context,
     });
@@ -174,7 +174,7 @@ class AnalyticsTracker {
    * Track conversion
    */
   async trackConversion(conversionName: string, value?: number): Promise<void> {
-    await this.track("conversion", conversionName, {
+    await this.track('conversion', conversionName, {
       value,
       timestamp: new Date().toISOString(),
     });
@@ -184,17 +184,17 @@ class AnalyticsTracker {
    * Track feature usage
    */
   async trackFeatureUsage(featureName: string, properties?: Record<string, any>): Promise<void> {
-    await this.track("feature_used", featureName, properties);
+    await this.track('feature_used', featureName, properties);
   }
 
   /**
    * Get or create session ID
    */
   private getOrCreateSessionId(): string {
-    let sessionId = sessionStorage.getItem("analytics_session_id");
+    let sessionId = sessionStorage.getItem('analytics_session_id');
     if (!sessionId) {
       sessionId = this.generateId();
-      sessionStorage.setItem("analytics_session_id", sessionId);
+      sessionStorage.setItem('analytics_session_id', sessionId);
     }
     return sessionId;
   }
@@ -203,10 +203,10 @@ class AnalyticsTracker {
    * Get or create anonymous ID
    */
   private getOrCreateAnonymousId(): string {
-    let anonymousId = localStorage.getItem("analytics_anonymous_id");
+    let anonymousId = localStorage.getItem('analytics_anonymous_id');
     if (!anonymousId) {
       anonymousId = this.generateId();
-      localStorage.setItem("analytics_anonymous_id", anonymousId);
+      localStorage.setItem('analytics_anonymous_id', anonymousId);
     }
     return anonymousId;
   }
@@ -221,19 +221,19 @@ class AnalyticsTracker {
   /**
    * Get device type
    */
-  private getDeviceType(): "desktop" | "mobile" | "tablet" {
+  private getDeviceType(): 'desktop' | 'mobile' | 'tablet' {
     const ua = navigator.userAgent;
     if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
-      return "tablet";
+      return 'tablet';
     }
     if (
       /Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(
         ua
       )
     ) {
-      return "mobile";
+      return 'mobile';
     }
-    return "desktop";
+    return 'desktop';
   }
 
   /**
@@ -241,12 +241,12 @@ class AnalyticsTracker {
    */
   private getBrowser(): string {
     const ua = navigator.userAgent;
-    if (ua.includes("Firefox")) return "Firefox";
-    if (ua.includes("Chrome")) return "Chrome";
-    if (ua.includes("Safari")) return "Safari";
-    if (ua.includes("Edge")) return "Edge";
-    if (ua.includes("Opera")) return "Opera";
-    return "Unknown";
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Chrome')) return 'Chrome';
+    if (ua.includes('Safari')) return 'Safari';
+    if (ua.includes('Edge')) return 'Edge';
+    if (ua.includes('Opera')) return 'Opera';
+    return 'Unknown';
   }
 
   /**
@@ -254,12 +254,12 @@ class AnalyticsTracker {
    */
   private getOS(): string {
     const ua = navigator.userAgent;
-    if (ua.includes("Win")) return "Windows";
-    if (ua.includes("Mac")) return "MacOS";
-    if (ua.includes("Linux")) return "Linux";
-    if (ua.includes("Android")) return "Android";
-    if (ua.includes("iOS")) return "iOS";
-    return "Unknown";
+    if (ua.includes('Win')) return 'Windows';
+    if (ua.includes('Mac')) return 'MacOS';
+    if (ua.includes('Linux')) return 'Linux';
+    if (ua.includes('Android')) return 'Android';
+    if (ua.includes('iOS')) return 'iOS';
+    return 'Unknown';
   }
 
   /**
@@ -267,7 +267,7 @@ class AnalyticsTracker {
    */
   trackTimeOnPage(): void {
     const timeOnPage = Math.floor((Date.now() - this.pageStartTime) / 1000);
-    this.track("page_view", "Page Exit", {
+    this.track('page_view', 'Page Exit', {
       timeOnPage,
       url: globalThis.window.location.href,
     });
@@ -285,13 +285,13 @@ export async function getDailyStats(
   productName: ProductName,
   days: number = 7
 ): Promise<DailyStats[]> {
-  const { data, error } = await supabase.rpc("get_daily_stats", {
+  const { data, error } = await supabase.rpc('get_daily_stats', {
     p_product_name: productName,
     p_days: days,
   });
 
   if (error) {
-    console.error("Error fetching daily stats:", error);
+    console.error('Error fetching daily stats:', error);
     return [];
   }
 
@@ -302,12 +302,12 @@ export async function getDailyStats(
  * Get product overview
  */
 export async function getProductOverview(productName?: ProductName): Promise<ProductMetrics[]> {
-  const { data, error } = await supabase.rpc("get_product_overview", {
+  const { data, error } = await supabase.rpc('get_product_overview', {
     p_product_name: productName || null,
   });
 
   if (error) {
-    console.error("Error fetching product overview:", error);
+    console.error('Error fetching product overview:', error);
     return [];
   }
 
@@ -325,24 +325,24 @@ export async function getAnalyticsEvents(filters: {
   limit?: number;
 }) {
   let query = supabase
-    .from("analytics_events")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .from('analytics_events')
+    .select('*')
+    .order('created_at', { ascending: false });
 
   if (filters.productName) {
-    query = query.eq("product_name", filters.productName);
+    query = query.eq('product_name', filters.productName);
   }
 
   if (filters.eventType) {
-    query = query.eq("event_type", filters.eventType);
+    query = query.eq('event_type', filters.eventType);
   }
 
   if (filters.startDate) {
-    query = query.gte("created_at", filters.startDate);
+    query = query.gte('created_at', filters.startDate);
   }
 
   if (filters.endDate) {
-    query = query.lte("created_at", filters.endDate);
+    query = query.lte('created_at', filters.endDate);
   }
 
   if (filters.limit) {
@@ -352,7 +352,7 @@ export async function getAnalyticsEvents(filters: {
   const { data, error } = await query;
 
   if (error) {
-    console.error("Error fetching events:", error);
+    console.error('Error fetching events:', error);
     return [];
   }
 
@@ -363,10 +363,10 @@ export async function getAnalyticsEvents(filters: {
  * Get 24-hour overview for all products
  */
 export async function get24HourOverview() {
-  const { data, error } = await supabase.from("analytics_24h_overview").select("*");
+  const { data, error } = await supabase.from('analytics_24h_overview').select('*');
 
   if (error) {
-    console.error("Error fetching 24h overview:", error);
+    console.error('Error fetching 24h overview:', error);
     return [];
   }
 
@@ -385,7 +385,7 @@ export async function updateProductMetrics(
     errorRate?: number;
   }
 ) {
-  const { error } = await supabase.rpc("update_product_metrics", {
+  const { error } = await supabase.rpc('update_product_metrics', {
     p_product_name: productName,
     p_active_users: metrics.activeUsers || null,
     p_uptime: metrics.uptime || null,
@@ -394,7 +394,7 @@ export async function updateProductMetrics(
   });
 
   if (error) {
-    console.error("Error updating product metrics:", error);
+    console.error('Error updating product metrics:', error);
   }
 }
 
@@ -417,10 +417,10 @@ export function useAnalytics(productName: ProductName) {
       tracker.trackTimeOnPage();
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [tracker]);
 
@@ -462,10 +462,10 @@ export function useAnalyticsData(productName?: ProductName, days: number = 7) {
 
 // Export singleton instance for convenience
 export const analytics = {
-  longsang: new AnalyticsTracker("longsang"),
-  vungtau: new AnalyticsTracker("vungtau"),
-  saboArena: new AnalyticsTracker("sabo-arena"),
-  lsSecretary: new AnalyticsTracker("ls-secretary"),
+  longsang: new AnalyticsTracker('longsang'),
+  vungtau: new AnalyticsTracker('vungtau'),
+  saboArena: new AnalyticsTracker('sabo-arena'),
+  lsSecretary: new AnalyticsTracker('ls-secretary'),
 };
 
 export default AnalyticsTracker;

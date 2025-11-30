@@ -1,13 +1,13 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Check, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Button } from '@/components/ui/button';
+import { ArrowRight, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const projectImages = [
-  "/images/sabo-arena-1.jpg",
-  "/images/sabo-arena-2.jpg",
-  "/images/sabo-arena-3.jpg",
-  "/images/sabo-arena-4.jpg",
+  '/images/sabo-arena-1.jpg',
+  '/images/sabo-arena-2.jpg',
+  '/images/sabo-arena-3.jpg',
+  '/images/sabo-arena-4.jpg',
 ];
 
 export const FeaturedProject = () => {
@@ -27,13 +27,13 @@ export const FeaturedProject = () => {
   };
 
   const scrollToContact = () => {
-    const element = document.querySelector("#contact");
+    const element = document.querySelector('#contact');
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  const techStack = ["Flutter", "Dart", "Supabase", "PostgreSQL", "Real-time"];
+  const techStack = ['Flutter', 'Dart', 'Supabase', 'PostgreSQL', 'Real-time'];
 
   return (
     <section id="projects" className="py-8 md:py-16 relative overflow-hidden">
@@ -44,7 +44,7 @@ export const FeaturedProject = () => {
         {/* Featured Badge */}
         <div className="mb-12">
           <span className="inline-block px-5 py-2 text-sm font-bold uppercase bg-secondary/10 border border-secondary/30 text-secondary rounded-full">
-            {t("featured.badge")}
+            {t('featured.badge')}
           </span>
         </div>
 
@@ -86,8 +86,8 @@ export const FeaturedProject = () => {
                     onClick={() => goToImage(index)}
                     className={`w-2 h-2 rounded-full transition-all duration-200 ${
                       index === currentImageIndex
-                        ? "bg-primary w-8"
-                        : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                        ? 'bg-primary w-8'
+                        : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
                     }`}
                     aria-label={`Go to image ${index + 1}`}
                   />
@@ -97,37 +97,37 @@ export const FeaturedProject = () => {
           </div>
 
           {/* Right Side - Content */}
-          <div className="space-y-8 animate-fade-in" style={{ animationDelay: "200ms" }}>
+          <div className="space-y-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
             {/* Project Name */}
             <div>
               <h3 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
-                {t("featured.title")}
+                {t('featured.title')}
               </h3>
               <p className="text-lg md:text-xl font-medium text-muted-foreground">
-                {t("featured.tagline")}
+                {t('featured.tagline')}
               </p>
             </div>
 
             {/* The Challenge */}
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary mb-4">
-                {t("featured.challengeTitle")}
+                {t('featured.challengeTitle')}
               </p>
               <p className="text-base text-muted-foreground leading-relaxed">
-                {t("featured.challengeText")}
+                {t('featured.challengeText')}
               </p>
             </div>
 
             {/* The Solution */}
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary mb-4">
-                {t("featured.solutionTitle")}
+                {t('featured.solutionTitle')}
               </p>
               <p className="text-base text-muted-foreground leading-relaxed mb-4">
-                {t("featured.solutionIntro")}
+                {t('featured.solutionIntro')}
               </p>
               <ul className="space-y-3">
-                {(t("featured.features", { returnObjects: true }) as string[]).map(
+                {(t('featured.features', { returnObjects: true }) as string[]).map(
                   (feature: string, index: number) => (
                     <li
                       key={`feature-${index}-${feature.substring(0, 20)}`}
@@ -144,7 +144,7 @@ export const FeaturedProject = () => {
             {/* Tech Stack */}
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary mb-4">
-                {t("featured.techStackTitle")}
+                {t('featured.techStackTitle')}
               </p>
               <div className="flex flex-wrap gap-2">
                 {techStack.map((tech) => (
@@ -161,10 +161,10 @@ export const FeaturedProject = () => {
             {/* Results & Impact */}
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary mb-4">
-                {t("featured.resultsTitle")}
+                {t('featured.resultsTitle')}
               </p>
               <ul className="space-y-3">
-                {(t("featured.results", { returnObjects: true }) as string[]).map(
+                {(t('featured.results', { returnObjects: true }) as string[]).map(
                   (result: string, index: number) => (
                     <li
                       key={`result-${index}-${result.substring(0, 20)}`}
@@ -184,7 +184,7 @@ export const FeaturedProject = () => {
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-7 py-6 rounded-xl font-semibold hover:scale-105 transition-all duration-200 inline-flex items-center gap-2"
             >
-              {t("featured.cta")}
+              {t('featured.cta')}
               <ArrowRight className="w-5 h-5" />
             </Button>
           </div>

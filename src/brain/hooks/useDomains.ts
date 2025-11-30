@@ -3,12 +3,12 @@
  * Manages domain CRUD operations with React Query
  */
 
-import { brainAPI } from "@/brain/lib/services/brain-api";
-import type { CreateDomainInput, UpdateDomainInput } from "@/brain/types/brain.types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { brainAPI } from '@/brain/lib/services/brain-api';
+import type { CreateDomainInput, UpdateDomainInput } from '@/brain/types/brain.types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
-const QUERY_KEY = ["brain", "domains"];
+const QUERY_KEY = ['brain', 'domains'];
 
 /**
  * Hook to fetch all domains
@@ -28,7 +28,7 @@ export function useDomain(id: string | null) {
   return useQuery({
     queryKey: [...QUERY_KEY, id],
     queryFn: () => {
-      if (!id) throw new Error("Domain ID is required");
+      if (!id) throw new Error('Domain ID is required');
       return brainAPI.getDomain(id);
     },
     enabled: !!id,
@@ -46,10 +46,10 @@ export function useCreateDomain() {
     mutationFn: (input: CreateDomainInput) => brainAPI.createDomain(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      toast.success("Domain created successfully");
+      toast.success('Domain created successfully');
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create domain");
+      toast.error(error.message || 'Failed to create domain');
     },
   });
 }
@@ -66,10 +66,10 @@ export function useUpdateDomain() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, variables.id] });
-      toast.success("Domain updated successfully");
+      toast.success('Domain updated successfully');
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update domain");
+      toast.error(error.message || 'Failed to update domain');
     },
   });
 }
@@ -84,10 +84,10 @@ export function useDeleteDomain() {
     mutationFn: (id: string) => brainAPI.deleteDomain(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      toast.success("Domain deleted successfully");
+      toast.success('Domain deleted successfully');
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete domain");
+      toast.error(error.message || 'Failed to delete domain');
     },
   });
 }

@@ -10,14 +10,14 @@ export const googleDriveAPI = {
       // Convert File to Buffer for server-side upload
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      
+
       const result = await driveService.uploadFile(
         file.name,
         buffer,
         file.type,
         parentId || 'root'
       );
-      
+
       return result;
     } catch (error) {
       console.error('Upload error:', error);
@@ -25,7 +25,7 @@ export const googleDriveAPI = {
     }
   },
 
-  async listFiles(parentId?: string): Promise<{ files: DriveFile[], folders: DriveFolder[] }> {
+  async listFiles(parentId?: string): Promise<{ files: DriveFile[]; folders: DriveFolder[] }> {
     try {
       return await driveService.listFiles(parentId || 'root');
     } catch (error) {
@@ -61,7 +61,11 @@ export const googleDriveAPI = {
     }
   },
 
-  async shareFile(fileId: string, email: string, role: 'reader' | 'writer' | 'owner' = 'reader'): Promise<void> {
+  async shareFile(
+    fileId: string,
+    email: string,
+    role: 'reader' | 'writer' | 'owner' = 'reader'
+  ): Promise<void> {
     try {
       return await driveService.shareFile(fileId, email, role);
     } catch (error) {
@@ -86,5 +90,5 @@ export const googleDriveAPI = {
       console.error('Get metadata error:', error);
       throw error;
     }
-  }
+  },
 };

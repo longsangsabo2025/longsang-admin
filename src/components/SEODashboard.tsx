@@ -4,19 +4,19 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Progress } from './ui/progress';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Search, 
-  Eye, 
-  Users, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Search,
+  Eye,
+  Users,
   FileText,
   AlertCircle,
   CheckCircle,
   Clock,
   ArrowUp,
   ArrowDown,
-  Target
+  Target,
 } from 'lucide-react';
 
 interface KeywordRanking {
@@ -57,24 +57,108 @@ export const SEODashboard: React.FC = () => {
     // Simulate API calls
     setTimeout(() => {
       setKeywordRankings([
-        { keyword: 'sabo arena', position: 1, previousPosition: 2, searchVolume: 8900, trend: 'up', competition: 'low' },
-        { keyword: 'gaming platform vietnam', position: 15, previousPosition: 18, searchVolume: 2400, trend: 'up', competition: 'medium' },
-        { keyword: 'esports vietnam', position: 8, previousPosition: 12, searchVolume: 5600, trend: 'up', competition: 'high' },
-        { keyword: 'billiards vietnam', position: 3, previousPosition: 4, searchVolume: 1800, trend: 'down', competition: 'low' },
-        { keyword: 'ai gaming automation', position: 25, previousPosition: 30, searchVolume: 890, trend: 'up', competition: 'medium' }
+        {
+          keyword: 'sabo arena',
+          position: 1,
+          previousPosition: 2,
+          searchVolume: 8900,
+          trend: 'up',
+          competition: 'low',
+        },
+        {
+          keyword: 'gaming platform vietnam',
+          position: 15,
+          previousPosition: 18,
+          searchVolume: 2400,
+          trend: 'up',
+          competition: 'medium',
+        },
+        {
+          keyword: 'esports vietnam',
+          position: 8,
+          previousPosition: 12,
+          searchVolume: 5600,
+          trend: 'up',
+          competition: 'high',
+        },
+        {
+          keyword: 'billiards vietnam',
+          position: 3,
+          previousPosition: 4,
+          searchVolume: 1800,
+          trend: 'down',
+          competition: 'low',
+        },
+        {
+          keyword: 'ai gaming automation',
+          position: 25,
+          previousPosition: 30,
+          searchVolume: 890,
+          trend: 'up',
+          competition: 'medium',
+        },
       ]);
 
       setPageMetrics([
-        { url: '/blog/esports-guide-2025', title: 'Complete Esports Guide 2025', seoScore: 92, organicTraffic: 15420, bounceRate: 35.2, conversions: 89 },
-        { url: '/blog/ai-gaming-automation', title: 'AI Gaming Automation', seoScore: 88, organicTraffic: 8950, bounceRate: 42.1, conversions: 45 },
-        { url: '/tournaments/championship-2025', title: 'Championship Tournament 2025', seoScore: 85, organicTraffic: 12300, bounceRate: 28.7, conversions: 156 },
-        { url: '/blog/billiards-techniques', title: 'Advanced Billiards Techniques', seoScore: 73, organicTraffic: 3420, bounceRate: 55.8, conversions: 12 }
+        {
+          url: '/blog/esports-guide-2025',
+          title: 'Complete Esports Guide 2025',
+          seoScore: 92,
+          organicTraffic: 15420,
+          bounceRate: 35.2,
+          conversions: 89,
+        },
+        {
+          url: '/blog/ai-gaming-automation',
+          title: 'AI Gaming Automation',
+          seoScore: 88,
+          organicTraffic: 8950,
+          bounceRate: 42.1,
+          conversions: 45,
+        },
+        {
+          url: '/tournaments/championship-2025',
+          title: 'Championship Tournament 2025',
+          seoScore: 85,
+          organicTraffic: 12300,
+          bounceRate: 28.7,
+          conversions: 156,
+        },
+        {
+          url: '/blog/billiards-techniques',
+          title: 'Advanced Billiards Techniques',
+          seoScore: 73,
+          organicTraffic: 3420,
+          bounceRate: 55.8,
+          conversions: 12,
+        },
       ]);
 
       setSeoIssues([
-        { id: '1', type: 'technical', severity: 'high', description: 'Missing meta descriptions on 5 pages', pageUrl: '/blog/*', status: 'open' },
-        { id: '2', type: 'content', severity: 'medium', description: 'Low content quality score', pageUrl: '/blog/old-post', status: 'in_progress' },
-        { id: '3', type: 'performance', severity: 'critical', description: 'Page load time > 3 seconds', pageUrl: '/tournaments', status: 'open' }
+        {
+          id: '1',
+          type: 'technical',
+          severity: 'high',
+          description: 'Missing meta descriptions on 5 pages',
+          pageUrl: '/blog/*',
+          status: 'open',
+        },
+        {
+          id: '2',
+          type: 'content',
+          severity: 'medium',
+          description: 'Low content quality score',
+          pageUrl: '/blog/old-post',
+          status: 'in_progress',
+        },
+        {
+          id: '3',
+          type: 'performance',
+          severity: 'critical',
+          description: 'Page load time > 3 seconds',
+          pageUrl: '/tournaments',
+          status: 'open',
+        },
       ]);
 
       setLoading(false);
@@ -92,20 +176,29 @@ export const SEODashboard: React.FC = () => {
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'destructive';
-      case 'high': return 'destructive';
-      case 'medium': return 'default';
-      case 'low': return 'secondary';
-      default: return 'default';
+      case 'critical':
+        return 'destructive';
+      case 'high':
+        return 'destructive';
+      case 'medium':
+        return 'default';
+      case 'low':
+        return 'secondary';
+      default:
+        return 'default';
     }
   };
 
   const getCompetitionColor = (competition: string) => {
     switch (competition) {
-      case 'low': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'low':
+        return 'bg-green-100 text-green-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'high':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -120,10 +213,12 @@ export const SEODashboard: React.FC = () => {
     );
   }
 
-  const averagePosition = keywordRankings.reduce((sum, kw) => sum + kw.position, 0) / keywordRankings.length;
+  const averagePosition =
+    keywordRankings.reduce((sum, kw) => sum + kw.position, 0) / keywordRankings.length;
   const totalTraffic = pageMetrics.reduce((sum, page) => sum + page.organicTraffic, 0);
-  const averageSEOScore = pageMetrics.reduce((sum, page) => sum + page.seoScore, 0) / pageMetrics.length;
-  const criticalIssues = seoIssues.filter(issue => issue.severity === 'critical').length;
+  const averageSEOScore =
+    pageMetrics.reduce((sum, page) => sum + page.seoScore, 0) / pageMetrics.length;
+  const criticalIssues = seoIssues.filter((issue) => issue.severity === 'critical').length;
 
   return (
     <div className="space-y-6">
@@ -137,7 +232,7 @@ export const SEODashboard: React.FC = () => {
           <CardContent>
             <div className="text-2xl font-bold">{averagePosition.toFixed(1)}</div>
             <p className="text-xs text-muted-foreground">
-              {keywordRankings.filter(kw => kw.trend === 'up').length} keywords improving
+              {keywordRankings.filter((kw) => kw.trend === 'up').length} keywords improving
             </p>
           </CardContent>
         </Card>
@@ -149,9 +244,7 @@ export const SEODashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalTraffic.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              +12.5% from last month
-            </p>
+            <p className="text-xs text-muted-foreground">+12.5% from last month</p>
           </CardContent>
         </Card>
 
@@ -173,9 +266,7 @@ export const SEODashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{criticalIssues}</div>
-            <p className="text-xs text-muted-foreground">
-              Require immediate attention
-            </p>
+            <p className="text-xs text-muted-foreground">Require immediate attention</p>
           </CardContent>
         </Card>
       </div>
@@ -199,7 +290,10 @@ export const SEODashboard: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 {keywordRankings.map((keyword, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium">{keyword.keyword}</h4>
@@ -211,7 +305,7 @@ export const SEODashboard: React.FC = () => {
                         Search Volume: {keyword.searchVolume.toLocaleString()}
                       </p>
                     </div>
-                    
+
                     <div className="text-center">
                       <div className="flex items-center gap-1">
                         <span className="text-2xl font-bold">#{keyword.position}</span>
@@ -219,7 +313,8 @@ export const SEODashboard: React.FC = () => {
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {keyword.previousPosition > keyword.position ? '+' : ''}
-                        {keyword.previousPosition - keyword.position} from #{keyword.previousPosition}
+                        {keyword.previousPosition - keyword.position} from #
+                        {keyword.previousPosition}
                       </p>
                     </div>
                   </div>
@@ -239,19 +334,24 @@ export const SEODashboard: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 {pageMetrics.map((page, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex-1">
                       <h4 className="font-medium">{page.title}</h4>
                       <p className="text-sm text-muted-foreground">{page.url}</p>
                     </div>
-                    
+
                     <div className="grid grid-cols-4 gap-4 text-center">
                       <div>
                         <div className="text-lg font-semibold">{page.seoScore}</div>
                         <div className="text-xs text-muted-foreground">SEO Score</div>
                       </div>
                       <div>
-                        <div className="text-lg font-semibold">{page.organicTraffic.toLocaleString()}</div>
+                        <div className="text-lg font-semibold">
+                          {page.organicTraffic.toLocaleString()}
+                        </div>
                         <div className="text-xs text-muted-foreground">Traffic</div>
                       </div>
                       <div>
@@ -275,12 +375,17 @@ export const SEODashboard: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>SEO Issues</CardTitle>
-              <CardDescription>Issues that need attention to improve SEO performance</CardDescription>
+              <CardDescription>
+                Issues that need attention to improve SEO performance
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {seoIssues.map((issue) => (
-                  <div key={issue.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={issue.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant={getSeverityColor(issue.severity)}>
@@ -291,7 +396,7 @@ export const SEODashboard: React.FC = () => {
                       <h4 className="font-medium">{issue.description}</h4>
                       <p className="text-sm text-muted-foreground">{issue.pageUrl}</p>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       {issue.status === 'resolved' ? (
                         <CheckCircle className="w-5 h-5 text-green-500" />
@@ -325,21 +430,27 @@ export const SEODashboard: React.FC = () => {
                     <Target className="w-5 h-5 text-green-500 mt-0.5" />
                     <div>
                       <p className="font-medium">Optimize meta descriptions</p>
-                      <p className="text-sm text-muted-foreground">5 pages missing descriptions - estimated 15% CTR boost</p>
+                      <p className="text-sm text-muted-foreground">
+                        5 pages missing descriptions - estimated 15% CTR boost
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <TrendingUp className="w-5 h-5 text-blue-500 mt-0.5" />
                     <div>
                       <p className="font-medium">Target long-tail keywords</p>
-                      <p className="text-sm text-muted-foreground">23 opportunities for easy ranking improvements</p>
+                      <p className="text-sm text-muted-foreground">
+                        23 opportunities for easy ranking improvements
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <FileText className="w-5 h-5 text-purple-500 mt-0.5" />
                     <div>
                       <p className="font-medium">Internal linking</p>
-                      <p className="text-sm text-muted-foreground">Add 15 internal links to boost page authority</p>
+                      <p className="text-sm text-muted-foreground">
+                        Add 15 internal links to boost page authority
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -355,15 +466,21 @@ export const SEODashboard: React.FC = () => {
                 <div className="space-y-3">
                   <div className="p-3 border rounded">
                     <p className="font-medium">AI in Esports 2025</p>
-                    <p className="text-sm text-muted-foreground">Search Volume: 2,400 • Competition: Medium</p>
+                    <p className="text-sm text-muted-foreground">
+                      Search Volume: 2,400 • Competition: Medium
+                    </p>
                   </div>
                   <div className="p-3 border rounded">
                     <p className="font-medium">Vietnam Gaming Industry Report</p>
-                    <p className="text-sm text-muted-foreground">Search Volume: 1,800 • Competition: Low</p>
+                    <p className="text-sm text-muted-foreground">
+                      Search Volume: 1,800 • Competition: Low
+                    </p>
                   </div>
                   <div className="p-3 border rounded">
                     <p className="font-medium">Professional Gaming Setup Guide</p>
-                    <p className="text-sm text-muted-foreground">Search Volume: 3,200 • Competition: Medium</p>
+                    <p className="text-sm text-muted-foreground">
+                      Search Volume: 3,200 • Competition: Medium
+                    </p>
                   </div>
                 </div>
               </CardContent>

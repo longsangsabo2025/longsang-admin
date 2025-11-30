@@ -1,4 +1,4 @@
-import { CreditCard, Lock } from "lucide-react";
+import { CreditCard, Lock } from 'lucide-react';
 
 export const PaymentScreen = () => {
   return (
@@ -8,20 +8,20 @@ export const PaymentScreen = () => {
         <h3 className="text-white text-sm font-semibold mb-1">Payment</h3>
         <p className="text-white/50 text-xs">Complete your booking</p>
       </div>
-      
+
       {/* Amount */}
       <div className="bg-gradient-to-br from-app-blue/20 to-app-light-blue/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 text-center">
         <p className="text-white/60 text-xs mb-1">Total Amount</p>
         <p className="text-white text-2xl font-bold">$249.00</p>
       </div>
-      
+
       {/* Card mockup */}
       <div className="bg-gradient-to-br from-mesh-purple to-mesh-pink rounded-xl p-4 aspect-[1.6/1] flex flex-col justify-between shadow-phone">
         <div className="flex justify-between items-start">
           <CreditCard className="w-6 h-6 text-white/80" />
           <p className="text-white/80 text-xs font-medium">VISA</p>
         </div>
-        
+
         <div>
           <p className="text-white text-xs tracking-wider mb-2">•••• •••• •••• 4242</p>
           <div className="flex justify-between">
@@ -36,7 +36,7 @@ export const PaymentScreen = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Pay button */}
       <div className="mt-auto">
         <button className="w-full h-12 bg-gradient-to-r from-app-blue to-app-light-blue rounded-full text-white font-semibold flex items-center justify-center gap-2 shadow-glow">

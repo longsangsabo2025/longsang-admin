@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
@@ -13,7 +13,7 @@ export const LanguageSwitcher = () => {
     // Fade out
     setTimeout(() => {
       i18n.changeLanguage(lng);
-      localStorage.setItem("longsang-language", lng);
+      localStorage.setItem('longsang-language', lng);
 
       // Fade in
       setTimeout(() => {
@@ -25,15 +25,15 @@ export const LanguageSwitcher = () => {
   return (
     <div
       className={`flex items-center gap-2 text-sm font-medium transition-opacity duration-200 ${
-        isTransitioning ? "opacity-0" : "opacity-100"
+        isTransitioning ? 'opacity-0' : 'opacity-100'
       }`}
     >
       <button
-        onClick={() => changeLanguage("vi")}
+        onClick={() => changeLanguage('vi')}
         className={`px-2 py-1 rounded transition-all duration-200 cursor-pointer ${
-          i18n.language === "vi"
-            ? "text-primary font-semibold bg-primary/10"
-            : "text-muted-foreground opacity-70 hover:opacity-100 hover:bg-muted/50"
+          i18n.language === 'vi'
+            ? 'text-primary font-semibold bg-primary/10'
+            : 'text-muted-foreground opacity-70 hover:opacity-100 hover:bg-muted/50'
         }`}
         type="button"
       >
@@ -41,11 +41,11 @@ export const LanguageSwitcher = () => {
       </button>
       <span className="text-muted-foreground">|</span>
       <button
-        onClick={() => changeLanguage("en")}
+        onClick={() => changeLanguage('en')}
         className={`px-2 py-1 rounded transition-all duration-200 cursor-pointer ${
-          i18n.language === "en"
-            ? "text-primary font-semibold bg-primary/10"
-            : "text-muted-foreground opacity-70 hover:opacity-100 hover:bg-muted/50"
+          i18n.language === 'en'
+            ? 'text-primary font-semibold bg-primary/10'
+            : 'text-muted-foreground opacity-70 hover:opacity-100 hover:bg-muted/50'
         }`}
         type="button"
       >

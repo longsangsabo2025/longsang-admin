@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 
 export const ChatScreen = () => {
   return (
@@ -11,7 +11,7 @@ export const ChatScreen = () => {
           <p className="text-white/50 text-xs">Active now</p>
         </div>
       </div>
-      
+
       {/* Messages */}
       <div className="flex-1 flex flex-col gap-2">
         {/* Received message */}
@@ -21,14 +21,14 @@ export const ChatScreen = () => {
             <p className="text-white/40 text-[10px] mt-1">10:30 AM</p>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl rounded-tl-sm px-3 py-2 max-w-[70%]">
             <p className="text-white text-xs">Want to grab coffee? ☕</p>
             <p className="text-white/40 text-[10px] mt-1">10:31 AM</p>
           </div>
         </div>
-        
+
         {/* Sent messages */}
         <div className="flex gap-2 justify-end">
           <div className="bg-gradient-to-r from-app-blue to-app-light-blue rounded-2xl rounded-tr-sm px-3 py-2 max-w-[70%]">
@@ -36,14 +36,14 @@ export const ChatScreen = () => {
             <p className="text-white/70 text-[10px] mt-1">10:32 AM</p>
           </div>
         </div>
-        
+
         <div className="flex gap-2 justify-end">
           <div className="bg-gradient-to-r from-app-blue to-app-light-blue rounded-2xl rounded-tr-sm px-3 py-2 max-w-[70%]">
             <p className="text-white text-xs">How about 2pm at the usual place?</p>
             <p className="text-white/70 text-[10px] mt-1">10:32 AM</p>
           </div>
         </div>
-        
+
         {/* Typing indicator */}
         <motion.div
           className="flex gap-2"
@@ -72,7 +72,7 @@ export const ChatScreen = () => {
           </div>
         </motion.div>
       </div>
-      
+
       {/* Input bar */}
       <div className="flex gap-2 items-center">
         <div className="flex-1 h-9 bg-white/10 backdrop-blur-sm rounded-full px-4 flex items-center">

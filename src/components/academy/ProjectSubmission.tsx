@@ -3,16 +3,16 @@
  * Students submit their AI agent projects for review
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/lib/supabase";
-import { AlertCircle, CheckCircle2, ExternalLink, Github, Sparkles, Upload } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/lib/supabase';
+import { AlertCircle, CheckCircle2, ExternalLink, Github, Sparkles, Upload } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface ProjectSubmissionProps {
   lessonId: string;
@@ -22,10 +22,10 @@ interface ProjectSubmissionProps {
 
 export function ProjectSubmission({ lessonId, courseId, userId }: ProjectSubmissionProps) {
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    github_url: "",
-    demo_url: "",
+    title: '',
+    description: '',
+    github_url: '',
+    demo_url: '',
     screenshots: [] as string[],
   });
 
@@ -37,7 +37,7 @@ export function ProjectSubmission({ lessonId, courseId, userId }: ProjectSubmiss
     e.preventDefault();
 
     if (!formData.title || !formData.description) {
-      toast.error("Please fill in required fields");
+      toast.error('Please fill in required fields');
       return;
     }
 
@@ -46,7 +46,7 @@ export function ProjectSubmission({ lessonId, courseId, userId }: ProjectSubmiss
     try {
       // 1. Submit to database
       const { data: submission, error } = await supabase
-        .from("project_submissions")
+        .from('project_submissions')
         .insert({
           user_id: userId,
           lesson_id: lessonId,
@@ -56,14 +56,14 @@ export function ProjectSubmission({ lessonId, courseId, userId }: ProjectSubmiss
           github_url: formData.github_url,
           demo_url: formData.demo_url,
           screenshots: formData.screenshots,
-          status: "pending",
+          status: 'pending',
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      toast.success("Project submitted successfully!");
+      toast.success('Project submitted successfully!');
 
       // 2. Trigger AI review
       setAiReviewing(true);
@@ -72,8 +72,8 @@ export function ProjectSubmission({ lessonId, courseId, userId }: ProjectSubmiss
       // 3. Award XP for submission
       await awardSubmissionXP(userId);
     } catch (error) {
-      console.error("Submission error:", error);
-      toast.error("Failed to submit project");
+      console.error('Submission error:', error);
+      toast.error('Failed to submit project');
     } finally {
       setSubmitting(false);
     }
@@ -81,9 +81,9 @@ export function ProjectSubmission({ lessonId, courseId, userId }: ProjectSubmiss
 
   const generateAIReview = async (submissionId: string) => {
     try {
-      const response = await fetch("http://localhost:3001/api/ai-review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('http://localhost:3001/api/ai-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           submissionId,
           title: formData.title,
@@ -100,17 +100,17 @@ export function ProjectSubmission({ lessonId, courseId, userId }: ProjectSubmiss
 
         // Update submission with AI review
         await supabase
-          .from("project_submissions")
+          .from('project_submissions')
           .update({
             ai_review: data.review,
-            status: "under_review",
+            status: 'under_review',
           })
-          .eq("id", submissionId);
+          .eq('id', submissionId);
 
-        toast.success("AI review complete!");
+        toast.success('AI review complete!');
       }
     } catch (error) {
-      console.error("AI review error:", error);
+      console.error('AI review error:', error);
     } finally {
       setAiReviewing(false);
     }
@@ -119,11 +119,11 @@ export function ProjectSubmission({ lessonId, courseId, userId }: ProjectSubmiss
   const awardSubmissionXP = async (userId: string) => {
     // Award 100 XP for project submission
     const { data: achievement } = await supabase
-      .from("user_achievements")
+      .from('user_achievements')
       .insert({
         user_id: userId,
-        achievement_type: "project_submitted",
-        achievement_name: "Project Submitted",
+        achievement_type: 'project_submitted',
+        achievement_name: 'Project Submitted',
         xp_awarded: 100,
         metadata: {
           lesson_id: lessonId,
@@ -134,7 +134,7 @@ export function ProjectSubmission({ lessonId, courseId, userId }: ProjectSubmiss
       .single();
 
     if (achievement) {
-      toast.success("+100 XP earned!", {
+      toast.success('+100 XP earned!', {
         icon: <Sparkles className="w-4 h-4 text-yellow-500" />,
       });
     }

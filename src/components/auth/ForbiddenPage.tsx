@@ -1,6 +1,6 @@
-import { Home, Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "../ui/button";
+import { Home, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '../ui/button';
 
 export function ForbiddenPage() {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ export function ForbiddenPage() {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button onClick={() => navigate("/dashboard")} className="flex items-center gap-2">
+            <Button onClick={() => navigate('/dashboard')} className="flex items-center gap-2">
               <Home className="w-4 h-4" />
               Về trang chủ
             </Button>

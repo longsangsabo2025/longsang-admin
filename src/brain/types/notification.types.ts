@@ -20,4 +20,3 @@ export interface NotificationInput {
   message: string;
   metadata?: Record<string, any>;
 }
-

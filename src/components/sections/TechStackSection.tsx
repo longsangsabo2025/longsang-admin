@@ -1,5 +1,5 @@
-import { Brain, Container, Database, Globe, Smartphone } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { Brain, Container, Database, Globe, Smartphone } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const TechStackSection = () => {
   const { t } = useTranslation();
@@ -7,50 +7,50 @@ export const TechStackSection = () => {
   const techCategories = [
     {
       Icon: Smartphone,
-      labelKey: "techStack.mobile",
-      technologies: ["Flutter", "Dart", "iOS SDK", "Android SDK", "React Native"],
-      color: "text-blue-500",
+      labelKey: 'techStack.mobile',
+      technologies: ['Flutter', 'Dart', 'iOS SDK', 'Android SDK', 'React Native'],
+      color: 'text-blue-500',
     },
     {
       Icon: Globe,
-      labelKey: "techStack.web",
-      technologies: ["React", "Next.js", "TypeScript", "JavaScript", "Tailwind CSS", "HTML/CSS"],
-      color: "text-purple-500",
+      labelKey: 'techStack.web',
+      technologies: ['React', 'Next.js', 'TypeScript', 'JavaScript', 'Tailwind CSS', 'HTML/CSS'],
+      color: 'text-purple-500',
     },
     {
       Icon: Database,
-      labelKey: "techStack.backend",
+      labelKey: 'techStack.backend',
       technologies: [
-        "Node.js",
-        "Python",
-        "Supabase",
-        "Firebase",
-        "PostgreSQL",
-        "MongoDB",
-        "REST APIs",
-        "GraphQL",
+        'Node.js',
+        'Python',
+        'Supabase',
+        'Firebase',
+        'PostgreSQL',
+        'MongoDB',
+        'REST APIs',
+        'GraphQL',
       ],
-      color: "text-green-500",
+      color: 'text-green-500',
     },
     {
       Icon: Brain,
-      labelKey: "techStack.ai",
+      labelKey: 'techStack.ai',
       technologies: [
-        "OpenAI API",
-        "Claude API",
-        "Google Gemini",
-        "LangChain",
-        "Zapier",
-        "Make",
-        "n8n",
+        'OpenAI API',
+        'Claude API',
+        'Google Gemini',
+        'LangChain',
+        'Zapier',
+        'Make',
+        'n8n',
       ],
-      color: "text-pink-500",
+      color: 'text-pink-500',
     },
     {
       Icon: Container,
-      labelKey: "techStack.devops",
-      technologies: ["Git", "GitHub", "Docker", "Vercel", "Railway", "VS Code", "Postman", "Figma"],
-      color: "text-orange-500",
+      labelKey: 'techStack.devops',
+      technologies: ['Git', 'GitHub', 'Docker', 'Vercel', 'Railway', 'VS Code', 'Postman', 'Figma'],
+      color: 'text-orange-500',
     },
   ];
 
@@ -64,10 +64,10 @@ export const TechStackSection = () => {
         {/* Section Header */}
         <div className="text-center mb-10 md:mb-14">
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary mb-4">
-            {t("techStack.header")}
+            {t('techStack.header')}
           </p>
           <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-            {t("techStack.subtitle")}
+            {t('techStack.subtitle')}
           </h2>
         </div>
 
@@ -90,8 +90,8 @@ export const TechStackSection = () => {
                   {/* Glow effect on hover */}
                   <div
                     className={`absolute inset-0 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-300 ${category.color.replace(
-                      "text-",
-                      "bg-"
+                      'text-',
+                      'bg-'
                     )}`}
                   />
                   <category.Icon className="relative w-6 h-6" strokeWidth={2.5} />

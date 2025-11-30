@@ -1,4 +1,4 @@
-import { GoogleMapsAutomation } from "@/components/google/GoogleMapsAutomation";
+import { GoogleMapsAutomation } from '@/components/google/GoogleMapsAutomation';
 
 export default function GoogleMaps() {
   return <GoogleMapsAutomation />;

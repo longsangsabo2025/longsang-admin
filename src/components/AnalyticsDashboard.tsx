@@ -1,6 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, CheckCircle, AlertCircle, TrendingUp, Users, Code, Zap } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  TrendingUp,
+  Users,
+  Code,
+  Zap,
+} from 'lucide-react';
 import { ProjectCardData } from './ProjectCard';
 
 interface AnalyticsDashboardProps {
@@ -18,14 +27,15 @@ interface ProjectMetric {
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ projects }) => {
   // Calculate analytics metrics
   const totalProjects = projects.length;
-  const completedProjects = projects.filter(p => p.status === 'Completed').length;
-  const inProgressProjects = projects.filter(p => p.status === 'In Development').length;
-  const totalTechnologies = new Set(projects.flatMap(p => p.technologies)).size;
+  const completedProjects = projects.filter((p) => p.status === 'Completed').length;
+  const inProgressProjects = projects.filter((p) => p.status === 'In Development').length;
+  const totalTechnologies = new Set(projects.flatMap((p) => p.technologies)).size;
   const totalFeatures = projects.reduce((acc, p) => acc + (p.features?.length || 0), 0);
-  
-  const completionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
+
+  const completionRate =
+    totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
   const avgProjectDuration = calculateAverageProjectDuration(projects);
-  
+
   // Technology usage analysis
   const techUsage = analyzeTechnologyUsage(projects);
   const categoryDistribution = analyzeCategoryDistribution(projects);
@@ -37,46 +47,46 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ projects
       value: totalProjects,
       icon: <Code className="w-5 h-5" />,
       color: 'text-blue-400',
-      trend: 12
+      trend: 12,
     },
     {
       label: 'Completed',
       value: completedProjects,
       icon: <CheckCircle className="w-5 h-5" />,
       color: 'text-green-400',
-      trend: 8
+      trend: 8,
     },
     {
       label: 'In Progress',
       value: inProgressProjects,
       icon: <AlertCircle className="w-5 h-5" />,
-      color: 'text-yellow-400'
+      color: 'text-yellow-400',
     },
     {
       label: 'Completion Rate',
       value: `${completionRate}%`,
       icon: <TrendingUp className="w-5 h-5" />,
       color: 'text-primary',
-      trend: 15
+      trend: 15,
     },
     {
       label: 'Technologies Used',
       value: totalTechnologies,
       icon: <Zap className="w-5 h-5" />,
-      color: 'text-purple-400'
+      color: 'text-purple-400',
     },
     {
       label: 'Total Features',
       value: totalFeatures,
       icon: <Users className="w-5 h-5" />,
-      color: 'text-cyan-400'
+      color: 'text-cyan-400',
     },
     {
       label: 'Avg Duration',
       value: avgProjectDuration,
       icon: <Clock className="w-5 h-5" />,
-      color: 'text-orange-400'
-    }
+      color: 'text-orange-400',
+    },
   ];
 
   return (
@@ -88,7 +98,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ projects
         className="text-center mb-8"
       >
         <h1 className="text-4xl font-bold text-gray-100 mb-4">Project Analytics</h1>
-        <p className="text-gray-400 text-lg">Comprehensive insights into project development and technology usage</p>
+        <p className="text-gray-400 text-lg">
+          Comprehensive insights into project development and technology usage
+        </p>
       </motion.div>
 
       {/* Metrics Grid */}
@@ -102,13 +114,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ projects
             className="bg-dark-surface/50 border border-gray-700 rounded-xl p-6 hover:border-primary/30 transition-colors"
           >
             <div className="flex items-center justify-between mb-4">
-              <div className={`${metric.color}`}>
-                {metric.icon}
-              </div>
+              <div className={`${metric.color}`}>{metric.icon}</div>
               {metric.trend && (
                 <div className="flex items-center gap-1 text-green-400 text-sm">
-                  <TrendingUp className="w-3 h-3" />
-                  +{metric.trend}%
+                  <TrendingUp className="w-3 h-3" />+{metric.trend}%
                 </div>
               )}
             </div>
@@ -207,36 +216,48 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ projects
               className="flex items-center gap-4 p-4 bg-dark-bg/30 rounded-lg border border-gray-600"
             >
               <div className="flex-shrink-0">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  item.project.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
-                  item.project.status === 'In Development' ? 'bg-yellow-500/20 text-yellow-400' :
-                  'bg-blue-500/20 text-blue-400'
-                }`}>
-                  {item.project.status === 'Completed' ? 
-                    <CheckCircle className="w-6 h-6" /> : 
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    item.project.status === 'Completed'
+                      ? 'bg-green-500/20 text-green-400'
+                      : item.project.status === 'In Development'
+                        ? 'bg-yellow-500/20 text-yellow-400'
+                        : 'bg-blue-500/20 text-blue-400'
+                  }`}
+                >
+                  {item.project.status === 'Completed' ? (
+                    <CheckCircle className="w-6 h-6" />
+                  ) : (
                     <Clock className="w-6 h-6" />
-                  }
+                  )}
                 </div>
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-gray-200">{item.project.title}</h4>
-                  <span className={`px-3 py-1 rounded-full text-xs ${
-                    item.project.status === 'Completed' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
-                    item.project.status === 'In Development' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
-                    'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                  }`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs ${
+                      item.project.status === 'Completed'
+                        ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                        : item.project.status === 'In Development'
+                          ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                          : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                    }`}
+                  >
                     {item.project.status}
                   </span>
                 </div>
                 <div className="text-sm text-gray-400 mb-2">
-                  Started: {item.startDate} 
+                  Started: {item.startDate}
                   {item.endDate && ` • Completed: ${item.endDate}`}
                   <span className="ml-2 text-primary">({item.duration})</span>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  {item.project.technologies.slice(0, 5).map(tech => (
-                    <span key={tech} className="px-2 py-1 text-xs bg-primary/10 text-primary border border-primary/20 rounded">
+                  {item.project.technologies.slice(0, 5).map((tech) => (
+                    <span
+                      key={tech}
+                      className="px-2 py-1 text-xs bg-primary/10 text-primary border border-primary/20 rounded"
+                    >
                       {tech}
                     </span>
                   ))}
@@ -257,9 +278,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ projects
 
 // Helper functions for analytics calculations
 function calculateAverageProjectDuration(projects: ProjectCardData[]): string {
-  const completedProjects = projects.filter(p => p.completionDate && p.startDate);
+  const completedProjects = projects.filter((p) => p.completionDate && p.startDate);
   if (completedProjects.length === 0) return 'N/A';
-  
+
   const totalDays = completedProjects.reduce((acc, project) => {
     const start = new Date(project.startDate);
     const end = new Date(project.completionDate!);
@@ -267,9 +288,9 @@ function calculateAverageProjectDuration(projects: ProjectCardData[]): string {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return acc + diffDays;
   }, 0);
-  
+
   const avgDays = Math.round(totalDays / completedProjects.length);
-  
+
   if (avgDays < 30) return `${avgDays} days`;
   if (avgDays < 365) return `${Math.round(avgDays / 30)} months`;
   return `${Math.round(avgDays / 365)} years`;
@@ -277,58 +298,60 @@ function calculateAverageProjectDuration(projects: ProjectCardData[]): string {
 
 function analyzeTechnologyUsage(projects: ProjectCardData[]) {
   const techCount: Record<string, number> = {};
-  projects.forEach(project => {
-    project.technologies.forEach(tech => {
+  projects.forEach((project) => {
+    project.technologies.forEach((tech) => {
       techCount[tech] = (techCount[tech] || 0) + 1;
     });
   });
-  
+
   return Object.entries(techCount)
     .map(([name, count]) => ({
       name,
       count,
-      percentage: Math.round((count / projects.length) * 100)
+      percentage: Math.round((count / projects.length) * 100),
     }))
     .sort((a, b) => b.count - a.count);
 }
 
 function analyzeCategoryDistribution(projects: ProjectCardData[]) {
   const categoryCount: Record<string, number> = {};
-  projects.forEach(project => {
+  projects.forEach((project) => {
     categoryCount[project.category] = (categoryCount[project.category] || 0) + 1;
   });
-  
+
   return Object.entries(categoryCount)
     .map(([name, count]) => ({
       name,
       count,
-      percentage: Math.round((count / projects.length) * 100)
+      percentage: Math.round((count / projects.length) * 100),
     }))
     .sort((a, b) => b.count - a.count);
 }
 
 function analyzeProjectTimeline(projects: ProjectCardData[]) {
   return projects
-    .map(project => {
+    .map((project) => {
       const start = new Date(project.startDate);
       const end = project.completionDate ? new Date(project.completionDate) : new Date();
       const diffTime = Math.abs(end.getTime() - start.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
+
       let duration = '';
       if (diffDays < 30) duration = `${diffDays} days`;
       else if (diffDays < 365) duration = `${Math.round(diffDays / 30)} months`;
       else duration = `${Math.round(diffDays / 365)} years`;
-      
+
       return {
         project,
         startDate: start.toLocaleDateString(),
         endDate: project.completionDate ? end.toLocaleDateString() : null,
         duration,
-        daysCount: diffDays
+        daysCount: diffDays,
       };
     })
-    .sort((a, b) => new Date(a.project.startDate).getTime() - new Date(b.project.startDate).getTime());
+    .sort(
+      (a, b) => new Date(a.project.startDate).getTime() - new Date(b.project.startDate).getTime()
+    );
 }
 
 export default AnalyticsDashboard;

@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 interface ImageCardProps {
   image: string;
@@ -9,7 +9,7 @@ interface ImageCardProps {
 
 export const ImageCard = ({ image, alt, badges, className }: ImageCardProps) => {
   return (
-    <div className={cn("relative rounded-2xl overflow-hidden aspect-[4/3]", className)}>
+    <div className={cn('relative rounded-2xl overflow-hidden aspect-[4/3]', className)}>
       <img src={image} alt={alt} className="w-full h-full object-cover" />
       {badges && badges.length > 0 && (
         <div className="absolute top-3 left-3 flex gap-2">

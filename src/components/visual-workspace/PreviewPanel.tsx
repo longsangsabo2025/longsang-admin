@@ -69,7 +69,9 @@ export function PreviewPanel({ selectedNode, className = '' }: PreviewPanelProps
                       <div key={key} className="space-y-2">
                         <label className="text-sm font-medium">{key}</label>
                         <div className="p-2 bg-muted rounded-md text-sm">
-                          {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                          {typeof value === 'object'
+                            ? JSON.stringify(value, null, 2)
+                            : String(value)}
                         </div>
                       </div>
                     ))
@@ -92,4 +94,3 @@ export function PreviewPanel({ selectedNode, className = '' }: PreviewPanelProps
     </Card>
   );
 }
-

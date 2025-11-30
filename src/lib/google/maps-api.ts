@@ -39,12 +39,12 @@ export async function geocodeAddress(address: string): Promise<GeocodingResult> 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ address }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to geocode address');
   }
-  
+
   const data = await response.json();
   return {
     latitude: data.lat,
@@ -63,30 +63,34 @@ export async function createBusinessLocation(userEmail: string, location: Busine
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userEmail, ...location }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to create location');
   }
-  
+
   return response.json();
 }
 
 /**
  * Update business location
  */
-export async function updateBusinessLocation(userEmail: string, locationId: string, updates: Partial<BusinessLocation>) {
+export async function updateBusinessLocation(
+  userEmail: string,
+  locationId: string,
+  updates: Partial<BusinessLocation>
+) {
   const response = await fetch(`${API_BASE}/update-location`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userEmail, locationId, updates }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to update location');
   }
-  
+
   return response.json();
 }
 
@@ -99,12 +103,12 @@ export async function calculateDistance(origin: string, destination: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ origin, destination }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to calculate distance');
   }
-  
+
   return response.json();
 }
 
@@ -117,12 +121,12 @@ export async function getDirections(origin: string, destination: string, mode: s
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ origin, destination, mode }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to get directions');
   }
-  
+
   return response.json();
 }
 
@@ -135,12 +139,12 @@ export async function searchNearbyPlaces(location: string, type: string, radius:
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ location, type, radius }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to search nearby places');
   }
-  
+
   return response.json();
 }
 
@@ -153,12 +157,12 @@ export async function getPlaceDetails(placeId: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ placeId }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to get place details');
   }
-  
+
   return response.json();
 }
 
@@ -176,8 +180,8 @@ export async function getLocationStats() {
 
   return {
     total: locations?.length || 0,
-    verified: locations?.filter(l => l.verified).length || 0,
-    needsUpdate: locations?.filter(l => !l.verified).length || 0,
+    verified: locations?.filter((l) => l.verified).length || 0,
+    needsUpdate: locations?.filter((l) => !l.verified).length || 0,
     locations: locations || [],
   };
 }

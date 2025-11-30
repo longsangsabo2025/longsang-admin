@@ -133,7 +133,11 @@ export class VectorStore {
     sources: SearchResult[];
     tokensUsed: number;
   }> {
-    const { systemPrompt = 'You are a helpful AI assistant.', temperature = 0.7, maxTokens = 1000 } = options;
+    const {
+      systemPrompt = 'You are a helpful AI assistant.',
+      temperature = 0.7,
+      maxTokens = 1000,
+    } = options;
 
     try {
       // 1. Retrieve relevant context
@@ -255,7 +259,11 @@ export class VectorStore {
    */
   static async getDocument(id: string): Promise<Document | null> {
     try {
-      const { data, error } = await supabase.from('knowledge_base').select('*').eq('id', id).single();
+      const { data, error } = await supabase
+        .from('knowledge_base')
+        .select('*')
+        .eq('id', id)
+        .single();
 
       if (error) throw error;
 
@@ -291,7 +299,9 @@ export class VectorStore {
 /**
  * Helper: Import documentation into vector store
  */
-export async function importDocumentation(docs: { title: string; content: string; category: string }[]) {
+export async function importDocumentation(
+  docs: { title: string; content: string; category: string }[]
+) {
   const documents: Document[] = docs.map((doc) => ({
     content: `${doc.title}\n\n${doc.content}`,
     metadata: {

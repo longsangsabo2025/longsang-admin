@@ -1,5 +1,5 @@
-import { TrendingUp, TrendingDown, Activity } from "lucide-react";
-import { motion } from "framer-motion";
+import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export const DashboardScreen = () => {
   return (
@@ -9,7 +9,7 @@ export const DashboardScreen = () => {
         <h3 className="text-white text-sm font-semibold mb-1">Analytics Overview</h3>
         <p className="text-white/50 text-xs">Last 30 days performance</p>
       </div>
-      
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-2">
         <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10">
@@ -23,7 +23,7 @@ export const DashboardScreen = () => {
           <p className="text-white/50 text-xs mb-1">Total Views</p>
           <p className="text-white text-lg font-bold">24.5K</p>
         </div>
-        
+
         <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10">
           <div className="flex items-center justify-between mb-2">
             <Activity className="w-4 h-4 text-mesh-purple" />
@@ -36,7 +36,7 @@ export const DashboardScreen = () => {
           <p className="text-white text-lg font-bold">18.2K</p>
         </div>
       </div>
-      
+
       {/* Chart */}
       <div className="flex-1 bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10">
         <div className="flex items-center justify-between mb-3">
@@ -46,7 +46,7 @@ export const DashboardScreen = () => {
             <div className="w-2 h-2 rounded-full bg-mesh-purple/50" />
           </div>
         </div>
-        
+
         {/* Simple bar chart */}
         <div className="flex items-end justify-between h-20 gap-1">
           {[40, 65, 45, 80, 60, 85, 70].map((height, i) => (
@@ -59,14 +59,16 @@ export const DashboardScreen = () => {
             />
           ))}
         </div>
-        
+
         <div className="flex justify-between mt-2">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-            <p key={i} className="text-white/40 text-[9px]">{day}</p>
+            <p key={i} className="text-white/40 text-[9px]">
+              {day}
+            </p>
           ))}
         </div>
       </div>
-      
+
       {/* Progress bars */}
       <div className="space-y-2">
         <div>

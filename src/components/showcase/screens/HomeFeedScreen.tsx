@@ -1,4 +1,4 @@
-import { Trophy, Clock, TrendingUp } from "lucide-react";
+import { Trophy, Clock, TrendingUp } from 'lucide-react';
 
 export const HomeFeedScreen = () => {
   return (

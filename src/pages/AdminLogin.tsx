@@ -1,22 +1,22 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { toast as sonnerToast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { Lock, Mail, ArrowLeft, Zap } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Lock, Mail, ArrowLeft, Zap } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 const isDev = import.meta.env.DEV;
 
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleQuickLogin = async () => {
@@ -27,13 +27,13 @@ const AdminLogin = () => {
         // Store dev session flag
         localStorage.setItem('dev-auth-bypass', 'true');
         localStorage.setItem('dev-user-email', 'admin@test.com');
-        
+
         sonnerToast.success('Quick login successful! (Dev Mode)', {
           description: 'Logged in as admin@test.com',
         });
-        
+
         // Redirect using window.location to ensure auth state updates
-        window.location.href = "/admin";
+        window.location.href = '/admin';
         return;
       }
 
@@ -55,8 +55,8 @@ const AdminLogin = () => {
       sonnerToast.success('Quick login successful!', {
         description: 'Logged in as admin@test.com',
       });
-      
-      navigate("/admin");
+
+      navigate('/admin');
     } catch (error: any) {
       sonnerToast.error('Quick login failed', {
         description: 'Visit /dev-setup to create admin account',
@@ -83,26 +83,26 @@ const AdminLogin = () => {
       const userRole = data.user?.user_metadata?.role;
       if (userRole !== 'admin') {
         toast({
-          title: "Access denied",
-          description: "Admin privileges required",
-          variant: "destructive",
+          title: 'Access denied',
+          description: 'Admin privileges required',
+          variant: 'destructive',
         });
         await supabase.auth.signOut();
         return;
       }
 
       toast({
-        title: "Welcome back!",
-        description: "Successfully logged into Admin Portal",
+        title: 'Welcome back!',
+        description: 'Successfully logged into Admin Portal',
       });
 
       // Use window.location to ensure auth state updates properly
-      window.location.href = "/admin";
+      window.location.href = '/admin';
     } catch (error: any) {
       toast({
-        title: "Login failed",
+        title: 'Login failed',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -113,11 +113,7 @@ const AdminLogin = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/")}
-          className="gap-2"
-        >
+        <Button variant="ghost" onClick={() => navigate('/')} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
           Back to Home
         </Button>
@@ -153,7 +149,9 @@ const AdminLogin = () => {
                     <Separator className="w-full" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or continue with
+                    </span>
                   </div>
                 </div>
               </>
@@ -195,13 +193,8 @@ const AdminLogin = () => {
               </div>
 
               {/* Submit Button */}
-              <Button
-                type="submit"
-                className="w-full"
-                size="lg"
-                disabled={loading}
-              >
-                {loading ? "Signing in..." : "Sign In to Admin Portal"}
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? 'Signing in...' : 'Sign In to Admin Portal'}
               </Button>
             </form>
 

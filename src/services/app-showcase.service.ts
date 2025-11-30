@@ -1,9 +1,8 @@
-import { AppShowcaseData } from "@/types/app-showcase.types";
-import { supabase } from "@/integrations/supabase/client";
+import { AppShowcaseData } from '@/types/app-showcase.types';
+import { supabase } from '@/integrations/supabase/client';
 
 // Service để load và save data với Supabase
 export class AppShowcaseService {
-  
   // Load data từ Supabase
   static async loadData(appId: string): Promise<AppShowcaseData | null> {
     try {
@@ -14,7 +13,7 @@ export class AppShowcaseService {
         .single();
 
       if (error) {
-        console.error("Failed to load app showcase data:", error);
+        console.error('Failed to load app showcase data:', error);
         return null;
       }
 
@@ -39,11 +38,11 @@ export class AppShowcaseService {
           createdAt: data.created_at,
           updatedAt: data.updated_at,
           publishedAt: data.published_at,
-          status: data.status as 'draft' | 'published'
-        }
+          status: data.status as 'draft' | 'published',
+        },
       };
     } catch (error) {
-      console.error("Failed to load app showcase data:", error);
+      console.error('Failed to load app showcase data:', error);
       return null;
     }
   }
@@ -58,13 +57,13 @@ export class AppShowcaseService {
         .order('updated_at', { ascending: false });
 
       if (error) {
-        console.error("Failed to load all projects:", error);
+        console.error('Failed to load all projects:', error);
         return [];
       }
 
       if (!data) return [];
 
-      return data.map(item => ({
+      return data.map((item) => ({
         id: item.app_id,
         slug: item.slug || item.app_id,
         appName: item.app_name,
@@ -82,21 +81,20 @@ export class AppShowcaseService {
           createdAt: item.created_at,
           updatedAt: item.updated_at,
           publishedAt: item.published_at,
-          status: item.status as 'draft' | 'published'
-        }
+          status: item.status as 'draft' | 'published',
+        },
       }));
     } catch (error) {
-      console.error("Failed to load all projects:", error);
+      console.error('Failed to load all projects:', error);
       return [];
     }
   }
-  
+
   // Save data vào Supabase
   static async saveData(data: AppShowcaseData): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('app_showcase')
-        .upsert({
+      const { error } = await supabase.from('app_showcase').upsert(
+        {
           app_id: data.id,
           slug: data.slug || data.id,
           app_name: data.appName,
@@ -111,23 +109,25 @@ export class AppShowcaseService {
           features: data.features,
           cta: data.cta,
           status: data.metadata.status,
-          published_at: data.metadata.status === 'published' ? new Date().toISOString() : null
-        }, {
-          onConflict: 'app_id'
-        });
+          published_at: data.metadata.status === 'published' ? new Date().toISOString() : null,
+        },
+        {
+          onConflict: 'app_id',
+        }
+      );
 
       if (error) {
-        console.error("Failed to save app showcase data:", error);
+        console.error('Failed to save app showcase data:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error("Failed to save app showcase data:", error);
+      console.error('Failed to save app showcase data:', error);
       return false;
     }
   }
-  
+
   // List all apps
   static async listApps(): Promise<{ id: string; name: string }[]> {
     try {
@@ -137,17 +137,17 @@ export class AppShowcaseService {
         .order('updated_at', { ascending: false });
 
       if (error) {
-        console.error("Failed to list apps:", error);
+        console.error('Failed to list apps:', error);
         return [];
       }
 
-      return data.map(app => ({ id: app.app_id, name: app.app_name }));
+      return data.map((app) => ({ id: app.app_id, name: app.app_name }));
     } catch (error) {
-      console.error("Failed to list apps:", error);
+      console.error('Failed to list apps:', error);
       return [];
     }
   }
-  
+
   // Upload image to Supabase Storage
   static async uploadImage(file: File): Promise<string> {
     try {
@@ -159,22 +159,22 @@ export class AppShowcaseService {
         .from('app-showcase')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
         });
 
       if (uploadError) {
-        console.error("Failed to upload image:", uploadError);
+        console.error('Failed to upload image:', uploadError);
         throw uploadError;
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('app-showcase')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('app-showcase').getPublicUrl(filePath);
 
       return publicUrl;
     } catch (error) {
-      console.error("Failed to upload image:", error);
+      console.error('Failed to upload image:', error);
       // Fallback to base64 if upload fails
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -192,21 +192,19 @@ export class AppShowcaseService {
       // Extract file path from URL
       const urlParts = imageUrl.split('/app-showcase/');
       if (urlParts.length < 2) return false;
-      
+
       const filePath = urlParts[1];
 
-      const { error } = await supabase.storage
-        .from('app-showcase')
-        .remove([filePath]);
+      const { error } = await supabase.storage.from('app-showcase').remove([filePath]);
 
       if (error) {
-        console.error("Failed to delete image:", error);
+        console.error('Failed to delete image:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error("Failed to delete image:", error);
+      console.error('Failed to delete image:', error);
       return false;
     }
   }
@@ -221,7 +219,7 @@ export class AppShowcaseService {
           event: '*',
           schema: 'public',
           table: 'app_showcase',
-          filter: `app_id=eq.${appId}`
+          filter: `app_id=eq.${appId}`,
         },
         async (payload) => {
           if (payload.new) {

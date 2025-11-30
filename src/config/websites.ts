@@ -47,12 +47,7 @@ export const websites: WebsiteConfig[] = [
     domain: 'https://longsang.org/arena',
     description: 'Sports & Gaming Platform',
     category: 'business',
-    targetKeywords: [
-      'sabo arena',
-      'sports gaming',
-      'gaming platform',
-      'esports arena',
-    ],
+    targetKeywords: ['sabo arena', 'sports gaming', 'gaming platform', 'esports arena'],
     competitors: [
       // Add competitor domains here
     ],
@@ -82,35 +77,35 @@ export const websites: WebsiteConfig[] = [
  * Get active websites only
  */
 export const getActiveWebsites = () => {
-  return websites.filter(w => w.isActive);
+  return websites.filter((w) => w.isActive);
 };
 
 /**
  * Get website by ID
  */
 export const getWebsiteById = (id: string) => {
-  return websites.find(w => w.id === id);
+  return websites.find((w) => w.id === id);
 };
 
 /**
  * Get website by domain
  */
 export const getWebsiteByDomain = (domain: string) => {
-  return websites.find(w => w.domain === domain);
+  return websites.find((w) => w.domain === domain);
 };
 
 /**
  * Get high priority websites
  */
 export const getHighPriorityWebsites = () => {
-  return websites.filter(w => w.isActive && w.priority === 'high');
+  return websites.filter((w) => w.isActive && w.priority === 'high');
 };
 
 /**
  * Get websites by category
  */
 export const getWebsitesByCategory = (category: WebsiteConfig['category']) => {
-  return websites.filter(w => w.isActive && w.category === category);
+  return websites.filter((w) => w.isActive && w.category === category);
 };
 
 /**
@@ -122,7 +117,7 @@ export const addWebsite = (config: Omit<WebsiteConfig, 'id' | 'addedAt'>) => {
     id: generateWebsiteId(config.name),
     addedAt: new Date().toISOString(),
   };
-  
+
   websites.push(newWebsite);
   return newWebsite;
 };
@@ -141,7 +136,7 @@ const generateWebsiteId = (name: string): string => {
  * Get all domains as array (for Google API)
  */
 export const getAllDomains = (): string[] => {
-  return getActiveWebsites().map(w => w.domain);
+  return getActiveWebsites().map((w) => w.domain);
 };
 
 /**

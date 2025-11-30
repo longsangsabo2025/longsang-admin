@@ -1,28 +1,28 @@
-import { useTranslation } from "react-i18next";
+import { useTranslation } from 'react-i18next';
 
 export const ProcessSection = () => {
   const { t } = useTranslation();
 
   const processSteps = [
     {
-      numberKey: "process.step1.number",
-      titleKey: "process.step1.title",
-      activitiesKey: "process.step1.activities",
+      numberKey: 'process.step1.number',
+      titleKey: 'process.step1.title',
+      activitiesKey: 'process.step1.activities',
     },
     {
-      numberKey: "process.step2.number",
-      titleKey: "process.step2.title",
-      activitiesKey: "process.step2.activities",
+      numberKey: 'process.step2.number',
+      titleKey: 'process.step2.title',
+      activitiesKey: 'process.step2.activities',
     },
     {
-      numberKey: "process.step3.number",
-      titleKey: "process.step3.title",
-      activitiesKey: "process.step3.activities",
+      numberKey: 'process.step3.number',
+      titleKey: 'process.step3.title',
+      activitiesKey: 'process.step3.activities',
     },
     {
-      numberKey: "process.step4.number",
-      titleKey: "process.step4.title",
-      activitiesKey: "process.step4.activities",
+      numberKey: 'process.step4.number',
+      titleKey: 'process.step4.title',
+      activitiesKey: 'process.step4.activities',
     },
   ];
 
@@ -34,10 +34,10 @@ export const ProcessSection = () => {
         {/* Section Header */}
         <div className="text-center mb-8 md:mb-12">
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary mb-4">
-            {t("process.header")}
+            {t('process.header')}
           </p>
           <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-            {t("process.subtitle")}
+            {t('process.subtitle')}
           </h2>
         </div>
 
@@ -53,7 +53,7 @@ export const ProcessSection = () => {
                 key={step.numberKey}
                 className="bg-card border border-border/10 rounded-2xl p-6 md:p-8 flex flex-col hover:-translate-y-2 hover:border-primary/40 hover:shadow-[0_16px_32px_rgba(0,0,0,0.3)] transition-all duration-300"
                 style={{
-                  animation: "fade-in 0.6s ease-out forwards",
+                  animation: 'fade-in 0.6s ease-out forwards',
                   animationDelay: `${index * 250}ms`,
                   opacity: 0,
                 }}
@@ -96,7 +96,7 @@ export const ProcessSection = () => {
 
         {/* Bottom Note */}
         <div className="mt-16 bg-primary/10 border border-primary/30 rounded-xl px-8 py-5 text-center max-w-2xl mx-auto">
-          <p className="text-base text-muted-foreground">{t("process.timeline")}</p>
+          <p className="text-base text-muted-foreground">{t('process.timeline')}</p>
         </div>
       </div>
     </section>

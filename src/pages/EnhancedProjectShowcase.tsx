@@ -1,22 +1,22 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Grid, BarChart3, Search as SearchIcon, Layers } from "lucide-react";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { ProjectSEO } from "@/components/SEO";
-import { SearchBar, ProjectFilters } from "@/components/SearchBar";
-import { ProjectCard } from "@/components/ProjectCard";
-import { ProjectComparison } from "@/components/ProjectComparison";
-import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
-import { enhancedProjectsData } from "@/data/enhanced-projects-data";
+import React, { useState, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, Grid, BarChart3, Search as SearchIcon, Layers } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { ProjectSEO } from '@/components/SEO';
+import { SearchBar, ProjectFilters } from '@/components/SearchBar';
+import { ProjectCard } from '@/components/ProjectCard';
+import { ProjectComparison } from '@/components/ProjectComparison';
+import { AnalyticsDashboard } from '@/components/AnalyticsDashboard';
+import { enhancedProjectsData } from '@/data/enhanced-projects-data';
 
 // Import existing components
-import { ProjectHero } from "@/components/ProjectHero";
-import { OverviewSection } from "@/components/OverviewSection";
-import { TechArchitecture } from "@/components/TechArchitecture";
-import { FeaturesGrid } from "@/components/FeaturesGrid";
-import { StatsChart } from "@/components/StatsChart";
-import { ProjectCTA } from "@/components/ProjectCTA";
-import { projectsData } from "@/data/projects-data";
+import { ProjectHero } from '@/components/ProjectHero';
+import { OverviewSection } from '@/components/OverviewSection';
+import { TechArchitecture } from '@/components/TechArchitecture';
+import { FeaturesGrid } from '@/components/FeaturesGrid';
+import { StatsChart } from '@/components/StatsChart';
+import { ProjectCTA } from '@/components/ProjectCTA';
+import { projectsData } from '@/data/projects-data';
 
 type ViewMode = 'showcase' | 'grid' | 'analytics';
 
@@ -28,40 +28,47 @@ const EnhancedProjectShowcase: React.FC = () => {
   const [filters, setFilters] = useState<ProjectFilters>({
     technologies: [],
     status: [],
-    category: []
+    category: [],
   });
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
 
   // Filter projects based on search and filters
   const filteredProjects = useMemo(() => {
-    return enhancedProjectsData.filter(project => {
+    return enhancedProjectsData.filter((project) => {
       // Search query filter
-      const matchesSearch = searchQuery === '' || 
+      const matchesSearch =
+        searchQuery === '' ||
         project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.technologies.some(tech => tech.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        project.features.some(feature => feature.toLowerCase().includes(searchQuery.toLowerCase()));
+        project.technologies.some((tech) =>
+          tech.toLowerCase().includes(searchQuery.toLowerCase())
+        ) ||
+        project.features.some((feature) =>
+          feature.toLowerCase().includes(searchQuery.toLowerCase())
+        );
 
       // Technology filter
-      const matchesTech = filters.technologies.length === 0 ||
-        filters.technologies.some(tech => project.technologies.includes(tech));
+      const matchesTech =
+        filters.technologies.length === 0 ||
+        filters.technologies.some((tech) => project.technologies.includes(tech));
 
       // Status filter
-      const matchesStatus = filters.status.length === 0 ||
-        filters.status.includes(project.status);
+      const matchesStatus = filters.status.length === 0 || filters.status.includes(project.status);
 
       // Category filter
-      const matchesCategory = filters.category.length === 0 ||
-        filters.category.includes(project.category);
+      const matchesCategory =
+        filters.category.length === 0 || filters.category.includes(project.category);
 
       return matchesSearch && matchesTech && matchesStatus && matchesCategory;
     });
   }, [searchQuery, filters]);
 
   // Get active project for showcase view
-  const activeProject = enhancedProjectsData.find(p => p.id === activeProjectId) || enhancedProjectsData[0];
-  const legacyActiveProject = projectsData.find(p => p.id === parseInt(activeProjectId)) || projectsData[0];
+  const activeProject =
+    enhancedProjectsData.find((p) => p.id === activeProjectId) || enhancedProjectsData[0];
+  const legacyActiveProject =
+    projectsData.find((p) => p.id === parseInt(activeProjectId)) || projectsData[0];
 
   const handleProjectChange = useCallback((id: string) => {
     setActiveProjectId(id);
@@ -77,10 +84,8 @@ const EnhancedProjectShowcase: React.FC = () => {
   }, []);
 
   const toggleProjectSelection = (projectId: string) => {
-    setSelectedProjects(prev => 
-      prev.includes(projectId) 
-        ? prev.filter(id => id !== projectId)
-        : [...prev, projectId]
+    setSelectedProjects((prev) =>
+      prev.includes(projectId) ? prev.filter((id) => id !== projectId) : [...prev, projectId]
     );
   };
 
@@ -90,15 +95,12 @@ const EnhancedProjectShowcase: React.FC = () => {
     }
   };
 
-  const selectedProjectsData = enhancedProjectsData.filter(p => selectedProjects.includes(p.id));
+  const selectedProjectsData = enhancedProjectsData.filter((p) => selectedProjects.includes(p.id));
 
   const renderGridView = () => (
     <div className="container mx-auto px-4 py-8">
       {/* Search and Filters */}
-      <SearchBar 
-        onSearchChange={handleSearchChange}
-        onFilterChange={handleFilterChange}
-      />
+      <SearchBar onSearchChange={handleSearchChange} onFilterChange={handleFilterChange} />
 
       {/* Selection Actions */}
       {selectedProjects.length > 0 && (
@@ -142,11 +144,7 @@ const EnhancedProjectShowcase: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <AnimatePresence mode="popLayout">
           {filteredProjects.map((project) => (
-            <motion.div
-              key={project.id}
-              layout
-              className="relative"
-            >
+            <motion.div key={project.id} layout className="relative">
               {/* Selection Checkbox */}
               <div className="absolute top-4 right-4 z-10">
                 <label className="flex items-center cursor-pointer">
@@ -250,11 +248,15 @@ const EnhancedProjectShowcase: React.FC = () => {
                 <div className="font-medium mb-1">{project.title}</div>
                 <div className="text-sm text-gray-400 line-clamp-2">{project.description}</div>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    project.status === 'Completed' ? 'bg-green-500/20 text-green-300' :
-                    project.status === 'In Development' ? 'bg-yellow-500/20 text-yellow-300' :
-                    'bg-blue-500/20 text-blue-300'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs ${
+                      project.status === 'Completed'
+                        ? 'bg-green-500/20 text-green-300'
+                        : project.status === 'In Development'
+                          ? 'bg-yellow-500/20 text-yellow-300'
+                          : 'bg-blue-500/20 text-blue-300'
+                    }`}
+                  >
                     {project.status}
                   </span>
                 </div>
@@ -294,7 +296,11 @@ const EnhancedProjectShowcase: React.FC = () => {
         className="fixed top-4 left-4 z-50 md:hidden bg-primary/20 hover:bg-primary/30 backdrop-blur-sm rounded-lg p-3 border border-primary/20 transition-colors"
         aria-label="Toggle project menu"
       >
-        {isMobileMenuOpen ? <X className="w-6 h-6 text-primary" /> : <Menu className="w-6 h-6 text-primary" />}
+        {isMobileMenuOpen ? (
+          <X className="w-6 h-6 text-primary" />
+        ) : (
+          <Menu className="w-6 h-6 text-primary" />
+        )}
       </button>
 
       {/* View Mode Toggle */}
@@ -302,7 +308,9 @@ const EnhancedProjectShowcase: React.FC = () => {
         <button
           onClick={() => setViewMode('showcase')}
           className={`p-2 rounded-md transition-colors ${
-            viewMode === 'showcase' ? 'bg-primary text-primary-foreground' : 'text-gray-400 hover:text-gray-300'
+            viewMode === 'showcase'
+              ? 'bg-primary text-primary-foreground'
+              : 'text-gray-400 hover:text-gray-300'
           }`}
           aria-label="Showcase view"
         >
@@ -311,7 +319,9 @@ const EnhancedProjectShowcase: React.FC = () => {
         <button
           onClick={() => setViewMode('grid')}
           className={`p-2 rounded-md transition-colors ${
-            viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'text-gray-400 hover:text-gray-300'
+            viewMode === 'grid'
+              ? 'bg-primary text-primary-foreground'
+              : 'text-gray-400 hover:text-gray-300'
           }`}
           aria-label="Grid view"
         >
@@ -320,7 +330,9 @@ const EnhancedProjectShowcase: React.FC = () => {
         <button
           onClick={() => setViewMode('analytics')}
           className={`p-2 rounded-md transition-colors ${
-            viewMode === 'analytics' ? 'bg-primary text-primary-foreground' : 'text-gray-400 hover:text-gray-300'
+            viewMode === 'analytics'
+              ? 'bg-primary text-primary-foreground'
+              : 'text-gray-400 hover:text-gray-300'
           }`}
           aria-label="Analytics view"
         >

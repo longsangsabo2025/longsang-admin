@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Globe, ChevronDown } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useState } from 'react';
+import { Globe, ChevronDown } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const LanguageSwitcher = () => {
   const { language, setLanguage } = useLanguage();
@@ -8,10 +8,10 @@ const LanguageSwitcher = () => {
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' }
+    { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
   ];
 
-  const currentLanguage = languages.find(lang => lang.code === language);
+  const currentLanguage = languages.find((lang) => lang.code === language);
 
   return (
     <div className="relative">
@@ -23,7 +23,9 @@ const LanguageSwitcher = () => {
         <span className="text-sm font-medium text-foreground">
           {currentLanguage?.flag} {currentLanguage?.name}
         </span>
-        <ChevronDown className={`w-4 h-4 text-foreground-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`w-4 h-4 text-foreground-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {isOpen && (

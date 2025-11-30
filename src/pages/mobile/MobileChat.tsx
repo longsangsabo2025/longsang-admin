@@ -1,48 +1,44 @@
-import { useState, useRef, useEffect } from "react";
-import { MobileLayout } from "@/components/mobile/MobileLayout";
-import { 
-  Send, 
-  Bot, 
-  User, 
-  Loader2,
-  Sparkles,
-  Code,
-  FileText,
-  Terminal
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { useState, useRef, useEffect } from 'react';
+import { MobileLayout } from '@/components/mobile/MobileLayout';
+import { Send, Bot, User, Loader2, Sparkles, Code, FileText, Terminal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 interface Message {
   id: string;
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
 }
 
 const quickPrompts = [
-  { icon: Code, label: "Review code", prompt: "Review code trong file hiện tại và đề xuất cải thiện" },
-  { icon: FileText, label: "Tạo README", prompt: "Tạo README.md cho project này" },
-  { icon: Terminal, label: "Fix lỗi", prompt: "Tìm và fix lỗi trong code" },
-  { icon: Sparkles, label: "Tối ưu", prompt: "Tối ưu performance cho ứng dụng" },
+  {
+    icon: Code,
+    label: 'Review code',
+    prompt: 'Review code trong file hiện tại và đề xuất cải thiện',
+  },
+  { icon: FileText, label: 'Tạo README', prompt: 'Tạo README.md cho project này' },
+  { icon: Terminal, label: 'Fix lỗi', prompt: 'Tìm và fix lỗi trong code' },
+  { icon: Sparkles, label: 'Tối ưu', prompt: 'Tối ưu performance cho ứng dụng' },
 ];
 
 export function MobileChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: "1",
-      role: "assistant",
-      content: "Xin chào! Tôi là AI Assistant. Tôi có thể giúp bạn:\n\n• Review và viết code\n• Commit, push, deploy\n• Tìm và fix bugs\n• Trả lời câu hỏi về project\n\nBạn cần hỗ trợ gì?",
+      id: '1',
+      role: 'assistant',
+      content:
+        'Xin chào! Tôi là AI Assistant. Tôi có thể giúp bạn:\n\n• Review và viết code\n• Commit, push, deploy\n• Tìm và fix bugs\n• Trả lời câu hỏi về project\n\nBạn cần hỗ trợ gì?',
       timestamp: new Date(),
     },
   ]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -55,22 +51,22 @@ export function MobileChat() {
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      role: "user",
+      role: 'user',
       content: text,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput("");
+    setInput('');
     setLoading(true);
 
     try {
-      const response = await fetch("/api/ai/workspace-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/ai/workspace-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
-          sessionId: "mobile-chat",
+          sessionId: 'mobile-chat',
           useMCPTools: true,
         }),
       });
@@ -79,20 +75,20 @@ export function MobileChat() {
         const data = await response.json();
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: data.response || data.message || "Đã xử lý yêu cầu của bạn.",
+          role: 'assistant',
+          content: data.response || data.message || 'Đã xử lý yêu cầu của bạn.',
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, assistantMessage]);
       } else {
-        throw new Error("API error");
+        throw new Error('API error');
       }
     } catch (err) {
-      console.error("Chat error:", err);
+      console.error('Chat error:', err);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.",
+        role: 'assistant',
+        content: 'Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.',
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -114,19 +110,19 @@ export function MobileChat() {
             <div
               key={message.id}
               className={cn(
-                "flex gap-3",
-                message.role === "user" ? "flex-row-reverse" : "flex-row"
+                'flex gap-3',
+                message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
               )}
             >
               <div
                 className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                  message.role === "user"
-                    ? "bg-blue-500"
-                    : "bg-gradient-to-br from-purple-500 to-pink-500"
+                  'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
+                  message.role === 'user'
+                    ? 'bg-blue-500'
+                    : 'bg-gradient-to-br from-purple-500 to-pink-500'
                 )}
               >
-                {message.role === "user" ? (
+                {message.role === 'user' ? (
                   <User className="w-4 h-4 text-white" />
                 ) : (
                   <Bot className="w-4 h-4 text-white" />
@@ -134,17 +130,17 @@ export function MobileChat() {
               </div>
               <div
                 className={cn(
-                  "max-w-[80%] rounded-2xl px-4 py-3",
-                  message.role === "user"
-                    ? "bg-blue-500 text-white rounded-br-md"
-                    : "bg-gray-800 text-gray-200 rounded-bl-md"
+                  'max-w-[80%] rounded-2xl px-4 py-3',
+                  message.role === 'user'
+                    ? 'bg-blue-500 text-white rounded-br-md'
+                    : 'bg-gray-800 text-gray-200 rounded-bl-md'
                 )}
               >
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                 <span className="text-xs opacity-50 mt-1 block">
-                  {message.timestamp.toLocaleTimeString("vi-VN", {
-                    hour: "2-digit",
-                    minute: "2-digit",
+                  {message.timestamp.toLocaleTimeString('vi-VN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
                   })}
                 </span>
               </div>

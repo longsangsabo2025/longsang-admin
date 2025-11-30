@@ -1,9 +1,9 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 import {
   Activity,
   CheckCircle2,
@@ -14,8 +14,8 @@ import {
   Square,
   Terminal,
   XCircle,
-} from "lucide-react";
-import { useEffect, useState } from "react";
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface N8nStatus {
   running: boolean;
@@ -24,7 +24,7 @@ interface N8nStatus {
   url: string;
   uptime: number;
   logs: Array<{
-    type: "info" | "error";
+    type: 'info' | 'error';
     message: string;
     timestamp: string;
   }>;
@@ -39,14 +39,14 @@ export const N8nController = () => {
   // Fetch status
   const fetchStatus = async () => {
     try {
-      const response = await fetch("http://localhost:3001/api/n8n/status");
+      const response = await fetch('http://localhost:3001/api/n8n/status');
       const data = await response.json();
 
       if (data.success) {
         setStatus(data.status);
       }
     } catch (error) {
-      console.error("Failed to fetch n8n status:", error);
+      console.error('Failed to fetch n8n status:', error);
     }
   };
 
@@ -64,10 +64,10 @@ export const N8nController = () => {
   const handleStart = async (openBrowser = false) => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3001/api/n8n/start", {
-        method: "POST",
+      const response = await fetch('http://localhost:3001/api/n8n/start', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ openBrowser }),
       });
@@ -76,20 +76,20 @@ export const N8nController = () => {
 
       if (data.success) {
         toast({
-          title: "✅ n8n Started",
+          title: '✅ n8n Started',
           description: openBrowser
-            ? "n8n server started and browser opened"
-            : "n8n server started successfully",
+            ? 'n8n server started and browser opened'
+            : 'n8n server started successfully',
         });
         fetchStatus();
       } else {
-        throw new Error(data.message || "Failed to start n8n");
+        throw new Error(data.message || 'Failed to start n8n');
       }
     } catch (error) {
       toast({
-        title: "❌ Start Failed",
-        description: error instanceof Error ? error.message : "Could not start n8n server",
-        variant: "destructive",
+        title: '❌ Start Failed',
+        description: error instanceof Error ? error.message : 'Could not start n8n server',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -100,26 +100,26 @@ export const N8nController = () => {
   const handleStop = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3001/api/n8n/stop", {
-        method: "POST",
+      const response = await fetch('http://localhost:3001/api/n8n/stop', {
+        method: 'POST',
       });
 
       const data = await response.json();
 
       if (data.success) {
         toast({
-          title: "⏹️ n8n Stopped",
-          description: "n8n server stopped successfully",
+          title: '⏹️ n8n Stopped',
+          description: 'n8n server stopped successfully',
         });
         fetchStatus();
       } else {
-        throw new Error(data.message || "Failed to stop n8n");
+        throw new Error(data.message || 'Failed to stop n8n');
       }
     } catch (error) {
       toast({
-        title: "❌ Stop Failed",
-        description: error instanceof Error ? error.message : "Could not stop n8n server",
-        variant: "destructive",
+        title: '❌ Stop Failed',
+        description: error instanceof Error ? error.message : 'Could not stop n8n server',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -130,26 +130,26 @@ export const N8nController = () => {
   const handleRestart = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3001/api/n8n/restart", {
-        method: "POST",
+      const response = await fetch('http://localhost:3001/api/n8n/restart', {
+        method: 'POST',
       });
 
       const data = await response.json();
 
       if (data.success) {
         toast({
-          title: "🔄 n8n Restarted",
-          description: "n8n server restarted successfully",
+          title: '🔄 n8n Restarted',
+          description: 'n8n server restarted successfully',
         });
         setTimeout(fetchStatus, 2000);
       } else {
-        throw new Error(data.message || "Failed to restart n8n");
+        throw new Error(data.message || 'Failed to restart n8n');
       }
     } catch (error) {
       toast({
-        title: "❌ Restart Failed",
-        description: error instanceof Error ? error.message : "Could not restart n8n server",
-        variant: "destructive",
+        title: '❌ Restart Failed',
+        description: error instanceof Error ? error.message : 'Could not restart n8n server',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -158,7 +158,7 @@ export const N8nController = () => {
 
   // Open n8n in browser
   const openN8n = () => {
-    window.open(status?.url || "http://localhost:5678", "_blank");
+    window.open(status?.url || 'http://localhost:5678', '_blank');
   };
 
   // Format uptime
@@ -187,7 +187,7 @@ export const N8nController = () => {
             </CardTitle>
             <CardDescription>Start/stop n8n server and manage workflows</CardDescription>
           </div>
-          <Badge variant={status?.running ? "default" : "secondary"} className="gap-1">
+          <Badge variant={status?.running ? 'default' : 'secondary'} className="gap-1">
             {status?.running ? (
               <>
                 <CheckCircle2 className="h-3 w-3" />
@@ -303,11 +303,11 @@ export const N8nController = () => {
                   {status.logs.map((log, index) => (
                     <div
                       key={index}
-                      className={log.type === "error" ? "text-red-400" : "text-green-400"}
+                      className={log.type === 'error' ? 'text-red-400' : 'text-green-400'}
                     >
                       <span className="text-slate-500">
                         {new Date(log.timestamp).toLocaleTimeString()}
-                      </span>{" "}
+                      </span>{' '}
                       {log.message}
                     </div>
                   ))}
@@ -320,14 +320,14 @@ export const N8nController = () => {
         {/* Quick Actions */}
         <Separator />
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>Auto-refresh: {autoRefresh ? "ON" : "OFF"}</span>
+          <span>Auto-refresh: {autoRefresh ? 'ON' : 'OFF'}</span>
           <Button
             size="sm"
             variant="ghost"
             onClick={() => setAutoRefresh(!autoRefresh)}
             className="h-6 text-xs"
           >
-            {autoRefresh ? "Disable" : "Enable"} Auto-refresh
+            {autoRefresh ? 'Disable' : 'Enable'} Auto-refresh
           </Button>
         </div>
       </CardContent>

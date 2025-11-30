@@ -4,29 +4,19 @@
  * =================================================================
  * Hiển thị tất cả platforms đã kết nối với thông tin chi tiết
  * Data được load từ Supabase database
- * 
+ *
  * Platforms đã kết nối:
  * - Facebook (7 Pages)
- * - Instagram (5 Business Accounts) 
+ * - Instagram (5 Business Accounts)
  * - Threads (@baddie.4296)
  * - LinkedIn (Long Sang)
  * - YouTube (Long Sang - 12 subs)
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Table,
   TableBody,
@@ -34,12 +24,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  CheckCircle2, 
-  AlertCircle, 
-  Clock, 
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  CheckCircle2,
+  AlertCircle,
+  Clock,
   RefreshCw,
   ExternalLink,
   Copy,
@@ -52,13 +42,13 @@ import {
   ChevronDown,
   ChevronRight,
   FolderOpen,
-  Plus
-} from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
-import { Link } from "react-router-dom";
-import { type Project, type ProjectSocialAccount } from "@/lib/projects";
+  Plus,
+} from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
+import { Link } from 'react-router-dom';
+import { type Project, type ProjectSocialAccount } from '@/lib/projects';
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -127,7 +117,13 @@ const PLATFORMS: Platform[] = [
     connected: true,
     capabilities: ['Post text', 'Post images', 'Post videos', 'Schedule posts', 'Page insights'],
     accounts: [
-      { id: '118356497898536', name: 'SABO Billiards - TP. Vũng Tàu', type: 'page', followers: 18850, tokenStatus: 'permanent' },
+      {
+        id: '118356497898536',
+        name: 'SABO Billiards - TP. Vũng Tàu',
+        type: 'page',
+        followers: 18850,
+        tokenStatus: 'permanent',
+      },
       { id: '719273174600166', name: 'SABO ARENA', type: 'page', tokenStatus: 'permanent' },
       { id: '569671719553461', name: 'AI Newbie VN', type: 'page', tokenStatus: 'permanent' },
       { id: '332950393234346', name: 'SABO Media', type: 'page', tokenStatus: 'permanent' },
@@ -135,7 +131,7 @@ const PLATFORMS: Platform[] = [
       { id: '569652129566651', name: 'SABO Billiard Shop', type: 'page', tokenStatus: 'permanent' },
       { id: '519070237965883', name: 'Thợ Săn Hoàng Hôn', type: 'page', tokenStatus: 'permanent' },
     ],
-    notes: 'Tất cả Page tokens đều PERMANENT - không bao giờ hết hạn!'
+    notes: 'Tất cả Page tokens đều PERMANENT - không bao giờ hết hạn!',
   },
   {
     id: 'instagram',
@@ -146,13 +142,47 @@ const PLATFORMS: Platform[] = [
     connected: true,
     capabilities: ['Post images', 'Post videos', 'Post carousels', 'Reels', 'Stories (coming)'],
     accounts: [
-      { id: '17841474279844606', name: 'SABO Billiards | TP. Vũng Tàu', username: 'sabobilliard', type: 'account', followers: 17, tokenStatus: 'permanent' },
-      { id: '17841472718907470', name: 'SABO Bida', username: 'sabomediavt', type: 'account', followers: 4, tokenStatus: 'permanent' },
-      { id: '17841474205608601', name: 'Long Sang AI Automation', username: 'newbiehocmake', type: 'account', tokenStatus: 'permanent' },
-      { id: '17841472893889754', name: 'SABO Bida Shop', username: 'sabobidashop', type: 'account', followers: 3, tokenStatus: 'permanent' },
-      { id: '17841472996653110', name: 'LS Fusion Lab', username: 'lsfusionlab', type: 'account', followers: 5, tokenStatus: 'permanent' },
+      {
+        id: '17841474279844606',
+        name: 'SABO Billiards | TP. Vũng Tàu',
+        username: 'sabobilliard',
+        type: 'account',
+        followers: 17,
+        tokenStatus: 'permanent',
+      },
+      {
+        id: '17841472718907470',
+        name: 'SABO Bida',
+        username: 'sabomediavt',
+        type: 'account',
+        followers: 4,
+        tokenStatus: 'permanent',
+      },
+      {
+        id: '17841474205608601',
+        name: 'Long Sang AI Automation',
+        username: 'newbiehocmake',
+        type: 'account',
+        tokenStatus: 'permanent',
+      },
+      {
+        id: '17841472893889754',
+        name: 'SABO Bida Shop',
+        username: 'sabobidashop',
+        type: 'account',
+        followers: 3,
+        tokenStatus: 'permanent',
+      },
+      {
+        id: '17841472996653110',
+        name: 'LS Fusion Lab',
+        username: 'lsfusionlab',
+        type: 'account',
+        followers: 5,
+        tokenStatus: 'permanent',
+      },
     ],
-    notes: 'Dùng Page Token tương ứng để post. Token PERMANENT!'
+    notes: 'Dùng Page Token tương ứng để post. Token PERMANENT!',
   },
   {
     id: 'threads',
@@ -163,9 +193,16 @@ const PLATFORMS: Platform[] = [
     connected: true,
     capabilities: ['Post text', 'Post images', 'Post videos', 'Carousels', 'Reply to threads'],
     accounts: [
-      { id: '25295715200066837', name: 'Vũng Tàu', username: 'baddie.4296', type: 'profile', tokenStatus: 'active', tokenExpiry: '~60 days' },
+      {
+        id: '25295715200066837',
+        name: 'Vũng Tàu',
+        username: 'baddie.4296',
+        type: 'profile',
+        tokenStatus: 'active',
+        tokenExpiry: '~60 days',
+      },
     ],
-    notes: 'Token cần refresh sau 60 ngày'
+    notes: 'Token cần refresh sau 60 ngày',
   },
   {
     id: 'linkedin',
@@ -176,9 +213,16 @@ const PLATFORMS: Platform[] = [
     connected: true,
     capabilities: ['Post text', 'Post images', 'Post articles', 'Post documents'],
     accounts: [
-      { id: 'HhV8LImTty', name: 'Long Sang', username: 'longsangautomation@gmail.com', type: 'profile', tokenStatus: 'active', tokenExpiry: '~60 days (Jan 25, 2026)' },
+      {
+        id: 'HhV8LImTty',
+        name: 'Long Sang',
+        username: 'longsangautomation@gmail.com',
+        type: 'profile',
+        tokenStatus: 'active',
+        tokenExpiry: '~60 days (Jan 25, 2026)',
+      },
     ],
-    notes: 'Token cần refresh sau 60 ngày. Có thể post lên Company Page nếu có quyền.'
+    notes: 'Token cần refresh sau 60 ngày. Có thể post lên Company Page nếu có quyền.',
   },
   {
     id: 'youtube',
@@ -189,9 +233,16 @@ const PLATFORMS: Platform[] = [
     connected: true,
     capabilities: ['Upload videos', 'Create playlists', 'Update metadata', 'Read analytics'],
     accounts: [
-      { id: 'UCh08dvkDfJVJ8f1C-TbXbew', name: 'Long Sang', type: 'channel', followers: 12, tokenStatus: 'active', tokenExpiry: 'Auto-refresh với Refresh Token' },
+      {
+        id: 'UCh08dvkDfJVJ8f1C-TbXbew',
+        name: 'Long Sang',
+        type: 'channel',
+        followers: 12,
+        tokenStatus: 'active',
+        tokenExpiry: 'Auto-refresh với Refresh Token',
+      },
     ],
-    notes: '🔄 Có Refresh Token - tự động renew khi hết hạn!'
+    notes: '🔄 Có Refresh Token - tự động renew khi hết hạn!',
   },
   {
     id: 'twitter',
@@ -202,7 +253,7 @@ const PLATFORMS: Platform[] = [
     connected: false,
     capabilities: ['Post tweets', 'Post images', 'Post videos', 'Threads'],
     accounts: [],
-    notes: '⚠️ Yêu cầu Basic tier ($100/tháng) để có write access'
+    notes: '⚠️ Yêu cầu Basic tier ($100/tháng) để có write access',
   },
   {
     id: 'tiktok',
@@ -213,7 +264,7 @@ const PLATFORMS: Platform[] = [
     connected: false,
     capabilities: ['Upload videos (3-60s)', 'Read analytics'],
     accounts: [],
-    notes: '⚠️ Cần TikTok Developer approval (miễn phí nhưng mất 1-2 tuần duyệt)'
+    notes: '⚠️ Cần TikTok Developer approval (miễn phí nhưng mất 1-2 tuần duyệt)',
   },
 ];
 
@@ -226,28 +277,28 @@ const CREDENTIAL_SUMMARY = {
     appId: '1340824257525630',
     appName: 'Long Sang Automation',
     tokenType: 'Page Access Tokens (Permanent)',
-    lastUpdated: 'Nov 26, 2025'
+    lastUpdated: 'Nov 26, 2025',
   },
   instagram: {
     note: 'Sử dụng Facebook Page Tokens',
     tokenType: 'Page Access Tokens (Permanent)',
-    lastUpdated: 'Nov 26, 2025'
+    lastUpdated: 'Nov 26, 2025',
   },
   threads: {
     appId: '858444256689767',
     tokenType: 'User Access Token (60 days)',
-    lastUpdated: 'Nov 26, 2025'
+    lastUpdated: 'Nov 26, 2025',
   },
   linkedin: {
     clientId: '78488c9vfxxdc6',
     tokenType: 'OAuth 2.0 Access Token (60 days)',
-    lastUpdated: 'Nov 26, 2025'
+    lastUpdated: 'Nov 26, 2025',
   },
   youtube: {
     clientId: '108558893612-fn9pl4tik8ebjeujlbnudma8re5a99gk.apps.googleusercontent.com',
     tokenType: 'OAuth 2.0 + Refresh Token',
-    lastUpdated: 'Nov 26, 2025'
-  }
+    lastUpdated: 'Nov 26, 2025',
+  },
 };
 
 // Platform icons mapping
@@ -290,7 +341,7 @@ export const SocialMediaConnections = () => {
   const loadProjects = useCallback(async () => {
     try {
       setProjectsLoading(true);
-      
+
       // Get projects
       const { data: projectsData, error: projectsError } = await supabase
         .from('projects' as unknown as 'profiles')
@@ -308,18 +359,18 @@ export const SocialMediaConnections = () => {
 
       if (accountsError) throw accountsError;
 
-      // Merge social accounts into projects  
+      // Merge social accounts into projects
       const projectsList = (projectsData || []) as unknown as Project[];
       const accountsList = (accountsData || []) as unknown as ProjectSocialAccount[];
-      
-      const projectsWithSocial: ProjectWithSocial[] = projectsList.map(project => ({
+
+      const projectsWithSocial: ProjectWithSocial[] = projectsList.map((project) => ({
         ...project,
-        social_accounts: accountsList.filter(a => a.project_id === project.id),
+        social_accounts: accountsList.filter((a) => a.project_id === project.id),
       }));
 
       setProjects(projectsWithSocial);
       // Expand all projects by default
-      setExpandedProjects(new Set(projectsWithSocial.map(p => p.id)));
+      setExpandedProjects(new Set(projectsWithSocial.map((p) => p.id)));
     } catch (error) {
       console.error('Failed to load projects:', error);
     } finally {
@@ -328,7 +379,7 @@ export const SocialMediaConnections = () => {
   }, []);
 
   const toggleProject = (projectId: string) => {
-    setExpandedProjects(prev => {
+    setExpandedProjects((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(projectId)) {
         newSet.delete(projectId);
@@ -349,38 +400,38 @@ export const SocialMediaConnections = () => {
         .order('platform');
 
       if (error) throw error;
-      
+
       setDbCredentials(data || []);
       setLastSync(new Date().toLocaleString('vi-VN'));
     } catch (err) {
       console.error('Failed to load credentials:', err);
       toast({
-        title: "Error",
-        description: "Failed to load credentials from database",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load credentials from database',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const connectedPlatforms = PLATFORMS.filter(p => p.connected);
-  const pendingPlatforms = PLATFORMS.filter(p => !p.connected);
+  const connectedPlatforms = PLATFORMS.filter((p) => p.connected);
+  const pendingPlatforms = PLATFORMS.filter((p) => !p.connected);
   const totalAccounts = connectedPlatforms.reduce((sum, p) => sum + p.accounts.length, 0);
-  
+
   // Check if platform is in database
   const isPlatformInDb = (platformId: string) => {
-    return dbCredentials.some(c => c.platform === platformId);
+    return dbCredentials.some((c) => c.platform === platformId);
   };
 
   const getDbCredential = (platformId: string) => {
-    return dbCredentials.find(c => c.platform === platformId);
+    return dbCredentials.find((c) => c.platform === platformId);
   };
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: "Copied!",
+      title: 'Copied!',
       description: `${label} copied to clipboard`,
     });
   };
@@ -415,12 +466,7 @@ export const SocialMediaConnections = () => {
             {showTokens ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
             {showTokens ? 'Hide Tokens' : 'Show Tokens'}
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={loadCredentials}
-            disabled={loading}
-          >
+          <Button variant="outline" size="sm" onClick={loadCredentials} disabled={loading}>
             {loading ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
@@ -432,25 +478,27 @@ export const SocialMediaConnections = () => {
       </div>
 
       {/* Database Status Banner */}
-      <Card className={`${dbCredentials.length > 0 ? 'bg-green-950 border-green-800' : 'bg-yellow-950 border-yellow-800'}`}>
+      <Card
+        className={`${dbCredentials.length > 0 ? 'bg-green-950 border-green-800' : 'bg-yellow-950 border-yellow-800'}`}
+      >
         <CardContent className="py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Database className="w-4 h-4" />
               <span className="font-medium">
-                {loading ? 'Loading from Supabase...' : `${dbCredentials.length} platforms stored in database`}
+                {loading
+                  ? 'Loading from Supabase...'
+                  : `${dbCredentials.length} platforms stored in database`}
               </span>
               {lastSync && (
-                <span className="text-xs text-muted-foreground">
-                  • Last sync: {lastSync}
-                </span>
+                <span className="text-xs text-muted-foreground">• Last sync: {lastSync}</span>
               )}
             </div>
             <div className="flex gap-1">
-              {dbCredentials.map(cred => (
-                <Badge 
-                  key={cred.platform} 
-                  variant="outline" 
+              {dbCredentials.map((cred) => (
+                <Badge
+                  key={cred.platform}
+                  variant="outline"
                   className={isPlatformInDb(cred.platform) ? 'bg-green-900 text-green-300' : ''}
                 >
                   {cred.platform}
@@ -465,7 +513,9 @@ export const SocialMediaConnections = () => {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-3xl font-bold text-green-600">{dbCredentials.length || connectedPlatforms.length}</div>
+            <div className="text-3xl font-bold text-green-600">
+              {dbCredentials.length || connectedPlatforms.length}
+            </div>
             <p className="text-sm text-muted-foreground">Platforms in DB</p>
           </CardContent>
         </Card>
@@ -631,17 +681,23 @@ export const SocialMediaConnections = () => {
                                         {account.platform === 'telegram' && '✈️'}
                                         {account.platform === 'discord' && '🎮'}
                                       </span>
-                                      <span className="capitalize font-medium">{account.platform}</span>
+                                      <span className="capitalize font-medium">
+                                        {account.platform}
+                                      </span>
                                     </div>
                                   </TableCell>
                                   <TableCell className="font-medium">
                                     {account.account_name}
                                   </TableCell>
                                   <TableCell className="text-muted-foreground">
-                                    {account.account_username ? `@${account.account_username}` : '-'}
+                                    {account.account_username
+                                      ? `@${account.account_username}`
+                                      : '-'}
                                   </TableCell>
                                   <TableCell>
-                                    <Badge className={account.is_active ? 'bg-green-500' : 'bg-gray-500'}>
+                                    <Badge
+                                      className={account.is_active ? 'bg-green-500' : 'bg-gray-500'}
+                                    >
                                       {account.is_active ? 'Active' : 'Inactive'}
                                     </Badge>
                                   </TableCell>
@@ -713,15 +769,19 @@ export const SocialMediaConnections = () => {
                     </div>
                     <div>
                       <div className="text-3xl font-bold">
-                        {projects.filter(p => (p.social_accounts?.length || 0) > 0).length}
+                        {projects.filter((p) => (p.social_accounts?.length || 0) > 0).length}
                       </div>
                       <p className="text-sm text-muted-foreground">With Channels</p>
                     </div>
                     <div>
                       <div className="text-3xl font-bold">
-                        {new Set(
-                          projects.flatMap(p => (p.social_accounts || []).map(a => a.platform))
-                        ).size}
+                        {
+                          new Set(
+                            projects.flatMap((p) =>
+                              (p.social_accounts || []).map((a) => a.platform)
+                            )
+                          ).size
+                        }
                       </div>
                       <p className="text-sm text-muted-foreground">Platforms</p>
                     </div>
@@ -743,7 +803,10 @@ export const SocialMediaConnections = () => {
                       <span className="text-2xl">{platform.icon}</span>
                       <CardTitle className={platform.color}>{platform.name}</CardTitle>
                     </div>
-                    <Badge variant="outline" className="bg-green-900 text-green-300 border-green-700">
+                    <Badge
+                      variant="outline"
+                      className="bg-green-900 text-green-300 border-green-700"
+                    >
                       <CheckCircle2 className="w-3 h-3 mr-1" />
                       Connected
                     </Badge>
@@ -754,7 +817,7 @@ export const SocialMediaConnections = () => {
                     <div>
                       <p className="text-sm font-medium">{platform.accounts.length} Account(s)</p>
                       <div className="text-xs text-muted-foreground mt-1">
-                        {platform.accounts.slice(0, 2).map(acc => (
+                        {platform.accounts.slice(0, 2).map((acc) => (
                           <div key={acc.id}>{acc.username ? `@${acc.username}` : acc.name}</div>
                         ))}
                         {platform.accounts.length > 2 && (
@@ -763,7 +826,7 @@ export const SocialMediaConnections = () => {
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {platform.capabilities.slice(0, 3).map(cap => (
+                      {platform.capabilities.slice(0, 3).map((cap) => (
                         <Badge key={cap} variant="secondary" className="text-xs">
                           {cap}
                         </Badge>
@@ -803,39 +866,53 @@ export const SocialMediaConnections = () => {
                   <TableRow>
                     <TableCell className="font-medium">👥 Facebook Pages</TableCell>
                     <TableCell>Page Access Token</TableCell>
-                    <TableCell><Badge className="bg-green-500">♾️ Permanent</Badge></TableCell>
+                    <TableCell>
+                      <Badge className="bg-green-500">♾️ Permanent</Badge>
+                    </TableCell>
                     <TableCell>Never</TableCell>
                     <TableCell>-</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">📸 Instagram</TableCell>
                     <TableCell>Page Access Token</TableCell>
-                    <TableCell><Badge className="bg-green-500">♾️ Permanent</Badge></TableCell>
+                    <TableCell>
+                      <Badge className="bg-green-500">♾️ Permanent</Badge>
+                    </TableCell>
                     <TableCell>Never</TableCell>
                     <TableCell>-</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">🧵 Threads</TableCell>
                     <TableCell>User Access Token</TableCell>
-                    <TableCell><Badge className="bg-blue-500">✅ Active</Badge></TableCell>
+                    <TableCell>
+                      <Badge className="bg-blue-500">✅ Active</Badge>
+                    </TableCell>
                     <TableCell>~Jan 25, 2026</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">Refresh</Button>
+                      <Button variant="ghost" size="sm">
+                        Refresh
+                      </Button>
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">💼 LinkedIn</TableCell>
                     <TableCell>OAuth 2.0 Token</TableCell>
-                    <TableCell><Badge className="bg-blue-500">✅ Active</Badge></TableCell>
+                    <TableCell>
+                      <Badge className="bg-blue-500">✅ Active</Badge>
+                    </TableCell>
                     <TableCell>~Jan 25, 2026</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">Refresh</Button>
+                      <Button variant="ghost" size="sm">
+                        Refresh
+                      </Button>
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">▶️ YouTube</TableCell>
                     <TableCell>OAuth 2.0 + Refresh</TableCell>
-                    <TableCell><Badge className="bg-green-500">🔄 Auto-Refresh</Badge></TableCell>
+                    <TableCell>
+                      <Badge className="bg-green-500">🔄 Auto-Refresh</Badge>
+                    </TableCell>
                     <TableCell>Auto-renew</TableCell>
                     <TableCell>-</TableCell>
                   </TableRow>
@@ -872,7 +949,7 @@ export const SocialMediaConnections = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {PLATFORMS.find(p => p.id === 'facebook')?.accounts.map(acc => (
+                  {PLATFORMS.find((p) => p.id === 'facebook')?.accounts.map((acc) => (
                     <TableRow key={acc.id}>
                       <TableCell className="font-medium">{acc.name}</TableCell>
                       <TableCell className="font-mono text-xs">{acc.id}</TableCell>
@@ -880,11 +957,20 @@ export const SocialMediaConnections = () => {
                       <TableCell>{getTokenStatusBadge(acc.tokenStatus)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(acc.id, 'Page ID')}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyToClipboard(acc.id, 'Page ID')}
+                          >
                             <Copy className="w-3 h-3" />
                           </Button>
                           <Button variant="ghost" size="sm" asChild>
-                            <a href={`https://facebook.com/${acc.id}`} target="_blank" rel="noopener noreferrer" title="Open Facebook page">
+                            <a
+                              href={`https://facebook.com/${acc.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Open Facebook page"
+                            >
                               <ExternalLink className="w-3 h-3" />
                             </a>
                           </Button>
@@ -903,9 +989,15 @@ export const SocialMediaConnections = () => {
                 <CardTitle className="text-yellow-600">🔐 Credentials Info</CardTitle>
               </CardHeader>
               <CardContent className="font-mono text-sm space-y-2">
-                <p><strong>App ID:</strong> {CREDENTIAL_SUMMARY.facebook.appId}</p>
-                <p><strong>App Name:</strong> {CREDENTIAL_SUMMARY.facebook.appName}</p>
-                <p><strong>Token Type:</strong> {CREDENTIAL_SUMMARY.facebook.tokenType}</p>
+                <p>
+                  <strong>App ID:</strong> {CREDENTIAL_SUMMARY.facebook.appId}
+                </p>
+                <p>
+                  <strong>App Name:</strong> {CREDENTIAL_SUMMARY.facebook.appName}
+                </p>
+                <p>
+                  <strong>Token Type:</strong> {CREDENTIAL_SUMMARY.facebook.tokenType}
+                </p>
                 <p className="text-muted-foreground text-xs">Full tokens stored in .env file</p>
               </CardContent>
             </Card>
@@ -939,7 +1031,7 @@ export const SocialMediaConnections = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {PLATFORMS.find(p => p.id === 'instagram')?.accounts.map(acc => (
+                  {PLATFORMS.find((p) => p.id === 'instagram')?.accounts.map((acc) => (
                     <TableRow key={acc.id}>
                       <TableCell className="font-medium">{acc.name}</TableCell>
                       <TableCell className="text-pink-600">@{acc.username}</TableCell>
@@ -947,7 +1039,12 @@ export const SocialMediaConnections = () => {
                       <TableCell>{acc.followers || '-'}</TableCell>
                       <TableCell>
                         <Button variant="ghost" size="sm" asChild>
-                          <a href={`https://instagram.com/${acc.username}`} target="_blank" rel="noopener noreferrer" title="Open Instagram profile">
+                          <a
+                            href={`https://instagram.com/${acc.username}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open Instagram profile"
+                          >
                             <ExternalLink className="w-3 h-3" />
                           </a>
                         </Button>
@@ -988,7 +1085,7 @@ export const SocialMediaConnections = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 rounded-lg border">
                   <p className="text-sm text-muted-foreground">Token Status</p>
@@ -1003,9 +1100,13 @@ export const SocialMediaConnections = () => {
               <div>
                 <h4 className="font-medium mb-2">Capabilities</h4>
                 <div className="flex flex-wrap gap-2">
-                  {['Post text', 'Post images', 'Post videos', 'Carousels', 'Reply to threads'].map(cap => (
-                    <Badge key={cap} variant="secondary">{cap}</Badge>
-                  ))}
+                  {['Post text', 'Post images', 'Post videos', 'Carousels', 'Reply to threads'].map(
+                    (cap) => (
+                      <Badge key={cap} variant="secondary">
+                        {cap}
+                      </Badge>
+                    )
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -1040,7 +1141,7 @@ export const SocialMediaConnections = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 rounded-lg border">
                   <p className="text-sm text-muted-foreground">Token Status</p>
@@ -1055,15 +1156,19 @@ export const SocialMediaConnections = () => {
               <div>
                 <h4 className="font-medium mb-2">Capabilities</h4>
                 <div className="flex flex-wrap gap-2">
-                  {['Post text', 'Post images', 'Post articles', 'Post documents'].map(cap => (
-                    <Badge key={cap} variant="secondary">{cap}</Badge>
+                  {['Post text', 'Post images', 'Post articles', 'Post documents'].map((cap) => (
+                    <Badge key={cap} variant="secondary">
+                      {cap}
+                    </Badge>
                   ))}
                 </div>
               </div>
 
               {showTokens && (
                 <div className="p-3 rounded-lg border border-yellow-700 bg-yellow-950">
-                  <p className="text-sm"><strong>Client ID:</strong> {CREDENTIAL_SUMMARY.linkedin.clientId}</p>
+                  <p className="text-sm">
+                    <strong>Client ID:</strong> {CREDENTIAL_SUMMARY.linkedin.clientId}
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -1094,11 +1199,13 @@ export const SocialMediaConnections = () => {
                   <div>
                     <h3 className="font-bold text-lg">Long Sang</h3>
                     <p className="text-muted-foreground">YouTube Channel</p>
-                    <p className="text-sm font-mono text-muted-foreground">ID: UCh08dvkDfJVJ8f1C-TbXbew</p>
+                    <p className="text-sm font-mono text-muted-foreground">
+                      ID: UCh08dvkDfJVJ8f1C-TbXbew
+                    </p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-3 gap-4">
                 <div className="p-3 rounded-lg border text-center">
                   <p className="text-2xl font-bold text-red-600">12</p>
@@ -1126,14 +1233,22 @@ export const SocialMediaConnections = () => {
               <div>
                 <h4 className="font-medium mb-2">Capabilities</h4>
                 <div className="flex flex-wrap gap-2">
-                  {['Upload videos', 'Create playlists', 'Update metadata', 'Read analytics'].map(cap => (
-                    <Badge key={cap} variant="secondary">{cap}</Badge>
-                  ))}
+                  {['Upload videos', 'Create playlists', 'Update metadata', 'Read analytics'].map(
+                    (cap) => (
+                      <Badge key={cap} variant="secondary">
+                        {cap}
+                      </Badge>
+                    )
+                  )}
                 </div>
               </div>
 
               <Button variant="outline" className="w-full" asChild>
-                <a href="https://youtube.com/channel/UCh08dvkDfJVJ8f1C-TbXbew" target="_blank" rel="noopener">
+                <a
+                  href="https://youtube.com/channel/UCh08dvkDfJVJ8f1C-TbXbew"
+                  target="_blank"
+                  rel="noopener"
+                >
                   <ExternalLink className="w-4 h-4 mr-2" />
                   View Channel on YouTube
                 </a>
@@ -1162,7 +1277,7 @@ export const SocialMediaConnections = () => {
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">{platform.notes}</p>
                   <div className="flex flex-wrap gap-1 mb-4">
-                    {platform.capabilities.map(cap => (
+                    {platform.capabilities.map((cap) => (
                       <Badge key={cap} variant="outline" className="text-xs opacity-50">
                         {cap}
                       </Badge>

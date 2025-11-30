@@ -13,14 +13,14 @@ import {
   PlatformSettings,
   SocialPostRequest,
   SocialPostResponse,
-} from "@/types/social-media";
-import { BaseSocialPlatform } from "./BaseSocialPlatform";
+} from '@/types/social-media';
+import { BaseSocialPlatform } from './BaseSocialPlatform';
 
 export class LinkedInPlatform extends BaseSocialPlatform {
-  private readonly API_BASE = "https://api.linkedin.com/v2";
+  private readonly API_BASE = 'https://api.linkedin.com/v2';
 
   constructor(credentials: PlatformCredentials, settings?: PlatformSettings) {
-    super("linkedin", credentials, settings);
+    super('linkedin', credentials, settings);
   }
 
   async authenticate(): Promise<boolean> {
@@ -53,7 +53,7 @@ export class LinkedInPlatform extends BaseSocialPlatform {
       });
 
       if (!profileResponse.ok) {
-        throw new Error("Failed to get LinkedIn profile");
+        throw new Error('Failed to get LinkedIn profile');
       }
 
       const profile = (await profileResponse.json()) as { id: string };
@@ -65,38 +65,38 @@ export class LinkedInPlatform extends BaseSocialPlatform {
       // Create post payload
       const payload = {
         author: authorUrn,
-        lifecycleState: "PUBLISHED",
+        lifecycleState: 'PUBLISHED',
         specificContent: {
-          "com.linkedin.ugc.ShareContent": {
+          'com.linkedin.ugc.ShareContent': {
             shareCommentary: {
               text: content,
             },
-            shareMediaCategory: request.media && request.media.length > 0 ? "IMAGE" : "NONE",
+            shareMediaCategory: request.media && request.media.length > 0 ? 'IMAGE' : 'NONE',
             ...(request.media &&
               request.media.length > 0 && {
                 media: request.media.map((media) => ({
-                  status: "READY",
+                  status: 'READY',
                   media: media.url,
                   description: {
-                    text: media.alt || "",
+                    text: media.alt || '',
                   },
                 })),
               }),
           },
         },
         visibility: {
-          "com.linkedin.ugc.MemberNetworkVisibility":
-            this.settings.defaultVisibility?.toUpperCase() || "PUBLIC",
+          'com.linkedin.ugc.MemberNetworkVisibility':
+            this.settings.defaultVisibility?.toUpperCase() || 'PUBLIC',
         },
       };
 
       // Post to LinkedIn
       const response = await fetch(`${this.API_BASE}/ugcPosts`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${this.credentials.accessToken}`,
-          "X-Restli-Protocol-Version": "2.0.0",
+          'X-Restli-Protocol-Version': '2.0.0',
         },
         body: JSON.stringify(payload),
       });
@@ -109,21 +109,21 @@ export class LinkedInPlatform extends BaseSocialPlatform {
       const data = (await response.json()) as { id: string };
 
       return {
-        platform: "linkedin",
+        platform: 'linkedin',
         success: true,
         postId: data.id,
         postUrl: `https://www.linkedin.com/feed/update/${data.id}`,
-        status: "published",
+        status: 'published',
         publishedAt: new Date(),
       };
     } catch (error) {
       return {
-        platform: "linkedin",
+        platform: 'linkedin',
         success: false,
-        status: "failed",
+        status: 'failed',
         error: {
-          code: "POST_FAILED",
-          message: error instanceof Error ? error.message : "Unknown error",
+          code: 'POST_FAILED',
+          message: error instanceof Error ? error.message : 'Unknown error',
           details: error,
         },
       };
@@ -159,18 +159,18 @@ export class LinkedInPlatform extends BaseSocialPlatform {
           };
         }
       } catch (error) {
-        console.error("Failed to get LinkedIn account info:", error);
+        console.error('Failed to get LinkedIn account info:', error);
       }
     }
 
     return {
-      platform: "linkedin",
+      platform: 'linkedin',
       connected: isHealthy,
       accountInfo,
       health: {
-        status: isHealthy ? "healthy" : "error",
+        status: isHealthy ? 'healthy' : 'error',
         lastChecked: new Date(),
-        message: isHealthy ? "Connected" : "Authentication failed",
+        message: isHealthy ? 'Connected' : 'Authentication failed',
       },
       credentials: this.credentials,
       settings: this.settings,
@@ -179,7 +179,7 @@ export class LinkedInPlatform extends BaseSocialPlatform {
 
   getCapabilities(): PlatformCapabilities {
     return {
-      platform: "linkedin",
+      platform: 'linkedin',
       features: {
         textPosts: true,
         imagePosts: true,
@@ -213,7 +213,7 @@ export class LinkedInPlatform extends BaseSocialPlatform {
 
     if (this.settings.autoHashtags && request.hashtags && request.hashtags.length > 0) {
       const hashtags = this.formatHashtags(request.hashtags);
-      content = `${content}\n\n${hashtags.join(" ")}`;
+      content = `${content}\n\n${hashtags.join(' ')}`;
     }
 
     if (request.linkUrl) {

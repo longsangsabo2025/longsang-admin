@@ -1,7 +1,7 @@
-import { motion } from "framer-motion";
-import { Heart, TrendingUp } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { ProjectData } from "@/data/projects-data";
+import { motion } from 'framer-motion';
+import { Heart, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ProjectData } from '@/data/projects-data';
 
 interface ProjectCTAProps {
   project: ProjectData;
@@ -22,11 +22,14 @@ export const ProjectCTA = ({ project }: ProjectCTAProps) => {
     <div className="relative overflow-hidden py-16 mb-12">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-dark-surface/50 via-dark-bg to-dark-surface/50" />
-      
+
       {/* Animated background elements */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-neon-cyan/30 rounded-full blur-3xl animate-pulse-glow" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-yellow-500/20 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: "1s" }} />
+        <div
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-yellow-500/20 rounded-full blur-3xl animate-pulse-glow"
+          style={{ animationDelay: '1s' }}
+        />
       </div>
 
       <motion.div
@@ -46,7 +49,7 @@ export const ProjectCTA = ({ project }: ProjectCTAProps) => {
         >
           Quan Tâm Đến Dự Án Này?
         </motion.h2>
-        
+
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -54,7 +57,8 @@ export const ProjectCTA = ({ project }: ProjectCTAProps) => {
           transition={{ delay: 0.3 }}
           className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10"
         >
-          Hãy theo dõi hoặc đầu tư vào {project.name} để không bỏ lỡ cơ hội phát triển cùng chúng tôi
+          Hãy theo dõi hoặc đầu tư vào {project.name} để không bỏ lỡ cơ hội phát triển cùng chúng
+          tôi
         </motion.p>
 
         {/* Action Buttons */}
@@ -110,7 +114,10 @@ export const ProjectCTA = ({ project }: ProjectCTAProps) => {
           transition={{ delay: 0.6 }}
           className="mt-8 text-sm text-muted-foreground"
         >
-          <p>Tham gia cùng <span className="text-neon-cyan font-semibold">500+ nhà đầu tư</span> đã tin tưởng vào {project.name}</p>
+          <p>
+            Tham gia cùng <span className="text-neon-cyan font-semibold">500+ nhà đầu tư</span> đã
+            tin tưởng vào {project.name}
+          </p>
         </motion.div>
       </motion.div>
     </div>

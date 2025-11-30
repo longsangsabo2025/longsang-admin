@@ -7,7 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Key, Plus, Trash2, RefreshCw, Eye, EyeOff, AlertTriangle, CheckCircle } from 'lucide-react';
+import {
+  Key,
+  Plus,
+  Trash2,
+  RefreshCw,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  CheckCircle,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -115,10 +124,7 @@ export function APIKeyManagement() {
     if (!confirm('Revoke this API key? This action cannot be undone.')) return;
 
     try {
-      await supabase
-        .from('api_keys_vault')
-        .update({ status: 'revoked' })
-        .eq('id', keyId);
+      await supabase.from('api_keys_vault').update({ status: 'revoked' }).eq('id', keyId);
 
       toast({
         title: 'Key Revoked',
@@ -167,7 +173,7 @@ export function APIKeyManagement() {
   };
 
   const toggleShowKey = (keyId: string) => {
-    setShowKey(prev => ({ ...prev, [keyId]: !prev[keyId] }));
+    setShowKey((prev) => ({ ...prev, [keyId]: !prev[keyId] }));
   };
 
   const maskKey = (key: string) => {
@@ -199,8 +205,8 @@ export function APIKeyManagement() {
       <Alert>
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          <strong>Security Notice:</strong> Keys are stored encrypted in the database. 
-          For production, use environment variables or secure vaults like Azure Key Vault.
+          <strong>Security Notice:</strong> Keys are stored encrypted in the database. For
+          production, use environment variables or secure vaults like Azure Key Vault.
         </AlertDescription>
       </Alert>
 
@@ -241,29 +247,23 @@ export function APIKeyManagement() {
                     <code className="flex-1 px-3 py-2 bg-muted rounded text-sm font-mono">
                       {showKey[key.id] ? key.key_value_encrypted : maskKey(key.key_value_encrypted)}
                     </code>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleShowKey(key.id)}
-                    >
-                      {showKey[key.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <Button variant="ghost" size="sm" onClick={() => toggleShowKey(key.id)}>
+                      {showKey[key.id] ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
 
                   {/* Metadata */}
                   <div className="flex gap-4 text-sm text-muted-foreground">
-                    <div>
-                      Created: {new Date(key.created_at).toLocaleDateString()}
-                    </div>
+                    <div>Created: {new Date(key.created_at).toLocaleDateString()}</div>
                     {key.last_used && (
-                      <div>
-                        Last used: {new Date(key.last_used).toLocaleDateString()}
-                      </div>
+                      <div>Last used: {new Date(key.last_used).toLocaleDateString()}</div>
                     )}
                     {key.expires_at && (
-                      <div>
-                        Expires: {new Date(key.expires_at).toLocaleDateString()}
-                      </div>
+                      <div>Expires: {new Date(key.expires_at).toLocaleDateString()}</div>
                     )}
                   </div>
 
@@ -318,7 +318,10 @@ export function APIKeyManagement() {
 
             <div className="space-y-2">
               <Label htmlFor="provider">Provider</Label>
-              <Select value={newKey.provider} onValueChange={(value) => setNewKey({ ...newKey, provider: value })}>
+              <Select
+                value={newKey.provider}
+                onValueChange={(value) => setNewKey({ ...newKey, provider: value })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -340,9 +343,7 @@ export function APIKeyManagement() {
                 value={newKey.key_value}
                 onChange={(e) => setNewKey({ ...newKey, key_value: e.target.value })}
               />
-              <p className="text-xs text-muted-foreground">
-                Key will be encrypted before storage
-              </p>
+              <p className="text-xs text-muted-foreground">Key will be encrypted before storage</p>
             </div>
           </div>
 
@@ -350,9 +351,7 @@ export function APIKeyManagement() {
             <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateKey}>
-              Add Key
-            </Button>
+            <Button onClick={handleCreateKey}>Add Key</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

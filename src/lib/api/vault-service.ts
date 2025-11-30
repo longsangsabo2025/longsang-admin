@@ -33,13 +33,29 @@ export interface Credential {
   project?: { name: string; slug: string } | null;
 }
 
-export type CredentialCategory = 
-  | 'supabase' | 'database' | 'ai' | 'google' | 'email' 
-  | 'payment' | 'hosting' | 'social' | 'analytics' | 'n8n' | 'other';
+export type CredentialCategory =
+  | 'supabase'
+  | 'database'
+  | 'ai'
+  | 'google'
+  | 'email'
+  | 'payment'
+  | 'hosting'
+  | 'social'
+  | 'analytics'
+  | 'n8n'
+  | 'other';
 
-export type CredentialType = 
-  | 'api_key' | 'password' | 'token' | 'secret' | 'connection_string' 
-  | 'oauth' | 'service_account' | 'certificate' | 'other';
+export type CredentialType =
+  | 'api_key'
+  | 'password'
+  | 'token'
+  | 'secret'
+  | 'connection_string'
+  | 'oauth'
+  | 'service_account'
+  | 'certificate'
+  | 'other';
 
 export type CredentialStatus = 'active' | 'inactive' | 'expired' | 'revoked' | 'rotating';
 
@@ -70,10 +86,10 @@ export interface UpdateCredentialInput extends Partial<CreateCredentialInput> {
 // Helper to create preview
 function createPreview(value: string, type: CredentialType): string {
   if (!value) return '';
-  
+
   // For very short values, don't preview
   if (value.length <= 10) return '***';
-  
+
   // Different preview styles based on type
   switch (type) {
     case 'api_key':
@@ -111,18 +127,18 @@ export const categoryIcons: Record<CredentialCategory, string> = {
 
 // Provider colors
 export const providerColors: Record<string, string> = {
-  'Supabase': 'bg-green-500',
-  'OpenAI': 'bg-emerald-500',
-  'Anthropic': 'bg-orange-500',
-  'Google': 'bg-blue-500',
+  Supabase: 'bg-green-500',
+  OpenAI: 'bg-emerald-500',
+  Anthropic: 'bg-orange-500',
+  Google: 'bg-blue-500',
   'Google Cloud': 'bg-blue-600',
-  'OpenRouter': 'bg-purple-500',
-  'n8n': 'bg-red-500',
-  'Vercel': 'bg-black',
-  'Cloudflare': 'bg-orange-600',
-  'SendGrid': 'bg-blue-400',
-  'Resend': 'bg-black',
-  'Stripe': 'bg-purple-600',
+  OpenRouter: 'bg-purple-500',
+  n8n: 'bg-red-500',
+  Vercel: 'bg-black',
+  Cloudflare: 'bg-orange-600',
+  SendGrid: 'bg-blue-400',
+  Resend: 'bg-black',
+  Stripe: 'bg-purple-600',
 };
 
 // Service functions
@@ -139,10 +155,12 @@ export const vaultService = {
     const supabase = getSupabaseClient();
     let query = supabase
       .from('credentials_vault')
-      .select(`
+      .select(
+        `
         *,
         project:projects(name, slug)
-      `)
+      `
+      )
       .order('category')
       .order('name');
 
@@ -150,7 +168,7 @@ export const vaultService = {
       query = query.eq('category', filters.category);
     }
     if (filters?.project_id !== undefined) {
-      query = filters.project_id 
+      query = filters.project_id
         ? query.eq('project_id', filters.project_id)
         : query.is('project_id', null);
     }
@@ -173,10 +191,12 @@ export const vaultService = {
     const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('credentials_vault')
-      .select(`
+      .select(
+        `
         *,
         project:projects(name, slug)
-      `)
+      `
+      )
       .eq('id', id)
       .single();
 
@@ -210,7 +230,7 @@ export const vaultService = {
    */
   async create(input: CreateCredentialInput): Promise<Credential> {
     const supabase = getSupabaseClient();
-    
+
     const credential = {
       ...input,
       credential_preview: createPreview(input.credential_value, input.credential_type),
@@ -220,10 +240,12 @@ export const vaultService = {
     const { data, error } = await supabase
       .from('credentials_vault')
       .insert(credential)
-      .select(`
+      .select(
+        `
         *,
         project:projects(name, slug)
-      `)
+      `
+      )
       .single();
 
     if (error) throw error;
@@ -240,7 +262,7 @@ export const vaultService = {
     // If credential_value is updated, update preview and rotation date
     if (updates.credential_value && updates.credential_type) {
       (updates as Record<string, unknown>).credential_preview = createPreview(
-        updates.credential_value, 
+        updates.credential_value,
         updates.credential_type
       );
       (updates as Record<string, unknown>).last_rotated_at = new Date().toISOString();
@@ -250,10 +272,12 @@ export const vaultService = {
       .from('credentials_vault')
       .update(updates)
       .eq('id', id)
-      .select(`
+      .select(
+        `
         *,
         project:projects(name, slug)
-      `)
+      `
+      )
       .single();
 
     if (error) throw error;
@@ -265,10 +289,7 @@ export const vaultService = {
    */
   async delete(id: string): Promise<void> {
     const supabase = getSupabaseClient();
-    const { error } = await supabase
-      .from('credentials_vault')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('credentials_vault').delete().eq('id', id);
 
     if (error) throw error;
   },
@@ -308,10 +329,12 @@ export const vaultService = {
 
     const { data, error } = await supabase
       .from('credentials_vault')
-      .select(`
+      .select(
+        `
         *,
         project:projects(name, slug)
-      `)
+      `
+      )
       .not('expires_at', 'is', null)
       .lte('expires_at', futureDate.toISOString())
       .eq('status', 'active')
@@ -326,23 +349,27 @@ export const vaultService = {
    */
   async getNeedingRotation(): Promise<Credential[]> {
     const supabase = getSupabaseClient();
-    
+
     const { data, error } = await supabase
       .from('credentials_vault')
-      .select(`
+      .select(
+        `
         *,
         project:projects(name, slug)
-      `)
+      `
+      )
       .eq('status', 'active');
 
     if (error) throw error;
 
     // Filter credentials that need rotation based on rotation_reminder_days
     const now = new Date();
-    return (data || []).filter(cred => {
+    return (data || []).filter((cred) => {
       if (!cred.last_rotated_at) return true;
       const lastRotated = new Date(cred.last_rotated_at);
-      const daysSinceRotation = Math.floor((now.getTime() - lastRotated.getTime()) / (1000 * 60 * 60 * 24));
+      const daysSinceRotation = Math.floor(
+        (now.getTime() - lastRotated.getTime()) / (1000 * 60 * 60 * 24)
+      );
       return daysSinceRotation >= cred.rotation_reminder_days;
     });
   },
@@ -354,10 +381,12 @@ export const vaultService = {
     const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('credentials_vault')
-      .select(`
+      .select(
+        `
         *,
         project:projects(name, slug)
-      `)
+      `
+      )
       .or(`name.ilike.%${query}%,description.ilike.%${query}%,provider.ilike.%${query}%`)
       .order('name');
 

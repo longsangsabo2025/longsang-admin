@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Pause, 
-  Play, 
-  FileText, 
-  Mail, 
-  Share2, 
-  BarChart, 
+import {
+  Pause,
+  Play,
+  FileText,
+  Mail,
+  Share2,
+  BarChart,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
@@ -112,8 +112,8 @@ export const AgentStatusCards = ({ agents, isLoading, onCreateAgent }: AgentStat
         const hasError = agent.status === 'error';
 
         return (
-          <Card 
-            key={agent.id} 
+          <Card
+            key={agent.id}
             className="hover:shadow-lg transition-all cursor-pointer group"
             onClick={() => navigate(`/automation/agents/${agent.id}`)}
           >
@@ -130,7 +130,7 @@ export const AgentStatusCards = ({ agents, isLoading, onCreateAgent }: AgentStat
                     </p>
                   </div>
                 </div>
-                <Badge 
+                <Badge
                   variant={isActive ? 'default' : hasError ? 'destructive' : 'secondary'}
                   className="capitalize"
                 >
@@ -140,19 +140,16 @@ export const AgentStatusCards = ({ agents, isLoading, onCreateAgent }: AgentStat
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                {agent.description}
-              </p>
+              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{agent.description}</p>
 
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Last run:</span>
                   <span className="font-medium flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {agent.last_run 
+                    {agent.last_run
                       ? formatDistanceToNow(new Date(agent.last_run), { addSuffix: true })
-                      : 'Never'
-                    }
+                      : 'Never'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
@@ -164,17 +161,14 @@ export const AgentStatusCards = ({ agents, isLoading, onCreateAgent }: AgentStat
                   <span className="font-medium">
                     {agent.total_runs > 0
                       ? `${Math.round((agent.successful_runs / agent.total_runs) * 100)}%`
-                      : 'N/A'
-                    }
+                      : 'N/A'}
                   </span>
                 </div>
               </div>
 
               {hasError && agent.last_error && (
                 <div className="mb-4 p-3 bg-destructive/10 rounded-lg">
-                  <p className="text-xs text-destructive font-medium">
-                    Error: {agent.last_error}
-                  </p>
+                  <p className="text-xs text-destructive font-medium">Error: {agent.last_error}</p>
                 </div>
               )}
 

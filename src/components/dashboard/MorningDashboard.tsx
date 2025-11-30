@@ -1,6 +1,6 @@
 /**
  * 🌅 Morning Dashboard Widget
- * 
+ *
  * Tổng hợp tất cả thông tin quan trọng mỗi sáng:
  * - Errors overnight
  * - Key metrics
@@ -83,7 +83,7 @@ export function MorningDashboard() {
 
   const fetchDashboardData = async () => {
     setLoading(true);
-    
+
     try {
       // Fetch errors (last 24h)
       const errorsData = await fetchErrors();
@@ -107,10 +107,10 @@ export function MorningDashboard() {
     try {
       const response = await fetch(`${API_BASE}/api/bug-system/errors?limit=10`);
       if (!response.ok) throw new Error('Failed to fetch errors');
-      
+
       const data = await response.json();
       const errors = data.data || [];
-      
+
       return {
         total: errors.length,
         critical: errors.filter((e: any) => e.severity === 'critical').length,
@@ -124,17 +124,17 @@ export function MorningDashboard() {
 
   const fetchMetrics = async (): Promise<MetricsSummary> => {
     const userId = localStorage.getItem('userId') || '6490f4e9-ed96-4121-9c70-bb4ad1feb71d';
-    
+
     try {
       // Fetch brain stats
       const brainResponse = await fetch(`${API_BASE}/api/brain/domains?userId=${userId}`, {
-        headers: { 'x-user-id': userId }
+        headers: { 'x-user-id': userId },
       });
       const brainData = brainResponse.ok ? await brainResponse.json() : { data: [] };
-      
+
       // Fetch knowledge count
       const knowledgeResponse = await fetch(`${API_BASE}/api/brain/knowledge?limit=1`, {
-        headers: { 'x-user-id': userId }
+        headers: { 'x-user-id': userId },
       });
       const knowledgeData = knowledgeResponse.ok ? await knowledgeResponse.json() : { total: 0 };
 
@@ -222,10 +222,11 @@ export function MorningDashboard() {
           <div>
             <CardTitle className="text-2xl">{greeting}, Boss! 👋</CardTitle>
             <CardDescription>
-              Đây là tổng quan cho ngày {new Date().toLocaleDateString('vi-VN', { 
-                weekday: 'long', 
-                day: 'numeric', 
-                month: 'long' 
+              Đây là tổng quan cho ngày{' '}
+              {new Date().toLocaleDateString('vi-VN', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
               })}
             </CardDescription>
           </div>
@@ -247,7 +248,9 @@ export function MorningDashboard() {
                   <p className="text-sm text-muted-foreground">Errors (24h)</p>
                   <p className="text-2xl font-bold">{errors?.total || 0}</p>
                 </div>
-                <Bug className={`h-8 w-8 ${errors && errors.critical > 0 ? 'text-red-500' : 'text-muted-foreground'}`} />
+                <Bug
+                  className={`h-8 w-8 ${errors && errors.critical > 0 ? 'text-red-500' : 'text-muted-foreground'}`}
+                />
               </div>
               {errors && errors.critical > 0 && (
                 <Badge variant="destructive" className="mt-2">
@@ -375,8 +378,8 @@ export function MorningDashboard() {
                         suggestion.type === 'warning'
                           ? 'border-yellow-500/50 bg-yellow-500/5'
                           : suggestion.type === 'task'
-                          ? 'border-blue-500/50 bg-blue-500/5'
-                          : 'border-purple-500/50 bg-purple-500/5'
+                            ? 'border-blue-500/50 bg-blue-500/5'
+                            : 'border-purple-500/50 bg-purple-500/5'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">

@@ -73,15 +73,11 @@ export function BookingForm({ consultantId, onSuccess }: BookingFormProps) {
 
     setLoadingSlots(true);
     try {
-      const type = consultationTypes.find(t => t.id === selectedType);
+      const type = consultationTypes.find((t) => t.id === selectedType);
       if (!type) return;
 
       const dateStr = selectedDate.toISOString().split('T')[0];
-      const slots = await getAvailableTimeSlots(
-        consultantId,
-        dateStr,
-        type.duration_minutes
-      );
+      const slots = await getAvailableTimeSlots(consultantId, dateStr, type.duration_minutes);
       setTimeSlots(slots);
     } catch (error) {
       toast.error('Không thể tải thời gian khả dụng');
@@ -99,7 +95,7 @@ export function BookingForm({ consultantId, onSuccess }: BookingFormProps) {
       return;
     }
 
-    const type = consultationTypes.find(t => t.id === selectedType);
+    const type = consultationTypes.find((t) => t.id === selectedType);
     if (!type) return;
 
     setLoading(true);
@@ -122,7 +118,7 @@ export function BookingForm({ consultantId, onSuccess }: BookingFormProps) {
       });
 
       toast.success('Đặt lịch thành công! Chúng tôi sẽ liên hệ sớm.');
-      
+
       // Reset form
       setClientName('');
       setClientEmail('');
@@ -130,7 +126,7 @@ export function BookingForm({ consultantId, onSuccess }: BookingFormProps) {
       setNotes('');
       setSelectedDate(undefined);
       setSelectedTime('');
-      
+
       onSuccess?.();
     } catch (error) {
       toast.error('Đặt lịch thất bại');
@@ -140,7 +136,7 @@ export function BookingForm({ consultantId, onSuccess }: BookingFormProps) {
     }
   };
 
-  const selectedTypeData = consultationTypes.find(t => t.id === selectedType);
+  const selectedTypeData = consultationTypes.find((t) => t.id === selectedType);
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -151,9 +147,7 @@ export function BookingForm({ consultantId, onSuccess }: BookingFormProps) {
             <CalendarIcon className="h-5 w-5" />
             Chọn ngày & giờ
           </CardTitle>
-          <CardDescription>
-            Chọn ngày và khung giờ phù hợp với bạn
-          </CardDescription>
+          <CardDescription>Chọn ngày và khung giờ phù hợp với bạn</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Consultation Type */}
@@ -164,7 +158,7 @@ export function BookingForm({ consultantId, onSuccess }: BookingFormProps) {
                 <SelectValue placeholder="Chọn loại tư vấn" />
               </SelectTrigger>
               <SelectContent>
-                {consultationTypes.map(type => (
+                {consultationTypes.map((type) => (
                   <SelectItem key={type.id} value={type.id}>
                     <div className="flex items-center gap-2">
                       <div
@@ -203,16 +197,14 @@ export function BookingForm({ consultantId, onSuccess }: BookingFormProps) {
                 Chọn giờ
               </Label>
               {loadingSlots ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  Đang tải...
-                </div>
+                <div className="text-center py-8 text-muted-foreground">Đang tải...</div>
               ) : timeSlots.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   Không có khung giờ khả dụng trong ngày này
                 </div>
               ) : (
                 <div className="grid grid-cols-3 gap-2">
-                  {timeSlots.map(slot => (
+                  {timeSlots.map((slot) => (
                     <Button
                       key={slot.time}
                       type="button"
@@ -238,9 +230,7 @@ export function BookingForm({ consultantId, onSuccess }: BookingFormProps) {
             <User className="h-5 w-5" />
             Thông tin liên hệ
           </CardTitle>
-          <CardDescription>
-            Để chúng tôi có thể xác nhận và liên hệ với bạn
-          </CardDescription>
+          <CardDescription>Để chúng tôi có thể xác nhận và liên hệ với bạn</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -332,7 +322,10 @@ export function BookingForm({ consultantId, onSuccess }: BookingFormProps) {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Giờ:</span>
                     <span className="font-medium">
-                      {formatTime(selectedTime)} - {formatTime(calculateEndTime(selectedTime, selectedTypeData.duration_minutes))}
+                      {formatTime(selectedTime)} -{' '}
+                      {formatTime(
+                        calculateEndTime(selectedTime, selectedTypeData.duration_minutes)
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between">

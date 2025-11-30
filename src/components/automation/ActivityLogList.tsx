@@ -1,14 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  Info, 
-  Clock,
-  ChevronRight
-} from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Info, Clock, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow, format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -27,25 +20,25 @@ const statusIcons: Record<string, any> = {
 };
 
 const statusColors: Record<string, { icon: string; bg: string; badge: string }> = {
-  success: { 
-    icon: 'text-green-500', 
+  success: {
+    icon: 'text-green-500',
     bg: 'bg-green-500/10',
-    badge: 'default'
+    badge: 'default',
   },
-  error: { 
-    icon: 'text-red-500', 
+  error: {
+    icon: 'text-red-500',
     bg: 'bg-red-500/10',
-    badge: 'destructive'
+    badge: 'destructive',
   },
-  warning: { 
-    icon: 'text-yellow-500', 
+  warning: {
+    icon: 'text-yellow-500',
     bg: 'bg-yellow-500/10',
-    badge: 'secondary'
+    badge: 'secondary',
   },
-  info: { 
-    icon: 'text-blue-500', 
+  info: {
+    icon: 'text-blue-500',
     bg: 'bg-blue-500/10',
-    badge: 'outline'
+    badge: 'outline',
   },
 };
 
@@ -117,7 +110,9 @@ export const ActivityLogList = ({ logs, isLoading }: ActivityLogListProps) => {
                       {format(new Date(log.created_at), 'HH:mm:ss')}
                     </span>
                     <span>•</span>
-                    <span>{formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}</span>
+                    <span>
+                      {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                    </span>
                     {log.ai_agents && (
                       <>
                         <span>•</span>
@@ -166,10 +161,7 @@ export const ActivityLogList = ({ logs, isLoading }: ActivityLogListProps) => {
 
         {logs.length >= 20 && (
           <div className="mt-4 text-center">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/automation/logs')}
-            >
+            <Button variant="ghost" onClick={() => navigate('/automation/logs')}>
               View All Logs
             </Button>
           </div>

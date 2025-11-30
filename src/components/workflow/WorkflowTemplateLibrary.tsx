@@ -1,16 +1,29 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Search,
   Plus,
@@ -33,16 +46,16 @@ import {
   Settings,
   Eye,
   MoreHorizontal,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
-import { TemplateEditor } from "./TemplateEditor";
+} from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
+import { TemplateEditor } from './TemplateEditor';
 
 // ============================================================
 // TYPES
@@ -61,7 +74,7 @@ interface WorkflowTemplate {
   default_config: object;
   required_credentials: string[];
   version: string;
-  status: "active" | "deprecated" | "draft";
+  status: 'active' | 'deprecated' | 'draft';
   is_public: boolean;
   clone_count: number;
   created_at: string;
@@ -76,7 +89,7 @@ interface WorkflowInstance {
   description: string | null;
   n8n_workflow_id: string | null;
   webhook_url: string | null;
-  status: "active" | "paused" | "error" | "draft";
+  status: 'active' | 'paused' | 'error' | 'draft';
   is_enabled: boolean;
   total_executions: number;
   successful_executions: number;
@@ -99,21 +112,21 @@ interface Project {
 // ============================================================
 
 const CATEGORIES = [
-  { id: "all", label: "Tất cả", icon: "📋" },
-  { id: "content", label: "Content", icon: "✍️" },
-  { id: "crm", label: "CRM/Sales", icon: "💼" },
-  { id: "marketing", label: "Marketing", icon: "📱" },
-  { id: "customer-service", label: "Support", icon: "🎧" },
-  { id: "analytics", label: "Analytics", icon: "📊" },
-  { id: "automation", label: "Automation", icon: "⚡" },
+  { id: 'all', label: 'Tất cả', icon: '📋' },
+  { id: 'content', label: 'Content', icon: '✍️' },
+  { id: 'crm', label: 'CRM/Sales', icon: '💼' },
+  { id: 'marketing', label: 'Marketing', icon: '📱' },
+  { id: 'customer-service', label: 'Support', icon: '🎧' },
+  { id: 'analytics', label: 'Analytics', icon: '📊' },
+  { id: 'automation', label: 'Automation', icon: '⚡' },
 ];
 
 const STATUS_CONFIG = {
-  active: { label: "Active", color: "bg-green-500", icon: CheckCircle2 },
-  paused: { label: "Paused", color: "bg-yellow-500", icon: Pause },
-  error: { label: "Error", color: "bg-red-500", icon: AlertCircle },
-  draft: { label: "Draft", color: "bg-gray-500", icon: Clock },
-  deprecated: { label: "Deprecated", color: "bg-orange-500", icon: AlertCircle },
+  active: { label: 'Active', color: 'bg-green-500', icon: CheckCircle2 },
+  paused: { label: 'Paused', color: 'bg-yellow-500', icon: Pause },
+  error: { label: 'Error', color: 'bg-red-500', icon: AlertCircle },
+  draft: { label: 'Draft', color: 'bg-gray-500', icon: Clock },
+  deprecated: { label: 'Deprecated', color: 'bg-orange-500', icon: AlertCircle },
 };
 
 // ============================================================
@@ -123,20 +136,20 @@ const STATUS_CONFIG = {
 export function WorkflowTemplateLibrary() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // State
-  const [activeTab, setActiveTab] = useState<"templates" | "instances">("templates");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [activeTab, setActiveTab] = useState<'templates' | 'instances'>('templates');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<WorkflowTemplate | null>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [customName, setCustomName] = useState("");
-  
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [customName, setCustomName] = useState('');
+
   // Editor state
   const [editorOpen, setEditorOpen] = useState(false);
-  const [editorMode, setEditorMode] = useState<"create" | "edit">("create");
+  const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [editingTemplate, setEditingTemplate] = useState<WorkflowTemplate | null>(null);
 
   // ============================================================
@@ -145,14 +158,14 @@ export function WorkflowTemplateLibrary() {
 
   // Fetch templates
   const { data: templates, isLoading: templatesLoading } = useQuery({
-    queryKey: ["workflow-templates"],
+    queryKey: ['workflow-templates'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("workflow_templates")
-        .select("*")
-        .order("category")
-        .order("name");
-      
+        .from('workflow_templates')
+        .select('*')
+        .order('category')
+        .order('name');
+
       if (error) throw error;
       return data as WorkflowTemplate[];
     },
@@ -160,17 +173,19 @@ export function WorkflowTemplateLibrary() {
 
   // Fetch instances with project info
   const { data: instances, isLoading: instancesLoading } = useQuery({
-    queryKey: ["workflow-instances"],
+    queryKey: ['workflow-instances'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("project_workflow_instances")
-        .select(`
+        .from('project_workflow_instances')
+        .select(
+          `
           *,
           projects:project_id (name, slug),
           workflow_templates:template_id (name, icon)
-        `)
-        .order("created_at", { ascending: false });
-      
+        `
+        )
+        .order('created_at', { ascending: false });
+
       if (error) throw error;
       return data as WorkflowInstance[];
     },
@@ -178,14 +193,14 @@ export function WorkflowTemplateLibrary() {
 
   // Fetch projects for clone dialog
   const { data: projects } = useQuery({
-    queryKey: ["projects-list"],
+    queryKey: ['projects-list'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("projects")
-        .select("id, name, slug, icon")
-        .eq("status", "active")
-        .order("name");
-      
+        .from('projects')
+        .select('id, name, slug, icon')
+        .eq('status', 'active')
+        .order('name');
+
       if (error) throw error;
       return data as Project[];
     },
@@ -197,19 +212,27 @@ export function WorkflowTemplateLibrary() {
 
   // Clone template to project
   const cloneMutation = useMutation({
-    mutationFn: async ({ templateId, projectId, name }: { templateId: string; projectId: string; name: string }) => {
-      const template = templates?.find(t => t.id === templateId);
-      if (!template) throw new Error("Template not found");
+    mutationFn: async ({
+      templateId,
+      projectId,
+      name,
+    }: {
+      templateId: string;
+      projectId: string;
+      name: string;
+    }) => {
+      const template = templates?.find((t) => t.id === templateId);
+      if (!template) throw new Error('Template not found');
 
       const { data, error } = await supabase
-        .from("project_workflow_instances")
+        .from('project_workflow_instances')
         .insert({
           project_id: projectId,
           template_id: templateId,
           name: name,
           description: template.description,
           config: template.default_config,
-          status: "draft",
+          status: 'draft',
           is_enabled: false,
         })
         .select()
@@ -219,29 +242,29 @@ export function WorkflowTemplateLibrary() {
 
       // Update clone count
       await supabase
-        .from("workflow_templates")
+        .from('workflow_templates')
         .update({ clone_count: (template.clone_count || 0) + 1 })
-        .eq("id", templateId);
+        .eq('id', templateId);
 
       return data;
     },
     onSuccess: () => {
       toast({
-        title: "✅ Clone thành công!",
-        description: "Workflow đã được clone vào project. Vào n8n để configure và activate.",
+        title: '✅ Clone thành công!',
+        description: 'Workflow đã được clone vào project. Vào n8n để configure và activate.',
       });
-      queryClient.invalidateQueries({ queryKey: ["workflow-instances"] });
-      queryClient.invalidateQueries({ queryKey: ["workflow-templates"] });
+      queryClient.invalidateQueries({ queryKey: ['workflow-instances'] });
+      queryClient.invalidateQueries({ queryKey: ['workflow-templates'] });
       setCloneDialogOpen(false);
       setSelectedTemplate(null);
-      setSelectedProjectId("");
-      setCustomName("");
+      setSelectedProjectId('');
+      setCustomName('');
     },
     onError: (error: Error) => {
       toast({
-        title: "❌ Lỗi clone",
+        title: '❌ Lỗi clone',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
@@ -250,31 +273,28 @@ export function WorkflowTemplateLibrary() {
   const toggleStatusMutation = useMutation({
     mutationFn: async ({ id, isEnabled }: { id: string; isEnabled: boolean }) => {
       const { error } = await supabase
-        .from("project_workflow_instances")
-        .update({ is_enabled: isEnabled, status: isEnabled ? "active" : "paused" })
-        .eq("id", id);
+        .from('project_workflow_instances')
+        .update({ is_enabled: isEnabled, status: isEnabled ? 'active' : 'paused' })
+        .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workflow-instances"] });
-      toast({ title: "✅ Đã cập nhật trạng thái" });
+      queryClient.invalidateQueries({ queryKey: ['workflow-instances'] });
+      toast({ title: '✅ Đã cập nhật trạng thái' });
     },
   });
 
   // Delete instance
   const deleteInstanceMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("project_workflow_instances")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from('project_workflow_instances').delete().eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workflow-instances"] });
-      toast({ title: "✅ Đã xóa workflow instance" });
+      queryClient.invalidateQueries({ queryKey: ['workflow-instances'] });
+      toast({ title: '✅ Đã xóa workflow instance' });
     },
   });
 
@@ -282,16 +302,18 @@ export function WorkflowTemplateLibrary() {
   // FILTER LOGIC
   // ============================================================
 
-  const filteredTemplates = templates?.filter(t => {
-    const matchCategory = selectedCategory === "all" || t.category === selectedCategory;
-    const matchSearch = !searchQuery || 
+  const filteredTemplates = templates?.filter((t) => {
+    const matchCategory = selectedCategory === 'all' || t.category === selectedCategory;
+    const matchSearch =
+      !searchQuery ||
       t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchCategory && matchSearch && t.status !== "deprecated";
+    return matchCategory && matchSearch && t.status !== 'deprecated';
   });
 
-  const filteredInstances = instances?.filter(i => {
-    const matchSearch = !searchQuery ||
+  const filteredInstances = instances?.filter((i) => {
+    const matchSearch =
+      !searchQuery ||
       i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       i.projects?.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchSearch;
@@ -309,10 +331,10 @@ export function WorkflowTemplateLibrary() {
 
   const handleConfirmClone = () => {
     if (!selectedTemplate || !selectedProjectId) return;
-    
-    const project = projects?.find(p => p.id === selectedProjectId);
+
+    const project = projects?.find((p) => p.id === selectedProjectId);
     const finalName = customName || `${project?.name} - ${selectedTemplate.name}`;
-    
+
     cloneMutation.mutate({
       templateId: selectedTemplate.id,
       projectId: selectedProjectId,
@@ -321,21 +343,21 @@ export function WorkflowTemplateLibrary() {
   };
 
   const openN8n = (workflowId?: string) => {
-    const url = workflowId 
+    const url = workflowId
       ? `http://localhost:5678/workflow/${workflowId}`
-      : "http://localhost:5678";
-    window.open(url, "_blank");
+      : 'http://localhost:5678';
+    window.open(url, '_blank');
   };
 
   const handleCreateTemplate = () => {
     setEditingTemplate(null);
-    setEditorMode("create");
+    setEditorMode('create');
     setEditorOpen(true);
   };
 
   const handleEditTemplate = (template: WorkflowTemplate) => {
     setEditingTemplate(template);
-    setEditorMode("edit");
+    setEditorMode('edit');
     setEditorOpen(true);
   };
 
@@ -369,18 +391,22 @@ export function WorkflowTemplateLibrary() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "templates" | "instances")}>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'templates' | 'instances')}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <TabsList>
             <TabsTrigger value="templates" className="gap-2">
               <Sparkles className="h-4 w-4" />
               Templates
-              <Badge variant="secondary" className="ml-1">{templates?.length || 0}</Badge>
+              <Badge variant="secondary" className="ml-1">
+                {templates?.length || 0}
+              </Badge>
             </TabsTrigger>
             <TabsTrigger value="instances" className="gap-2">
               <Zap className="h-4 w-4" />
               Project Instances
-              <Badge variant="secondary" className="ml-1">{instances?.length || 0}</Badge>
+              <Badge variant="secondary" className="ml-1">
+                {instances?.length || 0}
+              </Badge>
             </TabsTrigger>
           </TabsList>
 
@@ -397,18 +423,18 @@ export function WorkflowTemplateLibrary() {
             </div>
             <div className="flex border rounded-md">
               <Button
-                variant={viewMode === "grid" ? "secondary" : "ghost"}
+                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                 size="icon"
                 className="rounded-r-none"
-                onClick={() => setViewMode("grid")}
+                onClick={() => setViewMode('grid')}
               >
                 <LayoutGrid className="h-4 w-4" />
               </Button>
               <Button
-                variant={viewMode === "list" ? "secondary" : "ghost"}
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                 size="icon"
                 className="rounded-l-none"
-                onClick={() => setViewMode("list")}
+                onClick={() => setViewMode('list')}
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -423,7 +449,7 @@ export function WorkflowTemplateLibrary() {
             {CATEGORIES.map((cat) => (
               <Button
                 key={cat.id}
-                variant={selectedCategory === cat.id ? "default" : "outline"}
+                variant={selectedCategory === cat.id ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedCategory(cat.id)}
               >
@@ -449,10 +475,13 @@ export function WorkflowTemplateLibrary() {
               ))}
             </div>
           ) : (
-            <div className={viewMode === "grid" 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" 
-              : "space-y-3"
-            }>
+            <div
+              className={
+                viewMode === 'grid'
+                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
+                  : 'space-y-3'
+              }
+            >
               {filteredTemplates?.map((template) => (
                 <TemplateCard
                   key={template.id}
@@ -462,7 +491,7 @@ export function WorkflowTemplateLibrary() {
                   onEdit={() => handleEditTemplate(template)}
                 />
               ))}
-              
+
               {filteredTemplates?.length === 0 && (
                 <div className="col-span-full text-center py-12 text-muted-foreground">
                   <Workflow className="h-12 w-12 mx-auto mb-4 opacity-20" />
@@ -491,7 +520,9 @@ export function WorkflowTemplateLibrary() {
                 <InstanceCard
                   key={instance.id}
                   instance={instance}
-                  onToggle={(enabled) => toggleStatusMutation.mutate({ id: instance.id, isEnabled: enabled })}
+                  onToggle={(enabled) =>
+                    toggleStatusMutation.mutate({ id: instance.id, isEnabled: enabled })
+                  }
                   onDelete={() => deleteInstanceMutation.mutate(instance.id)}
                   onOpenN8n={() => openN8n(instance.n8n_workflow_id || undefined)}
                 />
@@ -501,10 +532,10 @@ export function WorkflowTemplateLibrary() {
                 <div className="text-center py-12 text-muted-foreground">
                   <Zap className="h-12 w-12 mx-auto mb-4 opacity-20" />
                   <p>Chưa có workflow instance nào</p>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="mt-4"
-                    onClick={() => setActiveTab("templates")}
+                    onClick={() => setActiveTab('templates')}
                   >
                     Clone từ Templates
                   </Button>
@@ -563,7 +594,7 @@ export function WorkflowTemplateLibrary() {
             <Button variant="outline" onClick={() => setCloneDialogOpen(false)}>
               Hủy
             </Button>
-            <Button 
+            <Button
               onClick={handleConfirmClone}
               disabled={!selectedProjectId || cloneMutation.isPending}
             >
@@ -593,21 +624,21 @@ export function WorkflowTemplateLibrary() {
 // TEMPLATE CARD COMPONENT
 // ============================================================
 
-function TemplateCard({ 
-  template, 
+function TemplateCard({
+  template,
   viewMode,
   onClone,
   onEdit,
-}: { 
+}: {
   template: WorkflowTemplate;
-  viewMode: "grid" | "list";
+  viewMode: 'grid' | 'list';
   onClone: () => void;
   onEdit: () => void;
 }) {
   const statusConfig = STATUS_CONFIG[template.status];
   const _StatusIcon = statusConfig.icon;
 
-  if (viewMode === "list") {
+  if (viewMode === 'list') {
     return (
       <Card className="hover:border-primary/50 transition-colors">
         <CardContent className="p-4">
@@ -624,9 +655,7 @@ function TemplateCard({
                     v{template.version}
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-1">
-                  {template.description}
-                </p>
+                <p className="text-sm text-muted-foreground line-clamp-1">{template.description}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -696,9 +725,9 @@ function TemplateCard({
       </CardHeader>
       <CardContent className="pb-3">
         <p className="text-sm text-muted-foreground line-clamp-2">
-          {template.description || "Không có mô tả"}
+          {template.description || 'Không có mô tả'}
         </p>
-        
+
         {/* Required Credentials */}
         {template.required_credentials?.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-3">
@@ -743,9 +772,10 @@ function InstanceCard({
 }) {
   const statusConfig = STATUS_CONFIG[instance.status];
   const _StatusIcon = statusConfig.icon;
-  const successRate = instance.total_executions > 0 
-    ? Math.round((instance.successful_executions / instance.total_executions) * 100)
-    : 0;
+  const successRate =
+    instance.total_executions > 0
+      ? Math.round((instance.successful_executions / instance.total_executions) * 100)
+      : 0;
 
   return (
     <Card className="hover:border-primary/50 transition-colors">
@@ -753,12 +783,14 @@ function InstanceCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {/* Icon */}
-            <div className={`p-2 rounded-lg ${
-              instance.is_enabled ? "bg-green-500/10" : "bg-gray-500/10"
-            }`}>
-              <Workflow className={`h-6 w-6 ${
-                instance.is_enabled ? "text-green-500" : "text-gray-500"
-              }`} />
+            <div
+              className={`p-2 rounded-lg ${
+                instance.is_enabled ? 'bg-green-500/10' : 'bg-gray-500/10'
+              }`}
+            >
+              <Workflow
+                className={`h-6 w-6 ${instance.is_enabled ? 'text-green-500' : 'text-gray-500'}`}
+              />
             </div>
 
             {/* Info */}
@@ -771,14 +803,22 @@ function InstanceCard({
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                 <span className="flex items-center gap-1">
-                  📁 {instance.projects?.name || "Unknown"}
+                  📁 {instance.projects?.name || 'Unknown'}
                 </span>
                 <span>•</span>
                 <span>{instance.total_executions} runs</span>
                 {instance.total_executions > 0 && (
                   <>
                     <span>•</span>
-                    <span className={successRate >= 90 ? "text-green-500" : successRate >= 70 ? "text-yellow-500" : "text-red-500"}>
+                    <span
+                      className={
+                        successRate >= 90
+                          ? 'text-green-500'
+                          : successRate >= 70
+                            ? 'text-yellow-500'
+                            : 'text-red-500'
+                      }
+                    >
                       {successRate}% success
                     </span>
                   </>
@@ -797,11 +837,7 @@ function InstanceCard({
             )}
 
             {/* Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onToggle(!instance.is_enabled)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => onToggle(!instance.is_enabled)}>
               {instance.is_enabled ? (
                 <Pause className="h-4 w-4 text-yellow-500" />
               ) : (
@@ -840,10 +876,7 @@ function InstanceCard({
                   Sync with n8n
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  className="text-red-600"
-                  onClick={onDelete}
-                >
+                <DropdownMenuItem className="text-red-600" onClick={onDelete}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Xóa
                 </DropdownMenuItem>

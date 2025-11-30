@@ -1,20 +1,20 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useDriveOperations, DriveFile } from "@/lib/google-drive/hooks";
-import { 
-  Upload, 
-  Folder, 
-  File, 
-  Image, 
-  FileText, 
-  Video, 
-  Music, 
-  Download, 
-  Share2, 
-  Trash2, 
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useDriveOperations, DriveFile } from '@/lib/google-drive/hooks';
+import {
+  Upload,
+  Folder,
+  File,
+  Image,
+  FileText,
+  Video,
+  Music,
+  Download,
+  Share2,
+  Trash2,
   Search,
   Grid3X3,
   List,
@@ -22,23 +22,23 @@ import {
   MoreHorizontal,
   Star,
   Clock,
-  Eye
-} from "lucide-react";
+  Eye,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
 const AdminFileManager = () => {
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
   const [files, setFiles] = useState<DriveFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadingFile, setUploadingFile] = useState<File | null>(null);
-  
+
   const driveOps = useDriveOperations();
 
   // Load files from Google Drive
@@ -48,23 +48,23 @@ const AdminFileManager = () => {
       // Keep mock data for demo
       setFiles([
         {
-          id: "1",
-          name: "AI Workflows Documentation",
-          type: "folder",
-          mimeType: "application/vnd.google-apps.folder",
-          modifiedTime: "2 hours ago",
+          id: '1',
+          name: 'AI Workflows Documentation',
+          type: 'folder',
+          mimeType: 'application/vnd.google-apps.folder',
+          modifiedTime: '2 hours ago',
           starred: true,
         },
         {
-          id: "4",
-          name: "AI_Strategy_2025.pdf",
-          type: "file",
-          mimeType: "application/pdf",
-          fileType: "document",
-          size: "2.4 MB",
-          modifiedTime: "5 minutes ago",
+          id: '4',
+          name: 'AI_Strategy_2025.pdf',
+          type: 'file',
+          mimeType: 'application/pdf',
+          fileType: 'document',
+          size: '2.4 MB',
+          modifiedTime: '5 minutes ago',
           starred: true,
-        }
+        },
       ] as DriveFile[]);
       return;
     }
@@ -122,7 +122,7 @@ const AdminFileManager = () => {
 
   const handleDelete = async (file: DriveFile) => {
     if (!confirm(`Delete "${file.name}"?`) || !driveOps.isAvailable) return;
-    
+
     try {
       await driveOps.deleteFile(file.id);
       await loadFiles(); // Refresh list
@@ -133,7 +133,7 @@ const AdminFileManager = () => {
 
   const handleToggleStar = async (file: DriveFile) => {
     if (!driveOps.isAvailable) return;
-    
+
     try {
       await driveOps.toggleStar(file.id, !file.starred);
       await loadFiles(); // Refresh list
@@ -179,76 +179,81 @@ const AdminFileManager = () => {
   // Mock data fallback
   const mockFiles: DriveFile[] = [
     {
-      id: "1",
-      name: "AI Workflows Documentation",
-      type: "folder",
-      modified: "2 hours ago",
-      owner: "Admin",
-      starred: true
+      id: '1',
+      name: 'AI Workflows Documentation',
+      type: 'folder',
+      modified: '2 hours ago',
+      owner: 'Admin',
+      starred: true,
     },
     {
-      id: "2", 
-      name: "Client Projects",
-      type: "folder",
-      modified: "1 day ago",
-      owner: "Admin"
+      id: '2',
+      name: 'Client Projects',
+      type: 'folder',
+      modified: '1 day ago',
+      owner: 'Admin',
     },
     {
-      id: "3",
-      name: "Marketing Assets",
-      type: "folder", 
-      modified: "3 days ago",
-      owner: "Admin"
+      id: '3',
+      name: 'Marketing Assets',
+      type: 'folder',
+      modified: '3 days ago',
+      owner: 'Admin',
     },
     {
-      id: "4",
-      name: "AI_Strategy_2025.pdf",
-      type: "file",
-      fileType: "document",
-      size: "2.4 MB",
-      modified: "5 minutes ago",
-      owner: "Admin",
-      starred: true
+      id: '4',
+      name: 'AI_Strategy_2025.pdf',
+      type: 'file',
+      fileType: 'document',
+      size: '2.4 MB',
+      modified: '5 minutes ago',
+      owner: 'Admin',
+      starred: true,
     },
     {
-      id: "5",
-      name: "automation_demo.mp4",
-      type: "file", 
-      fileType: "video",
-      size: "45.2 MB",
-      modified: "1 hour ago",
-      owner: "Admin"
+      id: '5',
+      name: 'automation_demo.mp4',
+      type: 'file',
+      fileType: 'video',
+      size: '45.2 MB',
+      modified: '1 hour ago',
+      owner: 'Admin',
     },
     {
-      id: "6",
-      name: "logo_variations.png",
-      type: "file",
-      fileType: "image", 
-      size: "1.8 MB",
-      modified: "2 days ago",
-      owner: "Admin",
-      thumbnail: "/api/placeholder/150/150"
+      id: '6',
+      name: 'logo_variations.png',
+      type: 'file',
+      fileType: 'image',
+      size: '1.8 MB',
+      modified: '2 days ago',
+      owner: 'Admin',
+      thumbnail: '/api/placeholder/150/150',
     },
     {
-      id: "7",
-      name: "meeting_notes.md",
-      type: "file",
-      fileType: "document",
-      size: "24 KB", 
-      modified: "3 hours ago",
-      owner: "Admin"
-    }
+      id: '7',
+      name: 'meeting_notes.md',
+      type: 'file',
+      fileType: 'document',
+      size: '24 KB',
+      modified: '3 hours ago',
+      owner: 'Admin',
+    },
   ];
 
   const getFileIcon = (item: DriveFile) => {
-    if (item.type === "folder") return <Folder className="h-8 w-8 text-blue-600" />;
-    
+    if (item.type === 'folder') return <Folder className="h-8 w-8 text-blue-600" />;
+
     switch (item.fileType) {
-      case "image": return <Image className="h-8 w-8 text-green-600" />;
-      case "document": return <FileText className="h-8 w-8 text-red-600" />;
-      case "video": return <Video className="h-8 w-8 text-purple-600" />;
-      case "audio": return <Music className="h-8 w-8 text-orange-600" />;
-      default: return <File className="h-8 w-8 text-gray-600" />;
+      case 'image':
+        return <Image className="h-8 w-8 text-green-600" />;
+      case 'document':
+        return <FileText className="h-8 w-8 text-red-600" />;
+      case 'video':
+        return <Video className="h-8 w-8 text-purple-600" />;
+      case 'audio':
+        return <Music className="h-8 w-8 text-orange-600" />;
+      default:
+        return <File className="h-8 w-8 text-gray-600" />;
     }
   };
 
@@ -262,8 +267,8 @@ const AdminFileManager = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {file.thumbnail ? (
-                <img 
-                  src={file.thumbnail} 
+                <img
+                  src={file.thumbnail}
                   alt={file.name}
                   className="h-8 w-8 rounded object-cover"
                 />
@@ -272,7 +277,7 @@ const AdminFileManager = () => {
               )}
               {file.starred && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
@@ -308,9 +313,7 @@ const AdminFileManager = () => {
               <Clock className="h-3 w-3" />
               {file.modified}
             </div>
-            {file.size && (
-              <p className="text-xs text-muted-foreground">{file.size}</p>
-            )}
+            {file.size && <p className="text-xs text-muted-foreground">{file.size}</p>}
           </div>
         </div>
       </CardContent>
@@ -321,11 +324,7 @@ const AdminFileManager = () => {
     <div className="flex items-center gap-4 p-3 hover:bg-muted/50 rounded-lg group">
       <div className="flex items-center gap-3 flex-1 min-w-0">
         {file.thumbnail ? (
-          <img 
-            src={file.thumbnail} 
-            alt={file.name}
-            className="h-8 w-8 rounded object-cover"
-          />
+          <img src={file.thumbnail} alt={file.name} className="h-8 w-8 rounded object-cover" />
         ) : (
           getFileIcon(file)
         )}
@@ -336,15 +335,13 @@ const AdminFileManager = () => {
           </div>
         </div>
       </div>
-      
+
+      <div className="hidden md:block text-sm text-muted-foreground min-w-0">{file.modified}</div>
+
       <div className="hidden md:block text-sm text-muted-foreground min-w-0">
-        {file.modified}
+        {file.size || '—'}
       </div>
-      
-      <div className="hidden md:block text-sm text-muted-foreground min-w-0">
-        {file.size || "—"}
-      </div>
-      
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
@@ -433,19 +430,19 @@ const AdminFileManager = () => {
             className="pl-10"
           />
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
-            variant={viewMode === "grid" ? "default" : "outline"}
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setViewMode("grid")}
+            onClick={() => setViewMode('grid')}
           >
             <Grid3X3 className="h-4 w-4" />
           </Button>
           <Button
-            variant={viewMode === "list" ? "default" : "outline"}
+            variant={viewMode === 'list' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setViewMode("list")}
+            onClick={() => setViewMode('list')}
           >
             <List className="h-4 w-4" />
           </Button>
@@ -462,7 +459,7 @@ const AdminFileManager = () => {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          {viewMode === "grid" ? (
+          {viewMode === 'grid' ? (
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {filteredFiles.map((file) => (
                 <FileCard key={file.id} file={file} />
@@ -479,7 +476,7 @@ const AdminFileManager = () => {
                     <div className="hidden md:block min-w-0">Size</div>
                     <div className="w-8"></div>
                   </div>
-                  
+
                   {/* File Rows */}
                   {filteredFiles.map((file) => (
                     <FileRow key={file.id} file={file} />
@@ -502,7 +499,7 @@ const AdminFileManager = () => {
         <TabsContent value="starred">
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {filteredFiles
-              .filter(file => file.starred)
+              .filter((file) => file.starred)
               .map((file) => (
                 <FileCard key={file.id} file={file} />
               ))}

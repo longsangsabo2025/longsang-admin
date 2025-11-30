@@ -7,12 +7,12 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Zap, 
-  Clock, 
-  Database, 
-  Webhook, 
-  Play, 
+import {
+  Zap,
+  Clock,
+  Database,
+  Webhook,
+  Play,
   Settings,
   CheckCircle2,
   ArrowRight,
@@ -31,9 +31,7 @@ export const AgentGuideModal = ({ open, onOpenChange }: AgentGuideModalProps) =>
           <DialogTitle className="text-2xl flex items-center gap-2">
             🤖 How to Use Your AI Agents
           </DialogTitle>
-          <DialogDescription>
-            Complete guide to activate and automate your agents
-          </DialogDescription>
+          <DialogDescription>Complete guide to activate and automate your agents</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -46,7 +44,8 @@ export const AgentGuideModal = ({ open, onOpenChange }: AgentGuideModalProps) =>
               <h3 className="text-lg font-semibold">Click on an Agent Card</h3>
             </div>
             <p className="text-sm text-muted-foreground ml-11">
-              Click any agent card to open the detailed configuration page where you can manage triggers, settings, and view activity logs.
+              Click any agent card to open the detailed configuration page where you can manage
+              triggers, settings, and view activity logs.
             </p>
           </div>
 
@@ -62,7 +61,7 @@ export const AgentGuideModal = ({ open, onOpenChange }: AgentGuideModalProps) =>
               <p className="text-sm text-muted-foreground">
                 Choose how your agent should be activated:
               </p>
-              
+
               <div className="grid gap-3">
                 {/* Manual Trigger */}
                 <div className="flex items-start gap-3 p-3 rounded-lg border bg-card">
@@ -70,10 +69,13 @@ export const AgentGuideModal = ({ open, onOpenChange }: AgentGuideModalProps) =>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-medium text-sm">Manual Trigger</span>
-                      <Badge variant="secondary" className="text-xs">Instant</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        Instant
+                      </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Click "Run Now" button to execute immediately. Perfect for testing or one-time tasks.
+                      Click "Run Now" button to execute immediately. Perfect for testing or one-time
+                      tasks.
                     </p>
                   </div>
                 </div>
@@ -84,10 +86,13 @@ export const AgentGuideModal = ({ open, onOpenChange }: AgentGuideModalProps) =>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-medium text-sm">Schedule Trigger</span>
-                      <Badge variant="secondary" className="text-xs">Automated</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        Automated
+                      </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Set recurring schedule (daily, weekly, monthly). Example: "Generate 3 blog posts every Monday at 9 AM"
+                      Set recurring schedule (daily, weekly, monthly). Example: "Generate 3 blog
+                      posts every Monday at 9 AM"
                     </p>
                   </div>
                 </div>
@@ -98,10 +103,13 @@ export const AgentGuideModal = ({ open, onOpenChange }: AgentGuideModalProps) =>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-medium text-sm">Database Trigger</span>
-                      <Badge variant="secondary" className="text-xs">Event-based</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        Event-based
+                      </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Activate when data changes. Example: "Generate content when new contact submits form"
+                      Activate when data changes. Example: "Generate content when new contact
+                      submits form"
                     </p>
                   </div>
                 </div>
@@ -112,7 +120,9 @@ export const AgentGuideModal = ({ open, onOpenChange }: AgentGuideModalProps) =>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-medium text-sm">Webhook Trigger</span>
-                      <Badge variant="secondary" className="text-xs">API</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        API
+                      </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Get API endpoint to trigger from external services (Zapier, Make, custom apps)
@@ -136,10 +146,18 @@ export const AgentGuideModal = ({ open, onOpenChange }: AgentGuideModalProps) =>
                 Customize agent behavior based on type:
               </p>
               <ul className="text-sm text-muted-foreground space-y-1.5 list-disc list-inside">
-                <li><strong>Content Writer:</strong> AI model, tone, length, SEO settings</li>
-                <li><strong>Lead Nurture:</strong> Follow-up delays, email templates, personalization</li>
-                <li><strong>Social Media:</strong> Platforms, post variants, hashtags, scheduling</li>
-                <li><strong>Analytics:</strong> Metrics to track, report frequency, dashboards</li>
+                <li>
+                  <strong>Content Writer:</strong> AI model, tone, length, SEO settings
+                </li>
+                <li>
+                  <strong>Lead Nurture:</strong> Follow-up delays, email templates, personalization
+                </li>
+                <li>
+                  <strong>Social Media:</strong> Platforms, post variants, hashtags, scheduling
+                </li>
+                <li>
+                  <strong>Analytics:</strong> Metrics to track, report frequency, dashboards
+                </li>
               </ul>
             </div>
           </div>
@@ -200,11 +218,17 @@ export const AgentGuideModal = ({ open, onOpenChange }: AgentGuideModalProps) =>
                   ⚠️ Important: Add Your API Keys
                 </h4>
                 <p className="text-xs text-orange-700 dark:text-orange-300">
-                  To enable AI generation, add your OpenAI or Anthropic API key in the <code className="px-1 py-0.5 bg-orange-100 dark:bg-orange-900 rounded">.env</code> file:
+                  To enable AI generation, add your OpenAI or Anthropic API key in the{' '}
+                  <code className="px-1 py-0.5 bg-orange-100 dark:bg-orange-900 rounded">.env</code>{' '}
+                  file:
                 </p>
                 <ul className="text-xs text-orange-700 dark:text-orange-300 space-y-1 mt-2 list-disc list-inside">
-                  <li><code>VITE_OPENAI_API_KEY=sk-...</code></li>
-                  <li><code>VITE_ANTHROPIC_API_KEY=sk-ant-...</code></li>
+                  <li>
+                    <code>VITE_OPENAI_API_KEY=sk-...</code>
+                  </li>
+                  <li>
+                    <code>VITE_ANTHROPIC_API_KEY=sk-ant-...</code>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -215,7 +239,7 @@ export const AgentGuideModal = ({ open, onOpenChange }: AgentGuideModalProps) =>
           <Button onClick={() => onOpenChange(false)} variant="outline">
             Close Guide
           </Button>
-          <Button 
+          <Button
             onClick={() => {
               onOpenChange(false);
               // Optional: scroll to agents section

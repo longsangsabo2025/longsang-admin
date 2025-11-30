@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
+import {
   Server,
   Zap,
   Database,
@@ -17,7 +17,7 @@ import {
   BarChart3,
   Settings,
   Plus,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -79,10 +79,10 @@ const fetchMcpServers = async (): Promise<McpServer[]> => {
       capabilities: ['text-generation', 'image-analysis', 'embeddings'],
       last_ping: new Date().toISOString(),
       created_at: '2025-11-01T00:00:00Z',
-      metadata: { model_count: 5, rate_limit: 1000 }
+      metadata: { model_count: 5, rate_limit: 1000 },
     },
     {
-      id: 'server-2', 
+      id: 'server-2',
       name: 'Database MCP Server',
       description: 'Supabase database operations',
       url: 'mcp://localhost:3002',
@@ -91,8 +91,8 @@ const fetchMcpServers = async (): Promise<McpServer[]> => {
       capabilities: ['query', 'insert', 'update', 'delete'],
       last_ping: new Date().toISOString(),
       created_at: '2025-11-01T00:00:00Z',
-      metadata: { tables: 12, connections: 5 }
-    }
+      metadata: { tables: 12, connections: 5 },
+    },
   ];
 };
 
@@ -106,7 +106,7 @@ const fetchMcpTools = async (): Promise<McpTool[]> => {
       input_schema: { type: 'object', properties: { prompt: { type: 'string' } } },
       enabled: true,
       usage_count: 156,
-      last_used: new Date().toISOString()
+      last_used: new Date().toISOString(),
     },
     {
       id: 'tool-2',
@@ -116,8 +116,8 @@ const fetchMcpTools = async (): Promise<McpTool[]> => {
       input_schema: { type: 'object', properties: { query: { type: 'string' } } },
       enabled: true,
       usage_count: 89,
-      last_used: new Date().toISOString()
-    }
+      last_used: new Date().toISOString(),
+    },
   ];
 };
 
@@ -131,8 +131,8 @@ const fetchMcpResources = async (): Promise<McpResource[]> => {
       description: 'OpenAI GPT-4 language model',
       mime_type: 'application/json',
       size_bytes: 0,
-      last_accessed: new Date().toISOString()
-    }
+      last_accessed: new Date().toISOString(),
+    },
   ];
 };
 
@@ -143,7 +143,7 @@ const fetchMcpAnalytics = async (): Promise<McpAnalytics> => {
     total_tools: 8,
     total_executions: 1247,
     avg_response_time: 125,
-    success_rate: 98.5
+    success_rate: 98.5,
   };
 };
 
@@ -154,23 +154,23 @@ export function McpDashboard() {
   const { data: servers, isLoading: serversLoading } = useQuery({
     queryKey: ['mcp-servers'],
     queryFn: fetchMcpServers,
-    refetchInterval: 30000 // Refresh every 30 seconds
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   const { data: tools, isLoading: toolsLoading } = useQuery({
     queryKey: ['mcp-tools'],
-    queryFn: fetchMcpTools
+    queryFn: fetchMcpTools,
   });
 
   const { data: resources, isLoading: resourcesLoading } = useQuery({
     queryKey: ['mcp-resources'],
-    queryFn: fetchMcpResources
+    queryFn: fetchMcpResources,
   });
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ['mcp-analytics'],
     queryFn: fetchMcpAnalytics,
-    refetchInterval: 10000 // Refresh every 10 seconds
+    refetchInterval: 10000, // Refresh every 10 seconds
   });
 
   const refreshAll = async () => {
@@ -216,11 +216,7 @@ export function McpDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={refreshAll}
-            disabled={refreshing}
-          >
+          <Button variant="outline" onClick={refreshAll} disabled={refreshing}>
             <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -236,27 +232,21 @@ export function McpDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {analytics.total_servers}
-              </div>
+              <div className="text-2xl font-bold text-blue-600">{analytics.total_servers}</div>
               <p className="text-sm text-muted-foreground">Total Servers</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {analytics.active_servers}
-              </div>
+              <div className="text-2xl font-bold text-green-600">{analytics.active_servers}</div>
               <p className="text-sm text-muted-foreground">Active</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {analytics.total_tools}
-              </div>
+              <div className="text-2xl font-bold text-purple-600">{analytics.total_tools}</div>
               <p className="text-sm text-muted-foreground">Available Tools</p>
             </CardContent>
           </Card>
@@ -281,9 +271,7 @@ export function McpDashboard() {
 
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-emerald-600">
-                {analytics.success_rate}%
-              </div>
+              <div className="text-2xl font-bold text-emerald-600">{analytics.success_rate}%</div>
               <p className="text-sm text-muted-foreground">Success Rate</p>
             </CardContent>
           </Card>
@@ -350,9 +338,7 @@ export function McpDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className={getStatusColor(server.status)}>
-                          {server.status}
-                        </Badge>
+                        <Badge className={getStatusColor(server.status)}>{server.status}</Badge>
                         <Badge variant="outline">v{server.version}</Badge>
                       </div>
                     </div>
@@ -363,7 +349,7 @@ export function McpDashboard() {
                         <Globe className="w-4 h-4" />
                         <span>{server.url}</span>
                       </div>
-                      
+
                       <div>
                         <h4 className="font-medium mb-2">Capabilities</h4>
                         <div className="flex flex-wrap gap-2">
@@ -425,8 +411,8 @@ export function McpDashboard() {
                         <CardDescription>{tool.description}</CardDescription>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={tool.enabled ? "default" : "secondary"}>
-                          {tool.enabled ? "Enabled" : "Disabled"}
+                        <Badge variant={tool.enabled ? 'default' : 'secondary'}>
+                          {tool.enabled ? 'Enabled' : 'Disabled'}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
                           {tool.usage_count} uses
@@ -439,14 +425,12 @@ export function McpDashboard() {
                       <div className="text-sm">
                         <span className="text-muted-foreground">Server:</span>
                         <span className="ml-2">
-                          {servers?.find(s => s.id === tool.server_id)?.name || 'Unknown'}
+                          {servers?.find((s) => s.id === tool.server_id)?.name || 'Unknown'}
                         </span>
                       </div>
                       <div className="text-sm">
                         <span className="text-muted-foreground">Last used:</span>
-                        <span className="ml-2">
-                          {new Date(tool.last_used).toLocaleString()}
-                        </span>
+                        <span className="ml-2">{new Date(tool.last_used).toLocaleString()}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -489,7 +473,7 @@ export function McpDashboard() {
                       <div>
                         <span className="text-muted-foreground">Server:</span>
                         <span className="ml-2">
-                          {servers?.find(s => s.id === resource.server_id)?.name || 'Unknown'}
+                          {servers?.find((s) => s.id === resource.server_id)?.name || 'Unknown'}
                         </span>
                       </div>
                       <div>
@@ -534,9 +518,7 @@ export function McpDashboard() {
                 <div className="text-3xl font-bold text-blue-600">
                   {analytics?.avg_response_time}ms
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Average response time
-                </p>
+                <p className="text-sm text-muted-foreground">Average response time</p>
               </CardContent>
             </Card>
           </div>
@@ -544,8 +526,8 @@ export function McpDashboard() {
           <Alert>
             <BarChart3 className="h-4 w-4" />
             <AlertDescription>
-              Detailed analytics and monitoring charts will be available in the next update.
-              Current metrics are updated in real-time.
+              Detailed analytics and monitoring charts will be available in the next update. Current
+              metrics are updated in real-time.
             </AlertDescription>
           </Alert>
         </TabsContent>

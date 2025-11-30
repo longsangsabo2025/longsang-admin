@@ -1,9 +1,9 @@
-import { ReactNode } from "react";
-import { Breadcrumbs } from "./Breadcrumbs";
-import { Footer } from "./Footer";
-import { Navigation } from "./Navigation";
-import { ScrollToTop } from "./ScrollToTop";
-import { CopilotBridge } from "./copilot/CopilotBridge";
+import { ReactNode } from 'react';
+import { Breadcrumbs } from './Breadcrumbs';
+import { Footer } from './Footer';
+import { Navigation } from './Navigation';
+import { ScrollToTop } from './ScrollToTop';
+import { CopilotBridge } from './copilot/CopilotBridge';
 
 interface LayoutProps {
   children: ReactNode;

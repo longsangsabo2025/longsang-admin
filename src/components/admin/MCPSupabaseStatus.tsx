@@ -10,7 +10,7 @@ import {
   Database,
   Activity,
   ExternalLink,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabaseStable } from '@/lib/supabase-stable';
@@ -32,7 +32,7 @@ export function MCPSupabaseStatus() {
   });
 
   const checkConnection = async () => {
-    setStatus(prev => ({ ...prev, loading: true, error: undefined }));
+    setStatus((prev) => ({ ...prev, loading: true, error: undefined }));
 
     try {
       // Use stable client with retry logic
@@ -48,7 +48,13 @@ export function MCPSupabaseStatus() {
 
       // Test 2: Count tables (try to query different tables)
       let tableCount = 0;
-      const tablesToCheck = ['projects', 'admin_settings', 'automation_agents', 'workflows', 'users'];
+      const tablesToCheck = [
+        'projects',
+        'admin_settings',
+        'automation_agents',
+        'workflows',
+        'users',
+      ];
 
       for (const table of tablesToCheck) {
         try {
@@ -71,7 +77,6 @@ export function MCPSupabaseStatus() {
         title: '✅ Kết nối thành công',
         description: 'MCP Supabase đã sẵn sàng sử dụng',
       });
-
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định';
 
@@ -105,12 +110,7 @@ export function MCPSupabaseStatus() {
             <Database className="h-5 w-5" />
             <CardTitle>MCP Supabase Status</CardTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={checkConnection}
-            disabled={status.loading}
-          >
+          <Button variant="ghost" size="sm" onClick={checkConnection} disabled={status.loading}>
             {status.loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -213,9 +213,7 @@ export function MCPSupabaseStatus() {
           {/* Instructions */}
           {!status.connected && (
             <div className="pt-4 border-t">
-              <p className="text-sm text-muted-foreground mb-2">
-                Để sử dụng MCP Supabase với AI:
-              </p>
+              <p className="text-sm text-muted-foreground mb-2">Để sử dụng MCP Supabase với AI:</p>
               <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
                 <li>Cấu hình MCP trong Cursor settings</li>
                 <li>Restart Cursor để áp dụng cấu hình</li>

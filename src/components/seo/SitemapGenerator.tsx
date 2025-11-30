@@ -1,23 +1,23 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { FileText, Download, RefreshCw, Globe } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { FileText, Download, RefreshCw, Globe } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 export function SitemapGenerator() {
   const { toast } = useToast();
 
   const sitemaps = [
-    { name: "sitemap.xml", urls: 310, size: "59.9 KB", lastUpdate: "2025-11-11 20:18:00" },
-    { name: "sitemap-users.xml", urls: 123, size: "25.2 KB", lastUpdate: "2025-11-11 20:18:00" },
-    { name: "sitemap-matches.xml", urls: 170, size: "34.1 KB", lastUpdate: "2025-11-11 20:18:00" },
-    { name: "sitemap-news.xml", urls: 8, size: "2.4 KB", lastUpdate: "2025-11-11 20:18:00" },
+    { name: 'sitemap.xml', urls: 310, size: '59.9 KB', lastUpdate: '2025-11-11 20:18:00' },
+    { name: 'sitemap-users.xml', urls: 123, size: '25.2 KB', lastUpdate: '2025-11-11 20:18:00' },
+    { name: 'sitemap-matches.xml', urls: 170, size: '34.1 KB', lastUpdate: '2025-11-11 20:18:00' },
+    { name: 'sitemap-news.xml', urls: 8, size: '2.4 KB', lastUpdate: '2025-11-11 20:18:00' },
   ];
 
   const handleGenerate = () => {
     toast({
-      title: "Đang tạo sitemap...",
-      description: "Sitemap đang được tạo tự động"
+      title: 'Đang tạo sitemap...',
+      description: 'Sitemap đang được tạo tự động',
     });
   };
 
@@ -30,9 +30,7 @@ export function SitemapGenerator() {
               <FileText className="w-5 h-5" />
               Quản Lý Sitemap
             </CardTitle>
-            <CardDescription>
-              Tự động tạo và cập nhật sitemap cho tất cả domains
-            </CardDescription>
+            <CardDescription>Tự động tạo và cập nhật sitemap cho tất cả domains</CardDescription>
           </div>
           <Button onClick={handleGenerate} className="flex items-center gap-2">
             <RefreshCw className="w-4 h-4" />

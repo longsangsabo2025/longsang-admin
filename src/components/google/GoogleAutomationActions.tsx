@@ -58,7 +58,7 @@ export const GoogleAutomationActions = () => {
       const automationResults = await runAllAutomations(defaultConfig);
       setResults(automationResults);
 
-      const successCount = automationResults.filter(r => r.status === 'success').length;
+      const successCount = automationResults.filter((r) => r.status === 'success').length;
       toast.success(`Completed: ${successCount}/${automationResults.length} successful`);
 
       // Reload stats
@@ -96,7 +96,7 @@ export const GoogleAutomationActions = () => {
       const testResults = await testAllConnections(defaultConfig);
       setResults(testResults);
 
-      const allSuccess = testResults.every(r => r.status === 'success');
+      const allSuccess = testResults.every((r) => r.status === 'success');
       if (allSuccess) {
         toast.success('All connections OK!');
       } else {
@@ -144,11 +144,7 @@ export const GoogleAutomationActions = () => {
           disabled={running}
           className="h-auto py-6 flex-col gap-2"
         >
-          {running ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
-          ) : (
-            <Play className="h-6 w-6" />
-          )}
+          {running ? <Loader2 className="h-6 w-6 animate-spin" /> : <Play className="h-6 w-6" />}
           <div>
             <div className="font-bold">Run All Automations</div>
             <div className="text-xs opacity-80">SEO + Email + Calendar + Drive</div>
@@ -285,9 +281,7 @@ export const GoogleAutomationActions = () => {
               <Mail className="h-5 w-5 text-green-500" />
               Email Automation
             </CardTitle>
-            <CardDescription>
-              Send emails via Gmail API to customers
-            </CardDescription>
+            <CardDescription>Send emails via Gmail API to customers</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <Button variant="outline" className="w-full justify-start" disabled={running}>
@@ -312,9 +306,7 @@ export const GoogleAutomationActions = () => {
               <Calendar className="h-5 w-5 text-purple-500" />
               Calendar Automation
             </CardTitle>
-            <CardDescription>
-              Create events, send invites to customers
-            </CardDescription>
+            <CardDescription>Create events, send invites to customers</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <Button variant="outline" className="w-full justify-start" disabled={running}>
@@ -339,9 +331,7 @@ export const GoogleAutomationActions = () => {
               <FolderOpen className="h-5 w-5 text-orange-500" />
               Drive Automation
             </CardTitle>
-            <CardDescription>
-              Upload files, create shareable links
-            </CardDescription>
+            <CardDescription>Upload files, create shareable links</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <Button variant="outline" className="w-full justify-start" disabled={running}>
@@ -384,9 +374,7 @@ export const GoogleAutomationActions = () => {
                     )}
                     <div className="flex-1">
                       <div className="font-medium">{result.service}</div>
-                      <AlertDescription className="mt-1">
-                        {result.message}
-                      </AlertDescription>
+                      <AlertDescription className="mt-1">{result.message}</AlertDescription>
                     </div>
                     <Badge variant={result.status === 'success' ? 'default' : 'destructive'}>
                       {result.status}

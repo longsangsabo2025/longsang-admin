@@ -257,11 +257,7 @@ export function VideoPlayer({
               {/* Playback Speed */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-white/20"
-                  >
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
                     {playbackRate}x
                   </Button>
                 </DropdownMenuTrigger>
@@ -281,11 +277,7 @@ export function VideoPlayer({
               {/* Quality */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-white/20"
-                  >
+                  <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
                     <Settings className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>

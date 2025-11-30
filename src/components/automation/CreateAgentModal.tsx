@@ -78,11 +78,11 @@ export const CreateAgentModal = ({ open, onOpenChange }: CreateAgentModalProps) 
     }
 
     setIsGenerating(true);
-    
+
     try {
       // Find agent type details
-      const agentType = agentTypes.find(t => t.value === formData.type);
-      
+      const agentType = agentTypes.find((t) => t.value === formData.type);
+
       // Simple AI-powered description generation
       const descriptions: Record<string, string> = {
         content_writer: `An intelligent content creation agent that generates high-quality blog posts, articles, and marketing content. "${formData.name}" uses advanced AI to craft engaging, SEO-optimized content that resonates with your target audience while maintaining your brand voice and style guidelines.`,
@@ -92,8 +92,10 @@ export const CreateAgentModal = ({ open, onOpenChange }: CreateAgentModalProps) 
         custom: `A versatile AI agent tailored to your specific automation needs. "${formData.name}" can be configured to handle various tasks, from data processing to customer interactions, providing flexible automation that adapts to your unique business requirements.`,
       };
 
-      const description = descriptions[formData.type] || `An AI-powered automation agent named "${formData.name}" designed to streamline your ${agentType?.label || 'business'} processes with intelligent automation.`;
-      
+      const description =
+        descriptions[formData.type] ||
+        `An AI-powered automation agent named "${formData.name}" designed to streamline your ${agentType?.label || 'business'} processes with intelligent automation.`;
+
       setFormData({ ...formData, description });
       toast.success('Description generated! ✨');
     } catch (error) {
@@ -105,7 +107,7 @@ export const CreateAgentModal = ({ open, onOpenChange }: CreateAgentModalProps) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.type) {
       toast.error('Please fill in all required fields');
       return;
@@ -280,8 +282,8 @@ export const CreateAgentModal = ({ open, onOpenChange }: CreateAgentModalProps) 
               className="resize-none"
             />
             <p className="text-xs text-muted-foreground">
-              {formData.type && formData.name 
-                ? '✨ Click "Generate with AI" for a smart description' 
+              {formData.type && formData.name
+                ? '✨ Click "Generate with AI" for a smart description'
                 : 'Select agent type and name first to use AI generation'}
             </p>
           </div>
@@ -291,7 +293,7 @@ export const CreateAgentModal = ({ open, onOpenChange }: CreateAgentModalProps) 
             <Label htmlFor="status">Initial Status</Label>
             <Select
               value={formData.status}
-              onValueChange={(value: 'active' | 'paused') => 
+              onValueChange={(value: 'active' | 'paused') =>
                 setFormData({ ...formData, status: value })
               }
             >
@@ -331,9 +333,7 @@ export const CreateAgentModal = ({ open, onOpenChange }: CreateAgentModalProps) 
               Cancel
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Agent
             </Button>
           </DialogFooter>

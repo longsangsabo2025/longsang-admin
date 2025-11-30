@@ -35,7 +35,7 @@ export interface AIExecutionResult {
  */
 function calculateCost(inputTokens: number, outputTokens: number): number {
   const inputCost = (inputTokens / 1_000_000) * 0.15;
-  const outputCost = (outputTokens / 1_000_000) * 0.60;
+  const outputCost = (outputTokens / 1_000_000) * 0.6;
   return Number((inputCost + outputCost).toFixed(4));
 }
 
@@ -76,7 +76,7 @@ export async function executeAgentWithAI(
 
     const executionTime = Date.now() - startTime;
     const content = response.choices[0]?.message?.content || '{}';
-    
+
     // Parse output
     let output;
     try {
@@ -100,7 +100,7 @@ export async function executeAgentWithAI(
     };
   } catch (error) {
     const executionTime = Date.now() - startTime;
-    
+
     return {
       success: false,
       output: null,
@@ -129,16 +129,16 @@ function formatInputForAgent(agent: MVPAgent, inputData: any): string {
   switch (agent.category) {
     case 'sales':
       return formatSalesInput(inputData);
-    
+
     case 'content':
       return formatContentInput(inputData);
-    
+
     case 'marketing':
       return formatMarketingInput(inputData);
-    
+
     case 'data':
       return formatDataInput(inputData);
-    
+
     default:
       return JSON.stringify(inputData, null, 2);
   }
@@ -163,7 +163,7 @@ Please provide:
 5. Estimated deal size
 6. Personalized follow-up email draft`;
   }
-  
+
   return JSON.stringify(data, null, 2);
 }
 
@@ -186,7 +186,7 @@ Please provide:
 5. Image recommendations
 6. Strong CTA`;
   }
-  
+
   return JSON.stringify(data, null, 2);
 }
 
@@ -210,7 +210,7 @@ Create optimized posts for:
 
 Include hashtags and best posting times.`;
   }
-  
+
   return JSON.stringify(data, null, 2);
 }
 
@@ -231,7 +231,7 @@ Please provide:
 5. Actionable recommendations
 6. Visualization suggestions`;
   }
-  
+
   return JSON.stringify(data, null, 2);
 }
 
@@ -247,7 +247,7 @@ export async function mockExecuteAgent(
   _inputData: any
 ): Promise<AIExecutionResult> {
   // Simulate processing time
-  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+  await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 1000));
 
   return {
     success: true,

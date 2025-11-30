@@ -12,9 +12,9 @@ export interface KeywordData {
 
 export interface KeywordAnalysis {
   domain: string;
-  primaryKeywords: KeywordData[];      // Top 10 main keywords
-  secondaryKeywords: KeywordData[];    // 20-30 supporting keywords
-  longTailKeywords: KeywordData[];     // 30-50 long-tail phrases
+  primaryKeywords: KeywordData[]; // Top 10 main keywords
+  secondaryKeywords: KeywordData[]; // 20-30 supporting keywords
+  longTailKeywords: KeywordData[]; // 30-50 long-tail phrases
   totalKeywords: number;
   avgSearchVolume: number;
   recommendations: string[];
@@ -25,14 +25,16 @@ export interface KeywordAnalysis {
  */
 function getOpenAIClient(): OpenAI {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.OPENAI_API_KEY;
-  
+
   if (!apiKey) {
-    throw new Error('OpenAI API key not found. Please set VITE_OPENAI_API_KEY or OPENAI_API_KEY in .env');
+    throw new Error(
+      'OpenAI API key not found. Please set VITE_OPENAI_API_KEY or OPENAI_API_KEY in .env'
+    );
   }
 
   return new OpenAI({
     apiKey,
-    dangerouslyAllowBrowser: true // For frontend use
+    dangerouslyAllowBrowser: true, // For frontend use
   });
 }
 
@@ -104,22 +106,23 @@ Return ONLY valid JSON in this exact format (no markdown, no code blocks):
     // 3. Call OpenAI
     console.log('🤖 Generating keywords with AI...');
     const openai = getOpenAIClient();
-    
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [
         {
           role: 'system',
-          content: 'You are an expert SEO specialist who generates comprehensive keyword strategies. Always return valid JSON only, no markdown formatting.'
+          content:
+            'You are an expert SEO specialist who generates comprehensive keyword strategies. Always return valid JSON only, no markdown formatting.',
         },
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       temperature: 0.7,
       max_tokens: 4000,
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
     });
 
     // 4. Parse response
@@ -130,7 +133,7 @@ Return ONLY valid JSON in this exact format (no markdown, no code blocks):
     const allKeywords = [
       ...parsed.primaryKeywords,
       ...parsed.secondaryKeywords,
-      ...parsed.longTailKeywords
+      ...parsed.longTailKeywords,
     ];
 
     const totalSearchVolume = allKeywords.reduce((sum, kw) => sum + kw.searchVolume, 0);
@@ -145,9 +148,8 @@ Return ONLY valid JSON in this exact format (no markdown, no code blocks):
       longTailKeywords: parsed.longTailKeywords || [],
       totalKeywords: allKeywords.length,
       avgSearchVolume,
-      recommendations: parsed.recommendations || []
+      recommendations: parsed.recommendations || [],
     };
-
   } catch (error) {
     console.error('❌ Keyword generation error:', error);
     throw new Error(`Failed to generate keywords: ${error.message}`);
@@ -167,7 +169,7 @@ export async function generateLocalizedKeywords(
 
     const languageMap = {
       vi: 'Vietnamese (Vietnam)',
-      en: 'English'
+      en: 'English',
     };
 
     const prompt = `
@@ -195,22 +197,22 @@ Return ONLY valid JSON (no markdown):
 `;
 
     const openai = getOpenAIClient();
-    
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [
         {
           role: 'system',
-          content: `You are an expert SEO specialist for ${languageMap[language]} markets. Always return valid JSON only.`
+          content: `You are an expert SEO specialist for ${languageMap[language]} markets. Always return valid JSON only.`,
         },
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       temperature: 0.7,
       max_tokens: 4000,
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
     });
 
     const responseText = completion.choices[0].message.content || '{}';
@@ -219,7 +221,7 @@ Return ONLY valid JSON (no markdown):
     const allKeywords = [
       ...parsed.primaryKeywords,
       ...parsed.secondaryKeywords,
-      ...parsed.longTailKeywords
+      ...parsed.longTailKeywords,
     ];
 
     const totalSearchVolume = allKeywords.reduce((sum, kw) => sum + kw.searchVolume, 0);
@@ -232,9 +234,8 @@ Return ONLY valid JSON (no markdown):
       longTailKeywords: parsed.longTailKeywords || [],
       totalKeywords: allKeywords.length,
       avgSearchVolume,
-      recommendations: parsed.recommendations || []
+      recommendations: parsed.recommendations || [],
     };
-
   } catch (error) {
     console.error('Localized keyword generation error:', error);
     throw new Error(`Failed to generate localized keywords: ${error.message}`);
@@ -253,9 +254,7 @@ export async function analyzeCompetitors(
   gaps: string[];
 }> {
   try {
-    const analyses = await Promise.all(
-      competitors.map(comp => analyzeDomain(comp))
-    );
+    const analyses = await Promise.all(competitors.map((comp) => analyzeDomain(comp)));
 
     const prompt = `
 You are an expert SEO competitor analyst.
@@ -263,10 +262,14 @@ You are an expert SEO competitor analyst.
 YOUR WEBSITE: ${domain}
 
 COMPETITORS:
-${analyses.map((analysis, i) => `
+${analyses
+  .map(
+    (analysis, i) => `
 ${i + 1}. ${competitors[i]}
 ${analysis}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 Analyze the competitive landscape and identify:
 
@@ -286,21 +289,23 @@ Return ONLY valid JSON:
 `;
 
     const openai = getOpenAIClient();
-    
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [
-        { role: 'system', content: 'You are an expert SEO competitor analyst. Return valid JSON only.' },
-        { role: 'user', content: prompt }
+        {
+          role: 'system',
+          content: 'You are an expert SEO competitor analyst. Return valid JSON only.',
+        },
+        { role: 'user', content: prompt },
       ],
       temperature: 0.7,
       max_tokens: 3000,
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
     });
 
     const responseText = completion.choices[0].message.content || '{}';
     return JSON.parse(responseText);
-
   } catch (error) {
     console.error('Competitor analysis error:', error);
     throw new Error(`Failed to analyze competitors: ${error.message}`);

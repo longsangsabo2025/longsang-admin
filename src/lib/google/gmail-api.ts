@@ -33,21 +33,18 @@ export interface EmailResult {
 // API FUNCTIONS - Call through API server
 // ============================================================
 
-export async function sendEmail(
-  fromEmail: string,
-  options: EmailOptions
-): Promise<EmailResult> {
+export async function sendEmail(fromEmail: string, options: EmailOptions): Promise<EmailResult> {
   const response = await fetch(`${API_BASE}/send-email`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fromEmail, ...options }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to send email');
   }
-  
+
   const data = await response.json();
   return {
     status: 'success',
@@ -67,12 +64,12 @@ export async function sendBulkEmails(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fromEmail, recipients, template }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to send bulk emails');
   }
-  
+
   return response.json();
 }
 
@@ -82,12 +79,12 @@ export async function sendConsultationConfirmation(consultationId: string): Prom
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ consultationId }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to send confirmation');
   }
-  
+
   const data = await response.json();
   return {
     status: 'success',
@@ -102,12 +99,12 @@ export async function sendWeeklyNewsletter(): Promise<EmailResult> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to send newsletter');
   }
-  
+
   return response.json();
 }
 
@@ -117,12 +114,12 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userEmail, userName }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to send welcome email');
   }
-  
+
   return response.json();
 }
 
@@ -147,7 +144,7 @@ export async function getEmailStats(days: number = 30) {
     if (error) throw error;
 
     const total = data?.length || 0;
-    const successful = data?.filter(log => log.status === 'success').length || 0;
+    const successful = data?.filter((log) => log.status === 'success').length || 0;
     const failed = total - successful;
 
     return {

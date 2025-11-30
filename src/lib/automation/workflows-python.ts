@@ -12,7 +12,7 @@ import * as AI from './ai-service-python';
 export async function executeContentWriterWorkflow(contactId: string) {
   const startTime = Date.now();
   const agentId = 'content_writer';
-  
+
   try {
     // 1. Get contact data
     const { data: contact, error: contactError } = await supabase
@@ -25,7 +25,7 @@ export async function executeContentWriterWorkflow(contactId: string) {
 
     // 2. Extract topic from message using AI
     const topic = await AI.extractTopicFromMessage(contact.message);
-    
+
     // 3. Log start
     await supabase.from('activity_logs').insert({
       agent_id: agentId,
@@ -89,7 +89,6 @@ export async function executeContentWriterWorkflow(contactId: string) {
       blog,
       queueItemId: queueItem.id,
     };
-
   } catch (error: any) {
     // Log error
     const duration = Date.now() - startTime;
@@ -118,7 +117,7 @@ export async function executeContentWriterWorkflow(contactId: string) {
 export async function executeLeadNurtureWorkflow(contactId: string, followUpNumber: number = 1) {
   const startTime = Date.now();
   const agentId = 'lead_nurture';
-  
+
   try {
     // 1. Get contact
     const { data: contact, error } = await supabase
@@ -182,7 +181,6 @@ export async function executeLeadNurtureWorkflow(contactId: string, followUpNumb
       email,
       queueItemId: queueItem?.id,
     };
-
   } catch (error: any) {
     const duration = Date.now() - startTime;
     await supabase.from('activity_logs').insert({
@@ -208,7 +206,7 @@ export async function executeLeadNurtureWorkflow(contactId: string, followUpNumb
 export async function executeSocialMediaWorkflow(blogQueueItemId: string) {
   const startTime = Date.now();
   const agentId = 'social_media';
-  
+
   try {
     // 1. Get blog from queue
     const { data: blogItem, error } = await supabase
@@ -221,12 +219,11 @@ export async function executeSocialMediaWorkflow(blogQueueItemId: string) {
 
     // 2. Generate social posts via Python backend
     const blogUrl = `https://yourblog.com/posts/${blogQueueItemId}`;
-    const posts = await AI.generateSocialPosts(
-      blogItem.title,
-      blogItem.content,
-      blogUrl,
-      ['linkedin', 'twitter', 'facebook']
-    );
+    const posts = await AI.generateSocialPosts(blogItem.title, blogItem.content, blogUrl, [
+      'linkedin',
+      'twitter',
+      'facebook',
+    ]);
 
     // 3. Add each platform post to queue
     const queuePromises = Object.entries(posts).map(([platform, post]: [string, any]) =>
@@ -270,7 +267,6 @@ export async function executeSocialMediaWorkflow(blogQueueItemId: string) {
       success: true,
       posts,
     };
-
   } catch (error: any) {
     const duration = Date.now() - startTime;
     await supabase.from('activity_logs').insert({
@@ -296,7 +292,7 @@ export async function executeSocialMediaWorkflow(blogQueueItemId: string) {
 export async function executeAnalyticsWorkflow() {
   const startTime = Date.now();
   const agentId = 'analytics';
-  
+
   try {
     // 1. Gather metrics (mock for now)
     const metrics = {
@@ -309,8 +305,14 @@ export async function executeAnalyticsWorkflow() {
     // Get actual counts
     const [contacts, blogs, emails] = await Promise.all([
       supabase.from('contacts').select('id', { count: 'exact', head: true }),
-      supabase.from('content_queue').select('id', { count: 'exact', head: true }).eq('content_type', 'blog_post'),
-      supabase.from('content_queue').select('id', { count: 'exact', head: true }).eq('content_type', 'email'),
+      supabase
+        .from('content_queue')
+        .select('id', { count: 'exact', head: true })
+        .eq('content_type', 'blog_post'),
+      supabase
+        .from('content_queue')
+        .select('id', { count: 'exact', head: true })
+        .eq('content_type', 'email'),
     ]);
 
     metrics.total_contacts = contacts.count || 0;
@@ -344,7 +346,6 @@ export async function executeAnalyticsWorkflow() {
       metrics,
       insights,
     };
-
   } catch (error: any) {
     const duration = Date.now() - startTime;
     await supabase.from('activity_logs').insert({
@@ -374,22 +375,22 @@ export async function triggerAgent(agentType: string, context: any = {}) {
         return executeContentWriterWorkflow(context.contact_id);
       }
       throw new Error('contact_id required for Content Writer');
-    
+
     case 'lead_nurture':
       if (context.contact_id) {
         return executeLeadNurtureWorkflow(context.contact_id, context.follow_up_number || 1);
       }
       throw new Error('contact_id required for Lead Nurture');
-    
+
     case 'social_media':
       if (context.blog_queue_id) {
         return executeSocialMediaWorkflow(context.blog_queue_id);
       }
       throw new Error('blog_queue_id required for Social Media');
-    
+
     case 'analytics':
       return executeAnalyticsWorkflow();
-    
+
     default:
       throw new Error(`Unknown agent type: ${agentType}`);
   }

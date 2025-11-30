@@ -3,11 +3,11 @@
  * Displays results from advanced RAG search with reranking
  */
 
-import type { MultiDomainQueryResult } from "@/brain/types/multi-domain.types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, TrendingUp } from "lucide-react";
+import type { MultiDomainQueryResult } from '@/brain/types/multi-domain.types';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sparkles, TrendingUp } from 'lucide-react';
 
 interface AdvancedRAGResultsProps {
   readonly results: MultiDomainQueryResult[];
@@ -33,7 +33,7 @@ export function AdvancedRAGResults({ results, query }: AdvancedRAGResultsProps) 
           Advanced RAG Results
         </CardTitle>
         <CardDescription>
-          {results.length} result{results.length !== 1 ? "s" : ""} found
+          {results.length} result{results.length !== 1 ? 's' : ''} found
           {query && ` for "${query}"`}
         </CardDescription>
       </CardHeader>
@@ -41,7 +41,10 @@ export function AdvancedRAGResults({ results, query }: AdvancedRAGResultsProps) 
         <ScrollArea className="h-[600px]">
           <div className="space-y-4">
             {results.map((result, idx) => (
-              <div key={result.id || idx} className="p-4 border rounded-lg hover:bg-muted transition-colors">
+              <div
+                key={result.id || idx}
+                className="p-4 border rounded-lg hover:bg-muted transition-colors"
+              >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg mb-1">{result.title}</h3>
@@ -87,4 +90,3 @@ export function AdvancedRAGResults({ results, query }: AdvancedRAGResultsProps) 
     </Card>
   );
 }
-

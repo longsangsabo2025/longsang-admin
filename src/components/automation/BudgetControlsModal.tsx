@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,7 +35,12 @@ interface Budget {
   current_monthly_spend: number;
 }
 
-export function BudgetControlsModal({ open, onOpenChange, agentId, agentName }: BudgetControlsModalProps) {
+export function BudgetControlsModal({
+  open,
+  onOpenChange,
+  agentId,
+  agentName,
+}: BudgetControlsModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [budget, setBudget] = useState<Budget>({
@@ -79,15 +90,10 @@ export function BudgetControlsModal({ open, onOpenChange, agentId, agentName }: 
 
       if (budget.id) {
         // Update existing
-        await supabase
-          .from('agent_budgets')
-          .update(budgetData)
-          .eq('id', budget.id);
+        await supabase.from('agent_budgets').update(budgetData).eq('id', budget.id);
       } else {
         // Create new
-        await supabase
-          .from('agent_budgets')
-          .insert(budgetData);
+        await supabase.from('agent_budgets').insert(budgetData);
       }
 
       toast({
@@ -135,25 +141,24 @@ export function BudgetControlsModal({ open, onOpenChange, agentId, agentName }: 
     }
   };
 
-  const dailyUsagePercent = budget.daily_limit 
-    ? (budget.current_daily_spend / budget.daily_limit) * 100 
+  const dailyUsagePercent = budget.daily_limit
+    ? (budget.current_daily_spend / budget.daily_limit) * 100
     : 0;
-  
-  const monthlyUsagePercent = budget.monthly_limit 
-    ? (budget.current_monthly_spend / budget.monthly_limit) * 100 
+
+  const monthlyUsagePercent = budget.monthly_limit
+    ? (budget.current_monthly_spend / budget.monthly_limit) * 100
     : 0;
 
   const isOverBudget = dailyUsagePercent >= 100 || monthlyUsagePercent >= 100;
-  const isNearLimit = dailyUsagePercent >= budget.alert_threshold || monthlyUsagePercent >= budget.alert_threshold;
+  const isNearLimit =
+    dailyUsagePercent >= budget.alert_threshold || monthlyUsagePercent >= budget.alert_threshold;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Budget Controls - {agentName}</DialogTitle>
-          <DialogDescription>
-            Set spending limits and alerts for this agent
-          </DialogDescription>
+          <DialogDescription>Set spending limits and alerts for this agent</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -163,7 +168,7 @@ export function BudgetControlsModal({ open, onOpenChange, agentId, agentName }: 
               <TrendingUp className="h-4 w-4" />
               Current Spending
             </h3>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between mb-2">
@@ -180,9 +185,11 @@ export function BudgetControlsModal({ open, onOpenChange, agentId, agentName }: 
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full transition-all ${
-                          dailyUsagePercent >= 100 ? 'bg-red-500' :
-                          dailyUsagePercent >= budget.alert_threshold ? 'bg-yellow-500' :
-                          'bg-green-500'
+                          dailyUsagePercent >= 100
+                            ? 'bg-red-500'
+                            : dailyUsagePercent >= budget.alert_threshold
+                              ? 'bg-yellow-500'
+                              : 'bg-green-500'
                         }`}
                         style={{ width: `${Math.min(dailyUsagePercent, 100)}%` }}
                       />
@@ -206,9 +213,11 @@ export function BudgetControlsModal({ open, onOpenChange, agentId, agentName }: 
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full transition-all ${
-                          monthlyUsagePercent >= 100 ? 'bg-red-500' :
-                          monthlyUsagePercent >= budget.alert_threshold ? 'bg-yellow-500' :
-                          'bg-green-500'
+                          monthlyUsagePercent >= 100
+                            ? 'bg-red-500'
+                            : monthlyUsagePercent >= budget.alert_threshold
+                              ? 'bg-yellow-500'
+                              : 'bg-green-500'
                         }`}
                         style={{ width: `${Math.min(monthlyUsagePercent, 100)}%` }}
                       />
@@ -254,10 +263,12 @@ export function BudgetControlsModal({ open, onOpenChange, agentId, agentName }: 
                   min="0"
                   placeholder="No limit"
                   value={budget.daily_limit ?? ''}
-                  onChange={(e) => setBudget({
-                    ...budget,
-                    daily_limit: e.target.value ? parseFloat(e.target.value) : null
-                  })}
+                  onChange={(e) =>
+                    setBudget({
+                      ...budget,
+                      daily_limit: e.target.value ? parseFloat(e.target.value) : null,
+                    })
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
                   Maximum daily spending. Leave empty for no limit.
@@ -273,10 +284,12 @@ export function BudgetControlsModal({ open, onOpenChange, agentId, agentName }: 
                   min="0"
                   placeholder="No limit"
                   value={budget.monthly_limit ?? ''}
-                  onChange={(e) => setBudget({
-                    ...budget,
-                    monthly_limit: e.target.value ? parseFloat(e.target.value) : null
-                  })}
+                  onChange={(e) =>
+                    setBudget({
+                      ...budget,
+                      monthly_limit: e.target.value ? parseFloat(e.target.value) : null,
+                    })
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
                   Maximum monthly spending. Leave empty for no limit.
@@ -299,10 +312,12 @@ export function BudgetControlsModal({ open, onOpenChange, agentId, agentName }: 
                 </div>
                 <Switch
                   checked={budget.auto_pause_on_limit}
-                  onCheckedChange={(checked) => setBudget({
-                    ...budget,
-                    auto_pause_on_limit: checked
-                  })}
+                  onCheckedChange={(checked) =>
+                    setBudget({
+                      ...budget,
+                      auto_pause_on_limit: checked,
+                    })
+                  }
                 />
               </div>
 
@@ -315,10 +330,12 @@ export function BudgetControlsModal({ open, onOpenChange, agentId, agentName }: 
                 </div>
                 <Switch
                   checked={budget.notify_on_threshold}
-                  onCheckedChange={(checked) => setBudget({
-                    ...budget,
-                    notify_on_threshold: checked
-                  })}
+                  onCheckedChange={(checked) =>
+                    setBudget({
+                      ...budget,
+                      notify_on_threshold: checked,
+                    })
+                  }
                 />
               </div>
 
@@ -330,10 +347,12 @@ export function BudgetControlsModal({ open, onOpenChange, agentId, agentName }: 
                   min="1"
                   max="100"
                   value={budget.alert_threshold}
-                  onChange={(e) => setBudget({
-                    ...budget,
-                    alert_threshold: parseInt(e.target.value) || 80
-                  })}
+                  onChange={(e) =>
+                    setBudget({
+                      ...budget,
+                      alert_threshold: parseInt(e.target.value) || 80,
+                    })
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
                   Receive alert when spending reaches this percentage of limit

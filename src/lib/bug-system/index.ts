@@ -7,7 +7,7 @@
  * - Global error handlers are set up automatically
  * - ErrorBoundary catches React errors automatically
  * - All errors are captured and logged to Supabase and Sentry
- * 
+ *
  * NEW in v2.0:
  * - Real-time alerts (Slack/Discord/Telegram)
  * - AI-powered fix suggestions

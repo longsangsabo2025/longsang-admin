@@ -24,10 +24,7 @@ class RetryHandler {
   /**
    * Execute a function with retry logic
    */
-  async execute<T>(
-    fn: () => Promise<T>,
-    options: RetryOptions = {}
-  ): Promise<T> {
+  async execute<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
     const opts = { ...DEFAULT_OPTIONS, ...options };
     let lastError: Error | unknown;
 
@@ -69,19 +66,14 @@ class RetryHandler {
   /**
    * Check if error is retryable
    */
-  private isRetryable(
-    error: Error | unknown,
-    retryableErrors?: string[]
-  ): boolean {
+  private isRetryable(error: Error | unknown, retryableErrors?: string[]): boolean {
     if (!retryableErrors || retryableErrors.length === 0) {
       // Default: retry on network errors
       return this.isNetworkError(error);
     }
 
     const errorMessage = this.getErrorMessage(error).toLowerCase();
-    return retryableErrors.some(pattern =>
-      errorMessage.includes(pattern.toLowerCase())
-    );
+    return retryableErrors.some((pattern) => errorMessage.includes(pattern.toLowerCase()));
   }
 
   /**
@@ -126,7 +118,7 @@ class RetryHandler {
    * Sleep for specified milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
@@ -134,4 +126,3 @@ class RetryHandler {
 export const retryHandler = new RetryHandler();
 
 export default retryHandler;
-

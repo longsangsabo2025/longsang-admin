@@ -29,7 +29,7 @@ export function useActionHistory(
   status?: Action['status'],
   actionType?: string,
   limit: number = 50,
-  enabled: boolean = true,
+  enabled: boolean = true
 ) {
   return useQuery<Action[]>({
     queryKey: [...QUERY_KEY_ACTIONS, status, actionType, limit],
@@ -57,4 +57,3 @@ export function useExecutePendingActions() {
     },
   });
 }
-

@@ -1,25 +1,25 @@
-import { GraduationCap, Award, CheckCircle2 } from "lucide-react";
+import { GraduationCap, Award, CheckCircle2 } from 'lucide-react';
 
 const certifications = [
   {
-    title: "ISO 9001:2015 Internal Auditor",
-    issuer: "Posco Vietnam",
-    year: "2021",
+    title: 'ISO 9001:2015 Internal Auditor',
+    issuer: 'Posco Vietnam',
+    year: '2021',
   },
   {
-    title: "ISO 14001:2015 Internal Auditor",
-    issuer: "Posco Vietnam",
-    year: "2021",
+    title: 'ISO 14001:2015 Internal Auditor',
+    issuer: 'Posco Vietnam',
+    year: '2021',
   },
   {
-    title: "Oil & Gas Safety Competition",
-    issuer: "Medical First Aid Segment - Vung Tau",
-    year: "2022",
+    title: 'Oil & Gas Safety Competition',
+    issuer: 'Medical First Aid Segment - Vung Tau',
+    year: '2022',
   },
   {
-    title: "Periodic Maintenance Project",
-    issuer: "PVD Training",
-    year: "2019",
+    title: 'Periodic Maintenance Project',
+    issuer: 'PVD Training',
+    year: '2019',
   },
 ];
 
@@ -35,11 +35,11 @@ const CVEducationSection = () => {
           <div className="inline-block px-4 py-2 bg-primary/10 border border-primary/20 rounded-full">
             <p className="text-sm text-primary font-medium">Learning Journey</p>
           </div>
-          
+
           <h2 className="text-4xl md:text-5xl font-heading font-bold text-foreground">
             Education & Certifications
           </h2>
-          
+
           <p className="text-lg text-foreground-secondary max-w-2xl mx-auto">
             Academic foundation and professional certifications that validate my expertise
           </p>
@@ -55,21 +55,23 @@ const CVEducationSection = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <Award className="w-5 h-5 text-primary" />
-                  <span className="text-sm font-semibold text-primary uppercase tracking-wide">Education</span>
+                  <span className="text-sm font-semibold text-primary uppercase tracking-wide">
+                    Education
+                  </span>
                 </div>
                 <h3 className="text-2xl font-heading font-bold text-foreground mb-1">
                   PetroVietnam University
                 </h3>
-                <p className="text-lg text-secondary font-semibold">
-                  Bachelor of Engineering
-                </p>
+                <p className="text-lg text-secondary font-semibold">Bachelor of Engineering</p>
               </div>
             </div>
 
             <div className="space-y-4 mb-6">
               <div className="bg-muted/50 rounded-lg p-4">
                 <p className="text-sm text-foreground-secondary mb-1">Major</p>
-                <p className="text-lg font-semibold text-foreground">Petroleum Refining Engineering</p>
+                <p className="text-lg font-semibold text-foreground">
+                  Petroleum Refining Engineering
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -91,7 +93,7 @@ const CVEducationSection = () => {
 
             <div className="pt-4 border-t border-border">
               <p className="text-foreground-secondary leading-relaxed">
-                Comprehensive engineering education with focus on petroleum refining processes, 
+                Comprehensive engineering education with focus on petroleum refining processes,
                 plant operations, safety management, and quality control systems.
               </p>
             </div>
@@ -132,9 +134,9 @@ const CVEducationSection = () => {
 
             <div className="mt-8 p-5 bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20 rounded-xl">
               <p className="text-sm text-foreground-secondary leading-relaxed">
-                <span className="font-semibold text-foreground">Continuous Learning:</span> Committed to 
-                professional development through industry certifications, safety training, and quality 
-                management systems to stay current with best practices.
+                <span className="font-semibold text-foreground">Continuous Learning:</span>{' '}
+                Committed to professional development through industry certifications, safety
+                training, and quality management systems to stay current with best practices.
               </p>
             </div>
           </div>

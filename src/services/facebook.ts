@@ -11,11 +11,20 @@ declare global {
       login: (callback: (response: FBLoginResponse) => void, params?: FBLoginParams) => void;
       logout: (callback: (response: unknown) => void) => void;
       getLoginStatus: (callback: (response: FBLoginResponse) => void) => void;
-      api: (path: string, method: string, params: unknown, callback: (response: unknown) => void) => void;
+      api: (
+        path: string,
+        method: string,
+        params: unknown,
+        callback: (response: unknown) => void
+      ) => void;
       ui: (params: FBShareParams, callback?: (response: unknown) => void) => void;
       AppEvents: {
         logPageView: () => void;
-        logEvent: (eventName: string, valueToSum?: number, parameters?: Record<string, unknown>) => void;
+        logEvent: (
+          eventName: string,
+          valueToSum?: number,
+          parameters?: Record<string, unknown>
+        ) => void;
       };
     };
     fbAsyncInit: () => void;
@@ -76,9 +85,9 @@ export const waitForFBSDK = (): Promise<void> => {
       resolve();
       return;
     }
-    
+
     window.addEventListener('fb-sdk-ready', () => resolve(), { once: true });
-    
+
     // Timeout fallback
     setTimeout(() => {
       if (isFBSDKLoaded()) {
@@ -97,7 +106,7 @@ export const getFBLoginStatus = (): Promise<FBLoginResponse> => {
       reject(new Error('Facebook SDK not loaded'));
       return;
     }
-    
+
     window.FB.getLoginStatus((response) => {
       resolve(response);
     });
@@ -113,17 +122,20 @@ export const loginWithFacebook = (scopes?: string): Promise<FBLoginResponse> => 
       reject(new Error('Facebook SDK not loaded'));
       return;
     }
-    
-    window.FB.login((response) => {
-      if (response.status === 'connected') {
-        resolve(response);
-      } else {
-        reject(new Error('Facebook login failed or cancelled'));
+
+    window.FB.login(
+      (response) => {
+        if (response.status === 'connected') {
+          resolve(response);
+        } else {
+          reject(new Error('Facebook login failed or cancelled'));
+        }
+      },
+      {
+        scope: scopes || FB_CONFIG.DEFAULT_SCOPES,
+        return_scopes: true,
       }
-    }, {
-      scope: scopes || FB_CONFIG.DEFAULT_SCOPES,
-      return_scopes: true,
-    });
+    );
   });
 };
 
@@ -136,7 +148,7 @@ export const logoutFromFacebook = (): Promise<void> => {
       reject(new Error('Facebook SDK not loaded'));
       return;
     }
-    
+
     window.FB.logout(() => {
       resolve();
     });
@@ -157,9 +169,15 @@ export const getFBUserProfile = (): Promise<{
       reject(new Error('Facebook SDK not loaded'));
       return;
     }
-    
+
     window.FB.api('/me', 'GET', { fields: 'id,name,email,picture' }, (response: unknown) => {
-      const res = response as { error?: { message: string }; id: string; name: string; email?: string; picture?: { data: { url: string } } };
+      const res = response as {
+        error?: { message: string };
+        id: string;
+        name: string;
+        email?: string;
+        picture?: { data: { url: string } };
+      };
       if (res.error) {
         reject(new Error(res.error.message));
       } else {
@@ -185,9 +203,12 @@ export const getFBPages = (): Promise<{
       reject(new Error('Facebook SDK not loaded'));
       return;
     }
-    
+
     window.FB.api('/me/accounts', 'GET', {}, (response: unknown) => {
-      const res = response as { error?: { message: string }; data: Array<{ id: string; name: string; access_token: string; category: string }> };
+      const res = response as {
+        error?: { message: string };
+        data: Array<{ id: string; name: string; access_token: string; category: string }>;
+      };
       if (res.error) {
         reject(new Error(res.error.message));
       } else {
@@ -210,23 +231,26 @@ export const shareToFacebook = (params: {
       reject(new Error('Facebook SDK not loaded'));
       return;
     }
-    
-    window.FB.ui({
-      method: 'share',
-      href: params.url,
-      quote: params.quote,
-      hashtag: params.hashtag,
-    }, (response: unknown) => {
-      const res = response as { post_id?: string; error_message?: string } | undefined;
-      if (res && res.post_id) {
-        resolve({ post_id: res.post_id });
-      } else if (res && res.error_message) {
-        reject(new Error(res.error_message));
-      } else {
-        // User cancelled
-        resolve({});
+
+    window.FB.ui(
+      {
+        method: 'share',
+        href: params.url,
+        quote: params.quote,
+        hashtag: params.hashtag,
+      },
+      (response: unknown) => {
+        const res = response as { post_id?: string; error_message?: string } | undefined;
+        if (res && res.post_id) {
+          resolve({ post_id: res.post_id });
+        } else if (res && res.error_message) {
+          reject(new Error(res.error_message));
+        } else {
+          // User cancelled
+          resolve({});
+        }
       }
-    });
+    );
   });
 };
 
@@ -244,16 +268,16 @@ export const postToFacebookPage = (
       reject(new Error('Facebook SDK not loaded'));
       return;
     }
-    
+
     const params: Record<string, string> = {
       message,
       access_token: pageAccessToken,
     };
-    
+
     if (link) {
       params.link = link;
     }
-    
+
     window.FB.api(`/${pageId}/feed`, 'POST', params, (response: unknown) => {
       const res = response as { error?: { message: string }; id: string };
       if (res.error) {

@@ -259,7 +259,7 @@ export async function triggerGitHubAutoFix(error: {
 export async function getGitHubWorkflowRuns(): Promise<any[]> {
   try {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    
+
     const response = await fetch(`${apiUrl}/api/github/workflow-runs?workflow=sentry-autofix.yml`, {
       method: 'GET',
       headers: {
@@ -271,7 +271,7 @@ export async function getGitHubWorkflowRuns(): Promise<any[]> {
       const data = await response.json();
       return data.runs || [];
     }
-    
+
     return [];
   } catch (error) {
     console.error('Failed to fetch workflow runs:', error);
@@ -290,7 +290,7 @@ export async function checkGitHubAutoFixStatus(): Promise<{
 }> {
   try {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    
+
     const response = await fetch(`${apiUrl}/api/github/status`, {
       method: 'GET',
       headers: {
@@ -301,10 +301,9 @@ export async function checkGitHubAutoFixStatus(): Promise<{
     if (response.ok) {
       return await response.json();
     }
-    
+
     return { configured: false, hasToken: false };
   } catch {
     return { configured: false, hasToken: false };
   }
 }
-

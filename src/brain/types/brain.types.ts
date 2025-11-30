@@ -23,7 +23,7 @@ export interface Knowledge {
   domainId: string;
   title: string;
   content: string;
-  contentType: "document" | "note" | "conversation" | "external" | "code";
+  contentType: 'document' | 'note' | 'conversation' | 'external' | 'code';
   sourceUrl?: string;
   sourceFile?: string;
   tags: string[];
@@ -46,7 +46,7 @@ export interface IngestKnowledgeInput {
   domainId: string;
   title: string;
   content: string;
-  contentType?: Knowledge["contentType"];
+  contentType?: Knowledge['contentType'];
   tags?: string[];
   sourceUrl?: string;
   sourceFile?: string;

@@ -3,8 +3,8 @@
  * Handle agent activation, execution tracking, and usage billing
  */
 
-import { supabase } from "@/integrations/supabase/client";
-import { MVPAgent } from "@/data/mvp-agents";
+import { supabase } from '@/integrations/supabase/client';
+import { MVPAgent } from '@/data/mvp-agents';
 
 // ============================================
 // TYPES
@@ -47,10 +47,12 @@ export interface AgentExecution {
  * Activate an agent for current user
  */
 export async function activateAgent(agent: MVPAgent) {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const userId = user?.id || 'demo-user-' + Math.random().toString(36).substring(2, 11);
-  
+
   if (!user) {
     console.warn('⚠️ No authenticated user - using demo mode with ID:', userId);
   }
@@ -87,11 +89,11 @@ export async function activateAgent(agent: MVPAgent) {
         tagline: agent.tagline,
         features: agent.features,
         rating: agent.rating,
-      }
+      },
     };
-    
+
     console.log('🚀 Inserting agent with data:', insertData);
-    
+
     const { data: newAgent, error } = await supabase
       .from('agents')
       .insert(insertData)
@@ -102,14 +104,14 @@ export async function activateAgent(agent: MVPAgent) {
       console.error('❌ Failed to insert agent:', error);
       throw error;
     }
-    
+
     agentDbId = newAgent.id;
     console.log('✅ Agent created in database:', agentDbId);
   }
 
   // Create user_agent relationship (we'll use a custom view or separate tracking)
   // For now, we track in usage_tracking table
-  
+
   return {
     success: true,
     agent_id: agentDbId,
@@ -121,8 +123,10 @@ export async function activateAgent(agent: MVPAgent) {
  * Get user's activated agents
  */
 export async function getUserActivatedAgents(): Promise<UserAgent[]> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return [];
   }
@@ -130,7 +134,8 @@ export async function getUserActivatedAgents(): Promise<UserAgent[]> {
   // Get all agents the user has executed
   const { data: executions } = await supabase
     .from('agent_executions')
-    .select(`
+    .select(
+      `
       agent_id,
       agents (
         id,
@@ -142,14 +147,15 @@ export async function getUserActivatedAgents(): Promise<UserAgent[]> {
         total_executions,
         total_cost_usd
       )
-    `)
+    `
+    )
     .eq('created_by', user.id);
 
   if (!executions) return [];
 
   // Group by agent and calculate stats
   const agentMap = new Map();
-  
+
   executions.forEach((exec: any) => {
     const agent = exec.agents;
     if (!agentMap.has(agent.id)) {
@@ -184,10 +190,12 @@ export async function executeAgent(
   inputData: any,
   costUsd: number = 0
 ): Promise<AgentExecution> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const userId = user?.id || 'demo-user-' + Math.random().toString(36).substring(2, 11);
-  
+
   if (!user) {
     console.warn('⚠️ No authenticated user - executing in demo mode');
   }
@@ -227,9 +235,10 @@ export async function updateExecution(
     .from('agent_executions')
     .update({
       ...updates,
-      completed_at: updates.status === 'completed' || updates.status === 'failed' 
-        ? new Date().toISOString() 
-        : undefined,
+      completed_at:
+        updates.status === 'completed' || updates.status === 'failed'
+          ? new Date().toISOString()
+          : undefined,
     })
     .eq('id', executionId);
 
@@ -247,15 +256,18 @@ export async function updateExecution(
  * Get execution history for user
  */
 export async function getUserExecutions(limit: number = 50): Promise<AgentExecution[]> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return [];
   }
 
   const { data, error } = await supabase
     .from('agent_executions')
-    .select(`
+    .select(
+      `
       id,
       agent_id,
       status,
@@ -270,7 +282,8 @@ export async function getUserExecutions(limit: number = 50): Promise<AgentExecut
         name,
         role
       )
-    `)
+    `
+    )
     .eq('created_by', user.id)
     .order('started_at', { ascending: false })
     .limit(limit);
@@ -291,8 +304,10 @@ export async function getUserExecutions(limit: number = 50): Promise<AgentExecut
  * Track usage for current period
  */
 export async function trackUsage(type: 'api_call' | 'workflow' | 'agent', count: number = 1) {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) return;
 
   // Get or create current period usage
@@ -321,18 +336,13 @@ export async function trackUsage(type: 'api_call' | 'workflow' | 'agent', count:
   }
 
   if (existing) {
-    await supabase
-      .from('usage_tracking')
-      .update(updateData)
-      .eq('id', existing.id);
+    await supabase.from('usage_tracking').update(updateData).eq('id', existing.id);
   } else {
-    await supabase
-      .from('usage_tracking')
-      .insert({
-        user_id: user.id,
-        period_start: periodStart.toISOString(),
-        ...updateData,
-      });
+    await supabase.from('usage_tracking').insert({
+      user_id: user.id,
+      period_start: periodStart.toISOString(),
+      ...updateData,
+    });
   }
 }
 
@@ -340,8 +350,10 @@ export async function trackUsage(type: 'api_call' | 'workflow' | 'agent', count:
  * Get current usage stats
  */
 export async function getCurrentUsage() {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return {
       api_calls: 0,
@@ -374,8 +386,10 @@ export async function getCurrentUsage() {
  * Calculate total cost for user this month
  */
 export async function getMonthlySpend() {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) return 0;
 
   const monthStart = new Date();
@@ -396,13 +410,18 @@ export async function getMonthlySpend() {
 /**
  * Check if user has free runs remaining for agent
  */
-export async function checkFreeRuns(agentId: string, freeTrialLimit: number): Promise<{
+export async function checkFreeRuns(
+  agentId: string,
+  freeTrialLimit: number
+): Promise<{
   has_free_runs: boolean;
   runs_used: number;
   runs_remaining: number;
 }> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return {
       has_free_runs: false,
@@ -437,7 +456,9 @@ export async function checkFreeRuns(agentId: string, freeTrialLimit: number): Pr
 export async function getAgentStats(agentId: string) {
   const { data } = await supabase
     .from('agents')
-    .select('total_executions, successful_executions, failed_executions, avg_execution_time_ms, total_cost_usd')
+    .select(
+      'total_executions, successful_executions, failed_executions, avg_execution_time_ms, total_cost_usd'
+    )
     .eq('id', agentId)
     .single();
 
@@ -447,7 +468,7 @@ export async function getAgentStats(agentId: string) {
     failed_runs: data?.failed_executions || 0,
     avg_time_ms: data?.avg_execution_time_ms || 0,
     total_cost: parseFloat(data?.total_cost_usd || 0),
-    success_rate: data?.total_executions 
+    success_rate: data?.total_executions
       ? ((data.successful_executions / data.total_executions) * 100).toFixed(1)
       : 0,
   };

@@ -1,44 +1,44 @@
-import { useAuth } from "@/components/auth/AuthProvider";
-import { Layout } from "@/components/Layout";
-import { Button } from "@/components/ui/button";
-import { BookOpen, GraduationCap, Mail, Settings, ShoppingBag, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from '@/components/auth/AuthProvider';
+import { Layout } from '@/components/Layout';
+import { Button } from '@/components/ui/button';
+import { BookOpen, GraduationCap, Mail, Settings, ShoppingBag, User } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function UserDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
-  const userEmail = user?.email || "";
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const userEmail = user?.email || '';
 
   const quickActions = [
     {
       icon: GraduationCap,
-      title: "AI Academy",
-      description: "Tiếp tục học tập",
-      href: "/academy",
-      color: "from-blue-500 to-cyan-500",
+      title: 'AI Academy',
+      description: 'Tiếp tục học tập',
+      href: '/academy',
+      color: 'from-blue-500 to-cyan-500',
     },
     {
       icon: ShoppingBag,
-      title: "AI Marketplace",
-      description: "Khám phá AI Agents",
-      href: "/marketplace",
-      color: "from-purple-500 to-pink-500",
+      title: 'AI Marketplace',
+      description: 'Khám phá AI Agents',
+      href: '/marketplace',
+      color: 'from-purple-500 to-pink-500',
     },
     {
       icon: BookOpen,
-      title: "Dự Án",
-      description: "Xem các dự án",
-      href: "/#projects",
-      color: "from-green-500 to-emerald-500",
+      title: 'Dự Án',
+      description: 'Xem các dự án',
+      href: '/#projects',
+      color: 'from-green-500 to-emerald-500',
     },
     {
       icon: Mail,
-      title: "Liên Hệ",
-      description: "Tư vấn dự án",
-      href: "/consultation",
-      color: "from-orange-500 to-red-500",
+      title: 'Liên Hệ',
+      description: 'Tư vấn dự án',
+      href: '/consultation',
+      color: 'from-orange-500 to-red-500',
     },
   ];
 
@@ -103,7 +103,7 @@ export default function UserDashboard() {
                 <div>
                   <p className="text-sm text-muted-foreground">Vai trò</p>
                   <p className="text-foreground font-medium">
-                    {user?.user_metadata?.role === "admin" ? "Admin" : "User"}
+                    {user?.user_metadata?.role === 'admin' ? 'Admin' : 'User'}
                   </p>
                 </div>
               </div>
@@ -119,7 +119,7 @@ export default function UserDashboard() {
                 được tư vấn dự án chuyên nghiệp.
               </p>
               <Button
-                onClick={() => navigate("/academy")}
+                onClick={() => navigate('/academy')}
                 className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
               >
                 Bắt đầu học ngay

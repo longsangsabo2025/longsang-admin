@@ -1,30 +1,30 @@
-import { motion } from "framer-motion";
-import { useParams, useNavigate } from "react-router-dom";
-import { Heart, ArrowLeft, Mail, User, Phone, MessageSquare, CheckCircle2 } from "lucide-react";
-import { projectsData } from "@/data/projects-data";
-import { GlowCard } from "@/components/GlowCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { motion } from 'framer-motion';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Heart, ArrowLeft, Mail, User, Phone, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { projectsData } from '@/data/projects-data';
+import { GlowCard } from '@/components/GlowCard';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useState } from 'react';
 
 const ProjectInterest = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [message, setMessage] = useState("");
-  
-  const project = projectsData.find(p => p.slug === slug) || projectsData[0];
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [message, setMessage] = useState('');
+
+  const project = projectsData.find((p) => p.slug === slug) || projectsData[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
-      const projectData = project || { id: 0, name: "Unknown Project" };
-      
+      const projectData = project || { id: 0, name: 'Unknown Project' };
+
       const response = await fetch('http://localhost:3001/api/project/interest', {
         method: 'POST',
         headers: {
@@ -37,8 +37,8 @@ const ProjectInterest = () => {
           fullName: name,
           email,
           phone,
-          message: message || undefined
-        })
+          message: message || undefined,
+        }),
       });
 
       const result = await response.json();
@@ -51,7 +51,6 @@ const ProjectInterest = () => {
       setTimeout(() => {
         navigate(`/project-showcase/${slug}`);
       }, 3000);
-      
     } catch (error) {
       console.error('Error submitting interest:', error);
       alert('Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại.');
@@ -69,7 +68,7 @@ const ProjectInterest = () => {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring" }}
+            transition={{ delay: 0.2, type: 'spring' }}
             className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-neon-green/20 mb-6"
           >
             <CheckCircle2 className="w-12 h-12 text-neon-green" />
@@ -118,7 +117,8 @@ const ProjectInterest = () => {
             </h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Để lại thông tin của bạn để nhận được thông báo cập nhật mới nhất về <span className="text-neon-cyan font-semibold">{project.name}</span>
+            Để lại thông tin của bạn để nhận được thông báo cập nhật mới nhất về{' '}
+            <span className="text-neon-cyan font-semibold">{project.name}</span>
           </p>
         </motion.div>
 
@@ -220,17 +220,17 @@ const ProjectInterest = () => {
         >
           {[
             {
-              title: "Cập Nhật Định Kỳ",
-              description: "Nhận tin tức mới nhất về tiến độ dự án"
+              title: 'Cập Nhật Định Kỳ',
+              description: 'Nhận tin tức mới nhất về tiến độ dự án',
             },
             {
-              title: "Ưu Đãi Đặc Biệt",
-              description: "Được ưu tiên tham gia các chương trình"
+              title: 'Ưu Đãi Đặc Biệt',
+              description: 'Được ưu tiên tham gia các chương trình',
             },
             {
-              title: "Kết Nối Cộng Đồng",
-              description: "Tham gia nhóm người quan tâm dự án"
-            }
+              title: 'Kết Nối Cộng Đồng',
+              description: 'Tham gia nhóm người quan tâm dự án',
+            },
           ].map((benefit, index) => (
             <GlowCard key={index} glowColor="blue" className="p-6 text-center">
               <h3 className="font-bold text-neon-cyan mb-2">{benefit.title}</h3>

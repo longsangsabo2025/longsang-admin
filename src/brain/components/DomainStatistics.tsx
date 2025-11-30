@@ -3,12 +3,21 @@
  * Statistics dashboard for domain analytics
  */
 
-import { useDomainAnalytics, useDomainStats, useDomainTrends } from "@/brain/hooks/useDomainStats";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { RefreshCw, TrendingUp, TrendingDown, Minus, BookOpen, Search, Tag, Activity } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useDomainAnalytics, useDomainStats, useDomainTrends } from '@/brain/hooks/useDomainStats';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  BookOpen,
+  Search,
+  Tag,
+  Activity,
+} from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface DomainStatisticsProps {
   readonly domainId: string;
@@ -109,16 +118,16 @@ export function DomainStatistics({ domainId }: DomainStatisticsProps) {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 {(() => {
-                  if (trends.growth.direction === "up") {
+                  if (trends.growth.direction === 'up') {
                     return <TrendingUp className="h-5 w-5 text-green-500" />;
                   }
-                  if (trends.growth.direction === "down") {
+                  if (trends.growth.direction === 'down') {
                     return <TrendingDown className="h-5 w-5 text-red-500" />;
                   }
                   return <Minus className="h-5 w-5 text-gray-500" />;
                 })()}
                 <span className="text-2xl font-bold">
-                  {trends.growth.rate > 0 ? "+" : ""}
+                  {trends.growth.rate > 0 ? '+' : ''}
                   {trends.growth.rate.toFixed(1)}%
                 </span>
               </div>
@@ -128,8 +137,8 @@ export function DomainStatistics({ domainId }: DomainStatisticsProps) {
               </div>
             </div>
             <div className="mt-4">
-              <Badge variant={trends.activity.level === "very_active" ? "default" : "secondary"}>
-                Activity: {trends.activity.level.replace("_", " ")}
+              <Badge variant={trends.activity.level === 'very_active' ? 'default' : 'secondary'}>
+                Activity: {trends.activity.level.replace('_', ' ')}
               </Badge>
             </div>
           </CardContent>
@@ -194,14 +203,16 @@ export function DomainStatistics({ domainId }: DomainStatisticsProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Avg Queries/Day</p>
-                <p className="text-2xl font-bold">{analytics.summary.avgQueriesPerDay.toFixed(1)}</p>
+                <p className="text-2xl font-bold">
+                  {analytics.summary.avgQueriesPerDay.toFixed(1)}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Most Active Day</p>
                 <p className="text-lg font-semibold">
                   {analytics.summary.mostActiveDay
                     ? new Date(analytics.summary.mostActiveDay.date).toLocaleDateString()
-                    : "N/A"}
+                    : 'N/A'}
                 </p>
                 {analytics.summary.mostActiveDay && (
                   <p className="text-sm text-muted-foreground">
@@ -216,4 +227,3 @@ export function DomainStatistics({ domainId }: DomainStatisticsProps) {
     </div>
   );
 }
-

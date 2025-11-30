@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { MobileLayout } from "@/components/mobile/MobileLayout";
-import { 
-  Folder, 
-  File, 
-  ChevronRight, 
+import { useState, useEffect } from 'react';
+import { MobileLayout } from '@/components/mobile/MobileLayout';
+import {
+  Folder,
+  File,
+  ChevronRight,
   ArrowLeft,
   Code,
   FileText,
@@ -11,41 +11,41 @@ import {
   FileImage,
   Loader2,
   RefreshCw,
-  Search
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+  Search,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 interface FileItem {
   name: string;
-  type: "file" | "folder";
+  type: 'file' | 'folder';
   path: string;
   extension?: string;
 }
 
 const getFileIcon = (file: FileItem) => {
-  if (file.type === "folder") {
+  if (file.type === 'folder') {
     return <Folder className="w-5 h-5 text-yellow-400" />;
   }
-  
+
   const ext = file.extension?.toLowerCase();
   switch (ext) {
-    case "ts":
-    case "tsx":
-    case "js":
-    case "jsx":
+    case 'ts':
+    case 'tsx':
+    case 'js':
+    case 'jsx':
       return <Code className="w-5 h-5 text-blue-400" />;
-    case "json":
+    case 'json':
       return <FileJson className="w-5 h-5 text-yellow-400" />;
-    case "md":
-    case "txt":
+    case 'md':
+    case 'txt':
       return <FileText className="w-5 h-5 text-gray-400" />;
-    case "png":
-    case "jpg":
-    case "jpeg":
-    case "gif":
-    case "svg":
+    case 'png':
+    case 'jpg':
+    case 'jpeg':
+    case 'gif':
+    case 'svg':
       return <FileImage className="w-5 h-5 text-purple-400" />;
     default:
       return <File className="w-5 h-5 text-gray-400" />;
@@ -53,10 +53,10 @@ const getFileIcon = (file: FileItem) => {
 };
 
 export function MobileFiles() {
-  const [currentPath, setCurrentPath] = useState("src");
+  const [currentPath, setCurrentPath] = useState('src');
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [fileContent, setFileContent] = useState<string | null>(null);
 
@@ -70,20 +70,20 @@ export function MobileFiles() {
     try {
       // Mock file list - replace with actual API
       const mockFiles: FileItem[] = [
-        { name: "components", type: "folder", path: `${path}/components` },
-        { name: "pages", type: "folder", path: `${path}/pages` },
-        { name: "lib", type: "folder", path: `${path}/lib` },
-        { name: "hooks", type: "folder", path: `${path}/hooks` },
-        { name: "App.tsx", type: "file", path: `${path}/App.tsx`, extension: "tsx" },
-        { name: "main.tsx", type: "file", path: `${path}/main.tsx`, extension: "tsx" },
-        { name: "index.css", type: "file", path: `${path}/index.css`, extension: "css" },
-        { name: "vite-env.d.ts", type: "file", path: `${path}/vite-env.d.ts`, extension: "ts" },
+        { name: 'components', type: 'folder', path: `${path}/components` },
+        { name: 'pages', type: 'folder', path: `${path}/pages` },
+        { name: 'lib', type: 'folder', path: `${path}/lib` },
+        { name: 'hooks', type: 'folder', path: `${path}/hooks` },
+        { name: 'App.tsx', type: 'file', path: `${path}/App.tsx`, extension: 'tsx' },
+        { name: 'main.tsx', type: 'file', path: `${path}/main.tsx`, extension: 'tsx' },
+        { name: 'index.css', type: 'file', path: `${path}/index.css`, extension: 'css' },
+        { name: 'vite-env.d.ts', type: 'file', path: `${path}/vite-env.d.ts`, extension: 'ts' },
       ];
-      
+
       await new Promise((r) => setTimeout(r, 500));
       setFiles(mockFiles);
     } catch (error) {
-      console.error("Failed to load files:", error);
+      console.error('Failed to load files:', error);
     } finally {
       setLoading(false);
     }
@@ -93,22 +93,22 @@ export function MobileFiles() {
     setSelectedFile(file);
     setLoading(true);
     try {
-      const response = await fetch("/api/ai/workspace-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/ai/workspace-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: `Đọc nội dung file ${file.path}`,
-          sessionId: "mobile-files",
+          sessionId: 'mobile-files',
           useMCPTools: true,
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setFileContent(data.response || "// File content here");
+        setFileContent(data.response || '// File content here');
       }
     } catch (error) {
-      setFileContent("// Error loading file");
+      setFileContent('// Error loading file');
     } finally {
       setLoading(false);
     }
@@ -126,11 +126,11 @@ export function MobileFiles() {
       setFileContent(null);
       return;
     }
-    
-    const parts = currentPath.split("/");
+
+    const parts = currentPath.split('/');
     if (parts.length > 1) {
       parts.pop();
-      setCurrentPath(parts.join("/") || "src");
+      setCurrentPath(parts.join('/') || 'src');
     }
   };
 
@@ -179,7 +179,7 @@ export function MobileFiles() {
         <div className="p-3 space-y-2 bg-gray-900 border-b border-gray-800">
           {/* Current Path */}
           <div className="flex items-center gap-2">
-            {currentPath !== "src" && (
+            {currentPath !== 'src' && (
               <Button variant="ghost" size="sm" onClick={goBack}>
                 <ArrowLeft className="w-4 h-4" />
               </Button>
@@ -194,7 +194,7 @@ export function MobileFiles() {
               onClick={() => loadFiles(currentPath)}
               className="ml-auto"
             >
-              <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
+              <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
             </Button>
           </div>
 
@@ -222,25 +222,19 @@ export function MobileFiles() {
               {filteredFiles
                 .sort((a, b) => {
                   if (a.type === b.type) return a.name.localeCompare(b.name);
-                  return a.type === "folder" ? -1 : 1;
+                  return a.type === 'folder' ? -1 : 1;
                 })
                 .map((file) => (
                   <button
                     key={file.path}
                     className="w-full flex items-center gap-3 p-4 hover:bg-gray-900 active:bg-gray-800 transition-colors text-left"
                     onClick={() =>
-                      file.type === "folder"
-                        ? navigateToFolder(file)
-                        : loadFileContent(file)
+                      file.type === 'folder' ? navigateToFolder(file) : loadFileContent(file)
                     }
                   >
                     {getFileIcon(file)}
-                    <span className="flex-1 text-sm text-white truncate">
-                      {file.name}
-                    </span>
-                    {file.type === "folder" && (
-                      <ChevronRight className="w-4 h-4 text-gray-500" />
-                    )}
+                    <span className="flex-1 text-sm text-white truncate">{file.name}</span>
+                    {file.type === 'folder' && <ChevronRight className="w-4 h-4 text-gray-500" />}
                   </button>
                 ))}
 

@@ -28,22 +28,14 @@ export async function getAgents() {
 }
 
 export async function getAgent(id: string) {
-  const { data, error } = await supabase
-    .from('ai_agents')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const { data, error } = await supabase.from('ai_agents').select('*').eq('id', id).single();
 
   if (error) throw error;
   return data as AIAgent;
 }
 
 export async function createAgent(agent: Partial<AIAgent>) {
-  const { data, error } = await supabase
-    .from('ai_agents')
-    .insert(agent)
-    .select()
-    .single();
+  const { data, error } = await supabase.from('ai_agents').insert(agent).select().single();
 
   if (error) throw error;
   return data as AIAgent;
@@ -62,10 +54,7 @@ export async function updateAgent(id: string, updates: Partial<AIAgent>) {
 }
 
 export async function deleteAgent(id: string) {
-  const { error } = await supabase
-    .from('ai_agents')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from('ai_agents').delete().eq('id', id);
 
   if (error) throw error;
 }
@@ -129,10 +118,7 @@ export async function toggleTrigger(id: string, enabled: boolean) {
 // ================================================
 
 export async function getWorkflows(agentId?: string) {
-  let query = supabase
-    .from('workflows')
-    .select('*')
-    .order('created_at', { ascending: false });
+  let query = supabase.from('workflows').select('*').order('created_at', { ascending: false });
 
   if (agentId) {
     query = query.eq('agent_id', agentId);
@@ -144,22 +130,14 @@ export async function getWorkflows(agentId?: string) {
 }
 
 export async function getWorkflow(id: string) {
-  const { data, error } = await supabase
-    .from('workflows')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const { data, error } = await supabase.from('workflows').select('*').eq('id', id).single();
 
   if (error) throw error;
   return data as Workflow;
 }
 
 export async function createWorkflow(workflow: Partial<Workflow>) {
-  const { data, error } = await supabase
-    .from('workflows')
-    .insert(workflow)
-    .select()
-    .single();
+  const { data, error } = await supabase.from('workflows').insert(workflow).select().single();
 
   if (error) throw error;
   return data as Workflow;
@@ -184,10 +162,12 @@ export async function updateWorkflow(id: string, updates: Partial<Workflow>) {
 export async function getActivityLogs(limit = 100, agentId?: string) {
   let query = supabase
     .from('activity_logs')
-    .select(`
+    .select(
+      `
       *,
       ai_agents(name, type)
-    `)
+    `
+    )
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -201,11 +181,7 @@ export async function getActivityLogs(limit = 100, agentId?: string) {
 }
 
 export async function createActivityLog(log: Partial<ActivityLog>) {
-  const { data, error } = await supabase
-    .from('activity_logs')
-    .insert(log)
-    .select()
-    .single();
+  const { data, error } = await supabase.from('activity_logs').insert(log).select().single();
 
   if (error) throw error;
   return data as ActivityLog;
@@ -230,10 +206,12 @@ export async function getActivityLogsByDateRange(startDate: Date, endDate: Date)
 export async function getContentQueue(limit = 50, status?: string) {
   let query = supabase
     .from('content_queue')
-    .select(`
+    .select(
+      `
       *,
       ai_agents(name, type)
-    `)
+    `
+    )
     .order('priority', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -248,22 +226,14 @@ export async function getContentQueue(limit = 50, status?: string) {
 }
 
 export async function getContentItem(id: string) {
-  const { data, error } = await supabase
-    .from('content_queue')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const { data, error } = await supabase.from('content_queue').select('*').eq('id', id).single();
 
   if (error) throw error;
   return data as ContentQueue;
 }
 
 export async function createContentItem(content: Partial<ContentQueue>) {
-  const { data, error } = await supabase
-    .from('content_queue')
-    .insert(content)
-    .select()
-    .single();
+  const { data, error } = await supabase.from('content_queue').insert(content).select().single();
 
   if (error) throw error;
   return data as ContentQueue;
@@ -282,10 +252,7 @@ export async function updateContentItem(id: string, updates: Partial<ContentQueu
 }
 
 export async function deleteContentItem(id: string) {
-  const { error } = await supabase
-    .from('content_queue')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from('content_queue').delete().eq('id', id);
 
   if (error) throw error;
 }
@@ -316,7 +283,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     .order('created_at', { ascending: false })
     .limit(100);
 
-  const successCount = recentLogs?.filter(log => log.status === 'success').length || 0;
+  const successCount = recentLogs?.filter((log) => log.status === 'success').length || 0;
   const totalCount = recentLogs?.length || 1;
   const successRate = (successCount / totalCount) * 100;
 
@@ -341,13 +308,15 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 export async function getAgentPerformance(): Promise<AgentPerformance[]> {
   const { data: agents, error } = await supabase
     .from('ai_agents')
-    .select(`
+    .select(
+      `
       id,
       name,
       total_runs,
       successful_runs,
       last_run
-    `)
+    `
+    )
     .order('total_runs', { ascending: false });
 
   if (error) throw error;
@@ -355,9 +324,8 @@ export async function getAgentPerformance(): Promise<AgentPerformance[]> {
   // Calculate performance metrics with duration from activity logs
   const performancePromises = agents.map(async (agent) => {
     const failed_runs = agent.total_runs - agent.successful_runs;
-    const success_rate = agent.total_runs > 0
-      ? (agent.successful_runs / agent.total_runs) * 100
-      : 0;
+    const success_rate =
+      agent.total_runs > 0 ? (agent.successful_runs / agent.total_runs) * 100 : 0;
 
     // Calculate average duration from recent activity logs
     let avg_duration_ms = 0;
@@ -399,32 +367,20 @@ export async function getAgentPerformance(): Promise<AgentPerformance[]> {
 export function subscribeToAgentUpdates(callback: (payload: any) => void) {
   return supabase
     .channel('ai_agents_changes')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'ai_agents' },
-      callback
-    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_agents' }, callback)
     .subscribe();
 }
 
 export function subscribeToActivityLogs(callback: (payload: any) => void) {
   return supabase
     .channel('activity_logs_changes')
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'activity_logs' },
-      callback
-    )
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_logs' }, callback)
     .subscribe();
 }
 
 export function subscribeToContentQueue(callback: (payload: any) => void) {
   return supabase
     .channel('content_queue_changes')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'content_queue' },
-      callback
-    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'content_queue' }, callback)
     .subscribe();
 }

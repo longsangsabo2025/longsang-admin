@@ -8,7 +8,7 @@ export interface AppShowcaseData {
   description: string;
   icon?: string; // Emoji hoặc icon cho card preview
   productionUrl?: string; // URL production của app
-  
+
   // Hero Section
   hero: {
     badge: string;
@@ -21,7 +21,7 @@ export interface AppShowcaseData {
     };
     backgroundImage?: string;
   };
-  
+
   // Branding
   branding: {
     logo?: string;
@@ -29,13 +29,13 @@ export interface AppShowcaseData {
     secondaryColor: string;
     accentColor: string;
   };
-  
+
   // Download Links
   downloads: {
     appStore?: string;
     googlePlay?: string;
   };
-  
+
   // Social Media Links
   social: {
     facebook?: string;
@@ -45,10 +45,10 @@ export interface AppShowcaseData {
     discord?: string;
     twitter?: string;
   };
-  
+
   // Features Section
   features: AppFeature[];
-  
+
   // CTA Section
   cta: {
     heading: string;
@@ -58,7 +58,7 @@ export interface AppShowcaseData {
       totalUsers: string;
     };
   };
-  
+
   // Metadata
   metadata: {
     createdAt: string;

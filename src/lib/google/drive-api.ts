@@ -30,7 +30,9 @@ export async function uploadFile(
   _driveEmail: string,
   _options: UploadOptions
 ): Promise<FileResult> {
-  throw new Error('uploadFile must be called through API server endpoint: POST /api/google/drive/upload');
+  throw new Error(
+    'uploadFile must be called through API server endpoint: POST /api/google/drive/upload'
+  );
 }
 
 export async function createFolder(
@@ -38,14 +40,15 @@ export async function createFolder(
   _folderName: string,
   _parentFolderId?: string
 ): Promise<FileResult> {
-  throw new Error('createFolder must be called through API server endpoint: POST /api/google/drive/create-folder');
+  throw new Error(
+    'createFolder must be called through API server endpoint: POST /api/google/drive/create-folder'
+  );
 }
 
-export async function deleteFile(
-  _driveEmail: string,
-  _fileId: string
-): Promise<FileResult> {
-  throw new Error('deleteFile must be called through API server endpoint: DELETE /api/google/drive/delete');
+export async function deleteFile(_driveEmail: string, _fileId: string): Promise<FileResult> {
+  throw new Error(
+    'deleteFile must be called through API server endpoint: DELETE /api/google/drive/delete'
+  );
 }
 
 export async function shareFile(
@@ -54,7 +57,9 @@ export async function shareFile(
   _email: string,
   _role: 'reader' | 'writer' | 'commenter' = 'reader'
 ): Promise<FileResult> {
-  throw new Error('shareFile must be called through API server endpoint: POST /api/google/drive/share');
+  throw new Error(
+    'shareFile must be called through API server endpoint: POST /api/google/drive/share'
+  );
 }
 
 export async function listFiles(
@@ -62,22 +67,27 @@ export async function listFiles(
   _folderId?: string,
   _maxResults: number = 100
 ) {
-  throw new Error('listFiles must be called through API server endpoint: GET /api/google/drive/list');
+  throw new Error(
+    'listFiles must be called through API server endpoint: GET /api/google/drive/list'
+  );
 }
 
-export async function getFileMetadata(
-  _driveEmail: string,
-  _fileId: string
-) {
-  throw new Error('getFileMetadata must be called through API server endpoint: GET /api/google/drive/metadata');
+export async function getFileMetadata(_driveEmail: string, _fileId: string) {
+  throw new Error(
+    'getFileMetadata must be called through API server endpoint: GET /api/google/drive/metadata'
+  );
 }
 
 export async function autoBackupContent() {
-  throw new Error('autoBackupContent must be called through API server endpoint: POST /api/google/drive/auto-backup');
+  throw new Error(
+    'autoBackupContent must be called through API server endpoint: POST /api/google/drive/auto-backup'
+  );
 }
 
 export async function organizeDriveByProject() {
-  throw new Error('organizeDriveByProject must be called through API server endpoint: POST /api/google/drive/organize-by-project');
+  throw new Error(
+    'organizeDriveByProject must be called through API server endpoint: POST /api/google/drive/organize-by-project'
+  );
 }
 
 // ============================================================

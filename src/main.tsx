@@ -1,9 +1,9 @@
 import React from 'react';
-import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
 import { AuthProvider } from './components/auth/AuthProvider';
-import "./i18n/config";
-import "./index.css";
+import './i18n/config';
+import './index.css';
 import './lib/bug-system/autoSetup'; // Auto-initialize bug system
 import { initSentry } from './lib/sentry';
 import { initWebVitals } from './utils/web-vitals-tracker';
@@ -23,10 +23,10 @@ initWebVitals();
 registerServiceWorker();
 setupInstallPrompt();
 
-createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AuthProvider>
       <App />
     </AuthProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

@@ -1,6 +1,6 @@
 /**
  * 🧠 Intelligent Memory Service - Copilot-Level Architecture
- * 
+ *
  * Features like GitHub Copilot:
  * - Token counting & budget management
  * - Auto-summarization when context gets too long
@@ -34,11 +34,11 @@ export interface ConversationContext {
   // Static context (cacheable)
   systemPrompt: string;
   userProfile?: string;
-  
+
   // Dynamic context
   recentMessages: MemoryMessage[];
   historySummary?: string;
-  
+
   // Metadata
   totalTokens: number;
   cachedTokens: number;
@@ -46,9 +46,9 @@ export interface ConversationContext {
 }
 
 export interface MemorySession {
-  id: string;                       // Unique conversation ID
-  conversationId: string;           // For display/reference
-  assistantType: AssistantType;     // Current assistant (can change)
+  id: string; // Unique conversation ID
+  conversationId: string; // For display/reference
+  assistantType: AssistantType; // Current assistant (can change)
   userId: string;
   title: string;
   messages: MemoryMessage[];
@@ -65,20 +65,20 @@ export interface ConversationState {
 }
 
 export interface TokenBudget {
-  total: number;        // Total tokens used
-  system: number;       // System prompt tokens
-  history: number;      // Conversation history tokens
-  context: number;      // RAG context tokens
-  available: number;    // Remaining tokens
-  maxTokens: number;    // Model's max context
+  total: number; // Total tokens used
+  system: number; // System prompt tokens
+  history: number; // Conversation history tokens
+  context: number; // RAG context tokens
+  available: number; // Remaining tokens
+  maxTokens: number; // Model's max context
 }
 
 export interface MemoryConfig {
-  maxContextTokens: number;      // Default: 128000 (Claude Sonnet)
-  maxHistoryMessages: number;    // Default: 50
-  slidingWindowSize: number;     // Default: 20 messages
-  summarizeThreshold: number;    // Summarize when > this many messages
-  tokenBuffer: number;           // Reserve for response
+  maxContextTokens: number; // Default: 128000 (Claude Sonnet)
+  maxHistoryMessages: number; // Default: 50
+  slidingWindowSize: number; // Default: 20 messages
+  summarizeThreshold: number; // Summarize when > this many messages
+  tokenBuffer: number; // Reserve for response
   autoSummarize: boolean;
   persistToCloud: boolean;
 }
@@ -94,9 +94,9 @@ export interface MemoryConfig {
 export class TokenCounter {
   private static AVG_CHARS_PER_TOKEN = 4;
   private static SPECIAL_TOKENS = {
-    messageOverhead: 4,      // Per message overhead
-    rolePrefix: 2,           // "user:", "assistant:" 
-    systemOverhead: 10,      // System message overhead
+    messageOverhead: 4, // Per message overhead
+    rolePrefix: 2, // "user:", "assistant:"
+    systemOverhead: 10, // System message overhead
   };
 
   /**
@@ -104,18 +104,18 @@ export class TokenCounter {
    */
   static estimate(text: string): number {
     if (!text) return 0;
-    
+
     // Basic estimation: characters / 4
     let tokens = Math.ceil(text.length / this.AVG_CHARS_PER_TOKEN);
-    
+
     // Adjust for Vietnamese (uses more tokens per character)
     const vietnameseChars = (text.match(/[\u0080-\uFFFF]/g) || []).length;
     tokens += Math.ceil(vietnameseChars * 0.5);
-    
+
     // Adjust for code blocks (more precise tokenization)
     const codeBlocks = (text.match(/```[\s\S]*?```/g) || []).length;
     tokens += codeBlocks * 5;
-    
+
     return tokens;
   }
 
@@ -143,9 +143,9 @@ export class TokenCounter {
     const system = this.estimate(context.systemPrompt) + this.SPECIAL_TOKENS.systemOverhead;
     const history = this.estimateMessages(context.recentMessages);
     const contextTokens = context.historySummary ? this.estimate(context.historySummary) : 0;
-    
+
     const total = system + history + contextTokens;
-    
+
     return {
       total,
       system,
@@ -170,35 +170,35 @@ export class ContextRanker {
    */
   static calculateImportance(message: MemoryMessage, index: number, total: number): number {
     let score = 0;
-    
+
     // Recency: More recent = higher score
     const recencyScore = (index + 1) / total;
     score += recencyScore * 0.4;
-    
+
     // Length: Longer messages often contain more information
     const lengthScore = Math.min(message.content.length / 1000, 1);
     score += lengthScore * 0.2;
-    
+
     // Role: User questions are important for context
     if (message.role === 'user') {
       score += 0.1;
     }
-    
+
     // Contains code: Usually important
     if (message.content.includes('```') || message.content.includes('function')) {
       score += 0.1;
     }
-    
+
     // Contains questions: Context clues
     if (message.content.includes('?') || message.content.match(/như thế nào|là gì|tại sao/i)) {
       score += 0.1;
     }
-    
+
     // Contains decisions or conclusions
     if (message.content.match(/kết luận|tóm lại|quyết định|conclusion/i)) {
       score += 0.1;
     }
-    
+
     return Math.min(score, 1);
   }
 
@@ -206,29 +206,29 @@ export class ContextRanker {
    * Rank and filter messages to fit within token budget
    */
   static rankAndFilter(
-    messages: MemoryMessage[], 
+    messages: MemoryMessage[],
     maxTokens: number,
     preserveRecent: number = 5
   ): MemoryMessage[] {
     if (messages.length === 0) return [];
-    
+
     // Always keep the most recent messages
     const recentMessages = messages.slice(-preserveRecent);
     const olderMessages = messages.slice(0, -preserveRecent);
-    
+
     // Calculate importance for older messages
     const rankedOlder = olderMessages.map((msg, idx) => ({
       message: msg,
       importance: this.calculateImportance(msg, idx, olderMessages.length),
     }));
-    
+
     // Sort by importance (descending)
     rankedOlder.sort((a, b) => b.importance - a.importance);
-    
+
     // Build result within token budget
     const result: MemoryMessage[] = [];
     let currentTokens = TokenCounter.estimateMessages(recentMessages);
-    
+
     for (const { message } of rankedOlder) {
       const msgTokens = TokenCounter.estimateMessage(message);
       if (currentTokens + msgTokens <= maxTokens) {
@@ -236,10 +236,10 @@ export class ContextRanker {
         currentTokens += msgTokens;
       }
     }
-    
+
     // Add recent messages at the end
     result.push(...recentMessages);
-    
+
     return result;
   }
 }
@@ -268,7 +268,7 @@ Chỉ trả về phần tóm tắt, không cần giải thích.`;
     userMessage: string;
   } {
     const conversationText = messages
-      .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
       .join('\n\n');
 
     return {
@@ -283,15 +283,15 @@ Chỉ trả về phần tóm tắt, không cần giải thích.`;
    */
   static localSummary(messages: MemoryMessage[]): string {
     if (messages.length === 0) return '';
-    
+
     // Extract key points
     const userQuestions = messages
-      .filter(m => m.role === 'user')
+      .filter((m) => m.role === 'user')
       .slice(0, 5)
-      .map(m => m.content.slice(0, 100));
-    
+      .map((m) => m.content.slice(0, 100));
+
     const keyTopics = this.extractTopics(messages);
-    
+
     return `Tóm tắt cuộc trò chuyện trước:
 - Số lượt trao đổi: ${Math.floor(messages.length / 2)}
 - Các câu hỏi chính: ${userQuestions.join('; ')}
@@ -303,15 +303,15 @@ Chỉ trả về phần tóm tắt, không cần giải thích.`;
    */
   private static extractTopics(messages: MemoryMessage[]): string[] {
     const topics = new Set<string>();
-    const allContent = messages.map(m => m.content).join(' ');
-    
+    const allContent = messages.map((m) => m.content).join(' ');
+
     // Topic keywords
     const topicPatterns = [
       /(?:về|about)\s+(\w+)/gi,
       /(?:tìm hiểu|learn about)\s+(\w+)/gi,
       /(?:phân tích|analyze)\s+(\w+)/gi,
     ];
-    
+
     for (const pattern of topicPatterns) {
       const matches = allContent.matchAll(pattern);
       for (const match of matches) {
@@ -320,7 +320,7 @@ Chỉ trả về phần tóm tắt, không cần giải thích.`;
         }
       }
     }
-    
+
     return Array.from(topics).slice(0, 5);
   }
 }
@@ -346,7 +346,7 @@ export class IntelligentMemoryManager {
       persistToCloud: false,
       ...config,
     };
-    
+
     this.loadFromStorage();
   }
 
@@ -384,11 +384,11 @@ export class IntelligentMemoryManager {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    
+
     this.sessions.set(conversationId, session);
     this.activeConversationId = conversationId;
     this.saveToStorage();
-    
+
     return session;
   }
 
@@ -407,7 +407,7 @@ export class IntelligentMemoryManager {
       }
       return session;
     }
-    
+
     // Find most recent conversation for this user
     const userConversations = this.getUserConversations(userId);
     if (userConversations.length > 0) {
@@ -415,7 +415,7 @@ export class IntelligentMemoryManager {
       this.activeConversationId = recent.id;
       return recent;
     }
-    
+
     // Create new conversation
     return this.createConversation(userId, assistantType);
   }
@@ -437,7 +437,7 @@ export class IntelligentMemoryManager {
    */
   getUserConversations(userId: string): MemorySession[] {
     return Array.from(this.sessions.values())
-      .filter(s => s.userId === userId)
+      .filter((s) => s.userId === userId)
       .sort((a, b) => b.updatedAt - a.updatedAt);
   }
 
@@ -468,13 +468,13 @@ export class IntelligentMemoryManager {
    * Add message to session
    */
   addMessage(
-    userId: string, 
-    assistantType: AssistantType, 
-    role: 'user' | 'assistant', 
+    userId: string,
+    assistantType: AssistantType,
+    role: 'user' | 'assistant',
     content: string
   ): MemoryMessage {
     const session = this.getSession(userId, assistantType);
-    
+
     const message: MemoryMessage = {
       id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       role,
@@ -482,34 +482,33 @@ export class IntelligentMemoryManager {
       timestamp: Date.now(),
       tokenCount: TokenCounter.estimate(content),
     };
-    
+
     // Calculate importance
     message.importance = ContextRanker.calculateImportance(
-      message, 
-      session.messages.length, 
+      message,
+      session.messages.length,
       session.messages.length + 1
     );
-    
+
     session.messages.push(message);
     session.updatedAt = Date.now();
-    
+
     // Auto-update title from first user message
     if (role === 'user' && session.messages.length === 1) {
       session.title = content.slice(0, 50) + (content.length > 50 ? '...' : '');
     }
-    
+
     // Check if summarization needed
-    if (this.config.autoSummarize && 
-        session.messages.length > this.config.summarizeThreshold) {
+    if (this.config.autoSummarize && session.messages.length > this.config.summarizeThreshold) {
       this.triggerSummarization(session);
     }
-    
+
     // Update token budget
     this.updateTokenBudget(session);
-    
+
     // Persist
     this.saveToStorage();
-    
+
     return message;
   }
 
@@ -517,24 +516,25 @@ export class IntelligentMemoryManager {
    * Get optimized context for API call
    */
   getOptimizedContext(
-    userId: string, 
+    userId: string,
     assistantType: AssistantType,
     systemPrompt: string
   ): ConversationContext {
     const session = this.getSession(userId, assistantType);
-    
+
     // Calculate available tokens for history
     const systemTokens = TokenCounter.estimate(systemPrompt);
     const summaryTokens = session.summary ? TokenCounter.estimate(session.summary) : 0;
-    const availableForHistory = this.config.maxContextTokens - systemTokens - summaryTokens - this.config.tokenBuffer;
-    
+    const availableForHistory =
+      this.config.maxContextTokens - systemTokens - summaryTokens - this.config.tokenBuffer;
+
     // Get ranked messages within budget
     const optimizedMessages = ContextRanker.rankAndFilter(
       session.messages,
       availableForHistory,
       Math.min(this.config.slidingWindowSize, session.messages.length)
     );
-    
+
     return {
       systemPrompt,
       recentMessages: optimizedMessages,
@@ -549,7 +549,7 @@ export class IntelligentMemoryManager {
    */
   buildAPIMessages(context: ConversationContext): Array<{ role: string; content: string }> {
     const messages: Array<{ role: string; content: string }> = [];
-    
+
     // Add summary as system context if exists
     if (context.historySummary) {
       messages.push({
@@ -557,7 +557,7 @@ export class IntelligentMemoryManager {
         content: `[Context từ cuộc trò chuyện trước]\n${context.historySummary}\n\n[Tiếp tục cuộc trò chuyện]`,
       });
     }
-    
+
     // Add conversation messages
     for (const msg of context.recentMessages) {
       messages.push({
@@ -565,7 +565,7 @@ export class IntelligentMemoryManager {
         content: msg.content,
       });
     }
-    
+
     return messages;
   }
 
@@ -578,43 +578,43 @@ export class IntelligentMemoryManager {
    */
   private triggerSummarization(session: MemorySession): void {
     // Don't summarize if recently done
-    if (session.summary && 
-        session.messages.length - (session.tokenBudget.history || 0) < 10) {
+    if (session.summary && session.messages.length - (session.tokenBudget.history || 0) < 10) {
       return;
     }
-    
+
     // Get messages to summarize (keep recent ones)
     const toSummarize = session.messages.slice(0, -this.config.slidingWindowSize);
-    
+
     if (toSummarize.length < 10) return;
-    
+
     // Use local summary (fast, no API call)
     const summary = ConversationSummarizer.localSummary(toSummarize);
-    
+
     // Update session
-    session.summary = session.summary 
-      ? `${session.summary}\n\n${summary}`
-      : summary;
-    
+    session.summary = session.summary ? `${session.summary}\n\n${summary}` : summary;
+
     // Trim old messages
     session.messages = session.messages.slice(-this.config.slidingWindowSize);
-    
+
     // Debug log removed for production
   }
 
   /**
    * Get AI-powered summary (call externally)
    */
-  getSummaryRequest(userId: string, assistantType: AssistantType): {
+  getSummaryRequest(
+    userId: string,
+    assistantType: AssistantType
+  ): {
     systemPrompt: string;
     userMessage: string;
   } | null {
     const session = this.getSession(userId, assistantType);
-    
+
     if (session.messages.length < this.config.summarizeThreshold) {
       return null;
     }
-    
+
     const toSummarize = session.messages.slice(0, -this.config.slidingWindowSize);
     return ConversationSummarizer.buildSummaryRequest(toSummarize);
   }
@@ -624,15 +624,13 @@ export class IntelligentMemoryManager {
    */
   applySummary(userId: string, assistantType: AssistantType, summary: string): void {
     const session = this.getSession(userId, assistantType);
-    
-    session.summary = session.summary 
-      ? `${session.summary}\n\n${summary}`
-      : summary;
-    
+
+    session.summary = session.summary ? `${session.summary}\n\n${summary}` : summary;
+
     // Trim old messages
     session.messages = session.messages.slice(-this.config.slidingWindowSize);
     session.updatedAt = Date.now();
-    
+
     this.saveToStorage();
   }
 
@@ -643,13 +641,14 @@ export class IntelligentMemoryManager {
   private updateTokenBudget(session: MemorySession): void {
     const historyTokens = TokenCounter.estimateMessages(session.messages);
     const summaryTokens = session.summary ? TokenCounter.estimate(session.summary) : 0;
-    
+
     session.tokenBudget = {
       ...session.tokenBudget,
       history: historyTokens,
       context: summaryTokens,
       total: historyTokens + summaryTokens,
-      available: this.config.maxContextTokens - historyTokens - summaryTokens - this.config.tokenBuffer,
+      available:
+        this.config.maxContextTokens - historyTokens - summaryTokens - this.config.tokenBuffer,
     };
   }
 
@@ -671,14 +670,14 @@ export class IntelligentMemoryManager {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {
         const data = JSON.parse(stored);
-        
+
         // Load sessions
         if (data.sessions) {
           for (const [key, session] of Object.entries(data.sessions)) {
             this.sessions.set(key, session as MemorySession);
           }
         }
-        
+
         // Load active conversation ID
         if (data.activeConversationId) {
           this.activeConversationId = data.activeConversationId;
@@ -695,11 +694,11 @@ export class IntelligentMemoryManager {
         sessions: {} as Record<string, MemorySession>,
         activeConversationId: this.activeConversationId,
       };
-      
+
       for (const [key, session] of this.sessions) {
         data.sessions[key] = session;
       }
-      
+
       localStorage.setItem(this.storageKey, JSON.stringify(data));
     } catch (error) {
       console.error('[IntelligentMemory] Save error:', error);

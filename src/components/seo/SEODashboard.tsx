@@ -8,14 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  TrendingUp, 
-  Search, 
-  BarChart3, 
+import {
+  TrendingUp,
+  Search,
+  BarChart3,
   AlertCircle,
   CheckCircle,
   Clock,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -37,9 +37,9 @@ export default function SEODashboard() {
       // Import dynamic để tránh build errors
       const { testConnection } = await import('@/lib/seo/google-api-client');
       const result = await testConnection();
-      
+
       setIsConnected(result.success);
-      
+
       if (result.success) {
         toast({
           title: '✅ Kết nối Google API thành công',
@@ -63,12 +63,12 @@ export default function SEODashboard() {
     try {
       const { searchConsoleAPI } = await import('@/lib/seo/google-api-client');
       const { autoSEOTasks } = await import('@/lib/seo/auto-seo-manager');
-      
+
       const siteUrl = import.meta.env.GOOGLE_SEARCH_CONSOLE_PROPERTY_URL;
       const data = await autoSEOTasks.dailyPerformanceReport(siteUrl);
-      
+
       setPerformanceData(data);
-      
+
       toast({
         title: '✅ Đã cập nhật dữ liệu',
         description: 'Performance data đã được refresh',
@@ -89,9 +89,9 @@ export default function SEODashboard() {
     try {
       const { autoSEOTasks } = await import('@/lib/seo/auto-seo-manager');
       const results = await autoSEOTasks.autoSubmitNewContent(urls);
-      
-      const successCount = results.filter(r => r.status === 'success').length;
-      
+
+      const successCount = results.filter((r) => r.status === 'success').length;
+
       toast({
         title: '✅ Đã submit lên Google',
         description: `${successCount}/${urls.length} URLs đã được submit thành công`,
@@ -112,21 +112,15 @@ export default function SEODashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">🎯 SEO Dashboard</h1>
-          <p className="text-muted-foreground">
-            Quản lý và tự động hóa SEO cho website
-          </p>
+          <p className="text-muted-foreground">Quản lý và tự động hóa SEO cho website</p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <Badge variant={isConnected ? 'default' : 'destructive'}>
             {isConnected ? '✓ Connected' : '✗ Not Connected'}
           </Badge>
-          
-          <Button 
-            onClick={checkConnection}
-            disabled={isLoading}
-            variant="outline"
-          >
+
+          <Button onClick={checkConnection} disabled={isLoading} variant="outline">
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Test Connection
           </Button>
@@ -145,14 +139,19 @@ export default function SEODashboard() {
             <div className="bg-muted p-4 rounded-lg">
               <h3 className="font-semibold mb-2">📋 Các bước setup:</h3>
               <ol className="list-decimal list-inside space-y-2 text-sm">
-                <li>Đọc file <code className="bg-background px-2 py-1 rounded">GOOGLE_API_SETUP_GUIDE.md</code></li>
+                <li>
+                  Đọc file{' '}
+                  <code className="bg-background px-2 py-1 rounded">GOOGLE_API_SETUP_GUIDE.md</code>
+                </li>
                 <li>Tạo Google Cloud Project & Service Account</li>
                 <li>Download JSON credentials</li>
-                <li>Copy vào file <code className="bg-background px-2 py-1 rounded">.env.local</code></li>
+                <li>
+                  Copy vào file <code className="bg-background px-2 py-1 rounded">.env.local</code>
+                </li>
                 <li>Restart development server</li>
               </ol>
             </div>
-            
+
             <Button onClick={checkConnection} className="w-full">
               <RefreshCw className="w-4 h-4 mr-2" />
               Kiểm tra lại kết nối
@@ -233,22 +232,21 @@ export default function SEODashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>📊 Top Performing Queries</CardTitle>
-                <CardDescription>
-                  Các từ khóa đang hoạt động tốt nhất (7 ngày qua)
-                </CardDescription>
+                <CardDescription>Các từ khóa đang hoạt động tốt nhất (7 ngày qua)</CardDescription>
               </CardHeader>
               <CardContent>
                 {performanceData?.topQueries?.length > 0 ? (
                   <div className="space-y-3">
                     {performanceData.topQueries.map((query: any, index: number) => (
-                      <div 
+                      <div
                         key={index}
                         className="flex items-center justify-between p-3 bg-muted rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="font-medium">{query.query}</div>
                           <div className="text-sm text-muted-foreground">
-                            Position: {query.position?.toFixed(1)} | CTR: {(query.ctr * 100).toFixed(2)}%
+                            Position: {query.position?.toFixed(1)} | CTR:{' '}
+                            {(query.ctr * 100).toFixed(2)}%
                           </div>
                         </div>
                         <div className="text-right">
@@ -273,9 +271,7 @@ export default function SEODashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>🔍 Keyword Monitoring</CardTitle>
-                <CardDescription>
-                  Theo dõi thứ hạng của các keywords quan trọng
-                </CardDescription>
+                <CardDescription>Theo dõi thứ hạng của các keywords quan trọng</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8 text-muted-foreground">
@@ -301,8 +297,8 @@ export default function SEODashboard() {
                     Google sẽ crawl và index nhanh hơn thay vì phải chờ tự nhiên.
                   </p>
                 </div>
-                
-                <Button 
+
+                <Button
                   onClick={() => {
                     const urls = [window.location.origin];
                     submitNewContent(urls);
@@ -321,9 +317,7 @@ export default function SEODashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>⚡ Tự động hóa SEO</CardTitle>
-                <CardDescription>
-                  Các tác vụ SEO sẽ chạy tự động hàng ngày
-                </CardDescription>
+                <CardDescription>Các tác vụ SEO sẽ chạy tự động hàng ngày</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -331,9 +325,13 @@ export default function SEODashboard() {
                     { name: 'Daily Performance Report', status: 'active', nextRun: '6:00 AM' },
                     { name: 'Keyword Rankings Monitor', status: 'active', nextRun: '8:00 AM' },
                     { name: 'Ranking Drops Alert', status: 'active', nextRun: '10:00 AM' },
-                    { name: 'Weekly Analytics Summary', status: 'active', nextRun: 'Monday 9:00 AM' },
+                    {
+                      name: 'Weekly Analytics Summary',
+                      status: 'active',
+                      nextRun: 'Monday 9:00 AM',
+                    },
                   ].map((task, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="flex items-center justify-between p-3 bg-muted rounded-lg"
                     >

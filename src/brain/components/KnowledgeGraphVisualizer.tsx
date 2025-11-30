@@ -3,19 +3,30 @@
  * Visualizes knowledge graph relationships
  */
 
-import { useBuildGraph, useGraphStatistics, useRelatedConcepts, useTraverseGraph } from "@/brain/hooks/useKnowledgeGraph";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Network, Play, Search, TrendingUp } from "lucide-react";
-import { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useDomains } from "@/brain/hooks/useDomains";
+import {
+  useBuildGraph,
+  useGraphStatistics,
+  useRelatedConcepts,
+  useTraverseGraph,
+} from '@/brain/hooks/useKnowledgeGraph';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Network, Play, Search, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useDomains } from '@/brain/hooks/useDomains';
 
 export function KnowledgeGraphVisualizer() {
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
-  const [startNodeId, setStartNodeId] = useState("");
+  const [startNodeId, setStartNodeId] = useState('');
   const [maxDepth, setMaxDepth] = useState(3);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
@@ -58,7 +69,7 @@ export function KnowledgeGraphVisualizer() {
         <CardContent className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-2 block">Select Domain</label>
-            <Select value={selectedDomainId || ""} onValueChange={setSelectedDomainId}>
+            <Select value={selectedDomainId || ''} onValueChange={setSelectedDomainId}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a domain" />
               </SelectTrigger>
@@ -86,10 +97,12 @@ export function KnowledgeGraphVisualizer() {
           {buildGraphMutation.data && (
             <div className="p-3 bg-muted rounded-md">
               <p className="text-sm">
-                <span className="font-semibold">Nodes created:</span> {buildGraphMutation.data.nodesCreated}
+                <span className="font-semibold">Nodes created:</span>{' '}
+                {buildGraphMutation.data.nodesCreated}
               </p>
               <p className="text-sm">
-                <span className="font-semibold">Edges created:</span> {buildGraphMutation.data.edgesCreated}
+                <span className="font-semibold">Edges created:</span>{' '}
+                {buildGraphMutation.data.edgesCreated}
               </p>
             </div>
           )}
@@ -149,7 +162,11 @@ export function KnowledgeGraphVisualizer() {
               onChange={(e) => setMaxDepth(Number.parseInt(e.target.value, 10) || 3)}
             />
           </div>
-          <Button onClick={handleTraverse} disabled={!startNodeId.trim() || traverseMutation.isPending} className="w-full">
+          <Button
+            onClick={handleTraverse}
+            disabled={!startNodeId.trim() || traverseMutation.isPending}
+            className="w-full"
+          >
             {traverseMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
             ) : (
@@ -164,7 +181,9 @@ export function KnowledgeGraphVisualizer() {
                 {traverseMutation.data.map((node, idx) => (
                   <div key={idx} className="p-2 border rounded text-sm">
                     <p className="font-semibold">{node.nodeLabel}</p>
-                    <p className="text-xs text-muted-foreground">Type: {node.nodeType} | Depth: {node.depth}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Type: {node.nodeType} | Depth: {node.depth}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -200,7 +219,9 @@ export function KnowledgeGraphVisualizer() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No related concepts found. Select a node to explore.</p>
+              <p className="text-sm text-muted-foreground">
+                No related concepts found. Select a node to explore.
+              </p>
             )}
           </CardContent>
         </Card>
@@ -214,7 +235,7 @@ export function KnowledgeGraphVisualizer() {
         </CardHeader>
         <CardContent>
           <Input
-            value={selectedNodeId || ""}
+            value={selectedNodeId || ''}
             onChange={(e) => setSelectedNodeId(e.target.value || null)}
             placeholder="Enter node ID"
           />
@@ -223,4 +244,3 @@ export function KnowledgeGraphVisualizer() {
     </div>
   );
 }
-

@@ -1,18 +1,19 @@
-import * as Sentry from "@sentry/react";
+import * as Sentry from '@sentry/react';
 
 // Check if we should enable Sentry (production OR local preview with DSN)
 const shouldEnableSentry = () => {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   const isProduction = import.meta.env.PROD;
-  const isLocalPreview = window.location.hostname === 'localhost' && window.location.port === '4173';
-  
+  const isLocalPreview =
+    window.location.hostname === 'localhost' && window.location.port === '4173';
+
   // Enable if: has DSN AND (is production OR is local preview)
   return !!dsn && (isProduction || isLocalPreview);
 };
 
 export const initSentry = () => {
   const enabled = shouldEnableSentry();
-  
+
   if (enabled) {
     console.log('[Sentry] Initializing error tracking...');
   }
@@ -54,23 +55,27 @@ async function sendToLocalCopilotBridge(event: Sentry.Event, hint: Sentry.EventH
     const exception = hint.originalException as Error;
     const stacktrace = event.exception?.values?.[0]?.stacktrace?.frames || [];
     const lastFrame = stacktrace[stacktrace.length - 1];
-    
+
     // Extract file path from stacktrace
     let file = lastFrame?.filename || '';
     const line = lastFrame?.lineno || 1;
-    
+
     // Convert URL to local path
     if (file.includes('localhost')) {
-      file = file.replace(/http:\/\/localhost:\d+\//, 'D:/0.PROJECTS/00-MASTER-ADMIN/longsang-admin/');
+      file = file.replace(
+        /http:\/\/localhost:\d+\//,
+        'D:/0.PROJECTS/00-MASTER-ADMIN/longsang-admin/'
+      );
     }
 
     const payload = {
       file,
       line,
       error: event.message || exception?.message || 'Unknown error',
-      stacktrace: stacktrace.map(f => 
-        `  at ${f.function || 'anonymous'} (${f.filename}:${f.lineno}:${f.colno})`
-      ).reverse().join('\n'),
+      stacktrace: stacktrace
+        .map((f) => `  at ${f.function || 'anonymous'} (${f.filename}:${f.lineno}:${f.colno})`)
+        .reverse()
+        .join('\n'),
       context: exception?.stack,
       project: 'longsang-admin',
       environment: 'local-preview',

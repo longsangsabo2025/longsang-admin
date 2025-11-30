@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { Menu, X, Download, Phone } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/contexts/LanguageContext";
-import LanguageSwitcher from "./LanguageSwitcher";
+import { useState, useEffect } from 'react';
+import { Menu, X, Download, Phone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const CVNavigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -13,17 +13,17 @@ const CVNavigation = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const navLinks = [
-    { name: "nav.home", href: "#home" },
-    { name: "nav.about", href: "#about" },
-    { name: "nav.experience", href: "#experience" },
-    { name: "nav.skills", href: "#skills" },
-    { name: "nav.education", href: "#education" },
-    { name: "nav.contact", href: "#contact" },
+    { name: 'nav.home', href: '#home' },
+    { name: 'nav.about', href: '#about' },
+    { name: 'nav.experience', href: '#experience' },
+    { name: 'nav.skills', href: '#skills' },
+    { name: 'nav.education', href: '#education' },
+    { name: 'nav.contact', href: '#contact' },
   ];
 
   const scrollToSection = (id: string) => {
@@ -41,7 +41,7 @@ const CVNavigation = () => {
     <>
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? "backdrop-glass border-b border-border shadow-lg" : "bg-transparent"
+          isScrolled ? 'backdrop-glass border-b border-border shadow-lg' : 'bg-transparent'
         }`}
       >
         <div className="container mx-auto px-6">
@@ -51,7 +51,7 @@ const CVNavigation = () => {
               href="#home"
               onClick={(e) => {
                 e.preventDefault();
-                scrollToSection("#home");
+                scrollToSection('#home');
               }}
               className="text-2xl font-heading font-bold text-gradient-gold hover:glow-gold transition-all"
             >

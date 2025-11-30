@@ -1,6 +1,6 @@
 /**
  * ⌨️ Global Quick Commands (Ctrl+K)
- * 
+ *
  * Command palette toàn cục với các shortcuts:
  * - /brain search <query> - Tìm kiếm trong Brain
  * - /post <content> - Đăng bài social media
@@ -288,7 +288,9 @@ export function GlobalQuickCommands() {
       id: 'project-portfolio',
       label: 'Project: LongSang Portfolio',
       icon: Folder,
-      action: () => { window.open('http://localhost:5000', '_blank'); },
+      action: () => {
+        window.open('http://localhost:5000', '_blank');
+      },
       keywords: ['portfolio', 'longsang'],
       group: 'projects',
     },
@@ -296,7 +298,9 @@ export function GlobalQuickCommands() {
       id: 'project-ainewbie',
       label: 'Project: AI Newbie Web',
       icon: Folder,
-      action: () => { window.open('http://localhost:5174', '_blank'); },
+      action: () => {
+        window.open('http://localhost:5174', '_blank');
+      },
       keywords: ['ainewbie', 'ai newbie'],
       group: 'projects',
     },
@@ -304,7 +308,9 @@ export function GlobalQuickCommands() {
       id: 'project-secretary',
       label: 'Project: AI Secretary',
       icon: MessageSquare,
-      action: () => { window.open('http://localhost:5173', '_blank'); },
+      action: () => {
+        window.open('http://localhost:5173', '_blank');
+      },
       keywords: ['secretary', 'ai secretary'],
       group: 'projects',
     },
@@ -312,13 +318,14 @@ export function GlobalQuickCommands() {
       id: 'project-vungtau',
       label: 'Project: Vung Tau Dream Homes',
       icon: Home,
-      action: () => { window.open('http://localhost:5175', '_blank'); },
+      action: () => {
+        window.open('http://localhost:5175', '_blank');
+      },
       keywords: ['vungtau', 'bđs', 'real estate'],
       group: 'projects',
     },
   ];
 
-   
   const _allCommands = [
     ...navigationCommands,
     ...actionCommands,
@@ -341,12 +348,12 @@ export function GlobalQuickCommands() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && inputValue.startsWith('/')) {
       e.preventDefault();
-      
+
       // Find matching slash command
-      const matchedCommand = actionCommands.find(cmd => 
+      const matchedCommand = actionCommands.find((cmd) =>
         inputValue.toLowerCase().startsWith(cmd.label.split(' ')[0].toLowerCase())
       );
-      
+
       if (matchedCommand) {
         handleSelect(matchedCommand);
       }
@@ -364,23 +371,15 @@ export function GlobalQuickCommands() {
         onKeyDown={handleKeyDown}
       />
       <CommandList>
-        <CommandEmpty>
-          Không tìm thấy kết quả. Thử gõ "/" để xem slash commands.
-        </CommandEmpty>
+        <CommandEmpty>Không tìm thấy kết quả. Thử gõ "/" để xem slash commands.</CommandEmpty>
 
         {/* Navigation */}
         <CommandGroup heading="📍 Điều hướng">
           {navigationCommands.map((cmd) => (
-            <CommandItem
-              key={cmd.id}
-              onSelect={() => handleSelect(cmd)}
-              keywords={cmd.keywords}
-            >
+            <CommandItem key={cmd.id} onSelect={() => handleSelect(cmd)} keywords={cmd.keywords}>
               <cmd.icon className="mr-2 h-4 w-4" />
               <span>{cmd.label}</span>
-              {cmd.shortcut && (
-                <CommandShortcut>{cmd.shortcut}</CommandShortcut>
-              )}
+              {cmd.shortcut && <CommandShortcut>{cmd.shortcut}</CommandShortcut>}
             </CommandItem>
           ))}
         </CommandGroup>
@@ -390,11 +389,7 @@ export function GlobalQuickCommands() {
         {/* Slash Commands */}
         <CommandGroup heading="⚡ Slash Commands">
           {actionCommands.map((cmd) => (
-            <CommandItem
-              key={cmd.id}
-              onSelect={() => handleSelect(cmd)}
-              keywords={cmd.keywords}
-            >
+            <CommandItem key={cmd.id} onSelect={() => handleSelect(cmd)} keywords={cmd.keywords}>
               <cmd.icon className="mr-2 h-4 w-4" />
               <span>{cmd.label}</span>
             </CommandItem>
@@ -406,11 +401,7 @@ export function GlobalQuickCommands() {
         {/* AI Assistants */}
         <CommandGroup heading="🤖 AI Assistants">
           {aiCommands.map((cmd) => (
-            <CommandItem
-              key={cmd.id}
-              onSelect={() => handleSelect(cmd)}
-              keywords={cmd.keywords}
-            >
+            <CommandItem key={cmd.id} onSelect={() => handleSelect(cmd)} keywords={cmd.keywords}>
               <cmd.icon className="mr-2 h-4 w-4" />
               <span>{cmd.label}</span>
             </CommandItem>
@@ -422,11 +413,7 @@ export function GlobalQuickCommands() {
         {/* Projects */}
         <CommandGroup heading="📁 Projects">
           {projectCommands.map((cmd) => (
-            <CommandItem
-              key={cmd.id}
-              onSelect={() => handleSelect(cmd)}
-              keywords={cmd.keywords}
-            >
+            <CommandItem key={cmd.id} onSelect={() => handleSelect(cmd)} keywords={cmd.keywords}>
               <cmd.icon className="mr-2 h-4 w-4" />
               <span>{cmd.label}</span>
               <CommandShortcut>

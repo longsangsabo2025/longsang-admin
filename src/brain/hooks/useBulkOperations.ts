@@ -3,15 +3,15 @@
  * Manages bulk import, export, delete, and update operations
  */
 
-import { brainAPI } from "@/brain/lib/services/brain-api";
+import { brainAPI } from '@/brain/lib/services/brain-api';
 import type {
   BulkIngestInput,
   BulkOperationResult,
   BulkUpdateInput,
   DomainExportData,
-} from "@/brain/types/domain-agent.types";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
+} from '@/brain/types/domain-agent.types';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 /**
  * Hook to bulk ingest knowledge
@@ -37,11 +37,17 @@ export function useBulkIngest() {
  */
 export function useExportDomain() {
   return useMutation({
-    mutationFn: async ({ domainId, format = "json" }: { domainId: string; format?: "json" | "csv" }) => {
+    mutationFn: async ({
+      domainId,
+      format = 'json',
+    }: {
+      domainId: string;
+      format?: 'json' | 'csv';
+    }) => {
       return brainAPI.exportDomain(domainId, format);
     },
     onSuccess: () => {
-      toast.success("Domain exported successfully");
+      toast.success('Domain exported successfully');
     },
     onError: (error: Error) => {
       toast.error(`Failed to export domain: ${error.message}`);
@@ -84,4 +90,3 @@ export function useBulkUpdate() {
     },
   });
 }
-

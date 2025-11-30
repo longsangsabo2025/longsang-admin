@@ -16,13 +16,13 @@ export const getSupabaseClient = () => {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
       },
       realtime: {
         params: {
-          eventsPerSecond: 2
-        }
-      }
+          eventsPerSecond: 2,
+        },
+      },
     });
   }
   return supabaseInstance;

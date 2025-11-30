@@ -118,5 +118,3 @@ export function useDomainGrowthForecast(domainId: string | null, enabled: boolea
     staleTime: 30 * 60 * 1000, // 30 minutes
   });
 }
-
-

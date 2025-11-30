@@ -1,6 +1,6 @@
 /**
  * AI-Powered Fix Suggestions Service
- * 
+ *
  * Uses OpenAI GPT-4 to analyze errors and suggest real code fixes
  * "ESLint fixes syntax. AI fixes logic." - Elon
  */
@@ -74,7 +74,7 @@ class AIFixService {
       }
 
       const result = await response.json();
-      
+
       // Save suggestions to database
       await this.saveSuggestions(error.errorId, result.suggestions);
 
@@ -101,7 +101,8 @@ class AIFixService {
         confidence: 75,
         category: 'code_fix',
         title: 'Add Null/Undefined Check',
-        description: 'The error indicates accessing a property on null or undefined. Add optional chaining or null checks.',
+        description:
+          'The error indicates accessing a property on null or undefined. Add optional chaining or null checks.',
         suggestedCode: `// Before
 obj.property.value
 
@@ -125,14 +126,19 @@ if (obj && obj.property) {
       });
     }
 
-    if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('timeout')) {
+    if (
+      errorMessage.includes('network') ||
+      errorMessage.includes('fetch') ||
+      errorMessage.includes('timeout')
+    ) {
       suggestions.push({
         id: `fallback-${Date.now()}-2`,
         errorId: error.errorId,
         confidence: 80,
         category: 'code_fix',
         title: 'Add Retry Logic with Exponential Backoff',
-        description: 'Network errors can be transient. Implement retry logic with exponential backoff.',
+        description:
+          'Network errors can be transient. Implement retry logic with exponential backoff.',
         suggestedCode: `import { selfHealing } from '@/lib/bug-system';
 
 // Wrap your API call with self-healing
@@ -161,14 +167,19 @@ const result = await selfHealing.execute(
       });
     }
 
-    if (errorMessage.includes('unauthorized') || errorMessage.includes('401') || errorMessage.includes('forbidden')) {
+    if (
+      errorMessage.includes('unauthorized') ||
+      errorMessage.includes('401') ||
+      errorMessage.includes('forbidden')
+    ) {
       suggestions.push({
         id: `fallback-${Date.now()}-3`,
         errorId: error.errorId,
         confidence: 85,
         category: 'code_fix',
         title: 'Handle Authentication Error',
-        description: 'The request was rejected due to authentication issues. Implement token refresh or redirect to login.',
+        description:
+          'The request was rejected due to authentication issues. Implement token refresh or redirect to login.',
         suggestedCode: `// Add auth error handler
 async function handleAuthError(error: Error) {
   // Try to refresh token
@@ -203,7 +214,8 @@ async function handleAuthError(error: Error) {
         confidence: 70,
         category: 'code_fix',
         title: 'Fix Type Mismatch',
-        description: 'There is a type mismatch in the code. Check TypeScript types and add proper type guards.',
+        description:
+          'There is a type mismatch in the code. Check TypeScript types and add proper type guards.',
         suggestedCode: `// Add type guard
 function isValidData(data: unknown): data is ExpectedType {
   return (
@@ -239,7 +251,8 @@ if (isValidData(response)) {
         confidence: 50,
         category: 'manual_required',
         title: 'Manual Investigation Required',
-        description: 'This error requires manual investigation. Check the stack trace for more context.',
+        description:
+          'This error requires manual investigation. Check the stack trace for more context.',
         steps: [
           'Review the full stack trace',
           'Check recent code changes',
@@ -337,7 +350,7 @@ if (isValidData(response)) {
    */
   private async saveSuggestions(errorId: string, suggestions: FixSuggestion[]): Promise<void> {
     try {
-      const records = suggestions.map(s => ({
+      const records = suggestions.map((s) => ({
         error_id: errorId,
         suggestion_id: s.id,
         confidence: s.confidence,

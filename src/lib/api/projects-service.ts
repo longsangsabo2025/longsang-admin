@@ -1,13 +1,13 @@
 /**
  * Projects Service
  * API service for managing projects, credentials, agents, and workflows
- * 
+ *
  * NOTE: This service uses generic types because the database tables are not yet
  * defined in the Supabase types. After running the migration, regenerate types
  * using: npx supabase gen types typescript --project-id <project-id> > src/integrations/supabase/types.ts
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 // ============================================================
 // TYPES
@@ -20,7 +20,7 @@ export interface Project {
   description: string | null;
   icon: string;
   color: string;
-  status: "active" | "development" | "paused" | "archived";
+  status: 'active' | 'development' | 'paused' | 'archived';
   local_url: string | null;
   production_url: string | null;
   github_url: string | null;
@@ -33,11 +33,21 @@ export interface ProjectCredential {
   id: string;
   project_id: string;
   name: string;
-  type: "api" | "database" | "cloud" | "email" | "payment" | "deployment" | "analytics" | "cdn" | "social" | "other";
+  type:
+    | 'api'
+    | 'database'
+    | 'cloud'
+    | 'email'
+    | 'payment'
+    | 'deployment'
+    | 'analytics'
+    | 'cdn'
+    | 'social'
+    | 'other';
   key_value: string;
   key_preview: string | null;
-  status: "active" | "inactive" | "expired" | "revoked";
-  environment: "development" | "staging" | "production";
+  status: 'active' | 'inactive' | 'expired' | 'revoked';
+  environment: 'development' | 'staging' | 'production';
   expires_at: string | null;
   last_used_at: string | null;
   last_rotated_at: string | null;
@@ -52,8 +62,8 @@ export interface ProjectAgent {
   name: string;
   description: string | null;
   model: string;
-  provider: "openai" | "anthropic" | "google" | "openrouter" | "local" | "other";
-  status: "active" | "paused" | "development" | "deprecated";
+  provider: 'openai' | 'anthropic' | 'google' | 'openrouter' | 'local' | 'other';
+  status: 'active' | 'paused' | 'development' | 'deprecated';
   system_prompt: string | null;
   temperature: number;
   max_tokens: number;
@@ -72,8 +82,8 @@ export interface ProjectWorkflow {
   n8n_workflow_id: string | null;
   name: string;
   description: string | null;
-  status: "active" | "paused" | "development" | "error";
-  trigger_type: "webhook" | "schedule" | "manual" | "event";
+  status: 'active' | 'paused' | 'development' | 'error';
+  trigger_type: 'webhook' | 'schedule' | 'manual' | 'event';
   webhook_url: string | null;
   total_executions: number;
   successful_executions: number;
@@ -112,10 +122,7 @@ const db = supabase as any;
 export const projectsApi = {
   // Get all projects
   async getAll(): Promise<Project[]> {
-    const { data, error } = await db
-      .from("projects")
-      .select("*")
-      .order("name");
+    const { data, error } = await db.from('projects').select('*').order('name');
 
     if (error) throw error;
     return data || [];
@@ -125,9 +132,9 @@ export const projectsApi = {
   async getAllWithStats(): Promise<ProjectWithStats[]> {
     // First get projects
     const { data: projects, error: projectsError } = await db
-      .from("projects")
-      .select("*")
-      .order("name");
+      .from('projects')
+      .select('*')
+      .order('name');
 
     if (projectsError) throw projectsError;
     if (!projects || projects.length === 0) return [];
@@ -137,17 +144,17 @@ export const projectsApi = {
       projects.map(async (project: Project) => {
         const [credentialsResult, agentsResult, workflowsResult] = await Promise.all([
           db
-            .from("project_credentials")
-            .select("id", { count: "exact", head: true })
-            .eq("project_id", project.id),
+            .from('project_credentials')
+            .select('id', { count: 'exact', head: true })
+            .eq('project_id', project.id),
           db
-            .from("project_agents")
-            .select("id", { count: "exact", head: true })
-            .eq("project_id", project.id),
+            .from('project_agents')
+            .select('id', { count: 'exact', head: true })
+            .eq('project_id', project.id),
           db
-            .from("project_workflows")
-            .select("id", { count: "exact", head: true })
-            .eq("project_id", project.id),
+            .from('project_workflows')
+            .select('id', { count: 'exact', head: true })
+            .eq('project_id', project.id),
         ]);
 
         return {
@@ -164,14 +171,10 @@ export const projectsApi = {
 
   // Get project by slug
   async getBySlug(slug: string): Promise<Project | null> {
-    const { data, error } = await db
-      .from("projects")
-      .select("*")
-      .eq("slug", slug)
-      .single();
+    const { data, error } = await db.from('projects').select('*').eq('slug', slug).single();
 
     if (error) {
-      if (error.code === "PGRST116") return null; // Not found
+      if (error.code === 'PGRST116') return null; // Not found
       throw error;
     }
     return data;
@@ -179,26 +182,18 @@ export const projectsApi = {
 
   // Get project by ID
   async getById(id: string): Promise<Project | null> {
-    const { data, error } = await db
-      .from("projects")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data, error } = await db.from('projects').select('*').eq('id', id).single();
 
     if (error) {
-      if (error.code === "PGRST116") return null;
+      if (error.code === 'PGRST116') return null;
       throw error;
     }
     return data;
   },
 
   // Create project
-  async create(project: Omit<Project, "id" | "created_at" | "updated_at">): Promise<Project> {
-    const { data, error } = await db
-      .from("projects")
-      .insert(project)
-      .select()
-      .single();
+  async create(project: Omit<Project, 'id' | 'created_at' | 'updated_at'>): Promise<Project> {
+    const { data, error } = await db.from('projects').insert(project).select().single();
 
     if (error) throw error;
     return data;
@@ -207,9 +202,9 @@ export const projectsApi = {
   // Update project
   async update(id: string, updates: Partial<Project>): Promise<Project> {
     const { data, error } = await db
-      .from("projects")
+      .from('projects')
       .update(updates)
-      .eq("id", id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -219,10 +214,7 @@ export const projectsApi = {
 
   // Delete project
   async delete(id: string): Promise<void> {
-    const { error } = await db
-      .from("projects")
-      .delete()
-      .eq("id", id);
+    const { error } = await db.from('projects').delete().eq('id', id);
 
     if (error) throw error;
   },
@@ -236,10 +228,10 @@ export const credentialsApi = {
   // Get all credentials for a project
   async getByProject(projectId: string): Promise<ProjectCredential[]> {
     const { data, error } = await db
-      .from("project_credentials")
-      .select("*")
-      .eq("project_id", projectId)
-      .order("name");
+      .from('project_credentials')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('name');
 
     if (error) throw error;
     return data || [];
@@ -247,28 +239,27 @@ export const credentialsApi = {
 
   // Get credential by ID
   async getById(id: string): Promise<ProjectCredential | null> {
-    const { data, error } = await db
-      .from("project_credentials")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data, error } = await db.from('project_credentials').select('*').eq('id', id).single();
 
     if (error) {
-      if (error.code === "PGRST116") return null;
+      if (error.code === 'PGRST116') return null;
       throw error;
     }
     return data;
   },
 
   // Create credential
-  async create(credential: Omit<ProjectCredential, "id" | "created_at" | "updated_at">): Promise<ProjectCredential> {
+  async create(
+    credential: Omit<ProjectCredential, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<ProjectCredential> {
     // Generate key preview
-    const keyPreview = credential.key_value.length > 10
-      ? `${credential.key_value.slice(0, 8)}...${credential.key_value.slice(-4)}`
-      : "•".repeat(credential.key_value.length);
+    const keyPreview =
+      credential.key_value.length > 10
+        ? `${credential.key_value.slice(0, 8)}...${credential.key_value.slice(-4)}`
+        : '•'.repeat(credential.key_value.length);
 
     const { data, error } = await db
-      .from("project_credentials")
+      .from('project_credentials')
       .insert({ ...credential, key_preview: keyPreview })
       .select()
       .single();
@@ -281,15 +272,16 @@ export const credentialsApi = {
   async update(id: string, updates: Partial<ProjectCredential>): Promise<ProjectCredential> {
     // If key_value is updated, regenerate preview
     if (updates.key_value) {
-      updates.key_preview = updates.key_value.length > 10
-        ? `${updates.key_value.slice(0, 8)}...${updates.key_value.slice(-4)}`
-        : "•".repeat(updates.key_value.length);
+      updates.key_preview =
+        updates.key_value.length > 10
+          ? `${updates.key_value.slice(0, 8)}...${updates.key_value.slice(-4)}`
+          : '•'.repeat(updates.key_value.length);
     }
 
     const { data, error } = await db
-      .from("project_credentials")
+      .from('project_credentials')
       .update(updates)
-      .eq("id", id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -299,10 +291,7 @@ export const credentialsApi = {
 
   // Delete credential
   async delete(id: string): Promise<void> {
-    const { error } = await db
-      .from("project_credentials")
-      .delete()
-      .eq("id", id);
+    const { error } = await db.from('project_credentials').delete().eq('id', id);
 
     if (error) throw error;
   },
@@ -310,9 +299,9 @@ export const credentialsApi = {
   // Update last used
   async markUsed(id: string): Promise<void> {
     const { error } = await db
-      .from("project_credentials")
+      .from('project_credentials')
       .update({ last_used_at: new Date().toISOString() })
-      .eq("id", id);
+      .eq('id', id);
 
     if (error) throw error;
   },
@@ -326,10 +315,10 @@ export const agentsApi = {
   // Get all agents for a project
   async getByProject(projectId: string): Promise<ProjectAgent[]> {
     const { data, error } = await db
-      .from("project_agents")
-      .select("*")
-      .eq("project_id", projectId)
-      .order("created_at", { ascending: false });
+      .from('project_agents')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
@@ -337,26 +326,23 @@ export const agentsApi = {
 
   // Get agent by ID
   async getById(id: string): Promise<ProjectAgent | null> {
-    const { data, error } = await db
-      .from("project_agents")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data, error } = await db.from('project_agents').select('*').eq('id', id).single();
 
     if (error) {
-      if (error.code === "PGRST116") return null;
+      if (error.code === 'PGRST116') return null;
       throw error;
     }
     return data;
   },
 
   // Create agent
-  async create(agent: Omit<ProjectAgent, "id" | "created_at" | "updated_at" | "total_runs" | "total_tokens_used" | "total_cost_usd">): Promise<ProjectAgent> {
-    const { data, error } = await db
-      .from("project_agents")
-      .insert(agent)
-      .select()
-      .single();
+  async create(
+    agent: Omit<
+      ProjectAgent,
+      'id' | 'created_at' | 'updated_at' | 'total_runs' | 'total_tokens_used' | 'total_cost_usd'
+    >
+  ): Promise<ProjectAgent> {
+    const { data, error } = await db.from('project_agents').insert(agent).select().single();
 
     if (error) throw error;
     return data;
@@ -365,9 +351,9 @@ export const agentsApi = {
   // Update agent
   async update(id: string, updates: Partial<ProjectAgent>): Promise<ProjectAgent> {
     const { data, error } = await db
-      .from("project_agents")
+      .from('project_agents')
       .update(updates)
-      .eq("id", id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -377,10 +363,7 @@ export const agentsApi = {
 
   // Delete agent
   async delete(id: string): Promise<void> {
-    const { error } = await db
-      .from("project_agents")
-      .delete()
-      .eq("id", id);
+    const { error } = await db.from('project_agents').delete().eq('id', id);
 
     if (error) throw error;
   },
@@ -388,22 +371,22 @@ export const agentsApi = {
   // Increment run count and update stats
   async recordRun(id: string, tokensUsed: number, costUsd: number): Promise<void> {
     const { data: agent, error: fetchError } = await db
-      .from("project_agents")
-      .select("total_runs, total_tokens_used, total_cost_usd")
-      .eq("id", id)
+      .from('project_agents')
+      .select('total_runs, total_tokens_used, total_cost_usd')
+      .eq('id', id)
       .single();
 
     if (fetchError) throw fetchError;
 
     const { error } = await db
-      .from("project_agents")
+      .from('project_agents')
       .update({
         total_runs: (agent?.total_runs || 0) + 1,
         total_tokens_used: (agent?.total_tokens_used || 0) + tokensUsed,
         total_cost_usd: (agent?.total_cost_usd || 0) + costUsd,
         last_run_at: new Date().toISOString(),
       })
-      .eq("id", id);
+      .eq('id', id);
 
     if (error) throw error;
   },
@@ -417,10 +400,10 @@ export const workflowsApi = {
   // Get all workflows for a project
   async getByProject(projectId: string): Promise<ProjectWorkflow[]> {
     const { data, error } = await db
-      .from("project_workflows")
-      .select("*")
-      .eq("project_id", projectId)
-      .order("name");
+      .from('project_workflows')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('name');
 
     if (error) throw error;
     return data || [];
@@ -428,26 +411,28 @@ export const workflowsApi = {
 
   // Get workflow by ID
   async getById(id: string): Promise<ProjectWorkflow | null> {
-    const { data, error } = await db
-      .from("project_workflows")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data, error } = await db.from('project_workflows').select('*').eq('id', id).single();
 
     if (error) {
-      if (error.code === "PGRST116") return null;
+      if (error.code === 'PGRST116') return null;
       throw error;
     }
     return data;
   },
 
   // Create workflow
-  async create(workflow: Omit<ProjectWorkflow, "id" | "created_at" | "updated_at" | "total_executions" | "successful_executions" | "failed_executions">): Promise<ProjectWorkflow> {
-    const { data, error } = await db
-      .from("project_workflows")
-      .insert(workflow)
-      .select()
-      .single();
+  async create(
+    workflow: Omit<
+      ProjectWorkflow,
+      | 'id'
+      | 'created_at'
+      | 'updated_at'
+      | 'total_executions'
+      | 'successful_executions'
+      | 'failed_executions'
+    >
+  ): Promise<ProjectWorkflow> {
+    const { data, error } = await db.from('project_workflows').insert(workflow).select().single();
 
     if (error) throw error;
     return data;
@@ -456,9 +441,9 @@ export const workflowsApi = {
   // Update workflow
   async update(id: string, updates: Partial<ProjectWorkflow>): Promise<ProjectWorkflow> {
     const { data, error } = await db
-      .from("project_workflows")
+      .from('project_workflows')
       .update(updates)
-      .eq("id", id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -468,10 +453,7 @@ export const workflowsApi = {
 
   // Delete workflow
   async delete(id: string): Promise<void> {
-    const { error } = await db
-      .from("project_workflows")
-      .delete()
-      .eq("id", id);
+    const { error } = await db.from('project_workflows').delete().eq('id', id);
 
     if (error) throw error;
   },
@@ -479,35 +461,42 @@ export const workflowsApi = {
   // Record execution
   async recordExecution(id: string, success: boolean, executionTimeMs: number): Promise<void> {
     const { data: workflow, error: fetchError } = await db
-      .from("project_workflows")
-      .select("total_executions, successful_executions, failed_executions, average_execution_time_ms")
-      .eq("id", id)
+      .from('project_workflows')
+      .select(
+        'total_executions, successful_executions, failed_executions, average_execution_time_ms'
+      )
+      .eq('id', id)
       .single();
 
     if (fetchError) throw fetchError;
 
     const totalExecutions = (workflow?.total_executions || 0) + 1;
-    const successfulExecutions = success ? (workflow?.successful_executions || 0) + 1 : (workflow?.successful_executions || 0);
-    const failedExecutions = success ? (workflow?.failed_executions || 0) : (workflow?.failed_executions || 0) + 1;
-    
+    const successfulExecutions = success
+      ? (workflow?.successful_executions || 0) + 1
+      : workflow?.successful_executions || 0;
+    const failedExecutions = success
+      ? workflow?.failed_executions || 0
+      : (workflow?.failed_executions || 0) + 1;
+
     // Calculate new average
     const currentAvg = workflow?.average_execution_time_ms || 0;
     const prevTotal = workflow?.total_executions || 0;
-    const newAvg = prevTotal === 0 
-      ? executionTimeMs 
-      : Math.round((currentAvg * prevTotal + executionTimeMs) / totalExecutions);
+    const newAvg =
+      prevTotal === 0
+        ? executionTimeMs
+        : Math.round((currentAvg * prevTotal + executionTimeMs) / totalExecutions);
 
     const { error } = await db
-      .from("project_workflows")
+      .from('project_workflows')
       .update({
         total_executions: totalExecutions,
         successful_executions: successfulExecutions,
         failed_executions: failedExecutions,
         average_execution_time_ms: newAvg,
         last_execution_at: new Date().toISOString(),
-        last_execution_status: success ? "success" : "failed",
+        last_execution_status: success ? 'success' : 'failed',
       })
-      .eq("id", id);
+      .eq('id', id);
 
     if (error) throw error;
   },

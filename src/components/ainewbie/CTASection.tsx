@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ArrowRight } from "lucide-react";
-import aiBrain from "@/assets/ainewbie/ai-brain.jpg";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ArrowRight } from 'lucide-react';
+import aiBrain from '@/assets/ainewbie/ai-brain.jpg';
 
 export const CTASection = () => {
   return (
@@ -28,7 +28,8 @@ export const CTASection = () => {
               Sẵn Sàng Bắt Đầu <span className="glow-text">Hành Trình AI?</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Tham gia cộng đồng AI Việt Nam và khám phá tiềm năng vô hạn của công nghệ trí tuệ nhân tạo
+              Tham gia cộng đồng AI Việt Nam và khám phá tiềm năng vô hạn của công nghệ trí tuệ nhân
+              tạo
             </p>
           </div>
 

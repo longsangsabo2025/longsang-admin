@@ -5,9 +5,9 @@
  * Handles automatic publishing of content to social media
  */
 
-import { supabase } from "@/integrations/supabase/client";
-import { getSocialMediaManager } from "@/lib/social";
-import type { SocialPlatform, SocialPostRequest } from "@/types/social-media";
+import { supabase } from '@/integrations/supabase/client';
+import { getSocialMediaManager } from '@/lib/social';
+import type { SocialPlatform, SocialPostRequest } from '@/types/social-media';
 
 interface AutoPublishSettings {
   enabled: boolean;
@@ -35,16 +35,16 @@ export class AutoPublishService {
   async getSettings(): Promise<AutoPublishSettings | null> {
     try {
       const { data, error } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("key", "auto_publish_settings")
+        .from('system_settings')
+        .select('*')
+        .eq('key', 'auto_publish_settings')
         .single();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error && error.code !== 'PGRST116') throw error;
 
       return (data?.value as AutoPublishSettings) || null;
     } catch (error) {
-      console.error("Failed to get auto-publish settings:", error);
+      console.error('Failed to get auto-publish settings:', error);
       return null;
     }
   }
@@ -66,38 +66,38 @@ export class AutoPublishService {
       // Check if auto-publish is enabled
       const settings = await this.getSettings();
       if (!settings || !settings.enabled || settings.platforms.length === 0) {
-        console.log("Auto-publish disabled or no platforms configured");
+        console.log('Auto-publish disabled or no platforms configured');
         return;
       }
 
       // Get content from queue
       const { data: content, error: contentError } = await supabase
-        .from("content_queue")
-        .select("*")
-        .eq("id", contentId)
+        .from('content_queue')
+        .select('*')
+        .eq('id', contentId)
         .single();
 
       if (contentError) throw contentError;
       if (!content) {
-        console.error("Content not found:", contentId);
+        console.error('Content not found:', contentId);
         return;
       }
 
       // Skip if already published or not pending
-      if (content.status !== "pending") {
-        console.log("Content not pending, skipping auto-publish");
+      if (content.status !== 'pending') {
+        console.log('Content not pending, skipping auto-publish');
         return;
       }
 
       // Auto-approve if configured
       if (settings.auto_approve) {
         await supabase
-          .from("content_queue")
+          .from('content_queue')
           .update({
-            status: "approved",
+            status: 'approved',
             reviewed_at: new Date().toISOString(),
           })
-          .eq("id", contentId);
+          .eq('id', contentId);
       }
 
       // Prepare post content
@@ -109,11 +109,11 @@ export class AutoPublishService {
       // Create post request
       const postRequest: SocialPostRequest = {
         platforms: settings.platforms,
-        contentType: "text",
+        contentType: 'text',
         text: postText,
         hashtags,
         linkUrl,
-        media: imageUrl ? [{ type: "image", url: imageUrl }] : undefined,
+        media: imageUrl ? [{ type: 'image', url: imageUrl }] : undefined,
       };
 
       // Publish to social media
@@ -133,27 +133,27 @@ export class AutoPublishService {
       };
 
       await supabase
-        .from("content_queue")
+        .from('content_queue')
         .update({
           metadata: metadata as any,
-          status: "published",
+          status: 'published',
         } as any)
-        .eq("id", contentId);
+        .eq('id', contentId);
 
       console.log(`Auto-published content ${contentId} to ${result.summary.successful} platforms`);
     } catch (error) {
-      console.error("Auto-publish failed:", error);
+      console.error('Auto-publish failed:', error);
 
       // Update content with error
       await supabase
-        .from("content_queue")
+        .from('content_queue')
         .update({
           metadata: {
-            auto_publish_error: error instanceof Error ? error.message : "Unknown error",
+            auto_publish_error: error instanceof Error ? error.message : 'Unknown error',
             auto_publish_failed_at: new Date().toISOString(),
           } as any,
         } as any)
-        .eq("id", contentId);
+        .eq('id', contentId);
     }
   }
 
@@ -161,9 +161,9 @@ export class AutoPublishService {
    * Extract post text from content (first 280 chars)
    */
   private extractPostText(content: any): string {
-    const body = content.content?.body || "";
+    const body = content.content?.body || '';
     // Remove markdown formatting
-    const cleaned = body.replace(/[#*\n]+/g, " ").trim();
+    const cleaned = body.replace(/[#*\n]+/g, ' ').trim();
     // Take first 280 chars
     return cleaned.substring(0, 280);
   }

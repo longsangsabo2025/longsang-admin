@@ -5,8 +5,8 @@
  * Write once, AI adapts for each platform automatically
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -14,12 +14,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { AutoUploadTextarea, ImagePicker } from "@/components/media";
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { AutoUploadTextarea, ImagePicker } from '@/components/media';
 
 import {
   Select,
@@ -27,11 +27,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import type { ProjectSocialAccount } from "@/lib/projects";
+} from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import type { ProjectSocialAccount } from '@/lib/projects';
 import {
   adaptContentForPlatforms,
   PLATFORM_CONFIGS,
@@ -41,7 +41,7 @@ import {
   type SocialPlatform,
   type ContentLanguage,
   type AIModel,
-} from "@/lib/social/content-adapters";
+} from '@/lib/social/content-adapters';
 import {
   Bot,
   CheckCircle2,
@@ -56,8 +56,8 @@ import {
   XCircle,
   ChevronDown,
   ChevronUp,
-} from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface AISmartComposerProps {
   projectId: string;
@@ -75,14 +75,14 @@ interface PostResult {
 
 // Platform icons
 const PLATFORM_ICONS: Record<string, string> = {
-  facebook: "f",
-  instagram: "IG",
-  linkedin: "in",
-  twitter: "X",
-  threads: "@",
-  tiktok: "TT",
-  youtube: "YT",
-  telegram: "TG",
+  facebook: 'f',
+  instagram: 'IG',
+  linkedin: 'in',
+  twitter: 'X',
+  threads: '@',
+  tiktok: 'TT',
+  youtube: 'YT',
+  telegram: 'TG',
 };
 
 export function AISmartComposer({
@@ -98,18 +98,20 @@ export function AISmartComposer({
   const [selectedAccounts, setSelectedAccounts] = useState<Set<string>>(new Set());
 
   // Content state
-  const [originalContent, setOriginalContent] = useState("");
-  const [context, setContext] = useState("");
-  const [targetAudience, setTargetAudience] = useState("");
-  const [callToAction, setCallToAction] = useState("");
-  const [language, setLanguage] = useState<ContentLanguage>("vi");
-  const [imageUrl, setImageUrl] = useState("");
-  const [linkUrl, setLinkUrl] = useState("");
+  const [originalContent, setOriginalContent] = useState('');
+  const [context, setContext] = useState('');
+  const [targetAudience, setTargetAudience] = useState('');
+  const [callToAction, setCallToAction] = useState('');
+  const [language, setLanguage] = useState<ContentLanguage>('vi');
+  const [imageUrl, setImageUrl] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
 
   // AI Settings state
-  const [selectedModel, setSelectedModel] = useState<AIModel>("gpt-4o-mini");
+  const [selectedModel, setSelectedModel] = useState<AIModel>('gpt-4o-mini');
   const [showPromptEditor, setShowPromptEditor] = useState(false);
-  const [customPrompts, setCustomPrompts] = useState<Record<SocialPlatform, string>>({} as Record<SocialPlatform, string>);
+  const [customPrompts, setCustomPrompts] = useState<Record<SocialPlatform, string>>(
+    {} as Record<SocialPlatform, string>
+  );
   const [editingPromptPlatform, setEditingPromptPlatform] = useState<SocialPlatform | null>(null);
 
   // AI Adaptation state
@@ -127,10 +129,10 @@ export function AISmartComposer({
     try {
       setLoading(true);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase.from("project_social_accounts") as any)
-        .select("*")
-        .eq("project_id", projectId)
-        .eq("is_active", true);
+      const { data, error } = await (supabase.from('project_social_accounts') as any)
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('is_active', true);
 
       if (error) throw error;
 
@@ -138,16 +140,14 @@ export function AISmartComposer({
       setAccounts(accountsList);
 
       // Auto-select accounts with auto_post enabled
-      const autoPostAccounts = accountsList
-        .filter((a) => a.auto_post_enabled)
-        .map((a) => a.id);
+      const autoPostAccounts = accountsList.filter((a) => a.auto_post_enabled).map((a) => a.id);
       setSelectedAccounts(new Set(autoPostAccounts));
     } catch (error) {
-      console.error("Failed to load accounts:", error);
+      console.error('Failed to load accounts:', error);
       toast({
-        title: "Error",
-        description: "Failed to load social accounts",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load social accounts',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -187,9 +187,9 @@ export function AISmartComposer({
   const handleAdaptContent = async () => {
     if (!originalContent.trim()) {
       toast({
-        title: "Add Content",
-        description: "Please write your original content first",
-        variant: "destructive",
+        title: 'Add Content',
+        description: 'Please write your original content first',
+        variant: 'destructive',
       });
       return;
     }
@@ -197,9 +197,9 @@ export function AISmartComposer({
     const platforms = getSelectedPlatforms();
     if (platforms.length === 0) {
       toast({
-        title: "Select Accounts",
-        description: "Please select at least one account",
-        variant: "destructive",
+        title: 'Select Accounts',
+        description: 'Please select at least one account',
+        variant: 'destructive',
       });
       return;
     }
@@ -234,15 +234,15 @@ export function AISmartComposer({
       setExpandedPlatforms(new Set(platforms));
 
       toast({
-        title: "Content Adapted",
+        title: 'Content Adapted',
         description: `AI has optimized your content for ${results.length} platform(s)`,
       });
     } catch (error) {
-      console.error("Adaptation failed:", error);
+      console.error('Adaptation failed:', error);
       toast({
-        title: "Adaptation Failed",
-        description: "Could not adapt content. Please try again.",
-        variant: "destructive",
+        title: 'Adaptation Failed',
+        description: 'Could not adapt content. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsAdapting(false);
@@ -271,7 +271,7 @@ export function AISmartComposer({
   // Copy content to clipboard
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
-    toast({ title: "Copied!", description: "Content copied to clipboard" });
+    toast({ title: 'Copied!', description: 'Content copied to clipboard' });
   };
 
   // Helper: Post to a single account
@@ -279,9 +279,9 @@ export function AISmartComposer({
     const content = editedContents[account.platform] || originalContent;
 
     try {
-      const response = await fetch("/api/social/post", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/social/post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           accountId: account.id,
           credentialId: account.credential_id,
@@ -296,14 +296,14 @@ export function AISmartComposer({
       // Save successful posts to database
       if (result.success) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from("project_posts") as any).insert({
+        await (supabase.from('project_posts') as any).insert({
           project_id: projectId,
           social_account_id: account.id,
           platform: account.platform,
           content,
           media_urls: imageUrl ? [imageUrl] : null,
           external_post_id: result.postId,
-          status: "published",
+          status: 'published',
           published_at: new Date().toISOString(),
         });
       }
@@ -320,7 +320,7 @@ export function AISmartComposer({
         platform: account.platform,
         accountName: account.account_name,
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   };
@@ -329,9 +329,9 @@ export function AISmartComposer({
   const handlePostAll = async () => {
     if (adaptedContents.length === 0) {
       toast({
-        title: "Adapt First",
-        description: "Please adapt content before posting",
-        variant: "destructive",
+        title: 'Adapt First',
+        description: 'Please adapt content before posting',
+        variant: 'destructive',
       });
       return;
     }
@@ -352,18 +352,18 @@ export function AISmartComposer({
 
     const successCount = results.filter((r) => r.success).length;
     const failedCount = results.length - successCount;
-    
+
     if (successCount > 0) {
       toast({
         title: `Posted to ${successCount} account(s)`,
-        description: failedCount === 0 ? "All posts successful!" : `${failedCount} failed`,
+        description: failedCount === 0 ? 'All posts successful!' : `${failedCount} failed`,
       });
       onPostSuccess?.(results);
     } else {
       toast({
-        title: "All posts failed",
-        description: "Check the results for details",
-        variant: "destructive",
+        title: 'All posts failed',
+        description: 'Check the results for details',
+        variant: 'destructive',
       });
     }
   };
@@ -401,9 +401,7 @@ export function AISmartComposer({
           </div>
           <div>
             <h2 className="text-xl font-bold">AI Smart Composer</h2>
-            <p className="text-sm text-muted-foreground">
-              Write once, AI adapts for each platform
-            </p>
+            <p className="text-sm text-muted-foreground">Write once, AI adapts for each platform</p>
           </div>
         </div>
         <Badge variant="outline" className="gap-1 bg-purple-500/10 border-purple-500/30">
@@ -436,7 +434,7 @@ export function AISmartComposer({
                         </span>
                         <span>{config?.name || platform}</span>
                         <Badge variant="secondary" className="text-xs ml-auto">
-                          {config?.charLimit || "?"} chars
+                          {config?.charLimit || '?'} chars
                         </Badge>
                       </div>
                       {platformAccounts.map((account) => (
@@ -444,8 +442,8 @@ export function AISmartComposer({
                           key={account.id}
                           className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-colors ${
                             selectedAccounts.has(account.id)
-                              ? "border-purple-500 bg-purple-500/10"
-                              : "border-slate-700 hover:border-slate-600"
+                              ? 'border-purple-500 bg-purple-500/10'
+                              : 'border-slate-700 hover:border-slate-600'
                           }`}
                         >
                           <Checkbox
@@ -453,9 +451,7 @@ export function AISmartComposer({
                             onCheckedChange={() => toggleAccount(account.id)}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
-                              {account.account_name}
-                            </p>
+                            <p className="text-sm font-medium truncate">{account.account_name}</p>
                             {account.account_username && (
                               <p className="text-xs text-muted-foreground">
                                 @{account.account_username}
@@ -476,9 +472,7 @@ export function AISmartComposer({
         <Card className="bg-slate-900/50 border-slate-700">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">2. Write Original Content</CardTitle>
-            <CardDescription>
-              AI will adapt this for each platform
-            </CardDescription>
+            <CardDescription>AI will adapt this for each platform</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -550,7 +544,7 @@ export function AISmartComposer({
                 </Label>
                 <ImagePicker
                   value={imageUrl}
-                  onChange={(url) => setImageUrl(url || "")}
+                  onChange={(url) => setImageUrl(url || '')}
                   placeholder="Chọn từ Drive"
                   aspect="square"
                 />
@@ -580,10 +574,10 @@ export function AISmartComposer({
                   onClick={() => setShowPromptEditor(!showPromptEditor)}
                   className="text-xs"
                 >
-                  {showPromptEditor ? "Hide" : "Customize"} Prompts
+                  {showPromptEditor ? 'Hide' : 'Customize'} Prompts
                 </Button>
               </div>
-              
+
               {/* Model Selection */}
               <div className="space-y-1">
                 <Label className="text-xs">AI Model</Label>
@@ -596,7 +590,9 @@ export function AISmartComposer({
                       <SelectItem key={model.id} value={model.id}>
                         <span className="flex items-center gap-2">
                           <span>{model.name}</span>
-                          <span className="text-xs text-muted-foreground">- {model.description}</span>
+                          <span className="text-xs text-muted-foreground">
+                            - {model.description}
+                          </span>
                         </span>
                       </SelectItem>
                     ))}
@@ -610,7 +606,7 @@ export function AISmartComposer({
                   <p className="text-xs text-muted-foreground">
                     Customize AI prompts for each platform. Leave empty to use default.
                   </p>
-                  
+
                   {/* Platform prompt tabs */}
                   <div className="flex flex-wrap gap-1">
                     {getSelectedPlatforms().map((platform) => {
@@ -619,12 +615,14 @@ export function AISmartComposer({
                       return (
                         <Button
                           key={platform}
-                          variant={editingPromptPlatform === platform ? "default" : "ghost"}
+                          variant={editingPromptPlatform === platform ? 'default' : 'ghost'}
                           size="sm"
-                          className={`text-xs h-7 ${hasCustom ? "border border-purple-500/50" : ""}`}
-                          onClick={() => setEditingPromptPlatform(
-                            editingPromptPlatform === platform ? null : platform
-                          )}
+                          className={`text-xs h-7 ${hasCustom ? 'border border-purple-500/50' : ''}`}
+                          onClick={() =>
+                            setEditingPromptPlatform(
+                              editingPromptPlatform === platform ? null : platform
+                            )
+                          }
                         >
                           {config.icon} {config.name}
                           {hasCustom && <span className="ml-1 text-purple-400">*</span>}
@@ -656,7 +654,10 @@ export function AISmartComposer({
                         </Button>
                       </div>
                       <Textarea
-                        value={customPrompts[editingPromptPlatform] || PLATFORM_PROMPTS[editingPromptPlatform]}
+                        value={
+                          customPrompts[editingPromptPlatform] ||
+                          PLATFORM_PROMPTS[editingPromptPlatform]
+                        }
                         onChange={(e) => {
                           setCustomPrompts((prev) => ({
                             ...prev,
@@ -708,9 +709,7 @@ export function AISmartComposer({
                 </Badge>
               )}
             </CardTitle>
-            <CardDescription>
-              Edit if needed, then post to all platforms
-            </CardDescription>
+            <CardDescription>Edit if needed, then post to all platforms</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[350px] pr-4">
@@ -726,14 +725,17 @@ export function AISmartComposer({
                     const config = PLATFORM_CONFIGS[adapted.platform];
                     const icon = PLATFORM_ICONS[adapted.platform];
                     const isExpanded = expandedPlatforms.has(adapted.platform);
-                    const currentContent = editedContents[adapted.platform] || adapted.adaptedContent;
+                    const currentContent =
+                      editedContents[adapted.platform] || adapted.adaptedContent;
                     const isOverLimit = currentContent.length > config.charLimit;
 
                     return (
                       <div
                         key={adapted.platform}
                         className={`rounded-lg border ${
-                          isOverLimit ? "border-red-500/50 bg-red-500/5" : "border-slate-700 bg-slate-800/30"
+                          isOverLimit
+                            ? 'border-red-500/50 bg-red-500/5'
+                            : 'border-slate-700 bg-slate-800/30'
                         }`}
                       >
                         {/* Header */}
@@ -746,7 +748,9 @@ export function AISmartComposer({
                             {icon}
                           </span>
                           <span className="font-medium flex-1">{config.name}</span>
-                          <span className={`text-xs ${isOverLimit ? "text-red-400" : "text-muted-foreground"}`}>
+                          <span
+                            className={`text-xs ${isOverLimit ? 'text-red-400' : 'text-muted-foreground'}`}
+                          >
                             {currentContent.length}/{config.charLimit}
                           </span>
                           {isExpanded ? (
@@ -761,7 +765,9 @@ export function AISmartComposer({
                           <div className="px-3 pb-3 space-y-2">
                             <Textarea
                               value={currentContent}
-                              onChange={(e) => updateEditedContent(adapted.platform, e.target.value)}
+                              onChange={(e) =>
+                                updateEditedContent(adapted.platform, e.target.value)
+                              }
                               rows={4}
                               className="bg-slate-900/50 border-slate-600 text-sm"
                             />
@@ -777,7 +783,9 @@ export function AISmartComposer({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => updateEditedContent(adapted.platform, adapted.adaptedContent)}
+                                onClick={() =>
+                                  updateEditedContent(adapted.platform, adapted.adaptedContent)
+                                }
                               >
                                 <RefreshCw className="w-3 h-3 mr-1" />
                                 Reset
@@ -843,8 +851,8 @@ export function AISmartComposer({
                     key={`${result.platform}-${result.accountName}-${index}`}
                     className={`flex items-center gap-3 p-3 rounded-lg ${
                       result.success
-                        ? "bg-green-500/10 border border-green-500/30"
-                        : "bg-red-500/10 border border-red-500/30"
+                        ? 'bg-green-500/10 border border-green-500/30'
+                        : 'bg-red-500/10 border border-red-500/30'
                     }`}
                   >
                     <span className="w-8 h-8 rounded bg-slate-700 flex items-center justify-center text-sm font-bold">

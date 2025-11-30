@@ -1,4 +1,4 @@
-import { Trophy, Zap } from "lucide-react";
+import { Trophy, Zap } from 'lucide-react';
 
 export const BracketScreen = () => {
   return (

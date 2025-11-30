@@ -54,9 +54,9 @@ class Logger {
   error(message: string, error?: Error | unknown, context?: string): void {
     const errorObj = error instanceof Error ? error : undefined;
     const errorData = error instanceof Error ? undefined : error;
-    
+
     this.log(LogLevel.ERROR, message, errorData, errorObj, context);
-    
+
     // In production, send to error tracking service (Sentry, LogRocket, etc.)
     if (this.isProduction) {
       this.sendToErrorTracking(message, errorObj, context);
@@ -86,7 +86,7 @@ class Logger {
     if (this.isDevelopment) {
       const contextPart = context ? ` [${context}]` : '';
       const prefix = `[${entry.timestamp}] [${level}]${contextPart}`;
-      
+
       switch (level) {
         case LogLevel.DEBUG:
           console.debug(prefix, message, data || '');

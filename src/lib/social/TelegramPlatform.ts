@@ -13,14 +13,14 @@ import {
   PlatformSettings,
   SocialPostRequest,
   SocialPostResponse,
-} from "@/types/social-media";
-import { BaseSocialPlatform } from "./BaseSocialPlatform";
+} from '@/types/social-media';
+import { BaseSocialPlatform } from './BaseSocialPlatform';
 
 export class TelegramPlatform extends BaseSocialPlatform {
-  private readonly API_BASE = "https://api.telegram.org";
+  private readonly API_BASE = 'https://api.telegram.org';
 
   constructor(credentials: PlatformCredentials, settings?: PlatformSettings) {
-    super("telegram", credentials, settings);
+    super('telegram', credentials, settings);
   }
 
   async authenticate(): Promise<boolean> {
@@ -41,25 +41,25 @@ export class TelegramPlatform extends BaseSocialPlatform {
     try {
       this.validatePost(request);
 
-      const chatId = this.credentials.channelId || "";
+      const chatId = this.credentials.channelId || '';
       let text = request.text;
 
       if (this.settings.autoHashtags && request.hashtags && request.hashtags.length > 0) {
         const hashtags = this.formatHashtags(request.hashtags);
-        text = `${text}\n\n${hashtags.join(" ")}`;
+        text = `${text}\n\n${hashtags.join(' ')}`;
       }
 
       const payload = {
         chat_id: chatId,
         text: text,
-        parse_mode: request.options?.telegramParseMode || "HTML",
+        parse_mode: request.options?.telegramParseMode || 'HTML',
         disable_notification: request.options?.telegramDisableNotification || false,
       };
 
       const response = await fetch(`${this.API_BASE}/bot${this.credentials.botToken}/sendMessage`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
       });
@@ -74,23 +74,23 @@ export class TelegramPlatform extends BaseSocialPlatform {
       };
 
       return {
-        platform: "telegram",
+        platform: 'telegram',
         success: true,
         postId: data.result.message_id.toString(),
         postUrl: data.result.chat.username
           ? `https://t.me/${data.result.chat.username}/${data.result.message_id}`
           : undefined,
-        status: "published",
+        status: 'published',
         publishedAt: new Date(),
       };
     } catch (error) {
       return {
-        platform: "telegram",
+        platform: 'telegram',
         success: false,
-        status: "failed",
+        status: 'failed',
         error: {
-          code: "POST_FAILED",
-          message: error instanceof Error ? error.message : "Unknown error",
+          code: 'POST_FAILED',
+          message: error instanceof Error ? error.message : 'Unknown error',
           details: error,
         },
       };
@@ -101,12 +101,12 @@ export class TelegramPlatform extends BaseSocialPlatform {
     const isHealthy = await this.testConnection();
 
     return {
-      platform: "telegram",
+      platform: 'telegram',
       connected: isHealthy,
       health: {
-        status: isHealthy ? "healthy" : "error",
+        status: isHealthy ? 'healthy' : 'error',
         lastChecked: new Date(),
-        message: isHealthy ? "Connected" : "Invalid bot token",
+        message: isHealthy ? 'Connected' : 'Invalid bot token',
       },
       credentials: this.credentials,
       settings: this.settings,
@@ -115,7 +115,7 @@ export class TelegramPlatform extends BaseSocialPlatform {
 
   getCapabilities(): PlatformCapabilities {
     return {
-      platform: "telegram",
+      platform: 'telegram',
       features: {
         textPosts: true,
         imagePosts: true,

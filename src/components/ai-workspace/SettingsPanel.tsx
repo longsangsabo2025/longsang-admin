@@ -32,19 +32,32 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Settings, RotateCcw, Info, Bot, Cpu, BookOpen, DollarSign, Search, Newspaper, Briefcase, Calendar } from 'lucide-react';
+import {
+  Settings,
+  RotateCcw,
+  Info,
+  Bot,
+  Cpu,
+  BookOpen,
+  DollarSign,
+  Search,
+  Newspaper,
+  Briefcase,
+  Calendar,
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
-const AGENT_INFO: Record<AssistantType, { name: string; icon: React.ElementType; color: string }> = {
-  course: { name: 'Khóa học AI', icon: BookOpen, color: 'text-blue-500' },
-  financial: { name: 'Tài chính Pro', icon: DollarSign, color: 'text-green-500' },
-  research: { name: 'Nghiên cứu', icon: Search, color: 'text-purple-500' },
-  news: { name: 'Tin tức', icon: Newspaper, color: 'text-orange-500' },
-  career: { name: 'Career', icon: Briefcase, color: 'text-indigo-500' },
-  daily: { name: 'Planner', icon: Calendar, color: 'text-pink-500' },
-};
+const AGENT_INFO: Record<AssistantType, { name: string; icon: React.ElementType; color: string }> =
+  {
+    course: { name: 'Khóa học AI', icon: BookOpen, color: 'text-blue-500' },
+    financial: { name: 'Tài chính Pro', icon: DollarSign, color: 'text-green-500' },
+    research: { name: 'Nghiên cứu', icon: Search, color: 'text-purple-500' },
+    news: { name: 'Tin tức', icon: Newspaper, color: 'text-orange-500' },
+    career: { name: 'Career', icon: Briefcase, color: 'text-indigo-500' },
+    daily: { name: 'Planner', icon: Calendar, color: 'text-pink-500' },
+  };
 
 interface SettingsPanelProps {
   open: boolean;
@@ -78,7 +91,11 @@ export function SettingsPanel({ open, onOpenChange }: SettingsPanelProps) {
     });
   };
 
-  const updateAgentPrompt = (agent: AssistantType, field: 'systemPrompt' | 'enabled', value: string | boolean) => {
+  const updateAgentPrompt = (
+    agent: AssistantType,
+    field: 'systemPrompt' | 'enabled',
+    value: string | boolean
+  ) => {
     setLocalSettings({
       ...localSettings,
       agentPrompts: {
@@ -131,9 +148,7 @@ export function SettingsPanel({ open, onOpenChange }: SettingsPanelProps) {
               </Label>
               <Select
                 value={localSettings.model}
-                onValueChange={(value: any) =>
-                  setLocalSettings({ ...localSettings, model: value })
-                }
+                onValueChange={(value: any) => setLocalSettings({ ...localSettings, model: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -184,7 +199,9 @@ export function SettingsPanel({ open, onOpenChange }: SettingsPanelProps) {
                   Temperature
                   <Info className="h-3 w-3 text-muted-foreground" />
                 </span>
-                <span className="text-sm font-mono bg-muted px-2 py-0.5 rounded">{localSettings.temperature}</span>
+                <span className="text-sm font-mono bg-muted px-2 py-0.5 rounded">
+                  {localSettings.temperature}
+                </span>
               </Label>
               <Slider
                 value={[localSettings.temperature]}
@@ -246,8 +263,8 @@ export function SettingsPanel({ open, onOpenChange }: SettingsPanelProps) {
           <TabsContent value="prompts" className="py-4">
             <div className="mb-4 p-3 bg-muted/50 rounded-lg">
               <p className="text-sm text-muted-foreground">
-                🎯 <strong>System Prompts đã được xây dựng chi tiết</strong> bởi dev team cho từng AI Agent. 
-                Bạn có thể tùy chỉnh thêm hoặc giữ nguyên.
+                🎯 <strong>System Prompts đã được xây dựng chi tiết</strong> bởi dev team cho từng
+                AI Agent. Bạn có thể tùy chỉnh thêm hoặc giữ nguyên.
               </p>
             </div>
 
@@ -255,9 +272,12 @@ export function SettingsPanel({ open, onOpenChange }: SettingsPanelProps) {
               {(Object.keys(AGENT_INFO) as AssistantType[]).map((agentId) => {
                 const agent = AGENT_INFO[agentId];
                 const Icon = agent.icon;
-                const promptConfig = localSettings.agentPrompts?.[agentId] || { systemPrompt: '', enabled: true };
+                const promptConfig = localSettings.agentPrompts?.[agentId] || {
+                  systemPrompt: '',
+                  enabled: true,
+                };
                 const promptLines = promptConfig.systemPrompt?.split('\n').length || 0;
-                
+
                 return (
                   <AccordionItem key={agentId} value={agentId} className="border rounded-lg px-4">
                     <AccordionTrigger className="hover:no-underline py-3">
@@ -268,7 +288,9 @@ export function SettingsPanel({ open, onOpenChange }: SettingsPanelProps) {
                           {promptLines} dòng
                         </span>
                         {!promptConfig.enabled && (
-                          <span className="text-xs bg-yellow-500/20 text-yellow-600 px-2 py-0.5 rounded">Custom OFF</span>
+                          <span className="text-xs bg-yellow-500/20 text-yellow-600 px-2 py-0.5 rounded">
+                            Custom OFF
+                          </span>
                         )}
                       </div>
                     </AccordionTrigger>
@@ -276,11 +298,15 @@ export function SettingsPanel({ open, onOpenChange }: SettingsPanelProps) {
                       <div className="flex items-center justify-between">
                         <div>
                           <Label className="text-sm">Sử dụng Custom Prompt</Label>
-                          <p className="text-xs text-muted-foreground">Tắt để dùng prompt mặc định từ backend</p>
+                          <p className="text-xs text-muted-foreground">
+                            Tắt để dùng prompt mặc định từ backend
+                          </p>
                         </div>
                         <Switch
                           checked={promptConfig.enabled}
-                          onCheckedChange={(checked) => updateAgentPrompt(agentId, 'enabled', checked)}
+                          onCheckedChange={(checked) =>
+                            updateAgentPrompt(agentId, 'enabled', checked)
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -292,7 +318,9 @@ export function SettingsPanel({ open, onOpenChange }: SettingsPanelProps) {
                         </div>
                         <Textarea
                           value={promptConfig.systemPrompt}
-                          onChange={(e) => updateAgentPrompt(agentId, 'systemPrompt', e.target.value)}
+                          onChange={(e) =>
+                            updateAgentPrompt(agentId, 'systemPrompt', e.target.value)
+                          }
                           placeholder={`Nhập system prompt cho ${agent.name}...`}
                           className="min-h-[200px] resize-y font-mono text-xs"
                           disabled={!promptConfig.enabled}
@@ -334,4 +362,3 @@ export function SettingsPanel({ open, onOpenChange }: SettingsPanelProps) {
     </Dialog>
   );
 }
-

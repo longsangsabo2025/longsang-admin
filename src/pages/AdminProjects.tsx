@@ -5,23 +5,16 @@
  * /admin/projects
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { type Project, type ProjectSocialAccount } from "@/lib/projects";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  ExternalLink,
-  FolderOpen,
-  Loader2,
-  Plus,
-  Search,
-  Settings,
-} from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { type Project, type ProjectSocialAccount } from '@/lib/projects';
+import { supabase } from '@/integrations/supabase/client';
+import { ExternalLink, FolderOpen, Loader2, Plus, Search, Settings } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 // Platform icons mapping
 const PLATFORM_ICONS: Record<string, React.ReactNode> = {
@@ -45,12 +38,12 @@ export default function AdminProjects() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<ProjectWithSocial[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const loadProjects = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       // Get projects - cast to unknown first to avoid type errors
       const { data: projectsData, error: projectsError } = await supabase
         .from('projects' as unknown as 'profiles')
@@ -68,22 +61,22 @@ export default function AdminProjects() {
 
       if (accountsError) throw accountsError;
 
-      // Merge social accounts into projects  
+      // Merge social accounts into projects
       const projectsList = (projectsData || []) as unknown as Project[];
       const accountsList = (accountsData || []) as unknown as ProjectSocialAccount[];
-      
-      const projectsWithSocial: ProjectWithSocial[] = projectsList.map(project => ({
+
+      const projectsWithSocial: ProjectWithSocial[] = projectsList.map((project) => ({
         ...project,
-        social_accounts: accountsList.filter(a => a.project_id === project.id),
+        social_accounts: accountsList.filter((a) => a.project_id === project.id),
       }));
 
       setProjects(projectsWithSocial);
     } catch (error) {
       console.error('Failed to load projects:', error);
       toast({
-        title: "Error",
-        description: "Failed to load projects",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load projects',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -95,20 +88,27 @@ export default function AdminProjects() {
   }, [loadProjects]);
 
   // Filter projects based on search
-  const filteredProjects = projects.filter(project =>
-    project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProjects = projects.filter(
+    (project) =>
+      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Stats
   const totalProjects = projects.length;
-  const totalSocialAccounts = projects.reduce((sum, p) => sum + (p.social_accounts?.length || 0), 0);
-  const platformCounts = projects.reduce((acc, p) => {
-    for (const a of (p.social_accounts || [])) {
-      acc[a.platform] = (acc[a.platform] || 0) + 1;
-    }
-    return acc;
-  }, {} as Record<string, number>);
+  const totalSocialAccounts = projects.reduce(
+    (sum, p) => sum + (p.social_accounts?.length || 0),
+    0
+  );
+  const platformCounts = projects.reduce(
+    (acc, p) => {
+      for (const a of p.social_accounts || []) {
+        acc[a.platform] = (acc[a.platform] || 0) + 1;
+      }
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   if (loading) {
     return (
@@ -195,9 +195,7 @@ export default function AdminProjects() {
                     <CardTitle className="text-lg group-hover:text-primary transition-colors">
                       {project.name}
                     </CardTitle>
-                    <CardDescription className="text-xs">
-                      /{project.slug}
-                    </CardDescription>
+                    <CardDescription className="text-xs">/{project.slug}</CardDescription>
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" asChild onClick={(e) => e.stopPropagation()}>
@@ -210,9 +208,7 @@ export default function AdminProjects() {
             <CardContent className="space-y-4">
               {/* Description */}
               {project.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {project.description}
-                </p>
+                <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
               )}
 
               {/* Social Accounts */}
@@ -230,7 +226,9 @@ export default function AdminProjects() {
                       >
                         {PLATFORM_ICONS[account.platform] || account.platform}
                         <span className="text-xs truncate max-w-[100px]">
-                          {account.account_username ? `@${account.account_username}` : account.account_name}
+                          {account.account_username
+                            ? `@${account.account_username}`
+                            : account.account_name}
                         </span>
                       </Badge>
                     ))
@@ -255,13 +253,13 @@ export default function AdminProjects() {
                   Open
                 </Button>
                 {project.website_url && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    asChild
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <a href={project.website_url} target="_blank" rel="noopener noreferrer" title={`Visit ${project.name} website`}>
+                  <Button variant="ghost" size="sm" asChild onClick={(e) => e.stopPropagation()}>
+                    <a
+                      href={project.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={`Visit ${project.name} website`}
+                    >
                       <ExternalLink className="w-4 h-4" />
                     </a>
                   </Button>
@@ -278,7 +276,9 @@ export default function AdminProjects() {
           <FolderOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">No projects found</h3>
           <p className="text-muted-foreground mb-4">
-            {searchQuery ? "Try a different search term" : "Get started by creating your first project"}
+            {searchQuery
+              ? 'Try a different search term'
+              : 'Get started by creating your first project'}
           </p>
           {!searchQuery && (
             <Button>

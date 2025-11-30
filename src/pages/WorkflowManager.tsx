@@ -1,26 +1,26 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 import {
   Workflow,
   Copy,
@@ -37,7 +37,7 @@ import {
   ExternalLink,
   LayoutTemplate,
   FolderOpen,
-} from "lucide-react";
+} from 'lucide-react';
 
 interface Project {
   id: string;
@@ -92,15 +92,15 @@ const WorkflowManager = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [cloning, setCloning] = useState(false);
-  const [activeTab, setActiveTab] = useState("instances");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterProject, setFilterProject] = useState("all");
-  const [filterCategory, setFilterCategory] = useState("all");
-  
+  const [activeTab, setActiveTab] = useState('instances');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterProject, setFilterProject] = useState('all');
+  const [filterCategory, setFilterCategory] = useState('all');
+
   // Clone dialog
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<WorkflowTemplate | null>(null);
-  const [cloneProjectId, setCloneProjectId] = useState("");
+  const [cloneProjectId, setCloneProjectId] = useState('');
 
   useEffect(() => {
     fetchAll();
@@ -112,28 +112,29 @@ const WorkflowManager = () => {
 
       // Fetch templates
       const { data: tData } = await supabase
-        .from("workflow_templates")
-        .select("*")
-        .order("category", { ascending: true });
+        .from('workflow_templates')
+        .select('*')
+        .order('category', { ascending: true });
       setTemplates(tData || []);
 
       // Fetch instances with joins
       const { data: iData } = await supabase
-        .from("project_workflow_instances")
-        .select("*, projects(id, name, slug, icon), workflow_templates(id, name, slug, icon, category)")
-        .order("created_at", { ascending: false });
+        .from('project_workflow_instances')
+        .select(
+          '*, projects(id, name, slug, icon), workflow_templates(id, name, slug, icon, category)'
+        )
+        .order('created_at', { ascending: false });
       setInstances(iData || []);
 
       // Fetch projects
       const { data: pData } = await supabase
-        .from("projects")
-        .select("id, name, slug, icon")
-        .order("name");
+        .from('projects')
+        .select('id, name, slug, icon')
+        .order('name');
       setProjects(pData || []);
-
     } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Không thể tải dữ liệu");
+      console.error('Error fetching data:', error);
+      toast.error('Không thể tải dữ liệu');
     } finally {
       setLoading(false);
     }
@@ -141,30 +142,30 @@ const WorkflowManager = () => {
 
   const cloneTemplateToProject = async () => {
     if (!selectedTemplate || !cloneProjectId) {
-      toast.error("Vui lòng chọn project");
+      toast.error('Vui lòng chọn project');
       return;
     }
 
-    const project = projects.find(p => p.id === cloneProjectId);
+    const project = projects.find((p) => p.id === cloneProjectId);
     if (!project) return;
 
     try {
       // Check if already exists
       const existing = instances.find(
-        i => i.project_id === cloneProjectId && i.template_id === selectedTemplate.id
+        (i) => i.project_id === cloneProjectId && i.template_id === selectedTemplate.id
       );
       if (existing) {
-        toast.error("Project này đã có workflow này rồi");
+        toast.error('Project này đã có workflow này rồi');
         return;
       }
 
       setCloning(true);
-      toast.info("🔄 Đang clone workflow tới n8n...");
+      toast.info('🔄 Đang clone workflow tới n8n...');
 
       // Call API to clone workflow to n8n
-      const response = await fetch("/api/n8n/workflows/clone", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/n8n/workflows/clone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           project_id: cloneProjectId,
           template_slug: selectedTemplate.slug,
@@ -172,30 +173,30 @@ const WorkflowManager = () => {
       });
 
       const result = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(result.error || "Clone failed");
+        throw new Error(result.error || 'Clone failed');
       }
 
       // Update clone count
       await supabase
-        .from("workflow_templates")
+        .from('workflow_templates')
         .update({ clone_count: selectedTemplate.clone_count + 1 })
-        .eq("id", selectedTemplate.id);
+        .eq('id', selectedTemplate.id);
 
       if (result.n8nWorkflowId) {
         toast.success(`✅ Đã clone và sync tới n8n! ID: ${result.n8nWorkflowId}`);
       } else {
         toast.success(`✅ Đã clone "${selectedTemplate.name}" cho ${project.name} (DB only)`);
       }
-      
+
       setIsCloneDialogOpen(false);
       setSelectedTemplate(null);
-      setCloneProjectId("");
+      setCloneProjectId('');
       fetchAll();
     } catch (error) {
-      console.error("Error cloning template:", error);
-      toast.error(`Không thể clone: ${error instanceof Error ? error.message : "Unknown"}`);
+      console.error('Error cloning template:', error);
+      toast.error(`Không thể clone: ${error instanceof Error ? error.message : 'Unknown'}`);
     } finally {
       setCloning(false);
     }
@@ -204,15 +205,15 @@ const WorkflowManager = () => {
   const toggleInstance = async (id: string, currentEnabled: boolean) => {
     try {
       const { error } = await supabase
-        .from("project_workflow_instances")
+        .from('project_workflow_instances')
         .update({ is_enabled: !currentEnabled })
-        .eq("id", id);
+        .eq('id', id);
 
       if (error) throw error;
-      toast.success(currentEnabled ? "Đã tắt workflow" : "Đã bật workflow");
+      toast.success(currentEnabled ? 'Đã tắt workflow' : 'Đã bật workflow');
       fetchAll();
     } catch (error) {
-      console.error("Error toggling instance:", error);
+      console.error('Error toggling instance:', error);
     }
   };
 
@@ -220,16 +221,13 @@ const WorkflowManager = () => {
     if (!confirm(`Xóa workflow "${name}"?`)) return;
 
     try {
-      const { error } = await supabase
-        .from("project_workflow_instances")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from('project_workflow_instances').delete().eq('id', id);
 
       if (error) throw error;
-      toast.success("Đã xóa workflow");
+      toast.success('Đã xóa workflow');
       fetchAll();
     } catch (error) {
-      console.error("Error deleting instance:", error);
+      console.error('Error deleting instance:', error);
     }
   };
 
@@ -240,8 +238,8 @@ const WorkflowManager = () => {
       if (instance.n8n_workflow_id) {
         // Call real n8n workflow
         const response = await fetch(`/api/n8n/workflows/${instance.n8n_workflow_id}/execute`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             project_id: instance.project_id,
             instance_id: instance.id,
@@ -251,94 +249,97 @@ const WorkflowManager = () => {
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.error || "Execution failed");
+          throw new Error(error.error || 'Execution failed');
         }
 
         const result = await response.json();
-        
+
         await supabase
-          .from("project_workflow_instances")
+          .from('project_workflow_instances')
           .update({
             total_executions: instance.total_executions + 1,
             successful_executions: instance.successful_executions + 1,
             last_execution_at: new Date().toISOString(),
-            last_execution_status: "success",
+            last_execution_status: 'success',
           })
-          .eq("id", instance.id);
+          .eq('id', instance.id);
 
         toast.success(`✅ ${instance.name} hoàn thành! Execution: ${result.executionId}`);
       } else {
         // Mock execution
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         await supabase
-          .from("project_workflow_instances")
+          .from('project_workflow_instances')
           .update({
             total_executions: instance.total_executions + 1,
             successful_executions: instance.successful_executions + 1,
             last_execution_at: new Date().toISOString(),
-            last_execution_status: "success",
+            last_execution_status: 'success',
           })
-          .eq("id", instance.id);
+          .eq('id', instance.id);
 
         toast.success(`✅ ${instance.name} hoàn thành! (Mock run - no n8n workflow)`);
       }
 
       fetchAll();
     } catch (error) {
-      console.error("Error executing workflow:", error);
-      
+      console.error('Error executing workflow:', error);
+
       await supabase
-        .from("project_workflow_instances")
+        .from('project_workflow_instances')
         .update({
           total_executions: instance.total_executions + 1,
           failed_executions: instance.failed_executions + 1,
           last_execution_at: new Date().toISOString(),
-          last_execution_status: "failed",
+          last_execution_status: 'failed',
         })
-        .eq("id", instance.id);
+        .eq('id', instance.id);
 
-      toast.error(`Workflow failed: ${error instanceof Error ? error.message : "Unknown"}`);
+      toast.error(`Workflow failed: ${error instanceof Error ? error.message : 'Unknown'}`);
       fetchAll();
     }
   };
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      content: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-      crm: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-      marketing: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-      analytics: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-      "customer-service": "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+      content: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+      crm: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+      marketing: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
+      analytics: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+      'customer-service': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
     };
-    return colors[category] || "bg-gray-100 text-gray-800";
+    return colors[category] || 'bg-gray-100 text-gray-800';
   };
 
   // Filter instances
-  const filteredInstances = instances.filter(i => {
+  const filteredInstances = instances.filter((i) => {
     const matchesSearch = i.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesProject = filterProject === "all" || i.project_id === filterProject;
+    const matchesProject = filterProject === 'all' || i.project_id === filterProject;
     return matchesSearch && matchesProject;
   });
 
   // Filter templates
-  const filteredTemplates = templates.filter(t => {
+  const filteredTemplates = templates.filter((t) => {
     const matchesSearch = t.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === "all" || t.category === filterCategory;
+    const matchesCategory = filterCategory === 'all' || t.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
   // Group instances by project
-  const groupedByProject = filteredInstances.reduce((acc, inst) => {
-    const projectName = inst.projects?.name || "Unknown";
-    if (!acc[projectName]) {
-      acc[projectName] = { project: inst.projects, instances: [] };
-    }
-    acc[projectName].instances.push(inst);
-    return acc;
-  }, {} as Record<string, { project: Project | undefined; instances: WorkflowInstance[] }>);
+  const groupedByProject = filteredInstances.reduce(
+    (acc, inst) => {
+      const projectName = inst.projects?.name || 'Unknown';
+      if (!acc[projectName]) {
+        acc[projectName] = { project: inst.projects, instances: [] };
+      }
+      acc[projectName].instances.push(inst);
+      return acc;
+    },
+    {} as Record<string, { project: Project | undefined; instances: WorkflowInstance[] }>
+  );
 
-  const uniqueCategories = [...new Set(templates.map(t => t.category))];
+  const uniqueCategories = [...new Set(templates.map((t) => t.category))];
 
   if (loading) {
     return (
@@ -420,7 +421,7 @@ const WorkflowManager = () => {
             <Card key={projectName}>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2">
-                  <span className="text-2xl">{project?.icon || "📁"}</span>
+                  <span className="text-2xl">{project?.icon || '📁'}</span>
                   {projectName}
                   <Badge variant="secondary">{insts.length} workflows</Badge>
                 </CardTitle>
@@ -432,17 +433,19 @@ const WorkflowManager = () => {
                       key={inst.id}
                       className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
                         inst.is_enabled
-                          ? "bg-muted/50 border-border"
-                          : "bg-muted/20 border-muted opacity-60"
+                          ? 'bg-muted/50 border-border'
+                          : 'bg-muted/20 border-muted opacity-60'
                       }`}
                     >
                       <div className="flex items-center gap-4 flex-1">
-                        <span className="text-2xl">{inst.workflow_templates?.icon || "⚙️"}</span>
+                        <span className="text-2xl">{inst.workflow_templates?.icon || '⚙️'}</span>
 
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <span className="font-medium">{inst.name}</span>
-                            <Badge className={getCategoryColor(inst.workflow_templates?.category || "")}>
+                            <Badge
+                              className={getCategoryColor(inst.workflow_templates?.category || '')}
+                            >
                               {inst.workflow_templates?.category}
                             </Badge>
                             {inst.n8n_workflow_id && (
@@ -482,7 +485,7 @@ const WorkflowManager = () => {
                           {inst.last_execution_at && (
                             <div className="text-xs text-muted-foreground flex items-center gap-1 justify-end mt-1">
                               <Clock className="h-3 w-3" />
-                              {new Date(inst.last_execution_at).toLocaleString("vi-VN")}
+                              {new Date(inst.last_execution_at).toLocaleString('vi-VN')}
                             </div>
                           )}
                         </div>
@@ -491,7 +494,7 @@ const WorkflowManager = () => {
                       {/* Actions */}
                       <div className="flex items-center gap-2 ml-4">
                         <Button
-                          variant={inst.is_enabled ? "default" : "secondary"}
+                          variant={inst.is_enabled ? 'default' : 'secondary'}
                           size="sm"
                           onClick={() => executeWorkflow(inst)}
                           disabled={!inst.is_enabled}
@@ -534,9 +537,7 @@ const WorkflowManager = () => {
               <CardContent className="py-12 text-center">
                 <Workflow className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">No workflows found</h3>
-                <p className="text-muted-foreground">
-                  Clone a template to get started
-                </p>
+                <p className="text-muted-foreground">Clone a template to get started</p>
               </CardContent>
             </Card>
           )}
@@ -596,9 +597,7 @@ const WorkflowManager = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {template.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground mb-4">{template.description}</p>
 
                   <div className="flex flex-wrap gap-1 mb-4">
                     <span className="text-xs text-muted-foreground">Requires:</span>
@@ -613,7 +612,7 @@ const WorkflowManager = () => {
                     <span className="text-sm text-muted-foreground">
                       {template.clone_count} clones
                     </span>
-                    <Dialog 
+                    <Dialog
                       open={isCloneDialogOpen && selectedTemplate?.id === template.id}
                       onOpenChange={(open) => {
                         setIsCloneDialogOpen(open);
@@ -621,10 +620,7 @@ const WorkflowManager = () => {
                       }}
                     >
                       <DialogTrigger asChild>
-                        <Button 
-                          size="sm"
-                          onClick={() => setSelectedTemplate(template)}
-                        >
+                        <Button size="sm" onClick={() => setSelectedTemplate(template)}>
                           <Copy className="h-4 w-4 mr-1" />
                           Clone to Project
                         </Button>
@@ -643,16 +639,12 @@ const WorkflowManager = () => {
                               <SelectContent>
                                 {projects.map((p) => {
                                   const hasInstance = instances.some(
-                                    i => i.project_id === p.id && i.template_id === template.id
+                                    (i) => i.project_id === p.id && i.template_id === template.id
                                   );
                                   return (
-                                    <SelectItem 
-                                      key={p.id} 
-                                      value={p.id}
-                                      disabled={hasInstance}
-                                    >
+                                    <SelectItem key={p.id} value={p.id} disabled={hasInstance}>
                                       {p.icon} {p.name}
-                                      {hasInstance && " (đã có)"}
+                                      {hasInstance && ' (đã có)'}
                                     </SelectItem>
                                   );
                                 })}
@@ -671,7 +663,7 @@ const WorkflowManager = () => {
                             </div>
                           </div>
 
-                          <Button 
+                          <Button
                             onClick={cloneTemplateToProject}
                             disabled={!cloneProjectId || cloning}
                             className="w-full"
@@ -681,7 +673,7 @@ const WorkflowManager = () => {
                             ) : (
                               <Copy className="h-4 w-4 mr-2" />
                             )}
-                            {cloning ? "Đang clone..." : "Clone Template"}
+                            {cloning ? 'Đang clone...' : 'Clone Template'}
                           </Button>
                         </div>
                       </DialogContent>

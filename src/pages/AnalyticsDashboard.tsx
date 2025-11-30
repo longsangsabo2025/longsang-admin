@@ -57,8 +57,8 @@ export default function AnalyticsDashboard() {
                     <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <h3 className="font-semibold mb-2">Performance Dashboard</h3>
                     <p className="text-sm">
-                      Advanced metrics including success rates, average response times,
-                      and model comparison will be available here.
+                      Advanced metrics including success rates, average response times, and model
+                      comparison will be available here.
                     </p>
                   </div>
                 </div>
@@ -70,7 +70,9 @@ export default function AnalyticsDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Cost Optimization</CardTitle>
-                <CardDescription>Coming soon: AI-powered cost optimization suggestions</CardDescription>
+                <CardDescription>
+                  Coming soon: AI-powered cost optimization suggestions
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">

@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const CalendarScreen = () => {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -9,7 +9,7 @@ export const CalendarScreen = () => {
     [19, 20, 21, 22, 23, 24, 25],
     [26, 27, 28, 29, 30, 1, 2],
   ];
-  
+
   return (
     <div className="h-full w-full p-4 flex flex-col gap-3">
       {/* Header */}
@@ -24,25 +24,26 @@ export const CalendarScreen = () => {
           </button>
         </div>
       </div>
-      
+
       {/* Day headers */}
       <div className="grid grid-cols-7 gap-1">
-        {days.map(day => (
+        {days.map((day) => (
           <div key={day} className="text-white/50 text-[10px] text-center font-medium">
             {day}
           </div>
         ))}
       </div>
-      
+
       {/* Calendar grid */}
       <div className="flex-1 flex flex-col gap-1">
         {dates.map((week, weekIndex) => (
           <div key={weekIndex} className="grid grid-cols-7 gap-1 flex-1">
             {week.map((date, dateIndex) => {
-              const isCurrentMonth = !(weekIndex === 0 && date > 20) && !(weekIndex === 4 && date < 10);
+              const isCurrentMonth =
+                !(weekIndex === 0 && date > 20) && !(weekIndex === 4 && date < 10);
               const isSelected = date === 15;
               const hasEvent = [8, 15, 22, 24].includes(date) && isCurrentMonth;
-              
+
               return (
                 <div
                   key={dateIndex}
@@ -63,7 +64,7 @@ export const CalendarScreen = () => {
           </div>
         ))}
       </div>
-      
+
       {/* Events */}
       <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10">
         <p className="text-white text-xs font-medium mb-2">Upcoming Events</p>

@@ -69,7 +69,9 @@ export async function getConsultationTypes(): Promise<ConsultationType[]> {
   return data || [];
 }
 
-export async function createConsultationType(type: Omit<ConsultationType, 'id'>): Promise<ConsultationType> {
+export async function createConsultationType(
+  type: Omit<ConsultationType, 'id'>
+): Promise<ConsultationType> {
   const { data, error } = await untypedSupabase
     .from('consultation_types')
     .insert(type)
@@ -100,23 +102,20 @@ export async function getAvailabilitySettings(userId?: string): Promise<Availabi
 
 export async function setAvailability(settings: AvailabilitySetting[]): Promise<void> {
   // Xóa settings cũ
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
 
-  await untypedSupabase
-    .from('availability_settings')
-    .delete()
-    .eq('user_id', user.id);
+  await untypedSupabase.from('availability_settings').delete().eq('user_id', user.id);
 
   // Thêm settings mới
-  const settingsWithUserId = settings.map(s => ({
+  const settingsWithUserId = settings.map((s) => ({
     ...s,
-    user_id: user.id
+    user_id: user.id,
   }));
 
-  const { error } = await untypedSupabase
-    .from('availability_settings')
-    .insert(settingsWithUserId);
+  const { error } = await untypedSupabase.from('availability_settings').insert(settingsWithUserId);
 
   if (error) throw error;
 }
@@ -124,10 +123,7 @@ export async function setAvailability(settings: AvailabilitySetting[]): Promise<
 // ============= UNAVAILABLE DATES =============
 
 export async function getUnavailableDates(userId?: string): Promise<UnavailableDate[]> {
-  let query = untypedSupabase
-    .from('unavailable_dates')
-    .select('*')
-    .order('date');
+  let query = untypedSupabase.from('unavailable_dates').select('*').order('date');
 
   if (userId) {
     query = query.eq('user_id', userId);
@@ -139,25 +135,22 @@ export async function getUnavailableDates(userId?: string): Promise<UnavailableD
 }
 
 export async function addUnavailableDate(date: string, reason?: string): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
 
-  const { error } = await untypedSupabase
-    .from('unavailable_dates')
-    .insert({
-      user_id: user.id,
-      date,
-      reason
-    });
+  const { error } = await untypedSupabase.from('unavailable_dates').insert({
+    user_id: user.id,
+    date,
+    reason,
+  });
 
   if (error) throw error;
 }
 
 export async function removeUnavailableDate(id: string): Promise<void> {
-  const { error } = await untypedSupabase
-    .from('unavailable_dates')
-    .delete()
-    .eq('id', id);
+  const { error } = await untypedSupabase.from('unavailable_dates').delete().eq('id', id);
 
   if (error) throw error;
 }
@@ -209,7 +202,9 @@ export async function getConsultationById(id: string): Promise<Consultation | nu
   return data;
 }
 
-export async function createConsultation(consultation: Omit<Consultation, 'id'>): Promise<Consultation> {
+export async function createConsultation(
+  consultation: Omit<Consultation, 'id'>
+): Promise<Consultation> {
   const { data, error } = await untypedSupabase
     .from('consultations')
     .insert(consultation)
@@ -220,7 +215,10 @@ export async function createConsultation(consultation: Omit<Consultation, 'id'>)
   return data;
 }
 
-export async function updateConsultation(id: string, updates: Partial<Consultation>): Promise<Consultation> {
+export async function updateConsultation(
+  id: string,
+  updates: Partial<Consultation>
+): Promise<Consultation> {
   const { data, error } = await untypedSupabase
     .from('consultations')
     .update(updates)
@@ -236,7 +234,7 @@ export async function cancelConsultation(id: string, reason?: string): Promise<v
   await updateConsultation(id, {
     status: 'cancelled',
     cancelled_at: new Date().toISOString(),
-    cancellation_reason: reason
+    cancellation_reason: reason,
   });
 }
 
@@ -298,20 +296,20 @@ export async function getAvailableTimeSlots(
 
       // Check if slot is available
       const slotEndTime = time + durationMinutes;
-      const isAvailable = !existingConsultations?.some(consultation => {
+      const isAvailable = !existingConsultations?.some((consultation) => {
         const [consStartHour, consStartMinute] = consultation.start_time.split(':').map(Number);
         const [consEndHour, consEndMinute] = consultation.end_time.split(':').map(Number);
-        
+
         const consStart = consStartHour * 60 + consStartMinute;
         const consEnd = consEndHour * 60 + consEndMinute;
 
-        return (time < consEnd && slotEndTime > consStart);
+        return time < consEnd && slotEndTime > consStart;
       });
 
       slots.push({
         time: timeString,
         available: isAvailable,
-        consultation: existingConsultations?.find(c => c.start_time === timeString)
+        consultation: existingConsultations?.find((c) => c.start_time === timeString),
       });
     }
   }

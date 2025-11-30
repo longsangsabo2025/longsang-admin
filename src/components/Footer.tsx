@@ -1,27 +1,27 @@
-import { Linkedin, Github, Twitter, Mail } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { Linkedin, Github, Twitter, Mail } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const Footer = () => {
   const { t } = useTranslation();
 
   const quickLinks = [
-    { nameKey: "footer.links.home", href: "#home" },
-    { nameKey: "footer.links.about", href: "#about" },
-    { nameKey: "footer.links.projects", href: "#projects" },
-    { nameKey: "footer.links.contact", href: "#contact" },
+    { nameKey: 'footer.links.home', href: '#home' },
+    { nameKey: 'footer.links.about', href: '#about' },
+    { nameKey: 'footer.links.projects', href: '#projects' },
+    { nameKey: 'footer.links.contact', href: '#contact' },
   ];
 
   const services = [
-    { nameKey: "footer.servicesList.mobile", href: "#services" },
-    { nameKey: "footer.servicesList.web", href: "#services" },
-    { nameKey: "footer.servicesList.automation", href: "#services" },
-    { nameKey: "footer.servicesList.ai", href: "#services" },
+    { nameKey: 'footer.servicesList.mobile', href: '#services' },
+    { nameKey: 'footer.servicesList.web', href: '#services' },
+    { nameKey: 'footer.servicesList.automation', href: '#services' },
+    { nameKey: 'footer.servicesList.ai', href: '#services' },
   ];
 
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -32,9 +32,7 @@ export const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] gap-12 md:gap-16 mb-12">
           {/* Brand Column */}
           <div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">
-              {t('footer.brand')}
-            </h3>
+            <h3 className="text-2xl font-bold text-foreground mb-3">{t('footer.brand')}</h3>
             <p className="text-base font-medium text-muted-foreground mb-4">
               {t('footer.tagline')}
             </p>
@@ -123,9 +121,7 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-border/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground/60">
-            <p>
-              {t('footer.copyright')}
-            </p>
+            <p>{t('footer.copyright')}</p>
             <div className="flex gap-6">
               <a href="#" className="hover:text-foreground transition-colors duration-200">
                 {t('footer.privacy')}

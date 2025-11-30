@@ -35,9 +35,18 @@ interface SuggestionCardProps {
   executing?: boolean;
 }
 
-export function SuggestionCard({ suggestion, onExecute, onDismiss, executing }: SuggestionCardProps) {
+export function SuggestionCard({
+  suggestion,
+  onExecute,
+  onDismiss,
+  executing,
+}: SuggestionCardProps) {
   const typeConfig = {
-    action: { label: 'Hành động', icon: <CheckCircle2 className="h-4 w-4" />, color: 'bg-blue-500' },
+    action: {
+      label: 'Hành động',
+      icon: <CheckCircle2 className="h-4 w-4" />,
+      color: 'bg-blue-500',
+    },
     reminder: { label: 'Nhắc nhở', icon: <Clock className="h-4 w-4" />, color: 'bg-yellow-500' },
     insight: { label: 'Insight', icon: <Lightbulb className="h-4 w-4" />, color: 'bg-purple-500' },
   };
@@ -56,9 +65,7 @@ export function SuggestionCard({ suggestion, onExecute, onDismiss, executing }: 
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <div className={`p-1.5 rounded-md ${config.color} text-white`}>
-              {config.icon}
-            </div>
+            <div className={`p-1.5 rounded-md ${config.color} text-white`}>{config.icon}</div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-sm font-semibold">{config.label}</span>
@@ -102,12 +109,7 @@ export function SuggestionCard({ suggestion, onExecute, onDismiss, executing }: 
       </CardContent>
 
       <CardFooter className="pt-0 flex gap-2">
-        <Button
-          size="sm"
-          className="flex-1"
-          onClick={onExecute}
-          disabled={executing}
-        >
+        <Button size="sm" className="flex-1" onClick={onExecute} disabled={executing}>
           {executing ? (
             <>
               <Loader2 className="h-3 w-3 mr-2 animate-spin" />
@@ -120,12 +122,7 @@ export function SuggestionCard({ suggestion, onExecute, onDismiss, executing }: 
             </>
           )}
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onDismiss}
-          disabled={executing}
-        >
+        <Button size="sm" variant="outline" onClick={onDismiss} disabled={executing}>
           <X className="h-3 w-3 mr-2" />
           Bỏ qua
         </Button>
@@ -133,4 +130,3 @@ export function SuggestionCard({ suggestion, onExecute, onDismiss, executing }: 
     </Card>
   );
 }
-

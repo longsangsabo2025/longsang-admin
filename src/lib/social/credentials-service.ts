@@ -5,8 +5,8 @@
  * Manages storage and retrieval of platform credentials from database
  */
 
-import { supabase } from "@/integrations/supabase/client";
-import type { PlatformCredentials, PlatformSettings, SocialPlatform } from "@/types/social-media";
+import { supabase } from '@/integrations/supabase/client';
+import type { PlatformCredentials, PlatformSettings, SocialPlatform } from '@/types/social-media';
 
 export interface StoredCredential {
   id: string;
@@ -53,11 +53,11 @@ export class SocialCredentialsService {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!user) throw new Error('Not authenticated');
 
       // Upsert credentials
       const { data, error } = await supabase
-        .from("social_media_credentials")
+        .from('social_media_credentials')
         .upsert(
           {
             user_id: user.id,
@@ -68,7 +68,7 @@ export class SocialCredentialsService {
             updated_at: new Date().toISOString(),
           },
           {
-            onConflict: "user_id,platform",
+            onConflict: 'user_id,platform',
           }
         )
         .select()
@@ -77,7 +77,7 @@ export class SocialCredentialsService {
       if (error) throw error;
       return data as StoredCredential;
     } catch (error) {
-      console.error("Failed to save credentials:", error);
+      console.error('Failed to save credentials:', error);
       throw error;
     }
   }
@@ -93,17 +93,17 @@ export class SocialCredentialsService {
       if (!user) return null;
 
       const { data, error } = await supabase
-        .from("social_media_credentials")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("platform", platform)
-        .eq("is_active", true)
+        .from('social_media_credentials')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('platform', platform)
+        .eq('is_active', true)
         .single();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error && error.code !== 'PGRST116') throw error;
       return data as StoredCredential | null;
     } catch (error) {
-      console.error("Failed to get credentials:", error);
+      console.error('Failed to get credentials:', error);
       return null;
     }
   }
@@ -119,16 +119,16 @@ export class SocialCredentialsService {
       if (!user) return [];
 
       const { data, error } = await supabase
-        .from("social_media_credentials")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+        .from('social_media_credentials')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       return (data || []) as StoredCredential[];
     } catch (error) {
-      console.error("Failed to get all credentials:", error);
+      console.error('Failed to get all credentials:', error);
       return [];
     }
   }
@@ -141,17 +141,17 @@ export class SocialCredentialsService {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!user) throw new Error('Not authenticated');
 
       const { error } = await supabase
-        .from("social_media_credentials")
+        .from('social_media_credentials')
         .delete()
-        .eq("user_id", user.id)
-        .eq("platform", platform);
+        .eq('user_id', user.id)
+        .eq('platform', platform);
 
       if (error) throw error;
     } catch (error) {
-      console.error("Failed to delete credentials:", error);
+      console.error('Failed to delete credentials:', error);
       throw error;
     }
   }
@@ -172,18 +172,18 @@ export class SocialCredentialsService {
       if (!user) return;
 
       const { error } = await supabase
-        .from("social_media_credentials")
+        .from('social_media_credentials')
         .update({
           last_tested_at: new Date().toISOString(),
           last_error: success ? null : errorMessage,
           account_info: accountInfo || undefined,
         } as any)
-        .eq("user_id", user.id)
-        .eq("platform", platform);
+        .eq('user_id', user.id)
+        .eq('platform', platform);
 
       if (error) throw error;
     } catch (error) {
-      console.error("Failed to update connection status:", error);
+      console.error('Failed to update connection status:', error);
     }
   }
 
@@ -195,17 +195,17 @@ export class SocialCredentialsService {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!user) throw new Error('Not authenticated');
 
       const { error } = await supabase
-        .from("social_media_credentials")
+        .from('social_media_credentials')
         .update({ is_active: false } as any)
-        .eq("user_id", user.id)
-        .eq("platform", platform);
+        .eq('user_id', user.id)
+        .eq('platform', platform);
 
       if (error) throw error;
     } catch (error) {
-      console.error("Failed to deactivate credentials:", error);
+      console.error('Failed to deactivate credentials:', error);
       throw error;
     }
   }

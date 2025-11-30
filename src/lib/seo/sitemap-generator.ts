@@ -20,31 +20,33 @@ interface SitemapConfig {
  */
 export function generateSitemap(config: SitemapConfig): string {
   const { baseUrl, urls } = config;
-  
-  const urlElements = urls.map(url => {
-    const { loc, lastmod, changefreq, priority } = url;
-    const fullUrl = loc.startsWith('http') ? loc : `${baseUrl}${loc}`;
-    
-    let urlXml = `  <url>\n`;
-    urlXml += `    <loc>${fullUrl}</loc>\n`;
-    
-    if (lastmod) {
-      urlXml += `    <lastmod>${lastmod}</lastmod>\n`;
-    }
-    
-    if (changefreq) {
-      urlXml += `    <changefreq>${changefreq}</changefreq>\n`;
-    }
-    
-    if (priority !== undefined) {
-      urlXml += `    <priority>${priority.toFixed(1)}</priority>\n`;
-    }
-    
-    urlXml += `  </url>`;
-    
-    return urlXml;
-  }).join('\n');
-  
+
+  const urlElements = urls
+    .map((url) => {
+      const { loc, lastmod, changefreq, priority } = url;
+      const fullUrl = loc.startsWith('http') ? loc : `${baseUrl}${loc}`;
+
+      let urlXml = `  <url>\n`;
+      urlXml += `    <loc>${fullUrl}</loc>\n`;
+
+      if (lastmod) {
+        urlXml += `    <lastmod>${lastmod}</lastmod>\n`;
+      }
+
+      if (changefreq) {
+        urlXml += `    <changefreq>${changefreq}</changefreq>\n`;
+      }
+
+      if (priority !== undefined) {
+        urlXml += `    <priority>${priority.toFixed(1)}</priority>\n`;
+      }
+
+      urlXml += `  </url>`;
+
+      return urlXml;
+    })
+    .join('\n');
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urlElements}
@@ -64,7 +66,7 @@ export const saboArenaSitemap: SitemapConfig = {
       changefreq: 'daily',
       priority: 1.0,
     },
-    
+
     // Main sections - High priority
     {
       loc: '/tournaments',
@@ -87,7 +89,7 @@ export const saboArenaSitemap: SitemapConfig = {
       changefreq: 'daily',
       priority: 0.7,
     },
-    
+
     // Content sections - Medium priority
     {
       loc: '/blog',
@@ -104,7 +106,7 @@ export const saboArenaSitemap: SitemapConfig = {
       changefreq: 'weekly',
       priority: 0.6,
     },
-    
+
     // Community - Medium priority
     {
       loc: '/community',
@@ -116,7 +118,7 @@ export const saboArenaSitemap: SitemapConfig = {
       changefreq: 'weekly',
       priority: 0.5,
     },
-    
+
     // Static pages - Lower priority
     {
       loc: '/about',

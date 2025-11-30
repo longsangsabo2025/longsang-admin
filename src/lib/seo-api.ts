@@ -58,11 +58,7 @@ export async function getDomains() {
  * Lấy thông tin một domain
  */
 export async function getDomain(id: string) {
-  const { data, error } = await supabase
-    .from('seo_domains')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const { data, error } = await supabase.from('seo_domains').select('*').eq('id', id).single();
 
   if (error) throw error;
   return data as SEODomain;
@@ -107,10 +103,7 @@ export async function updateDomain(id: string, input: UpdateDomainInput) {
  * Xóa domain
  */
 export async function deleteDomain(id: string) {
-  const { error } = await supabase
-    .from('seo_domains')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from('seo_domains').delete().eq('id', id);
 
   if (error) throw error;
 }
@@ -218,22 +211,19 @@ export async function updateIndexingStatus(
  */
 export async function retryFailedUrls(domain_id?: string) {
   // Get failed items with all required fields
-  let query = supabase
-    .from('seo_indexing_queue')
-    .select('*')
-    .eq('status', 'failed');
-  
+  let query = supabase.from('seo_indexing_queue').select('*').eq('status', 'failed');
+
   if (domain_id) {
     query = query.eq('domain_id', domain_id);
   }
 
   const { data: failedItems, error: fetchError } = await query;
-  
+
   if (fetchError) throw fetchError;
   if (!failedItems || failedItems.length === 0) return { count: 0 };
 
   // Update each item with incremented retry_count
-  const updates = failedItems.map(item => ({
+  const updates = failedItems.map((item) => ({
     ...item,
     status: 'pending',
     retry_count: (item.retry_count || 0) + 1,
@@ -241,9 +231,7 @@ export async function retryFailedUrls(domain_id?: string) {
     updated_at: new Date().toISOString(),
   }));
 
-  const { error } = await supabase
-    .from('seo_indexing_queue')
-    .upsert(updates);
+  const { error } = await supabase.from('seo_indexing_queue').upsert(updates);
 
   if (error) throw error;
 
@@ -254,9 +242,7 @@ export async function retryFailedUrls(domain_id?: string) {
  * Lấy thống kê indexing
  */
 export async function getIndexingStats(domain_id?: string) {
-  let query = supabase
-    .from('seo_indexing_queue')
-    .select('status');
+  let query = supabase.from('seo_indexing_queue').select('status');
 
   if (domain_id) {
     query = query.eq('domain_id', domain_id);
@@ -269,10 +255,10 @@ export async function getIndexingStats(domain_id?: string) {
   // Count by status
   const stats = {
     total: data.length,
-    pending: data.filter(item => item.status === 'pending').length,
-    crawling: data.filter(item => item.status === 'crawling').length,
-    indexed: data.filter(item => item.status === 'indexed').length,
-    failed: data.filter(item => item.status === 'failed').length,
+    pending: data.filter((item) => item.status === 'pending').length,
+    crawling: data.filter((item) => item.status === 'crawling').length,
+    indexed: data.filter((item) => item.status === 'indexed').length,
+    failed: data.filter((item) => item.status === 'failed').length,
   };
 
   return stats;
@@ -322,11 +308,7 @@ export async function getKeywords(domain_id: string) {
  * Thêm keyword
  */
 export async function addKeyword(input: CreateKeywordInput) {
-  const { data, error } = await supabase
-    .from('seo_keywords')
-    .insert(input)
-    .select()
-    .single();
+  const { data, error } = await supabase.from('seo_keywords').insert(input).select().single();
 
   if (error) throw error;
   return data as Keyword;
@@ -335,10 +317,7 @@ export async function addKeyword(input: CreateKeywordInput) {
 /**
  * Cập nhật keyword position
  */
-export async function updateKeywordPosition(
-  id: string,
-  current_position: number
-) {
+export async function updateKeywordPosition(id: string, current_position: number) {
   // First, get the current position to save as previous
   const { data: keyword } = await supabase
     .from('seo_keywords')
@@ -365,10 +344,7 @@ export async function updateKeywordPosition(
  * Xóa keyword
  */
 export async function deleteKeyword(id: string) {
-  const { error } = await supabase
-    .from('seo_keywords')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from('seo_keywords').delete().eq('id', id);
 
   if (error) throw error;
 }
@@ -428,11 +404,7 @@ export async function updateSEOSettings(settings: Partial<SEOSettings>) {
     return data as SEOSettings;
   } else {
     // Create new
-    const { data, error } = await supabase
-      .from('seo_settings')
-      .insert(settings)
-      .select()
-      .single();
+    const { data, error } = await supabase.from('seo_settings').insert(settings).select().single();
 
     if (error) throw error;
     return data as SEOSettings;

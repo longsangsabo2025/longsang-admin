@@ -134,7 +134,10 @@ export async function* streamChatWithFunctions(
     model?: string;
     temperature?: number;
   } = {}
-): AsyncGenerator<StreamChunk | { type: 'function_call'; name: string; args: Record<string, unknown>; result: unknown }> {
+): AsyncGenerator<
+  | StreamChunk
+  | { type: 'function_call'; name: string; args: Record<string, unknown>; result: unknown }
+> {
   const { model = 'gpt-4o', temperature = 0.7 } = options;
 
   try {

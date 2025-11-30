@@ -16,9 +16,9 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error in /api/drive/files:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error.message || 'Failed to fetch files' 
+      {
+        success: false,
+        error: error.message || 'Failed to fetch files',
       },
       { status: 500 }
     );
@@ -29,17 +29,14 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const parentFolderId = formData.get('parentFolderId') as string || 'root';
+    const parentFolderId = (formData.get('parentFolderId') as string) || 'root';
 
     if (!file) {
-      return NextResponse.json(
-        { success: false, error: 'No file provided' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    
+
     const uploadedFile = await googleDriveService.uploadFile(
       file.name,
       buffer,
@@ -54,9 +51,9 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error uploading file:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error.message || 'Failed to upload file' 
+      {
+        success: false,
+        error: error.message || 'Failed to upload file',
       },
       { status: 500 }
     );
@@ -69,10 +66,7 @@ export async function DELETE(request: NextRequest) {
     const fileId = searchParams.get('fileId');
 
     if (!fileId) {
-      return NextResponse.json(
-        { success: false, error: 'File ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'File ID is required' }, { status: 400 });
     }
 
     await googleDriveService.deleteFile(fileId);
@@ -84,9 +78,9 @@ export async function DELETE(request: NextRequest) {
   } catch (error: any) {
     console.error('Error deleting file:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error.message || 'Failed to delete file' 
+      {
+        success: false,
+        error: error.message || 'Failed to delete file',
       },
       { status: 500 }
     );

@@ -1,12 +1,8 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WorkflowTemplateLibrary } from "@/components/workflow/WorkflowTemplateLibrary";
-import WorkflowTester from "@/components/WorkflowTester";
-import WorkflowImporter from "@/components/WorkflowImporter";
-import { 
-  TestTube, 
-  Upload,
-  Sparkles,
-} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { WorkflowTemplateLibrary } from '@/components/workflow/WorkflowTemplateLibrary';
+import WorkflowTester from '@/components/WorkflowTester';
+import WorkflowImporter from '@/components/WorkflowImporter';
+import { TestTube, Upload, Sparkles } from 'lucide-react';
 
 const AdminWorkflows = () => {
   return (

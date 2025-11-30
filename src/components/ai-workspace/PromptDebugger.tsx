@@ -13,14 +13,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Bug, 
-  Play, 
-  FileText, 
-  User, 
-  FolderKanban, 
-  Target, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Bug,
+  Play,
+  FileText,
+  User,
+  FolderKanban,
+  Target,
   BookOpen,
   ChevronDown,
   ChevronRight,
@@ -29,7 +35,7 @@ import {
   Loader2,
   Sparkles,
   AlertCircle,
-  Info
+  Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -81,13 +87,13 @@ export function PromptDebugger() {
     try {
       const res = await fetch(`${API_BASE}/api/knowledge/preview-prompt`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'x-user-id': 'default-longsang-user'
+          'x-user-id': 'default-longsang-user',
         },
         body: JSON.stringify({ query, assistantType }),
       });
-      
+
       const data = await res.json();
       if (data.success) {
         setPreview(data.preview);
@@ -111,9 +117,9 @@ export function PromptDebugger() {
   }, []);
 
   const toggleSection = useCallback((section: string) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   }, []);
 
@@ -188,16 +194,14 @@ export function PromptDebugger() {
                 Prompt Preview
               </CardTitle>
               <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  Assistant: {preview.assistantType}
-                </Badge>
+                <Badge variant="outline">Assistant: {preview.assistantType}</Badge>
                 <Badge variant="secondary" className={getTokenColor(preview.totalTokens)}>
                   ~{preview.totalTokens.toLocaleString()} tokens
                 </Badge>
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent className="flex-1 overflow-hidden p-0">
             <Tabs defaultValue="breakdown" className="h-full flex flex-col">
               <TabsList className="mx-4 shrink-0">
@@ -211,7 +215,7 @@ export function PromptDebugger() {
                 <ScrollArea className="h-full">
                   <div className="p-4 space-y-4">
                     {/* Base System Prompt */}
-                    <Collapsible 
+                    <Collapsible
                       open={expandedSections.basePrompt}
                       onOpenChange={() => toggleSection('basePrompt')}
                     >
@@ -226,7 +230,10 @@ export function PromptDebugger() {
                             <FileText className="h-4 w-4 text-blue-500" />
                             <span className="font-medium">Base System Prompt</span>
                           </div>
-                          <Badge variant="outline" className={getTokenColor(preview.sections.basePrompt.tokens)}>
+                          <Badge
+                            variant="outline"
+                            className={getTokenColor(preview.sections.basePrompt.tokens)}
+                          >
                             ~{preview.sections.basePrompt.tokens} tokens
                           </Badge>
                         </div>
@@ -237,7 +244,9 @@ export function PromptDebugger() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => copyToClipboard(preview.sections.basePrompt.content, 'base')}
+                              onClick={() =>
+                                copyToClipboard(preview.sections.basePrompt.content, 'base')
+                              }
                             >
                               {copiedSection === 'base' ? (
                                 <Check className="h-3 w-3 mr-1" />
@@ -255,7 +264,7 @@ export function PromptDebugger() {
                     </Collapsible>
 
                     {/* RAG Context */}
-                    <Collapsible 
+                    <Collapsible
                       open={expandedSections.ragContext}
                       onOpenChange={() => toggleSection('ragContext')}
                     >
@@ -273,7 +282,10 @@ export function PromptDebugger() {
                               {preview.sections.ragContext.documentCount || 0} docs
                             </Badge>
                           </div>
-                          <Badge variant="outline" className={getTokenColor(preview.sections.ragContext.tokens)}>
+                          <Badge
+                            variant="outline"
+                            className={getTokenColor(preview.sections.ragContext.tokens)}
+                          >
                             ~{preview.sections.ragContext.tokens} tokens
                           </Badge>
                         </div>
@@ -284,7 +296,9 @@ export function PromptDebugger() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => copyToClipboard(preview.sections.ragContext.content, 'rag')}
+                              onClick={() =>
+                                copyToClipboard(preview.sections.ragContext.content, 'rag')
+                              }
                             >
                               {copiedSection === 'rag' ? (
                                 <Check className="h-3 w-3 mr-1" />
@@ -308,7 +322,7 @@ export function PromptDebugger() {
                     </Collapsible>
 
                     {/* Personal Context - THE IMPORTANT ONE */}
-                    <Collapsible 
+                    <Collapsible
                       open={expandedSections.personalContext}
                       onOpenChange={() => toggleSection('personalContext')}
                     >
@@ -337,7 +351,10 @@ export function PromptDebugger() {
                               </Badge>
                             </div>
                           </div>
-                          <Badge variant="outline" className={getTokenColor(preview.sections.personalContext.tokens)}>
+                          <Badge
+                            variant="outline"
+                            className={getTokenColor(preview.sections.personalContext.tokens)}
+                          >
                             ~{preview.sections.personalContext.tokens} tokens
                           </Badge>
                         </div>
@@ -348,7 +365,12 @@ export function PromptDebugger() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => copyToClipboard(preview.sections.personalContext.content, 'personal')}
+                              onClick={() =>
+                                copyToClipboard(
+                                  preview.sections.personalContext.content,
+                                  'personal'
+                                )
+                              }
                             >
                               {copiedSection === 'personal' ? (
                                 <Check className="h-3 w-3 mr-1" />
@@ -381,19 +403,27 @@ export function PromptDebugger() {
                       <div className="grid grid-cols-4 gap-4 text-sm">
                         <div>
                           <div className="text-muted-foreground">Base Prompt</div>
-                          <div className="font-mono font-medium">{preview.sections.basePrompt.tokens}</div>
+                          <div className="font-mono font-medium">
+                            {preview.sections.basePrompt.tokens}
+                          </div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">RAG Context</div>
-                          <div className="font-mono font-medium">{preview.sections.ragContext.tokens}</div>
+                          <div className="font-mono font-medium">
+                            {preview.sections.ragContext.tokens}
+                          </div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Personal Context</div>
-                          <div className="font-mono font-medium">{preview.sections.personalContext.tokens}</div>
+                          <div className="font-mono font-medium">
+                            {preview.sections.personalContext.tokens}
+                          </div>
                         </div>
                         <div>
                           <div className="text-muted-foreground font-medium">Total</div>
-                          <div className={`font-mono font-bold ${getTokenColor(preview.totalTokens)}`}>
+                          <div
+                            className={`font-mono font-bold ${getTokenColor(preview.totalTokens)}`}
+                          >
                             {preview.totalTokens}
                           </div>
                         </div>

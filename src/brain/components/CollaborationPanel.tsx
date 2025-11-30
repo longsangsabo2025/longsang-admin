@@ -29,7 +29,10 @@ export function CollaborationPanel() {
           {sharedKnowledge && sharedKnowledge.length > 0 ? (
             <div className="space-y-2">
               {sharedKnowledge.map((share) => (
-                <div key={share.id} className="flex items-center justify-between p-3 border rounded">
+                <div
+                  key={share.id}
+                  className="flex items-center justify-between p-3 border rounded"
+                >
                   <div className="flex-1">
                     <p className="font-medium">{share.knowledge?.title || 'Untitled'}</p>
                     <p className="text-sm text-muted-foreground">
@@ -59,7 +62,9 @@ export function CollaborationPanel() {
               {teams.map((team) => (
                 <div key={team.id} className="p-3 border rounded">
                   <p className="font-medium">{team.name}</p>
-                  {team.description && <p className="text-sm text-muted-foreground">{team.description}</p>}
+                  {team.description && (
+                    <p className="text-sm text-muted-foreground">{team.description}</p>
+                  )}
                   <div className="mt-2 flex items-center gap-2">
                     <Badge variant="secondary">{team.members?.length || 0} members</Badge>
                   </div>
@@ -74,4 +79,3 @@ export function CollaborationPanel() {
     </div>
   );
 }
-

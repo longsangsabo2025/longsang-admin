@@ -1,9 +1,9 @@
 /**
  * Instagram Graph API Service
- * 
+ *
  * This service handles posting to Instagram Business accounts via Facebook Graph API.
  * Instagram requires a 2-step process: Create container → Publish
- * 
+ *
  * Requirements:
  * - Instagram Business or Creator account linked to Facebook Page
  * - Page Access Token with instagram_content_publish permission
@@ -20,7 +20,7 @@ export const INSTAGRAM_ACCOUNTS = {
     pageTokenEnv: 'FACEBOOK_PAGE_ACCESS_TOKEN', // Main page
   },
   saboMedia: {
-    id: '17841472718907470', 
+    id: '17841472718907470',
     username: 'sabomediavt',
     pageTokenEnv: 'FACEBOOK_PAGE_SABO_MEDIA_TOKEN',
   },
@@ -85,13 +85,13 @@ export async function getInstagramAccountInfo(
   const response = await fetch(
     `${GRAPH_API_BASE}/${instagramId}?fields=${fields}&access_token=${accessToken}`
   );
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(data.error.message);
   }
-  
+
   return {
     id: data.id,
     username: data.username,
@@ -125,20 +125,20 @@ async function createMediaContainer(
   if (options.imageUrl) {
     params.append('image_url', options.imageUrl);
   }
-  
+
   if (options.videoUrl) {
     params.append('video_url', options.videoUrl);
     params.append('media_type', 'VIDEO');
   }
-  
+
   if (options.caption) {
     params.append('caption', options.caption);
   }
-  
+
   if (options.locationId) {
     params.append('location_id', options.locationId);
   }
-  
+
   if (options.userTags && options.userTags.length > 0) {
     params.append('user_tags', JSON.stringify(options.userTags));
   }
@@ -147,13 +147,13 @@ async function createMediaContainer(
     method: 'POST',
     body: params,
   });
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(data.error.message);
   }
-  
+
   return data;
 }
 
@@ -167,13 +167,13 @@ async function checkContainerStatus(
   const response = await fetch(
     `${GRAPH_API_BASE}/${containerId}?fields=status_code&access_token=${accessToken}`
   );
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(data.error.message);
   }
-  
+
   return data.status_code;
 }
 
@@ -195,13 +195,13 @@ async function publishMedia(
     method: 'POST',
     body: params,
   });
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(data.error.message);
   }
-  
+
   return data;
 }
 
@@ -224,13 +224,13 @@ export async function postImageToInstagram(
       imageUrl,
       caption,
     });
-    
+
     // Step 2: Wait for processing (usually instant for images)
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
     // Step 3: Publish
     const result = await publishMedia(instagramId, container.id, accessToken);
-    
+
     return {
       success: true,
       postId: result.id,
@@ -263,25 +263,25 @@ export async function postVideoToInstagram(
       videoUrl,
       caption,
     });
-    
+
     // Step 2: Wait for video processing (can take a while)
     let status: string = 'IN_PROGRESS';
     let attempts = 0;
     const maxAttempts = 30; // 5 minutes max
-    
+
     while (status === 'IN_PROGRESS' && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10s
+      await new Promise((resolve) => setTimeout(resolve, 10000)); // Wait 10s
       status = await checkContainerStatus(container.id, accessToken);
       attempts++;
     }
-    
+
     if (status !== 'FINISHED') {
       throw new Error(`Video processing failed or timed out. Status: ${status}`);
     }
-    
+
     // Step 3: Publish
     const result = await publishMedia(instagramId, container.id, accessToken);
-    
+
     return {
       success: true,
       postId: result.id,
@@ -307,37 +307,37 @@ export async function postCarouselToInstagram(
   try {
     // Step 1: Create containers for each item
     const childContainerIds: string[] = [];
-    
+
     for (const item of mediaItems) {
       const params = new URLSearchParams({
         access_token: accessToken,
         is_carousel_item: 'true',
       });
-      
+
       if (item.type === 'IMAGE') {
         params.append('image_url', item.url);
       } else {
         params.append('video_url', item.url);
         params.append('media_type', 'VIDEO');
       }
-      
+
       const response = await fetch(`${GRAPH_API_BASE}/${instagramId}/media`, {
         method: 'POST',
         body: params,
       });
-      
+
       const data = await response.json();
-      
+
       if (data.error) {
         throw new Error(data.error.message);
       }
-      
+
       childContainerIds.push(data.id);
     }
-    
+
     // Wait for all items to process
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
     // Step 2: Create carousel container
     const carouselParams = new URLSearchParams({
       access_token: accessToken,
@@ -345,21 +345,21 @@ export async function postCarouselToInstagram(
       children: childContainerIds.join(','),
       caption,
     });
-    
+
     const carouselResponse = await fetch(`${GRAPH_API_BASE}/${instagramId}/media`, {
       method: 'POST',
       body: carouselParams,
     });
-    
+
     const carouselData = await carouselResponse.json();
-    
+
     if (carouselData.error) {
       throw new Error(carouselData.error.message);
     }
-    
+
     // Step 3: Publish carousel
     const result = await publishMedia(instagramId, carouselData.id, accessToken);
-    
+
     return {
       success: true,
       postId: result.id,
@@ -384,15 +384,15 @@ export async function getPostInsights(
   const response = await fetch(
     `${GRAPH_API_BASE}/${mediaId}/insights?metric=${metrics}&access_token=${accessToken}`
   );
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(data.error.message);
   }
-  
+
   const insights: InstagramInsights = {};
-  
+
   for (const item of data.data || []) {
     switch (item.name) {
       case 'impressions':
@@ -412,7 +412,7 @@ export async function getPostInsights(
         break;
     }
   }
-  
+
   return insights;
 }
 
@@ -423,27 +423,29 @@ export async function getRecentMedia(
   instagramId: string,
   accessToken: string,
   limit: number = 10
-): Promise<Array<{
-  id: string;
-  mediaType: string;
-  mediaUrl: string;
-  permalink: string;
-  caption: string;
-  timestamp: string;
-  likeCount: number;
-  commentsCount: number;
-}>> {
+): Promise<
+  Array<{
+    id: string;
+    mediaType: string;
+    mediaUrl: string;
+    permalink: string;
+    caption: string;
+    timestamp: string;
+    likeCount: number;
+    commentsCount: number;
+  }>
+> {
   const fields = 'id,media_type,media_url,permalink,caption,timestamp,like_count,comments_count';
   const response = await fetch(
     `${GRAPH_API_BASE}/${instagramId}/media?fields=${fields}&limit=${limit}&access_token=${accessToken}`
   );
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(data.error.message);
   }
-  
+
   return (data.data || []).map((item: any) => ({
     id: item.id,
     mediaType: item.media_type,

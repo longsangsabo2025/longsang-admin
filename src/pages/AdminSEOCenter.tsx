@@ -1,17 +1,28 @@
-import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Globe, Settings, BarChart3, Link, FileText, Sparkles, Wand2, RefreshCw, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { DomainManagement } from "@/components/seo/DomainManagement";
-import { IndexingMonitor } from "@/components/seo/IndexingMonitor";
-import { SEOSettings } from "@/components/seo/SEOSettings";
-import { SitemapGenerator } from "@/components/seo/SitemapGenerator";
-import { KeywordTracker } from "@/components/seo/KeywordTracker";
-import { SEOAnalytics } from "@/components/seo/SEOAnalytics";
-import { AIAutoSEO } from "@/components/seo/AIAutoSEO";
-import { SEOContentGenerator } from "@/components/seo/SEOContentGenerator";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  TrendingUp,
+  Globe,
+  Settings,
+  BarChart3,
+  Link,
+  FileText,
+  Sparkles,
+  Wand2,
+  RefreshCw,
+  Loader2,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DomainManagement } from '@/components/seo/DomainManagement';
+import { IndexingMonitor } from '@/components/seo/IndexingMonitor';
+import { SEOSettings } from '@/components/seo/SEOSettings';
+import { SitemapGenerator } from '@/components/seo/SitemapGenerator';
+import { KeywordTracker } from '@/components/seo/KeywordTracker';
+import { SEOAnalytics } from '@/components/seo/SEOAnalytics';
+import { AIAutoSEO } from '@/components/seo/AIAutoSEO';
+import { SEOContentGenerator } from '@/components/seo/SEOContentGenerator';
+import { useToast } from '@/hooks/use-toast';
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -32,7 +43,7 @@ export default function AdminSEOCenter() {
     totalImpressions: 0,
     avgPosition: 0,
     topRankings: 0,
-    loading: true
+    loading: true,
   });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -41,7 +52,7 @@ export default function AdminSEOCenter() {
       // Fetch verified sites
       const sitesRes = await fetch(`${API_BASE}/google/search-console/sites`);
       const sitesData = await sitesRes.json();
-      
+
       let totalClicks = 0;
       let totalImpressions = 0;
       let totalPosition = 0;
@@ -57,12 +68,14 @@ export default function AdminSEOCenter() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 siteUrl: site.siteUrl,
-                startDate: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                endDate: new Date().toISOString().split('T')[0]
-              })
+                startDate: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000)
+                  .toISOString()
+                  .split('T')[0],
+                endDate: new Date().toISOString().split('T')[0],
+              }),
             });
             const perfData = await perfRes.json();
-            
+
             if (perfData.success && perfData.summary) {
               totalClicks += perfData.summary.totalClicks || 0;
               totalImpressions += perfData.summary.totalImpressions || 0;
@@ -76,13 +89,15 @@ export default function AdminSEOCenter() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 siteUrl: site.siteUrl,
-                startDate: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                startDate: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000)
+                  .toISOString()
+                  .split('T')[0],
                 endDate: new Date().toISOString().split('T')[0],
-                rowLimit: 500
-              })
+                rowLimit: 500,
+              }),
             });
             const kwData = await kwRes.json();
-            
+
             if (kwData.success && kwData.rankingBreakdown) {
               topRankings += kwData.rankingBreakdown.top10 || 0;
             }
@@ -95,21 +110,21 @@ export default function AdminSEOCenter() {
           totalDomains: sitesData.sites.length,
           totalClicks,
           totalImpressions,
-          avgPosition: siteCount > 0 ? Math.round(totalPosition / siteCount * 10) / 10 : 0,
+          avgPosition: siteCount > 0 ? Math.round((totalPosition / siteCount) * 10) / 10 : 0,
           topRankings,
-          loading: false
+          loading: false,
         });
       } else {
-        setStats(prev => ({ ...prev, loading: false }));
+        setStats((prev) => ({ ...prev, loading: false }));
       }
     } catch (error) {
       console.error('Failed to fetch SEO stats:', error);
       toast({
-        title: "Lỗi tải dữ liệu SEO",
-        description: "Không thể kết nối Search Console. Kiểm tra lại API key.",
-        variant: "destructive"
+        title: 'Lỗi tải dữ liệu SEO',
+        description: 'Không thể kết nối Search Console. Kiểm tra lại API key.',
+        variant: 'destructive',
       });
-      setStats(prev => ({ ...prev, loading: false }));
+      setStats((prev) => ({ ...prev, loading: false }));
     }
   };
 
@@ -122,8 +137,8 @@ export default function AdminSEOCenter() {
     await fetchSEOStats();
     setRefreshing(false);
     toast({
-      title: "Đã cập nhật",
-      description: "Dữ liệu SEO đã được làm mới từ Google Search Console"
+      title: 'Đã cập nhật',
+      description: 'Dữ liệu SEO đã được làm mới từ Google Search Console',
     });
   };
 
@@ -176,7 +191,7 @@ export default function AdminSEOCenter() {
             <Globe className="w-8 h-8 text-blue-500" />
           </div>
         </Card>
-        
+
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -190,7 +205,7 @@ export default function AdminSEOCenter() {
             <Link className="w-8 h-8 text-green-500" />
           </div>
         </Card>
-        
+
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -204,7 +219,7 @@ export default function AdminSEOCenter() {
             <BarChart3 className="w-8 h-8 text-purple-500" />
           </div>
         </Card>
-        
+
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>

@@ -79,7 +79,11 @@
     "step1": {
       "number": "01",
       "title": "Khám Phá",
-      "activities": ["Tư vấn khách hàng", "Thu thập yêu cầu", "Nghiên cứu khả thi"]
+      "activities": [
+        "Tư vấn khách hàng",
+        "Thu thập yêu cầu",
+        "Nghiên cứu khả thi"
+      ]
     },
     "step2": {
       "number": "02",
@@ -89,12 +93,20 @@
     "step3": {
       "number": "03",
       "title": "Phát Triển",
-      "activities": ["Phát triển frontend", "Tích hợp API backend", "Testing & QA"]
+      "activities": [
+        "Phát triển frontend",
+        "Tích hợp API backend",
+        "Testing & QA"
+      ]
     },
     "step4": {
       "number": "04",
       "title": "Triển Khai",
-      "activities": ["Deploy production", "Giám sát hiệu suất", "Hỗ trợ liên tục"]
+      "activities": [
+        "Deploy production",
+        "Giám sát hiệu suất",
+        "Hỗ trợ liên tục"
+      ]
     }
   },
   "learning": {

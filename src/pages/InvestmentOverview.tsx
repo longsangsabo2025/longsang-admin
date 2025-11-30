@@ -1,83 +1,92 @@
-import { motion } from "framer-motion";
-import { useParams } from "react-router-dom";
-import { 
-  TrendingUp, Users, Target, Sparkles, 
-  Shield, Award, Zap, ChevronRight,
-  DollarSign, BarChart3, Trophy, Rocket
-} from "lucide-react";
-import { projectsData } from "@/data/projects-data";
-import { GlowCard } from "@/components/GlowCard";
+import { motion } from 'framer-motion';
+import { useParams } from 'react-router-dom';
+import {
+  TrendingUp,
+  Users,
+  Target,
+  Sparkles,
+  Shield,
+  Award,
+  Zap,
+  ChevronRight,
+  DollarSign,
+  BarChart3,
+  Trophy,
+  Rocket,
+} from 'lucide-react';
+import { projectsData } from '@/data/projects-data';
+import { GlowCard } from '@/components/GlowCard';
 
 const InvestmentOverview = () => {
   const { slug } = useParams();
-  const project = projectsData.find(p => p.slug === slug) || projectsData[0];
+  const project = projectsData.find((p) => p.slug === slug) || projectsData[0];
 
   // Mock data - sẽ được thay thế bằng real data từ investment-data.ts
   const investmentMetrics = [
     {
       icon: DollarSign,
-      label: "Vốn Huy Động",
-      value: "50 tỷ VNĐ",
-      subtext: "Series A Round",
-      color: "yellow"
+      label: 'Vốn Huy Động',
+      value: '50 tỷ VNĐ',
+      subtext: 'Series A Round',
+      color: 'yellow',
     },
     {
       icon: TrendingUp,
-      label: "Định Giá",
-      value: "200 tỷ VNĐ",
-      subtext: "Pre-money valuation",
-      color: "orange"
+      label: 'Định Giá',
+      value: '200 tỷ VNĐ',
+      subtext: 'Pre-money valuation',
+      color: 'orange',
     },
     {
       icon: Users,
-      label: "Nhà Đầu Tư",
-      value: "50+",
-      subtext: "Đã cam kết",
-      color: "green"
+      label: 'Nhà Đầu Tư',
+      value: '50+',
+      subtext: 'Đã cam kết',
+      color: 'green',
     },
     {
       icon: Trophy,
-      label: "ROI Dự Kiến",
-      value: "3-5x",
-      subtext: "Trong 3-5 năm",
-      color: "cyan"
-    }
+      label: 'ROI Dự Kiến',
+      value: '3-5x',
+      subtext: 'Trong 3-5 năm',
+      color: 'cyan',
+    },
   ];
 
   const highlights = [
     {
       icon: Rocket,
-      title: "Tăng Trưởng Vượt Trội",
-      description: "200% YoY trong 2 năm qua với 50K+ người dùng active",
-      stats: "200% YoY"
+      title: 'Tăng Trưởng Vượt Trội',
+      description: '200% YoY trong 2 năm qua với 50K+ người dùng active',
+      stats: '200% YoY',
     },
     {
       icon: Target,
-      title: "Thị Trường Khổng Lồ",
-      description: "TAM $500M tại Việt Nam, đang nắm giữ 15% market share",
-      stats: "$500M TAM"
+      title: 'Thị Trường Khổng Lồ',
+      description: 'TAM $500M tại Việt Nam, đang nắm giữ 15% market share',
+      stats: '$500M TAM',
     },
     {
       icon: Shield,
-      title: "Công Nghệ Độc Quyền",
-      description: "AI engine được cấp bằng sáng chế, competitive moat vững chắc",
-      stats: "Patent Pending"
+      title: 'Công Nghệ Độc Quyền',
+      description: 'AI engine được cấp bằng sáng chế, competitive moat vững chắc',
+      stats: 'Patent Pending',
     },
     {
       icon: Sparkles,
-      title: "Đội Ngũ Xuất Sắc",
-      description: "20+ experts từ Google, Meta, với track record proven",
-      stats: "20+ Experts"
-    }
+      title: 'Đội Ngũ Xuất Sắc',
+      description: '20+ experts từ Google, Meta, với track record proven',
+      stats: '20+ Experts',
+    },
   ];
 
   const timeline = [
-    { quarter: "Q1 2025", milestone: "Product Launch", status: "completed" },
-    { quarter: "Q2 2025", milestone: "10K Users", status: "completed" },
-    { quarter: "Q3 2025", milestone: "Series A Funding", status: "in-progress" },
-    { quarter: "Q4 2025", milestone: "50K Users", status: "planned" },
-    { quarter: "Q1 2026", milestone: "Breakeven", status: "planned" },
-    { quarter: "Q2 2026", milestone: "Market Leadership", status: "planned" }
+    { quarter: 'Q1 2025', milestone: 'Product Launch', status: 'completed' },
+    { quarter: 'Q2 2025', milestone: '10K Users', status: 'completed' },
+    { quarter: 'Q3 2025', milestone: 'Series A Funding', status: 'in-progress' },
+    { quarter: 'Q4 2025', milestone: '50K Users', status: 'planned' },
+    { quarter: 'Q1 2026', milestone: 'Breakeven', status: 'planned' },
+    { quarter: 'Q2 2026', milestone: 'Market Leadership', status: 'planned' },
   ];
 
   return (
@@ -95,7 +104,9 @@ const InvestmentOverview = () => {
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 mb-6"
         >
           <Sparkles className="w-4 h-4 text-yellow-500" />
-          <span className="text-sm font-semibold text-yellow-500">Series A Investment Opportunity</span>
+          <span className="text-sm font-semibold text-yellow-500">
+            Series A Investment Opportunity
+          </span>
         </motion.div>
 
         <h1 className="font-display text-5xl md:text-6xl font-bold mb-6">
@@ -103,9 +114,10 @@ const InvestmentOverview = () => {
             Đầu Tư Vào Tương Lai
           </span>
         </h1>
-        
+
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-          Tham gia cùng {project.name} trong hành trình chinh phục thị trường với công nghệ tiên tiến và mô hình kinh doanh đã được chứng minh
+          Tham gia cùng {project.name} trong hành trình chinh phục thị trường với công nghệ tiên
+          tiến và mô hình kinh doanh đã được chứng minh
         </p>
 
         {/* Key Metrics Cards */}
@@ -171,7 +183,9 @@ const InvestmentOverview = () => {
                           {highlight.stats}
                         </span>
                       </div>
-                      <p className="text-muted-foreground leading-relaxed">{highlight.description}</p>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {highlight.description}
+                      </p>
                     </div>
                   </div>
                 </GlowCard>
@@ -205,14 +219,22 @@ const InvestmentOverview = () => {
                 transition={{ delay: index * 0.1 }}
                 className="text-center"
               >
-                <div className={`
+                <div
+                  className={`
                   w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center
-                  ${item.status === 'completed' ? 'bg-green-500/20 border-2 border-green-500' : 
-                    item.status === 'in-progress' ? 'bg-yellow-500/20 border-2 border-yellow-500 animate-pulse' :
-                    'bg-gray-500/10 border-2 border-gray-500/30'}
-                `}>
+                  ${
+                    item.status === 'completed'
+                      ? 'bg-green-500/20 border-2 border-green-500'
+                      : item.status === 'in-progress'
+                        ? 'bg-yellow-500/20 border-2 border-yellow-500 animate-pulse'
+                        : 'bg-gray-500/10 border-2 border-gray-500/30'
+                  }
+                `}
+                >
                   {item.status === 'completed' && <Zap className="w-6 h-6 text-green-500" />}
-                  {item.status === 'in-progress' && <BarChart3 className="w-6 h-6 text-yellow-500" />}
+                  {item.status === 'in-progress' && (
+                    <BarChart3 className="w-6 h-6 text-yellow-500" />
+                  )}
                   {item.status === 'planned' && <Target className="w-6 h-6 text-gray-500" />}
                 </div>
                 <p className="text-xs font-mono text-yellow-500 mb-1">{item.quarter}</p>

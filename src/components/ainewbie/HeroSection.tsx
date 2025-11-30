@@ -1,13 +1,13 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
-import heroHologram from "@/assets/ainewbie/hero-hologram.jpg";
+import { Button } from '@/components/ui/button';
+import { ArrowRight, Sparkles } from 'lucide-react';
+import heroHologram from '@/assets/ainewbie/hero-hologram.jpg';
 
 export const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden cyber-grid">
       {/* Animated background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-tech-darker via-background to-tech-dark opacity-90" />
-      
+
       {/* Glowing orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-glow-cyan/20 rounded-full blur-3xl animate-pulse" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-glow-blue/20 rounded-full blur-3xl animate-pulse delay-700" />
@@ -30,15 +30,23 @@ export const HeroSection = () => {
             </h1>
 
             <p className="text-xl text-muted-foreground max-w-xl">
-              Nền tảng hàng đầu về sản phẩm số AI, workflow tự động hóa, và kết nối nhân tài công nghệ tại Việt Nam
+              Nền tảng hàng đầu về sản phẩm số AI, workflow tự động hóa, và kết nối nhân tài công
+              nghệ tại Việt Nam
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_30px_hsl(var(--primary)/0.5)] group">
+              <Button
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_30px_hsl(var(--primary)/0.5)] group"
+              >
                 Khám Phá Ngay
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button size="lg" variant="outline" className="border-primary/50 text-foreground hover:bg-primary/10 hover:border-primary">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-primary/50 text-foreground hover:bg-primary/10 hover:border-primary"
+              >
                 Tìm Hiểu Thêm
               </Button>
             </div>
@@ -62,14 +70,10 @@ export const HeroSection = () => {
           {/* Right: Hero Image */}
           <div className="relative">
             <div className="relative rounded-2xl overflow-hidden glow-box">
-              <img
-                src={heroHologram}
-                alt="AI Technology Hologram"
-                className="w-full h-auto"
-              />
+              <img src={heroHologram} alt="AI Technology Hologram" className="w-full h-auto" />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
             </div>
-            
+
             {/* Floating elements */}
             <div className="absolute -top-10 -right-10 w-32 h-32 border-2 border-primary/30 rounded-full animate-spin-slow" />
             <div className="absolute -bottom-10 -left-10 w-40 h-40 border-2 border-primary/20 rounded-full animate-pulse" />

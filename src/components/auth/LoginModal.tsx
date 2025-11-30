@@ -1,18 +1,18 @@
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface LoginModalProps {
   readonly open: boolean;
@@ -27,7 +27,7 @@ const isLocal = isDev || window.location.hostname === 'localhost';
 
 // Password strength calculator
 const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
-  if (!password) return { score: 0, label: "", color: "" };
+  if (!password) return { score: 0, label: '', color: '' };
 
   let score = 0;
   if (password.length >= 8) score++;
@@ -36,9 +36,9 @@ const getPasswordStrength = (password: string): { score: number; label: string; 
   if (/\d/.test(password)) score++;
   if (/[^a-zA-Z0-9]/.test(password)) score++;
 
-  if (score <= 2) return { score, label: "Weak", color: "bg-red-500" };
-  if (score <= 3) return { score, label: "Medium", color: "bg-yellow-500" };
-  return { score, label: "Strong", color: "bg-green-500" };
+  if (score <= 2) return { score, label: 'Weak', color: 'bg-red-500' };
+  if (score <= 3) return { score, label: 'Medium', color: 'bg-yellow-500' };
+  return { score, label: 'Strong', color: 'bg-green-500' };
 };
 
 // Email validation
@@ -49,56 +49,56 @@ const isValidEmail = (email: string): boolean => {
 
 export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [confirmPasswordError, setConfirmPasswordError] = useState("");
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [authMethod, setAuthMethod] = useState<"magiclink" | "password">(
-    isLocal ? "password" : "magiclink"
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [authMethod, setAuthMethod] = useState<'magiclink' | 'password'>(
+    isLocal ? 'password' : 'magiclink'
   );
 
   const passwordStrength =
-    authMethod === "password" && mode === "signup" ? getPasswordStrength(password) : null;
+    authMethod === 'password' && mode === 'signup' ? getPasswordStrength(password) : null;
 
   // Validate email on blur
   const handleEmailBlur = () => {
     if (email && !isValidEmail(email)) {
-      setEmailError("Please enter a valid email address");
+      setEmailError('Please enter a valid email address');
     } else {
-      setEmailError("");
+      setEmailError('');
     }
   };
 
   // Validate password on change
   const handlePasswordChange = (value: string) => {
     setPassword(value);
-    if (mode === "signup" && value && value.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
+    if (mode === 'signup' && value && value.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
     } else {
-      setPasswordError("");
+      setPasswordError('');
     }
 
     // Check confirm password match if it's been filled
-    if (mode === "signup" && confirmPassword && value !== confirmPassword) {
-      setConfirmPasswordError("Passwords do not match");
+    if (mode === 'signup' && confirmPassword && value !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
     } else {
-      setConfirmPasswordError("");
+      setConfirmPasswordError('');
     }
   };
 
   // Validate confirm password
   const handleConfirmPasswordChange = (value: string) => {
     setConfirmPassword(value);
-    if (mode === "signup" && value && value !== password) {
-      setConfirmPasswordError("Passwords do not match");
+    if (mode === 'signup' && value && value !== password) {
+      setConfirmPasswordError('Passwords do not match');
     } else {
-      setConfirmPasswordError("");
+      setConfirmPasswordError('');
     }
   };
 
@@ -107,26 +107,26 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
 
     // Validation
     if (!isValidEmail(email)) {
-      setEmailError("Please enter a valid email address");
+      setEmailError('Please enter a valid email address');
       return;
     }
 
-    if (authMethod === "password" && mode === "signup" && password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
+    if (authMethod === 'password' && mode === 'signup' && password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
       return;
     }
 
-    if (authMethod === "password" && mode === "signup" && password !== confirmPassword) {
-      setConfirmPasswordError("Passwords do not match");
+    if (authMethod === 'password' && mode === 'signup' && password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
       return;
     }
 
     setLoading(true);
 
     try {
-      if (authMethod === "password") {
+      if (authMethod === 'password') {
         // Password-based authentication (dev mode)
-        if (mode === "signin") {
+        if (mode === 'signin') {
           const { error } = await supabase.auth.signInWithPassword({
             email,
             password,
@@ -134,7 +134,7 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
 
           if (error) throw error;
 
-          toast.success("Welcome back!", {
+          toast.success('Welcome back!', {
             description: `Signed in as ${email}`,
           });
 
@@ -151,13 +151,13 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
 
           if (error) throw error;
 
-          toast.success("Account created!", {
-            description: "Please check your email to verify your account.",
+          toast.success('Account created!', {
+            description: 'Please check your email to verify your account.',
           });
 
-          setMode("signin");
+          setMode('signin');
         }
-      } else if (mode === "signin") {
+      } else if (mode === 'signin') {
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
@@ -167,16 +167,16 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
 
         if (error) throw error;
 
-        toast.success("Check your email!", {
+        toast.success('Check your email!', {
           description: `Magic link sent to ${email}`,
         });
 
-        setEmail("");
+        setEmail('');
         onOpenChange(false);
       } else {
         const { error } = await supabase.auth.signUp({
           email,
-          password: "magic-link-signup", // Required by Supabase but not used for OTP
+          password: 'magic-link-signup', // Required by Supabase but not used for OTP
           options: {
             emailRedirectTo: globalThis.location.origin,
           },
@@ -184,16 +184,16 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
 
         if (error) throw error;
 
-        toast.success("Check your email!", {
-          description: "Confirmation link sent successfully.",
+        toast.success('Check your email!', {
+          description: 'Confirmation link sent successfully.',
         });
 
-        setEmail("");
+        setEmail('');
         onOpenChange(false);
       }
     } catch (error: any) {
-      const errorMessage = error.message || "Something went wrong";
-      toast.error("Authentication failed", {
+      const errorMessage = error.message || 'Something went wrong';
+      toast.error('Authentication failed', {
         description: errorMessage,
         duration: 5000,
       });
@@ -207,13 +207,13 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {mode === "signin" ? "Sign in to your account" : "Create an account"}
+            {mode === 'signin' ? 'Sign in to your account' : 'Create an account'}
           </DialogTitle>
           <DialogDescription>
             {(() => {
-              if (authMethod === "password") return "Enter your email and password";
-              if (mode === "signin") return "Enter your email to receive a magic link";
-              return "Sign up to access the automation dashboard";
+              if (authMethod === 'password') return 'Enter your email and password';
+              if (mode === 'signin') return 'Enter your email to receive a magic link';
+              return 'Sign up to access the automation dashboard';
             })()}
           </DialogDescription>
         </DialogHeader>
@@ -228,13 +228,13 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
-                setEmailError("");
+                setEmailError('');
               }}
               onBlur={handleEmailBlur}
               required
               disabled={loading}
               autoFocus
-              className={emailError ? "border-red-500" : ""}
+              className={emailError ? 'border-red-500' : ''}
             />
             {emailError && (
               <p className="text-sm text-red-500 flex items-center gap-1">
@@ -243,19 +243,19 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
             )}
           </div>
 
-          {authMethod === "password" && (
+          {authMethod === 'password' && (
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => handlePasswordChange(e.target.value)}
                   required
                   disabled={loading}
-                  className={passwordError ? "border-red-500 pr-10" : "pr-10"}
+                  className={passwordError ? 'border-red-500 pr-10' : 'pr-10'}
                 />
                 <button
                   type="button"
@@ -282,7 +282,7 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
                         <div
                           key={`bar-${passwordStrength.score}-${i}`}
                           className={`h-1 flex-1 rounded ${
-                            isActive ? passwordStrength.color : "bg-gray-200 dark:bg-gray-700"
+                            isActive ? passwordStrength.color : 'bg-gray-200 dark:bg-gray-700'
                           }`}
                         />
                       );
@@ -290,9 +290,9 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
                   </div>
                   <p
                     className={`text-xs ${(() => {
-                      if (passwordStrength.score <= 2) return "text-red-500";
-                      if (passwordStrength.score === 3) return "text-yellow-500";
-                      return "text-green-500";
+                      if (passwordStrength.score <= 2) return 'text-red-500';
+                      if (passwordStrength.score === 3) return 'text-yellow-500';
+                      return 'text-green-500';
                     })()}`}
                   >
                     Password strength: {passwordStrength.label}
@@ -303,19 +303,19 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
           )}
 
           {/* Confirm Password (Signup Only) */}
-          {authMethod === "password" && mode === "signup" && (
+          {authMethod === 'password' && mode === 'signup' && (
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => handleConfirmPasswordChange(e.target.value)}
                   required
                   disabled={loading}
-                  className={confirmPasswordError ? "border-red-500 pr-10" : "pr-10"}
+                  className={confirmPasswordError ? 'border-red-500 pr-10' : 'pr-10'}
                 />
                 <button
                   type="button"
@@ -339,7 +339,7 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
           )}
 
           {/* Remember Me & Forgot Password */}
-          {authMethod === "password" && mode === "signin" && (
+          {authMethod === 'password' && mode === 'signin' && (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -358,8 +358,8 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
                 type="button"
                 className="text-sm text-primary hover:underline"
                 onClick={() => {
-                  toast.info("Forgot password?", {
-                    description: "Please contact support for password reset assistance.",
+                  toast.info('Forgot password?', {
+                    description: 'Please contact support for password reset assistance.',
                     duration: 5000,
                   });
                 }}
@@ -373,19 +373,19 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {authMethod === "password" ? "Signing in..." : "Sending magic link..."}
+                {authMethod === 'password' ? 'Signing in...' : 'Sending magic link...'}
               </>
             ) : (
               <>
-                {authMethod === "password" ? (
+                {authMethod === 'password' ? (
                   <>
                     <Lock className="mr-2 h-4 w-4" />
-                    {mode === "signin" ? "Sign in" : "Sign up"}
+                    {mode === 'signin' ? 'Sign in' : 'Sign up'}
                   </>
                 ) : (
                   <>
                     <Mail className="mr-2 h-4 w-4" />
-                    {mode === "signin" ? "Send magic link" : "Sign up with email"}
+                    {mode === 'signin' ? 'Send magic link' : 'Sign up with email'}
                   </>
                 )}
               </>
@@ -394,12 +394,12 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
 
           <div className="space-y-2">
             <div className="text-center text-sm">
-              {mode === "signin" ? (
+              {mode === 'signin' ? (
                 <>
-                  Don't have an account?{" "}
+                  Don't have an account?{' '}
                   <button
                     type="button"
-                    onClick={() => setMode("signup")}
+                    onClick={() => setMode('signup')}
                     className="text-primary hover:underline"
                   >
                     Sign up
@@ -407,10 +407,10 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
                 </>
               ) : (
                 <>
-                  Already have an account?{" "}
+                  Already have an account?{' '}
                   <button
                     type="button"
-                    onClick={() => setMode("signin")}
+                    onClick={() => setMode('signin')}
                     className="text-primary hover:underline"
                   >
                     Sign in
@@ -424,11 +424,11 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
                 <button
                   type="button"
                   onClick={() =>
-                    setAuthMethod(authMethod === "password" ? "magiclink" : "password")
+                    setAuthMethod(authMethod === 'password' ? 'magiclink' : 'password')
                   }
                   className="text-muted-foreground hover:text-primary hover:underline"
                 >
-                  {authMethod === "password" ? "Use magic link instead" : "Use password instead"}
+                  {authMethod === 'password' ? 'Use magic link instead' : 'Use password instead'}
                 </button>
               </div>
             )}

@@ -3,12 +3,16 @@
  * Full CRUD management for knowledge items with filtering, search, edit, delete
  */
 
-import { useDomains } from "@/brain/hooks/useDomains";
-import { useAllKnowledge, useDeleteKnowledge, useUpdateKnowledge } from "@/brain/hooks/useKnowledge";
-import type { Knowledge } from "@/brain/types/brain.types";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDomains } from '@/brain/hooks/useDomains';
+import {
+  useAllKnowledge,
+  useDeleteKnowledge,
+  useUpdateKnowledge,
+} from '@/brain/hooks/useKnowledge';
+import type { Knowledge } from '@/brain/types/brain.types';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -16,17 +20,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -34,13 +38,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,7 +54,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import {
   Loader2,
   Search,
@@ -67,10 +71,10 @@ import {
   Link,
   StickyNote,
   Database,
-} from "lucide-react";
-import { useState, useMemo } from "react";
-import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale";
+} from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 interface KnowledgeManagerProps {
   readonly selectedDomainId?: string | null;
@@ -88,33 +92,38 @@ const PAGE_SIZE = 20;
 export function KnowledgeManager({ selectedDomainId }: KnowledgeManagerProps) {
   // State
   const [page, setPage] = useState(0);
-  const [filterDomainId, setFilterDomainId] = useState<string>(selectedDomainId || "all");
-  const [filterContentType, setFilterContentType] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  
+  const [filterDomainId, setFilterDomainId] = useState<string>(selectedDomainId || 'all');
+  const [filterContentType, setFilterContentType] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingKnowledge, setEditingKnowledge] = useState<Knowledge | null>(null);
   const [editForm, setEditForm] = useState({
-    title: "",
-    content: "",
+    title: '',
+    content: '',
     tags: [] as string[],
   });
-  const [tagInput, setTagInput] = useState("");
-  
+  const [tagInput, setTagInput] = useState('');
+
   // View dialog state
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingKnowledge, setViewingKnowledge] = useState<Knowledge | null>(null);
-  
+
   // Delete confirmation state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Hooks
   const { data: domains } = useDomains();
-  const { data: knowledgeData, isLoading, refetch, isFetching } = useAllKnowledge({
-    domainId: filterDomainId === "all" ? undefined : filterDomainId,
-    contentType: filterContentType === "all" ? undefined : filterContentType,
+  const {
+    data: knowledgeData,
+    isLoading,
+    refetch,
+    isFetching,
+  } = useAllKnowledge({
+    domainId: filterDomainId === 'all' ? undefined : filterDomainId,
+    contentType: filterContentType === 'all' ? undefined : filterContentType,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
   });
@@ -141,7 +150,7 @@ export function KnowledgeManager({ selectedDomainId }: KnowledgeManagerProps) {
   // Domain name lookup
   const getDomainName = (domainId: string) => {
     const domain = domains?.find((d) => d.id === domainId);
-    return domain?.name || "Unknown Domain";
+    return domain?.name || 'Unknown Domain';
   };
 
   // Handlers
@@ -196,7 +205,7 @@ export function KnowledgeManager({ selectedDomainId }: KnowledgeManagerProps) {
         ...editForm,
         tags: [...editForm.tags, tagInput.trim()],
       });
-      setTagInput("");
+      setTagInput('');
     }
   };
 
@@ -220,13 +229,8 @@ export function KnowledgeManager({ selectedDomainId }: KnowledgeManagerProps) {
               Quản lý tất cả kiến thức đã nạp vào Brain ({total} items)
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={isFetching}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
@@ -245,7 +249,13 @@ export function KnowledgeManager({ selectedDomainId }: KnowledgeManagerProps) {
             </div>
           </div>
 
-          <Select value={filterDomainId} onValueChange={(v) => { setFilterDomainId(v); setPage(0); }}>
+          <Select
+            value={filterDomainId}
+            onValueChange={(v) => {
+              setFilterDomainId(v);
+              setPage(0);
+            }}
+          >
             <SelectTrigger className="w-[200px]">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filter by Domain" />
@@ -260,7 +270,13 @@ export function KnowledgeManager({ selectedDomainId }: KnowledgeManagerProps) {
             </SelectContent>
           </Select>
 
-          <Select value={filterContentType} onValueChange={(v) => { setFilterContentType(v); setPage(0); }}>
+          <Select
+            value={filterContentType}
+            onValueChange={(v) => {
+              setFilterContentType(v);
+              setPage(0);
+            }}
+          >
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Content Type" />
             </SelectTrigger>
@@ -374,7 +390,8 @@ export function KnowledgeManager({ selectedDomainId }: KnowledgeManagerProps) {
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-4">
                 <p className="text-sm text-muted-foreground">
-                  Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
+                  Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, total)} of{' '}
+                  {total}
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -408,7 +425,7 @@ export function KnowledgeManager({ selectedDomainId }: KnowledgeManagerProps) {
           <DialogHeader>
             <DialogTitle>{viewingKnowledge?.title}</DialogTitle>
             <DialogDescription>
-              {viewingKnowledge && getDomainName(viewingKnowledge.domainId)} •{" "}
+              {viewingKnowledge && getDomainName(viewingKnowledge.domainId)} •{' '}
               {viewingKnowledge?.contentType}
             </DialogDescription>
           </DialogHeader>
@@ -427,14 +444,24 @@ export function KnowledgeManager({ selectedDomainId }: KnowledgeManagerProps) {
             </div>
             {viewingKnowledge?.sourceUrl && (
               <p className="text-sm text-muted-foreground">
-                Source: <a href={viewingKnowledge.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{viewingKnowledge.sourceUrl}</a>
+                Source:{' '}
+                <a
+                  href={viewingKnowledge.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {viewingKnowledge.sourceUrl}
+                </a>
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              Created: {viewingKnowledge && new Date(viewingKnowledge.createdAt).toLocaleString("vi-VN")}
-              {viewingKnowledge?.updatedAt && viewingKnowledge.updatedAt !== viewingKnowledge.createdAt && (
-                <> • Updated: {new Date(viewingKnowledge.updatedAt).toLocaleString("vi-VN")}</>
-              )}
+              Created:{' '}
+              {viewingKnowledge && new Date(viewingKnowledge.createdAt).toLocaleString('vi-VN')}
+              {viewingKnowledge?.updatedAt &&
+                viewingKnowledge.updatedAt !== viewingKnowledge.createdAt && (
+                  <> • Updated: {new Date(viewingKnowledge.updatedAt).toLocaleString('vi-VN')}</>
+                )}
             </p>
           </div>
         </DialogContent>
@@ -487,7 +514,7 @@ export function KnowledgeManager({ selectedDomainId }: KnowledgeManagerProps) {
                   placeholder="Add tag..."
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                 />
                 <Button type="button" variant="outline" onClick={addTag}>
                   Add

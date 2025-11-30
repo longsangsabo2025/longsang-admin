@@ -87,4 +87,3 @@ export interface RoutingHistoryEntry {
   wasHelpful?: boolean;
   createdAt: string;
 }
-

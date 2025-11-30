@@ -72,11 +72,7 @@
     "step2": {
       "number": "02",
       "title": "Design",
-      "activities": [
-        "UI/UX wireframing",
-        "Database architecture",
-        "API design"
-      ]
+      "activities": ["UI/UX wireframing", "Database architecture", "API design"]
     },
     "step3": {
       "number": "03",

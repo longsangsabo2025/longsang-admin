@@ -3,14 +3,20 @@
  * Compare two versions side-by-side
  */
 
-import { useCompareVersions, useCoreLogicVersions } from "@/brain/hooks/useCoreLogic";
-import type { CoreLogicComparison } from "@/brain/types/core-logic.types";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { GitCompare, Loader2, Plus, Minus } from "lucide-react";
-import { useState } from "react";
+import { useCompareVersions, useCoreLogicVersions } from '@/brain/hooks/useCoreLogic';
+import type { CoreLogicComparison } from '@/brain/types/core-logic.types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { GitCompare, Loader2, Plus, Minus } from 'lucide-react';
+import { useState } from 'react';
 
 interface CoreLogicComparisonProps {
   domainId: string;
@@ -19,8 +25,8 @@ interface CoreLogicComparisonProps {
 export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
   const { data: versions } = useCoreLogicVersions(domainId);
   const compareMutation = useCompareVersions();
-  const [version1Id, setVersion1Id] = useState<string>("");
-  const [version2Id, setVersion2Id] = useState<string>("");
+  const [version1Id, setVersion1Id] = useState<string>('');
+  const [version2Id, setVersion2Id] = useState<string>('');
   const [comparison, setComparison] = useState<CoreLogicComparison | null>(null);
 
   const handleCompare = async () => {
@@ -35,7 +41,7 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
       });
       setComparison(result);
     } catch (error) {
-      console.error("Comparison error:", error);
+      console.error('Comparison error:', error);
     }
   };
 
@@ -65,7 +71,7 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
                 <SelectContent>
                   {versions?.map((v) => (
                     <SelectItem key={v.id} value={v.id}>
-                      Version {v.version} {v.isActive && "(Active)"}
+                      Version {v.version} {v.isActive && '(Active)'}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -81,7 +87,7 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
                 <SelectContent>
                   {versions?.map((v) => (
                     <SelectItem key={v.id} value={v.id}>
-                      Version {v.version} {v.isActive && "(Active)"}
+                      Version {v.version} {v.isActive && '(Active)'}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -91,7 +97,9 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
 
           <Button
             onClick={handleCompare}
-            disabled={!version1Id || !version2Id || compareMutation.isPending || version1Id === version2Id}
+            disabled={
+              !version1Id || !version2Id || compareMutation.isPending || version1Id === version2Id
+            }
             className="w-full"
           >
             {compareMutation.isPending ? (
@@ -123,7 +131,9 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
               </CardHeader>
               <CardContent>
                 {comparison.version1.changeSummary && (
-                  <p className="text-sm text-muted-foreground">{comparison.version1.changeSummary}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {comparison.version1.changeSummary}
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -137,7 +147,9 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
               </CardHeader>
               <CardContent>
                 {comparison.version2.changeSummary && (
-                  <p className="text-sm text-muted-foreground">{comparison.version2.changeSummary}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {comparison.version2.changeSummary}
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -161,7 +173,10 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
                     </Badge>
                     <div className="space-y-2 mt-2">
                       {comparison.differences.firstPrinciples.added.map((item, idx) => (
-                        <div key={idx} className="p-2 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800">
+                        <div
+                          key={idx}
+                          className="p-2 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800"
+                        >
                           <p className="text-sm font-medium">{item.title}</p>
                           <p className="text-xs text-muted-foreground">{item.description}</p>
                         </div>
@@ -177,7 +192,10 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
                     </Badge>
                     <div className="space-y-2 mt-2">
                       {comparison.differences.firstPrinciples.removed.map((item, idx) => (
-                        <div key={idx} className="p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800">
+                        <div
+                          key={idx}
+                          className="p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800"
+                        >
                           <p className="text-sm font-medium">{item.title}</p>
                           <p className="text-xs text-muted-foreground">{item.description}</p>
                         </div>
@@ -202,7 +220,10 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
                     </Badge>
                     <div className="space-y-2 mt-2">
                       {comparison.differences.mentalModels.added.map((item, idx) => (
-                        <div key={idx} className="p-2 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800">
+                        <div
+                          key={idx}
+                          className="p-2 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800"
+                        >
                           <p className="text-sm font-medium">{item.name}</p>
                           <p className="text-xs text-muted-foreground">{item.description}</p>
                         </div>
@@ -218,7 +239,10 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
                     </Badge>
                     <div className="space-y-2 mt-2">
                       {comparison.differences.mentalModels.removed.map((item, idx) => (
-                        <div key={idx} className="p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800">
+                        <div
+                          key={idx}
+                          className="p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800"
+                        >
                           <p className="text-sm font-medium">{item.name}</p>
                           <p className="text-xs text-muted-foreground">{item.description}</p>
                         </div>
@@ -243,7 +267,10 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
                     </Badge>
                     <div className="space-y-2 mt-2">
                       {comparison.differences.decisionRules.added.map((item, idx) => (
-                        <div key={idx} className="p-2 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800">
+                        <div
+                          key={idx}
+                          className="p-2 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800"
+                        >
                           <p className="text-sm">
                             <span className="font-medium">If:</span> {item.condition}
                           </p>
@@ -263,7 +290,10 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
                     </Badge>
                     <div className="space-y-2 mt-2">
                       {comparison.differences.decisionRules.removed.map((item, idx) => (
-                        <div key={idx} className="p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800">
+                        <div
+                          key={idx}
+                          className="p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800"
+                        >
                           <p className="text-sm">
                             <span className="font-medium">If:</span> {item.condition}
                           </p>
@@ -292,7 +322,10 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
                     </Badge>
                     <div className="space-y-2 mt-2">
                       {comparison.differences.antiPatterns.added.map((item, idx) => (
-                        <div key={idx} className="p-2 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800">
+                        <div
+                          key={idx}
+                          className="p-2 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800"
+                        >
                           <p className="text-sm font-medium">{item.name}</p>
                           <p className="text-xs text-muted-foreground">{item.description}</p>
                         </div>
@@ -308,7 +341,10 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
                     </Badge>
                     <div className="space-y-2 mt-2">
                       {comparison.differences.antiPatterns.removed.map((item, idx) => (
-                        <div key={idx} className="p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800">
+                        <div
+                          key={idx}
+                          className="p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800"
+                        >
                           <p className="text-sm font-medium">{item.name}</p>
                           <p className="text-xs text-muted-foreground">{item.description}</p>
                         </div>
@@ -328,4 +364,3 @@ export function CoreLogicComparison({ domainId }: CoreLogicComparisonProps) {
     </div>
   );
 }
-

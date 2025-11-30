@@ -1,21 +1,27 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { soraVideoService, type SoraVideoResponse } from "@/lib/api/sora-video-service";
-import { 
-  Video, 
-  Sparkles, 
-  Play, 
-  Loader2, 
-  Download, 
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { soraVideoService, type SoraVideoResponse } from '@/lib/api/sora-video-service';
+import {
+  Video,
+  Sparkles,
+  Play,
+  Loader2,
+  Download,
   ExternalLink,
   Wand2,
   Monitor,
@@ -25,38 +31,38 @@ import {
   FolderOpen,
   CheckCircle,
   XCircle,
-  Info
-} from "lucide-react";
+  Info,
+} from 'lucide-react';
 
 const SoraVideoGenerator = () => {
   const { toast } = useToast();
-  
+
   // Form state
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState('');
   const [useAIEnhance, setUseAIEnhance] = useState(true);
-  const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16" | "1:1">("16:9");
+  const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | '1:1'>('16:9');
   const [duration, setDuration] = useState(5);
-  const [folderId, setFolderId] = useState("root");
-  
+  const [folderId, setFolderId] = useState('root');
+
   // Status state
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<SoraVideoResponse | null>(null);
 
   // Quick prompts for testing
   const quickPrompts = [
-    "A flying pig in the sunset sky",
-    "Robot dancing in a neon city",
-    "Ocean waves crashing on rocks",
-    "Fireworks exploding over a city skyline",
-    "Cat playing piano in a concert hall"
+    'A flying pig in the sunset sky',
+    'Robot dancing in a neon city',
+    'Ocean waves crashing on rocks',
+    'Fireworks exploding over a city skyline',
+    'Cat playing piano in a concert hall',
   ];
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng nhập prompt để tạo video",
-        variant: "destructive"
+        title: 'Lỗi',
+        description: 'Vui lòng nhập prompt để tạo video',
+        variant: 'destructive',
       });
       return;
     }
@@ -66,10 +72,10 @@ const SoraVideoGenerator = () => {
 
     try {
       toast({
-        title: "🎬 Đang tạo video...",
-        description: useAIEnhance 
-          ? "AI đang enhance prompt và gửi đến Sora 2..." 
-          : "Đang gửi prompt đến Sora 2..."
+        title: '🎬 Đang tạo video...',
+        description: useAIEnhance
+          ? 'AI đang enhance prompt và gửi đến Sora 2...'
+          : 'Đang gửi prompt đến Sora 2...',
       });
 
       const response = await soraVideoService.generateVideo({
@@ -77,30 +83,30 @@ const SoraVideoGenerator = () => {
         use_ai_enhance: useAIEnhance,
         aspect_ratio: aspectRatio,
         duration,
-        folder_id: folderId
+        folder_id: folderId,
       });
 
       setResult(response);
 
       if (response.success) {
         toast({
-          title: "✅ Video đã tạo thành công!",
-          description: response.data?.google_drive 
-            ? "Video đã được upload lên Google Drive" 
-            : "Video đã sẵn sàng"
+          title: '✅ Video đã tạo thành công!',
+          description: response.data?.google_drive
+            ? 'Video đã được upload lên Google Drive'
+            : 'Video đã sẵn sàng',
         });
       } else {
         toast({
-          title: "❌ Lỗi tạo video",
-          description: response.error || "Đã có lỗi xảy ra",
-          variant: "destructive"
+          title: '❌ Lỗi tạo video',
+          description: response.error || 'Đã có lỗi xảy ra',
+          variant: 'destructive',
         });
       }
     } catch (error: any) {
       toast({
-        title: "❌ Lỗi",
-        description: error.message || "Không thể kết nối đến n8n",
-        variant: "destructive"
+        title: '❌ Lỗi',
+        description: error.message || 'Không thể kết nối đến n8n',
+        variant: 'destructive',
       });
     } finally {
       setIsGenerating(false);
@@ -109,25 +115,25 @@ const SoraVideoGenerator = () => {
 
   const handleQuickGenerate = async (quickPrompt: string) => {
     setPrompt(quickPrompt);
-    
+
     setIsGenerating(true);
     setResult(null);
 
     try {
       const response = await soraVideoService.quickGenerate(quickPrompt);
       setResult(response);
-      
+
       if (response.success) {
         toast({
-          title: "✅ Video đã tạo thành công!",
-          description: "Video đã được upload lên Google Drive"
+          title: '✅ Video đã tạo thành công!',
+          description: 'Video đã được upload lên Google Drive',
         });
       }
     } catch (error: any) {
       toast({
-        title: "❌ Lỗi",
+        title: '❌ Lỗi',
         description: error.message,
-        variant: "destructive"
+        variant: 'destructive',
       });
     } finally {
       setIsGenerating(false);
@@ -160,9 +166,7 @@ const SoraVideoGenerator = () => {
               <Wand2 className="h-5 w-5" />
               Tạo Video Mới
             </CardTitle>
-            <CardDescription>
-              Nhập prompt mô tả video bạn muốn tạo
-            </CardDescription>
+            <CardDescription>Nhập prompt mô tả video bạn muốn tạo</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Prompt Input */}
@@ -187,13 +191,11 @@ const SoraVideoGenerator = () => {
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-amber-500" />
-                  <Label htmlFor="ai-enhance" className="text-sm">AI Enhance</Label>
+                  <Label htmlFor="ai-enhance" className="text-sm">
+                    AI Enhance
+                  </Label>
                 </div>
-                <Switch
-                  id="ai-enhance"
-                  checked={useAIEnhance}
-                  onCheckedChange={setUseAIEnhance}
-                />
+                <Switch id="ai-enhance" checked={useAIEnhance} onCheckedChange={setUseAIEnhance} />
               </div>
 
               {/* Aspect Ratio */}
@@ -252,13 +254,13 @@ const SoraVideoGenerator = () => {
               <Input
                 placeholder="root (mặc định là thư mục gốc)"
                 value={folderId}
-                onChange={(e) => setFolderId(e.target.value || "root")}
+                onChange={(e) => setFolderId(e.target.value || 'root')}
               />
             </div>
 
             {/* Generate Button */}
-            <Button 
-              onClick={handleGenerate} 
+            <Button
+              onClick={handleGenerate}
               disabled={isGenerating || !prompt.trim()}
               className="w-full h-12 text-lg"
               size="lg"
@@ -302,7 +304,7 @@ const SoraVideoGenerator = () => {
 
       {/* Result Section */}
       {result && (
-        <Card className={result.success ? "border-green-500" : "border-red-500"}>
+        <Card className={result.success ? 'border-green-500' : 'border-red-500'}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {result.success ? (
@@ -331,11 +333,7 @@ const SoraVideoGenerator = () => {
                   {/* Video Preview */}
                   {result.data.video_url && (
                     <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                      <video 
-                        src={result.data.video_url} 
-                        controls 
-                        className="w-full h-full"
-                      />
+                      <video src={result.data.video_url} controls className="w-full h-full" />
                     </div>
                   )}
 
@@ -343,9 +341,9 @@ const SoraVideoGenerator = () => {
                   {result.data.google_drive && (
                     <div className="flex flex-wrap gap-3">
                       <Button asChild>
-                        <a 
-                          href={result.data.google_drive.view_link} 
-                          target="_blank" 
+                        <a
+                          href={result.data.google_drive.view_link}
+                          target="_blank"
                           rel="noopener noreferrer"
                         >
                           <ExternalLink className="mr-2 h-4 w-4" />
@@ -353,9 +351,9 @@ const SoraVideoGenerator = () => {
                         </a>
                       </Button>
                       <Button variant="outline" asChild>
-                        <a 
-                          href={result.data.google_drive.download_link} 
-                          target="_blank" 
+                        <a
+                          href={result.data.google_drive.download_link}
+                          target="_blank"
                           rel="noopener noreferrer"
                         >
                           <Download className="mr-2 h-4 w-4" />
@@ -401,14 +399,19 @@ const SoraVideoGenerator = () => {
                     </div>
                     {result.data.google_drive && (
                       <div className="p-3 bg-muted rounded-lg col-span-2">
-                        <Label className="text-xs text-muted-foreground">Google Drive File ID</Label>
+                        <Label className="text-xs text-muted-foreground">
+                          Google Drive File ID
+                        </Label>
                         <p className="mt-1 font-mono text-sm">{result.data.google_drive.file_id}</p>
                       </div>
                     )}
                     {result.data.processing && (
                       <div className="p-3 bg-muted rounded-lg col-span-2">
                         <Label className="text-xs text-muted-foreground">Processing Time</Label>
-                        <p className="mt-1">{result.data.processing.total_time_seconds} seconds ({result.data.processing.poll_count} polls)</p>
+                        <p className="mt-1">
+                          {result.data.processing.total_time_seconds} seconds (
+                          {result.data.processing.poll_count} polls)
+                        </p>
                       </div>
                     )}
                   </div>
@@ -432,10 +435,18 @@ const SoraVideoGenerator = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>• <strong>AI Enhance</strong>: Tự động cải thiện prompt của bạn để video chất lượng hơn</p>
-          <p>• <strong>16:9</strong>: Tốt cho YouTube, website</p>
-          <p>• <strong>9:16</strong>: Tốt cho TikTok, Instagram Reels</p>
-          <p>• <strong>1:1</strong>: Tốt cho Instagram Feed</p>
+          <p>
+            • <strong>AI Enhance</strong>: Tự động cải thiện prompt của bạn để video chất lượng hơn
+          </p>
+          <p>
+            • <strong>16:9</strong>: Tốt cho YouTube, website
+          </p>
+          <p>
+            • <strong>9:16</strong>: Tốt cho TikTok, Instagram Reels
+          </p>
+          <p>
+            • <strong>1:1</strong>: Tốt cho Instagram Feed
+          </p>
           <p>• Video sẽ tự động upload lên Google Drive sau khi tạo xong</p>
           <p>• Thời gian tạo video: 1-5 phút tùy độ phức tạp</p>
         </CardContent>

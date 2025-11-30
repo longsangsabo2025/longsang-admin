@@ -3,7 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Share2, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -66,7 +72,11 @@ export function KnowledgeSharing({ knowledgeId, onShared }: KnowledgeSharingProp
           </Select>
         </div>
 
-        <Button onClick={handleShare} disabled={shareMutation.isPending || !sharedWithUserId} className="w-full">
+        <Button
+          onClick={handleShare}
+          disabled={shareMutation.isPending || !sharedWithUserId}
+          className="w-full"
+        >
           {shareMutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
           ) : (
@@ -78,4 +88,3 @@ export function KnowledgeSharing({ knowledgeId, onShared }: KnowledgeSharingProp
     </Card>
   );
 }
-

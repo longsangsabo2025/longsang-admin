@@ -1,21 +1,21 @@
 /**
  * ⚙️ Workflows Dashboard
- * 
+ *
  * Theo tài liệu: docs/ai-command-center/03-TAB-WORKFLOWS.md
- * 
+ *
  * @author LongSang Admin
  * @version 2.0.0
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, Workflow, Play, GitBranch, Zap } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import WorkflowCard from "./WorkflowCard";
-import CreateWorkflowDialog from "./CreateWorkflowDialog";
-import { agentCenterApi } from "@/services/agent-center.service";
-import { Workflow as WorkflowType } from "@/types/agent-center.types";
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Plus, Workflow, Play, GitBranch, Zap } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import WorkflowCard from './WorkflowCard';
+import CreateWorkflowDialog from './CreateWorkflowDialog';
+import { agentCenterApi } from '@/services/agent-center.service';
+import { Workflow as WorkflowType } from '@/types/agent-center.types';
 
 interface WorkflowStats {
   totalWorkflows: number;
@@ -49,9 +49,9 @@ const WorkflowsDashboard = () => {
     } catch (error) {
       console.error('Error fetching workflows:', error);
       toast({
-        title: "Error",
-        description: "Failed to load workflows",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load workflows',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -81,9 +81,7 @@ const WorkflowsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.totalWorkflows}</div>
-            <p className="text-xs text-slate-400">
-              {stats.activeWorkflows} active
-            </p>
+            <p className="text-xs text-slate-400">{stats.activeWorkflows} active</p>
           </CardContent>
         </Card>
 
@@ -94,9 +92,7 @@ const WorkflowsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.totalRuns}</div>
-            <p className="text-xs text-slate-400">
-              Total runs
-            </p>
+            <p className="text-xs text-slate-400">Total runs</p>
           </CardContent>
         </Card>
 
@@ -107,9 +103,7 @@ const WorkflowsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.successRate.toFixed(1)}%</div>
-            <p className="text-xs text-slate-400">
-              Average
-            </p>
+            <p className="text-xs text-slate-400">Average</p>
           </CardContent>
         </Card>
 
@@ -120,9 +114,7 @@ const WorkflowsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.templates}</div>
-            <p className="text-xs text-muted-foreground">
-              Pre-built workflows
-            </p>
+            <p className="text-xs text-muted-foreground">Pre-built workflows</p>
           </CardContent>
         </Card>
       </div>
@@ -131,11 +123,12 @@ const WorkflowsDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-100">Workflows</h2>
-          <p className="text-sm text-slate-400">
-            Orchestrate complex multi-agent workflows
-          </p>
+          <p className="text-sm text-slate-400">Orchestrate complex multi-agent workflows</p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)} className="gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+        <Button
+          onClick={() => setCreateDialogOpen(true)}
+          className="gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+        >
           <Plus className="w-4 h-4" />
           Create Workflow
         </Button>
@@ -147,10 +140,11 @@ const WorkflowsDashboard = () => {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Workflow className="w-16 h-16 text-slate-500 mb-4" />
             <h3 className="text-lg font-semibold mb-2 text-slate-200">No workflows yet</h3>
-            <p className="text-sm text-slate-400 mb-4">
-              Create your first workflow to get started
-            </p>
-            <Button onClick={() => setCreateDialogOpen(true)} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+            <p className="text-sm text-slate-400 mb-4">Create your first workflow to get started</p>
+            <Button
+              onClick={() => setCreateDialogOpen(true)}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Create Workflow
             </Button>

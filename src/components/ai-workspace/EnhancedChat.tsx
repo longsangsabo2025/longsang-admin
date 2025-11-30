@@ -1,6 +1,6 @@
 /**
  * 🚀 EnhancedChat Component - Elon Musk Edition
- * 
+ *
  * Ultimate AI Chat Experience with:
  * - 🎤 Voice Input
  * - ⚡ Real-time Streaming
@@ -48,13 +48,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ASSISTANTS = [
@@ -122,36 +116,29 @@ export function EnhancedChat({
   const [selectedAssistant, setSelectedAssistant] = useState<AssistantType>(defaultAssistant);
   const [inputValue, setInputValue] = useState('');
   const [showHistory, setShowHistory] = useState(false);
-  
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { settings } = useAISettings(userId);
 
   // Get current assistant info
-  const currentAssistant = ASSISTANTS.find(a => a.id === selectedAssistant) || ASSISTANTS[0];
+  const currentAssistant = ASSISTANTS.find((a) => a.id === selectedAssistant) || ASSISTANTS[0];
   const AssistantIcon = currentAssistant.icon;
 
   // Streaming chat hook
-  const {
-    messages,
-    isStreaming,
-    isLoading,
-    error,
-    sendMessage,
-    stopStreaming,
-    clearMessages,
-  } = useStreamingChat({
-    assistantType: selectedAssistant,
-    userId,
-    onError: (err) => {
-      toast({
-        title: '❌ Lỗi',
-        description: err,
-        variant: 'destructive',
-      });
-    },
-  });
+  const { messages, isStreaming, isLoading, error, sendMessage, stopStreaming, clearMessages } =
+    useStreamingChat({
+      assistantType: selectedAssistant,
+      userId,
+      onError: (err) => {
+        toast({
+          title: '❌ Lỗi',
+          description: err,
+          variant: 'destructive',
+        });
+      },
+    });
 
   // Conversation memory hook
   const {
@@ -170,7 +157,7 @@ export function EnhancedChat({
 
   // Voice input handler
   const handleVoiceTranscript = useCallback((text: string) => {
-    setInputValue(prev => prev + (prev ? ' ' : '') + text);
+    setInputValue((prev) => prev + (prev ? ' ' : '') + text);
     textareaRef.current?.focus();
   }, []);
 
@@ -185,27 +172,33 @@ export function EnhancedChat({
     if (!message || isStreaming) return;
 
     setInputValue('');
-    
+
     // Save to memory
     addMessage('user', message);
-    
+
     // Send with streaming
     await sendMessage(message);
   }, [inputValue, isStreaming, addMessage, sendMessage]);
 
   // Handle keyboard shortcuts
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  }, [handleSend]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    },
+    [handleSend]
+  );
 
   // Handle assistant change
-  const handleAssistantChange = useCallback((assistantId: AssistantType) => {
-    setSelectedAssistant(assistantId);
-    clearMessages();
-  }, [clearMessages]);
+  const handleAssistantChange = useCallback(
+    (assistantId: AssistantType) => {
+      setSelectedAssistant(assistantId);
+      clearMessages();
+    },
+    [clearMessages]
+  );
 
   // Handle new chat
   const handleNewChat = useCallback(() => {
@@ -223,10 +216,12 @@ export function EnhancedChat({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
-                <div className={cn(
-                  'w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br',
-                  currentAssistant.gradient
-                )}>
+                <div
+                  className={cn(
+                    'w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br',
+                    currentAssistant.gradient
+                  )}
+                >
                   <AssistantIcon className="h-4 w-4 text-white" />
                 </div>
                 <span className="font-medium">{currentAssistant.name}</span>
@@ -234,7 +229,7 @@ export function EnhancedChat({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-64">
-              {ASSISTANTS.map(assistant => {
+              {ASSISTANTS.map((assistant) => {
                 const Icon = assistant.icon;
                 return (
                   <DropdownMenuItem
@@ -242,10 +237,12 @@ export function EnhancedChat({
                     onClick={() => handleAssistantChange(assistant.id)}
                     className="gap-3 py-3"
                   >
-                    <div className={cn(
-                      'w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br',
-                      assistant.gradient
-                    )}>
+                    <div
+                      className={cn(
+                        'w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br',
+                        assistant.gradient
+                      )}
+                    >
                       <Icon className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1">
@@ -278,7 +275,7 @@ export function EnhancedChat({
                       Chưa có hội thoại nào
                     </p>
                   ) : (
-                    conversations.map(conv => (
+                    conversations.map((conv) => (
                       <div
                         key={conv.id}
                         className={cn(
@@ -292,9 +289,7 @@ export function EnhancedChat({
                         }}
                       >
                         <div className="flex items-center justify-between">
-                          <p className="font-medium text-sm truncate flex-1">
-                            {conv.title}
-                          </p>
+                          <p className="font-medium text-sm truncate flex-1">{conv.title}</p>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -308,7 +303,8 @@ export function EnhancedChat({
                           </Button>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {conv.messages.length} tin nhắn • {new Date(conv.updatedAt).toLocaleDateString('vi-VN')}
+                          {conv.messages.length} tin nhắn •{' '}
+                          {new Date(conv.updatedAt).toLocaleDateString('vi-VN')}
                         </p>
                       </div>
                     ))
@@ -330,19 +326,19 @@ export function EnhancedChat({
       <ScrollArea className="flex-1 p-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className={cn(
-              'w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-br mb-4',
-              currentAssistant.gradient
-            )}>
+            <div
+              className={cn(
+                'w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-br mb-4',
+                currentAssistant.gradient
+              )}
+            >
               <AssistantIcon className="h-8 w-8 text-white" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">
-              Xin chào! Tôi là {currentAssistant.name}
-            </h2>
+            <h2 className="text-xl font-semibold mb-2">Xin chào! Tôi là {currentAssistant.name}</h2>
             <p className="text-muted-foreground max-w-md">
               {currentAssistant.description}. Hãy hỏi tôi bất cứ điều gì!
             </p>
-            
+
             {/* Quick prompts */}
             <div className="flex flex-wrap gap-2 mt-6 max-w-lg justify-center">
               {getQuickPrompts(selectedAssistant).map((prompt, i) => (
@@ -363,7 +359,7 @@ export function EnhancedChat({
           </div>
         ) : (
           <div className="space-y-4 max-w-3xl mx-auto">
-            {messages.map(message => (
+            {messages.map((message) => (
               <ChatMessage
                 key={message.id}
                 role={message.role}
@@ -391,7 +387,7 @@ export function EnhancedChat({
                 className="min-h-[52px] max-h-[200px] pr-24 resize-none"
                 disabled={isStreaming}
               />
-              
+
               {/* Action buttons inside textarea */}
               <div className="absolute right-2 bottom-2 flex items-center gap-1">
                 {/* Voice input */}
@@ -400,7 +396,7 @@ export function EnhancedChat({
                   language="vi-VN"
                   disabled={isStreaming}
                 />
-                
+
                 {/* Send/Stop button */}
                 {isStreaming ? (
                   <Button
@@ -416,9 +412,7 @@ export function EnhancedChat({
                     size="icon"
                     className={cn(
                       'h-8 w-8 transition-all',
-                      inputValue.trim() 
-                        ? 'bg-gradient-to-br ' + currentAssistant.gradient 
-                        : ''
+                      inputValue.trim() ? 'bg-gradient-to-br ' + currentAssistant.gradient : ''
                     )}
                     disabled={!inputValue.trim() || isLoading}
                     onClick={handleSend}
@@ -433,7 +427,7 @@ export function EnhancedChat({
               </div>
             </div>
           </div>
-          
+
           {/* Footer info */}
           <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
             <span>

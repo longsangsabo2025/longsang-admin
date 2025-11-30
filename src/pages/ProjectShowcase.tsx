@@ -1,23 +1,23 @@
-import { useState } from "react";
-import { ProjectSidebar } from "@/components/ProjectSidebar";
-import { ProjectHero } from "@/components/ProjectHero";
-import { OverviewSection } from "@/components/OverviewSection";
-import { TechArchitecture } from "@/components/TechArchitecture";
-import { FeaturesGrid } from "@/components/FeaturesGrid";
-import { StatsChart } from "@/components/StatsChart";
-import { ProjectCTA } from "@/components/ProjectCTA";
-import { projectsData } from "@/data/projects-data";
-import { Menu, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { ProjectSEO } from "@/components/SEO";
+import { useState } from 'react';
+import { ProjectSidebar } from '@/components/ProjectSidebar';
+import { ProjectHero } from '@/components/ProjectHero';
+import { OverviewSection } from '@/components/OverviewSection';
+import { TechArchitecture } from '@/components/TechArchitecture';
+import { FeaturesGrid } from '@/components/FeaturesGrid';
+import { StatsChart } from '@/components/StatsChart';
+import { ProjectCTA } from '@/components/ProjectCTA';
+import { projectsData } from '@/data/projects-data';
+import { Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { ProjectSEO } from '@/components/SEO';
 
 const ProjectShowcase = () => {
   const [activeProjectId, setActiveProjectId] = useState(1);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   // Get active project data
-  const activeProject = projectsData.find(p => p.id === activeProjectId) || projectsData[0];
+  const activeProject = projectsData.find((p) => p.id === activeProjectId) || projectsData[0];
 
   const handleProjectChange = (id: number) => {
     setActiveProjectId(id);
@@ -33,7 +33,11 @@ const ProjectShowcase = () => {
         className="fixed top-4 left-4 z-50 md:hidden bg-primary/20 hover:bg-primary/30 backdrop-blur-sm rounded-lg p-3 border border-primary/20 transition-colors"
         aria-label="Toggle project menu"
       >
-        {isMobileMenuOpen ? <X className="w-6 h-6 text-primary" /> : <Menu className="w-6 h-6 text-primary" />}
+        {isMobileMenuOpen ? (
+          <X className="w-6 h-6 text-primary" />
+        ) : (
+          <Menu className="w-6 h-6 text-primary" />
+        )}
       </button>
 
       {/* Theme Toggle - Desktop */}
@@ -61,11 +65,11 @@ const ProjectShowcase = () => {
               initial={{ x: -300 }}
               animate={{ x: 0 }}
               exit={{ x: -300 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw]"
               onClick={(e) => e.stopPropagation()}
             >
-              <ProjectSidebar 
+              <ProjectSidebar
                 activeProjectId={activeProjectId}
                 onProjectChange={handleProjectChange}
               />
@@ -76,10 +80,7 @@ const ProjectShowcase = () => {
 
       {/* Desktop Sidebar - 30% */}
       <aside className="w-[30%] hidden md:block">
-        <ProjectSidebar 
-          activeProjectId={activeProjectId}
-          onProjectChange={setActiveProjectId}
-        />
+        <ProjectSidebar activeProjectId={activeProjectId} onProjectChange={setActiveProjectId} />
       </aside>
 
       {/* Main Content - 70% on desktop, full width on mobile */}

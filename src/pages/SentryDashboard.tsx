@@ -1,6 +1,6 @@
 /**
  * 🚨 SENTRY ERROR DASHBOARD
- * 
+ *
  * Hiển thị errors từ production và đề xuất fix từ AI
  */
 
@@ -11,19 +11,19 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { 
-  AlertCircle, 
-  Bug, 
-  CheckCircle2, 
-  Clock, 
-  RefreshCw, 
+import {
+  AlertCircle,
+  Bug,
+  CheckCircle2,
+  Clock,
+  RefreshCw,
   Zap,
   Code,
   GitBranch,
   ExternalLink,
   Loader2,
   Rocket,
-  Terminal
+  Terminal,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -91,7 +91,7 @@ export default function SentryDashboard() {
   // WebSocket connection for real-time updates
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:3003');
-    
+
     ws.onopen = () => {
       console.log('🔗 Connected to WebSocket Bridge');
       setWsConnected(true);
@@ -105,7 +105,7 @@ export default function SentryDashboard() {
         if (data.type === 'error_alert' || data.type === 'sentry_error') {
           console.log('🚨 New error received:', data);
           // Add to errors list
-          setErrors(prev => [data.error || data, ...prev].slice(0, 50));
+          setErrors((prev) => [data.error || data, ...prev].slice(0, 50));
         }
       } catch (e) {
         console.error('WebSocket message error:', e);
@@ -125,7 +125,7 @@ export default function SentryDashboard() {
       const [errorsRes, statsRes, pollerRes] = await Promise.all([
         fetch(`${API_URL}/api/sentry/errors?limit=50`),
         fetch(`${API_URL}/api/sentry/stats`),
-        fetch(`${API_URL}/api/sentry/poller`)
+        fetch(`${API_URL}/api/sentry/poller`),
       ]);
 
       if (errorsRes.ok) {
@@ -158,10 +158,10 @@ export default function SentryDashboard() {
         body: JSON.stringify({
           title: 'Test Error - ' + new Date().toLocaleTimeString(),
           message: 'This is a test error from the dashboard',
-          level: 'error'
-        })
+          level: 'error',
+        }),
       });
-      
+
       if (res.ok) {
         await fetchData();
       }
@@ -174,10 +174,14 @@ export default function SentryDashboard() {
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'error': return 'destructive';
-      case 'warning': return 'warning';
-      case 'info': return 'secondary';
-      default: return 'outline';
+      case 'error':
+        return 'destructive';
+      case 'warning':
+        return 'warning';
+      case 'info':
+        return 'secondary';
+      default:
+        return 'outline';
     }
   };
 
@@ -188,7 +192,7 @@ export default function SentryDashboard() {
       // Extract file path from culprit or stacktrace
       let file = error.culprit || '';
       let line = 1;
-      
+
       // Try to parse file:line from stacktrace
       if (error.stacktrace && error.stacktrace.length > 0) {
         const lastFrame = error.stacktrace[error.stacktrace.length - 1];
@@ -206,27 +210,28 @@ export default function SentryDashboard() {
         line,
         error: error.title,
         context: error.message || error.culprit,
-        stacktrace: error.stacktrace?.map(f => 
-          `  at ${f.function || 'anonymous'} (${f.filename}:${f.lineno})`
-        ).join('\n'),
+        stacktrace: error.stacktrace
+          ?.map((f) => `  at ${f.function || 'anonymous'} (${f.filename}:${f.lineno})`)
+          .join('\n'),
         project: error.project,
         environment: error.environment,
         count: error.count,
         userCount: error.userCount,
         sentryId: error.shortId,
-        permalink: error.permalink
+        permalink: error.permalink,
       };
 
       const res = await fetch(`${API_URL}/api/fix-request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         toast({
-          title: "🚀 Sent to VS Code!",
-          description: "Check VS Code - COPILOT_TASK.md will open automatically. Press Ctrl+I to chat with Copilot.",
+          title: '🚀 Sent to VS Code!',
+          description:
+            'Check VS Code - COPILOT_TASK.md will open automatically. Press Ctrl+I to chat with Copilot.',
         });
       } else {
         throw new Error('Failed to send fix request');
@@ -234,9 +239,9 @@ export default function SentryDashboard() {
     } catch (err) {
       console.error('Fix with Copilot error:', err);
       toast({
-        title: "❌ Error",
-        description: "Failed to send to Copilot. Make sure local-watcher.js is running.",
-        variant: "destructive"
+        title: '❌ Error',
+        description: 'Failed to send to Copilot. Make sure local-watcher.js is running.',
+        variant: 'destructive',
       });
     } finally {
       setFixingSending(false);
@@ -278,7 +283,11 @@ export default function SentryDashboard() {
             Refresh
           </Button>
           <Button size="sm" onClick={sendTestError} disabled={sending}>
-            {sending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <AlertCircle className="w-4 h-4 mr-2" />}
+            {sending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <AlertCircle className="w-4 h-4 mr-2" />
+            )}
             Test Error
           </Button>
         </div>
@@ -288,13 +297,15 @@ export default function SentryDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Errors</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Errors
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stats?.totalErrors || 0}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Last Hour</CardTitle>
@@ -315,7 +326,9 @@ export default function SentryDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Poller Status</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Poller Status
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -347,9 +360,7 @@ export default function SentryDashboard() {
               <AlertCircle className="w-5 h-5" />
               Recent Errors
             </CardTitle>
-            <CardDescription>
-              Click an error to see AI analysis & suggested fix
-            </CardDescription>
+            <CardDescription>Click an error to see AI analysis & suggested fix</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[500px]">
@@ -382,9 +393,7 @@ export default function SentryDashboard() {
                             )}
                           </div>
                           <p className="font-medium text-sm truncate">{error.title}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {error.culprit}
-                          </p>
+                          <p className="text-xs text-muted-foreground truncate">{error.culprit}</p>
                         </div>
                         <div className="text-right">
                           <div className="text-xs text-muted-foreground">
@@ -399,8 +408,8 @@ export default function SentryDashboard() {
                             )}
                           </div>
                           {/* 🚀 FIX WITH COPILOT BUTTON */}
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="default"
                             className="mt-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                             onClick={(e) => {
@@ -433,9 +442,7 @@ export default function SentryDashboard() {
               <Code className="w-5 h-5" />
               Error Details & AI Fix
             </CardTitle>
-            <CardDescription>
-              AI-powered analysis and suggested code fix
-            </CardDescription>
+            <CardDescription>AI-powered analysis and suggested code fix</CardDescription>
           </CardHeader>
           <CardContent>
             {selectedError ? (
@@ -453,7 +460,7 @@ export default function SentryDashboard() {
                         <h4 className="font-semibold mb-1">Title</h4>
                         <p className="text-sm">{selectedError.title}</p>
                       </div>
-                      
+
                       {selectedError.message && (
                         <div>
                           <h4 className="font-semibold mb-1">Message</h4>
@@ -495,9 +502,13 @@ export default function SentryDashboard() {
                           <div className="bg-muted rounded p-3 font-mono text-xs space-y-1">
                             {selectedError.stacktrace.map((frame, i) => (
                               <div key={i} className="text-muted-foreground">
-                                <span className="text-foreground">{frame.function || 'anonymous'}</span>
+                                <span className="text-foreground">
+                                  {frame.function || 'anonymous'}
+                                </span>
                                 <span className="mx-2">@</span>
-                                <span>{frame.filename}:{frame.lineno}</span>
+                                <span>
+                                  {frame.filename}:{frame.lineno}
+                                </span>
                               </div>
                             ))}
                           </div>
@@ -506,7 +517,11 @@ export default function SentryDashboard() {
 
                       {selectedError.permalink && (
                         <Button variant="outline" size="sm" asChild>
-                          <a href={selectedError.permalink} target="_blank" rel="noopener noreferrer">
+                          <a
+                            href={selectedError.permalink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
                             <ExternalLink className="w-4 h-4 mr-2" />
                             View in Sentry
                           </a>
@@ -515,8 +530,8 @@ export default function SentryDashboard() {
 
                       {/* 🚀 MAIN FIX WITH COPILOT BUTTON */}
                       <div className="pt-4 border-t">
-                        <Button 
-                          size="lg" 
+                        <Button
+                          size="lg"
                           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold"
                           onClick={() => fixWithCopilot(selectedError)}
                           disabled={fixingSending}
@@ -552,9 +567,7 @@ export default function SentryDashboard() {
                       <div className="text-center py-10 text-muted-foreground">
                         <Loader2 className="w-8 h-8 mx-auto mb-3 animate-spin" />
                         <p>Analysis will appear when VS Code Listener processes this error</p>
-                        <p className="text-sm mt-2">
-                          Make sure VS Code Listener is running
-                        </p>
+                        <p className="text-sm mt-2">Make sure VS Code Listener is running</p>
                       </div>
                     )}
                   </ScrollArea>
@@ -600,9 +613,7 @@ export default function SentryDashboard() {
               <div className="text-center py-20 text-muted-foreground">
                 <Bug className="w-12 h-12 mx-auto mb-3" />
                 <p>Select an error to view details</p>
-                <p className="text-sm mt-2">
-                  Click on any error from the list
-                </p>
+                <p className="text-sm mt-2">Click on any error from the list</p>
               </div>
             )}
           </CardContent>

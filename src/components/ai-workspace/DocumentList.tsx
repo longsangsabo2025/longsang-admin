@@ -164,12 +164,16 @@ export function DocumentList({ assistantType, userId, className }: DocumentListP
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa document này? Tất cả chunks đã index sẽ bị xóa. Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa document này? Tất cả chunks đã index sẽ bị xóa. Hành động
+              này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
               Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -178,4 +182,3 @@ export function DocumentList({ assistantType, userId, className }: DocumentListP
     </div>
   );
 }
-

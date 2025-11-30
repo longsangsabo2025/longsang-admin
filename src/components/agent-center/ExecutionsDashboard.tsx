@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Play, CheckCircle, XCircle, Clock, Loader2, Eye } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { agentCenterApi } from "@/services/agent-center.service";
-import { WorkflowExecution } from "@/types/agent-center.types";
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Play, CheckCircle, XCircle, Clock, Loader2, Eye } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { agentCenterApi } from '@/services/agent-center.service';
+import { WorkflowExecution } from '@/types/agent-center.types';
 
 const ExecutionsDashboard = () => {
   const [executions, setExecutions] = useState<WorkflowExecution[]>([]);
@@ -18,11 +18,11 @@ const ExecutionsDashboard = () => {
       const data = await agentCenterApi.executions.list();
       setExecutions(data);
     } catch (error) {
-      console.error("Error fetching executions:", error);
+      console.error('Error fetching executions:', error);
       toast({
-        title: "Error",
-        description: "Failed to load executions",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load executions',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -73,9 +73,9 @@ const ExecutionsDashboard = () => {
 
   const calculateStats = () => {
     const total = executions.length;
-    const completed = executions.filter(e => e.status === 'completed').length;
-    const running = executions.filter(e => e.status === 'running').length;
-    const failed = executions.filter(e => e.status === 'failed').length;
+    const completed = executions.filter((e) => e.status === 'completed').length;
+    const running = executions.filter((e) => e.status === 'running').length;
+    const failed = executions.filter((e) => e.status === 'failed').length;
     const totalCost = executions.reduce((sum, e) => sum + e.cost_usd, 0);
 
     return { total, completed, running, failed, totalCost };
@@ -149,11 +149,13 @@ const ExecutionsDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-100">Execution History</h2>
-          <p className="text-sm text-slate-400">
-            Monitor workflow executions in real-time
-          </p>
+          <p className="text-sm text-slate-400">Monitor workflow executions in real-time</p>
         </div>
-        <Button onClick={fetchExecutions} variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
+        <Button
+          onClick={fetchExecutions}
+          variant="outline"
+          className="border-slate-700 text-slate-300 hover:bg-slate-800"
+        >
           Refresh
         </Button>
       </div>
@@ -165,14 +167,15 @@ const ExecutionsDashboard = () => {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Play className="w-16 h-16 text-slate-500 mb-4" />
               <h3 className="text-lg font-semibold mb-2 text-slate-200">No executions yet</h3>
-              <p className="text-sm text-slate-400">
-                Execute a workflow to see it here
-              </p>
+              <p className="text-sm text-slate-400">Execute a workflow to see it here</p>
             </CardContent>
           </Card>
         ) : (
           executions.map((execution) => (
-            <Card key={execution.id} className="bg-slate-900 border-slate-700 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all">
+            <Card
+              key={execution.id}
+              className="bg-slate-900 border-slate-700 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all"
+            >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4 flex-1">
@@ -184,20 +187,16 @@ const ExecutionsDashboard = () => {
                           {execution.status}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex items-center gap-4 text-sm text-slate-400">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           Started: {new Date(execution.started_at).toLocaleString()}
                         </span>
                         {execution.execution_time_ms && (
-                          <span>
-                            Duration: {formatDuration(execution.execution_time_ms)}
-                          </span>
+                          <span>Duration: {formatDuration(execution.execution_time_ms)}</span>
                         )}
-                        <span>
-                          Cost: ${execution.cost_usd.toFixed(3)}
-                        </span>
+                        <span>Cost: ${execution.cost_usd.toFixed(3)}</span>
                       </div>
 
                       {/* Progress Bar */}
@@ -205,16 +204,22 @@ const ExecutionsDashboard = () => {
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-xs">
                             <span className="text-slate-400">
-                              Step {execution.completed_steps} of {execution.total_steps}: {execution.current_step}
+                              Step {execution.completed_steps} of {execution.total_steps}:{' '}
+                              {execution.current_step}
                             </span>
                             <span className="font-medium text-blue-400">
-                              {Math.round((execution.completed_steps / execution.total_steps) * 100)}%
+                              {Math.round(
+                                (execution.completed_steps / execution.total_steps) * 100
+                              )}
+                              %
                             </span>
                           </div>
                           <div className="w-full bg-slate-800 rounded-full h-2">
                             <div
                               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${(execution.completed_steps / execution.total_steps) * 100}%` }}
+                              style={{
+                                width: `${(execution.completed_steps / execution.total_steps) * 100}%`,
+                              }}
                             />
                           </div>
                         </div>

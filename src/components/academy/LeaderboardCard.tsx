@@ -3,12 +3,12 @@
  * Shows top XP earners and top revenue generators
  */
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/lib/supabase";
-import { DollarSign, TrendingUp, Trophy, Zap } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/lib/supabase';
+import { DollarSign, TrendingUp, Trophy, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface LeaderboardEntry {
   user_id: string;
@@ -36,29 +36,29 @@ export function LeaderboardCard() {
     try {
       // Load XP Leaderboard from view
       const { data: xpData, error: xpError } = await supabase
-        .from("leaderboard_xp")
-        .select("*")
+        .from('leaderboard_xp')
+        .select('*')
         .limit(10);
 
       if (xpError) {
-        console.error("Error loading XP leaderboard:", xpError);
+        console.error('Error loading XP leaderboard:', xpError);
       } else {
         setXpLeaderboard(xpData || []);
       }
 
       // Load Revenue Leaderboard from view
       const { data: revenueData, error: revenueError } = await supabase
-        .from("leaderboard_revenue")
-        .select("*")
+        .from('leaderboard_revenue')
+        .select('*')
         .limit(10);
 
       if (revenueError) {
-        console.error("Error loading revenue leaderboard:", revenueError);
+        console.error('Error loading revenue leaderboard:', revenueError);
       } else {
         setRevenueLeaderboard(revenueData || []);
       }
     } catch (error) {
-      console.error("Error in loadLeaderboards:", error);
+      console.error('Error in loadLeaderboards:', error);
     } finally {
       setLoading(false);
     }
@@ -67,24 +67,24 @@ export function LeaderboardCard() {
   const getRankColor = (rank: number) => {
     switch (rank) {
       case 1:
-        return "from-yellow-500 to-amber-500";
+        return 'from-yellow-500 to-amber-500';
       case 2:
-        return "from-gray-400 to-gray-500";
+        return 'from-gray-400 to-gray-500';
       case 3:
-        return "from-orange-600 to-orange-700";
+        return 'from-orange-600 to-orange-700';
       default:
-        return "from-purple-500 to-cyan-500";
+        return 'from-purple-500 to-cyan-500';
     }
   };
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
       case 1:
-        return "🥇";
+        return '🥇';
       case 2:
-        return "🥈";
+        return '🥈';
       case 3:
-        return "🥉";
+        return '🥉';
       default:
         return `#${rank}`;
     }
@@ -140,7 +140,7 @@ export function LeaderboardCard() {
                   ${
                     entry.rank <= 3
                       ? `bg-gradient-to-r ${getRankColor(entry.rank)} border-transparent shadow-lg`
-                      : "bg-gray-800/50 border-gray-700"
+                      : 'bg-gray-800/50 border-gray-700'
                   }
                   hover:scale-[1.02] transition-transform cursor-pointer
                 `}
@@ -157,7 +157,7 @@ export function LeaderboardCard() {
 
                 {/* Info */}
                 <div className="flex-1">
-                  <p className="font-bold text-white">{entry.email.split("@")[0]}</p>
+                  <p className="font-bold text-white">{entry.email.split('@')[0]}</p>
                   <p className="text-sm text-white/70">Level {entry.current_level}</p>
                 </div>
 
@@ -190,7 +190,7 @@ export function LeaderboardCard() {
                   ${
                     entry.rank <= 3
                       ? `bg-gradient-to-r ${getRankColor(entry.rank)} border-transparent shadow-lg`
-                      : "bg-gray-800/50 border-gray-700"
+                      : 'bg-gray-800/50 border-gray-700'
                   }
                   hover:scale-[1.02] transition-transform cursor-pointer
                 `}
@@ -207,7 +207,7 @@ export function LeaderboardCard() {
 
                 {/* Info */}
                 <div className="flex-1">
-                  <p className="font-bold text-white">{entry.email.split("@")[0]}</p>
+                  <p className="font-bold text-white">{entry.email.split('@')[0]}</p>
                   <p className="text-sm text-white/70">Entrepreneur</p>
                 </div>
 

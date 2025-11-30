@@ -1,25 +1,25 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 import {
   Key,
   Copy,
@@ -31,7 +31,7 @@ import {
   RefreshCw,
   Shield,
   AlertTriangle,
-} from "lucide-react";
+} from 'lucide-react';
 
 interface Project {
   id: string;
@@ -62,17 +62,17 @@ const CredentialsVault = () => {
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterProject, setFilterProject] = useState<string>("all");
-  const [filterType, setFilterType] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterProject, setFilterProject] = useState<string>('all');
+  const [filterType, setFilterType] = useState<string>('all');
   const [showValues, setShowValues] = useState<Record<string, boolean>>({});
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newCredential, setNewCredential] = useState({
-    name: "",
-    type: "api_key",
-    key_value: "",
-    environment: "production",
-    project_id: "",
+    name: '',
+    type: 'api_key',
+    key_value: '',
+    environment: 'production',
+    project_id: '',
   });
 
   useEffect(() => {
@@ -83,15 +83,15 @@ const CredentialsVault = () => {
   const fetchCredentials = async () => {
     try {
       const { data, error } = await supabase
-        .from("project_credentials")
-        .select("*, projects(id, name, slug, icon)")
-        .order("created_at", { ascending: false });
+        .from('project_credentials')
+        .select('*, projects(id, name, slug, icon)')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setCredentials(data || []);
     } catch (error) {
-      console.error("Error fetching credentials:", error);
-      toast.error("Không thể tải danh sách credentials");
+      console.error('Error fetching credentials:', error);
+      toast.error('Không thể tải danh sách credentials');
     } finally {
       setLoading(false);
     }
@@ -100,14 +100,14 @@ const CredentialsVault = () => {
   const fetchProjects = async () => {
     try {
       const { data, error } = await supabase
-        .from("projects")
-        .select("id, name, slug, icon")
-        .order("name");
+        .from('projects')
+        .select('id, name, slug, icon')
+        .order('name');
 
       if (error) throw error;
       setProjects(data || []);
     } catch (error) {
-      console.error("Error fetching projects:", error);
+      console.error('Error fetching projects:', error);
     }
   };
 
@@ -122,40 +122,41 @@ const CredentialsVault = () => {
 
   const addCredential = async () => {
     if (!newCredential.name || !newCredential.key_value || !newCredential.project_id) {
-      toast.error("Vui lòng điền đầy đủ thông tin");
+      toast.error('Vui lòng điền đầy đủ thông tin');
       return;
     }
 
     try {
-      const keyPreview = newCredential.key_value.length > 8
-        ? `${newCredential.key_value.slice(0, 4)}...${newCredential.key_value.slice(-4)}`
-        : "****";
+      const keyPreview =
+        newCredential.key_value.length > 8
+          ? `${newCredential.key_value.slice(0, 4)}...${newCredential.key_value.slice(-4)}`
+          : '****';
 
-      const { error } = await supabase.from("project_credentials").insert({
+      const { error } = await supabase.from('project_credentials').insert({
         name: newCredential.name,
         type: newCredential.type,
         key_value: newCredential.key_value,
         key_preview: keyPreview,
         environment: newCredential.environment,
         project_id: newCredential.project_id,
-        status: "active",
+        status: 'active',
       });
 
       if (error) throw error;
 
-      toast.success("Đã thêm credential mới");
+      toast.success('Đã thêm credential mới');
       setIsAddDialogOpen(false);
       setNewCredential({
-        name: "",
-        type: "api_key",
-        key_value: "",
-        environment: "production",
-        project_id: "",
+        name: '',
+        type: 'api_key',
+        key_value: '',
+        environment: 'production',
+        project_id: '',
       });
       fetchCredentials();
     } catch (error) {
-      console.error("Error adding credential:", error);
-      toast.error("Không thể thêm credential");
+      console.error('Error adding credential:', error);
+      toast.error('Không thể thêm credential');
     }
   };
 
@@ -163,39 +164,36 @@ const CredentialsVault = () => {
     if (!confirm(`Bạn có chắc muốn xóa "${name}"?`)) return;
 
     try {
-      const { error } = await supabase
-        .from("project_credentials")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from('project_credentials').delete().eq('id', id);
 
       if (error) throw error;
 
       toast.success(`Đã xóa ${name}`);
       fetchCredentials();
     } catch (error) {
-      console.error("Error deleting credential:", error);
-      toast.error("Không thể xóa credential");
+      console.error('Error deleting credential:', error);
+      toast.error('Không thể xóa credential');
     }
   };
 
   const getTypeBadgeColor = (type: string) => {
     const colors: Record<string, string> = {
-      api_key: "bg-blue-500",
-      secret: "bg-purple-500",
-      oauth: "bg-green-500",
-      database: "bg-orange-500",
-      webhook: "bg-pink-500",
-      service_account: "bg-cyan-500",
+      api_key: 'bg-blue-500',
+      secret: 'bg-purple-500',
+      oauth: 'bg-green-500',
+      database: 'bg-orange-500',
+      webhook: 'bg-pink-500',
+      service_account: 'bg-cyan-500',
     };
-    return colors[type] || "bg-gray-500";
+    return colors[type] || 'bg-gray-500';
   };
 
   const getStatusBadge = (status: string) => {
-    if (status === "active") {
+    if (status === 'active') {
       return <Badge className="bg-green-500">Active</Badge>;
-    } else if (status === "expired") {
+    } else if (status === 'expired') {
       return <Badge className="bg-red-500">Expired</Badge>;
-    } else if (status === "rotating") {
+    } else if (status === 'rotating') {
       return <Badge className="bg-yellow-500">Rotating</Badge>;
     }
     return <Badge className="bg-gray-500">{status}</Badge>;
@@ -205,21 +203,23 @@ const CredentialsVault = () => {
     const matchesSearch =
       cred.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cred.type.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesProject =
-      filterProject === "all" || cred.project_id === filterProject;
-    const matchesType = filterType === "all" || cred.type === filterType;
+    const matchesProject = filterProject === 'all' || cred.project_id === filterProject;
+    const matchesType = filterType === 'all' || cred.type === filterType;
     return matchesSearch && matchesProject && matchesType;
   });
 
   // Group by project
-  const groupedByProject = filteredCredentials.reduce((acc, cred) => {
-    const projectName = cred.projects?.name || "Unknown Project";
-    if (!acc[projectName]) {
-      acc[projectName] = [];
-    }
-    acc[projectName].push(cred);
-    return acc;
-  }, {} as Record<string, Credential[]>);
+  const groupedByProject = filteredCredentials.reduce(
+    (acc, cred) => {
+      const projectName = cred.projects?.name || 'Unknown Project';
+      if (!acc[projectName]) {
+        acc[projectName] = [];
+      }
+      acc[projectName].push(cred);
+      return acc;
+    },
+    {} as Record<string, Credential[]>
+  );
 
   const uniqueTypes = [...new Set(credentials.map((c) => c.type))];
 
@@ -261,9 +261,7 @@ const CredentialsVault = () => {
                 <Label>Project</Label>
                 <Select
                   value={newCredential.project_id}
-                  onValueChange={(v) =>
-                    setNewCredential({ ...newCredential, project_id: v })
-                  }
+                  onValueChange={(v) => setNewCredential({ ...newCredential, project_id: v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select project" />
@@ -283,9 +281,7 @@ const CredentialsVault = () => {
                 <Input
                   placeholder="OPENAI_API_KEY"
                   value={newCredential.name}
-                  onChange={(e) =>
-                    setNewCredential({ ...newCredential, name: e.target.value })
-                  }
+                  onChange={(e) => setNewCredential({ ...newCredential, name: e.target.value })}
                 />
               </div>
 
@@ -293,9 +289,7 @@ const CredentialsVault = () => {
                 <Label>Type</Label>
                 <Select
                   value={newCredential.type}
-                  onValueChange={(v) =>
-                    setNewCredential({ ...newCredential, type: v })
-                  }
+                  onValueChange={(v) => setNewCredential({ ...newCredential, type: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -327,9 +321,7 @@ const CredentialsVault = () => {
                 <Label>Environment</Label>
                 <Select
                   value={newCredential.environment}
-                  onValueChange={(v) =>
-                    setNewCredential({ ...newCredential, environment: v })
-                  }
+                  onValueChange={(v) => setNewCredential({ ...newCredential, environment: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -420,15 +412,11 @@ const CredentialsVault = () => {
                   className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                 >
                   <div className="flex items-center gap-3 flex-1">
-                    <Badge className={getTypeBadgeColor(cred.type)}>
-                      {cred.type}
-                    </Badge>
+                    <Badge className={getTypeBadgeColor(cred.type)}>{cred.type}</Badge>
                     <div className="flex-1">
                       <div className="font-medium">{cred.name}</div>
                       <div className="text-sm text-muted-foreground font-mono">
-                        {showValues[cred.id]
-                          ? cred.key_value
-                          : cred.key_preview || "••••••••"}
+                        {showValues[cred.id] ? cred.key_value : cred.key_preview || '••••••••'}
                       </div>
                     </div>
                     <Badge variant="outline">{cred.environment}</Badge>
@@ -436,11 +424,7 @@ const CredentialsVault = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleShowValue(cred.id)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => toggleShowValue(cred.id)}>
                       {showValues[cred.id] ? (
                         <EyeOff className="h-4 w-4" />
                       ) : (
@@ -476,11 +460,11 @@ const CredentialsVault = () => {
             <AlertTriangle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No credentials found</h3>
             <p className="text-muted-foreground mb-4">
-              {searchTerm || filterProject !== "all" || filterType !== "all"
-                ? "Try adjusting your search or filters"
-                : "Add your first credential to get started"}
+              {searchTerm || filterProject !== 'all' || filterType !== 'all'
+                ? 'Try adjusting your search or filters'
+                : 'Add your first credential to get started'}
             </p>
-            {!searchTerm && filterProject === "all" && filterType === "all" && (
+            {!searchTerm && filterProject === 'all' && filterType === 'all' && (
               <Button onClick={() => setIsAddDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add First Credential

@@ -3,16 +3,16 @@
  * Configure domain agent and preferences
  */
 
-import { useDomain, useUpdateDomain } from "@/brain/hooks/useDomains";
-import type { DomainAgentConfig } from "@/brain/types/domain-agent.types";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { Save, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useDomain, useUpdateDomain } from '@/brain/hooks/useDomains';
+import type { DomainAgentConfig } from '@/brain/types/domain-agent.types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { Save, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface DomainSettingsProps {
   readonly domainId: string;
@@ -27,7 +27,7 @@ export function DomainSettings({ domainId }: DomainSettingsProps) {
     system_prompt: null,
     temperature: 0.7,
     max_tokens: 2000,
-    model: "gpt-4o-mini",
+    model: 'gpt-4o-mini',
     auto_tagging: {
       enabled: false,
       rules: [],
@@ -57,7 +57,7 @@ export function DomainSettings({ domainId }: DomainSettingsProps) {
         // agent_config: agentConfig, // This would need to be added to UpdateDomainInput
       });
     } catch (error) {
-      console.error("Failed to save settings:", error);
+      console.error('Failed to save settings:', error);
     }
   };
 
@@ -94,9 +94,7 @@ export function DomainSettings({ domainId }: DomainSettingsProps) {
             <Switch
               id="agent-enabled"
               checked={agentConfig.enabled}
-              onCheckedChange={(checked) =>
-                setAgentConfig({ ...agentConfig, enabled: checked })
-              }
+              onCheckedChange={(checked) => setAgentConfig({ ...agentConfig, enabled: checked })}
             />
           </div>
 
@@ -105,7 +103,7 @@ export function DomainSettings({ domainId }: DomainSettingsProps) {
             <Label htmlFor="system-prompt">System Prompt</Label>
             <Textarea
               id="system-prompt"
-              value={agentConfig.system_prompt || ""}
+              value={agentConfig.system_prompt || ''}
               onChange={(e) =>
                 setAgentConfig({ ...agentConfig, system_prompt: e.target.value || null })
               }
@@ -123,7 +121,7 @@ export function DomainSettings({ domainId }: DomainSettingsProps) {
               <Label htmlFor="model">Model</Label>
               <Input
                 id="model"
-                value={agentConfig.model || "gpt-4o-mini"}
+                value={agentConfig.model || 'gpt-4o-mini'}
                 onChange={(e) => setAgentConfig({ ...agentConfig, model: e.target.value })}
                 placeholder="gpt-4o-mini"
               />
@@ -195,9 +193,7 @@ export function DomainSettings({ domainId }: DomainSettingsProps) {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label htmlFor="suggestions">Suggestions</Label>
-                <p className="text-sm text-muted-foreground">
-                  Show suggested knowledge items
-                </p>
+                <p className="text-sm text-muted-foreground">Show suggested knowledge items</p>
               </div>
               <Switch
                 id="suggestions"
@@ -258,4 +254,3 @@ export function DomainSettings({ domainId }: DomainSettingsProps) {
     </div>
   );
 }
-

@@ -30,12 +30,12 @@ export async function submitUrlToGoogle(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ url, action }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to submit URL');
   }
-  
+
   await response.json(); // consume response
   return {
     url,
@@ -55,12 +55,12 @@ export async function batchSubmitUrls(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ urls, action }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to batch submit URLs');
   }
-  
+
   return response.json();
 }
 
@@ -73,12 +73,12 @@ export async function getIndexingStatus(url: string) {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to get indexing status');
   }
-  
+
   return response.json();
 }
 
@@ -88,26 +88,29 @@ export async function autoSubmitNewContent(contentId: string, contentType: strin
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ contentId, contentType }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to auto-submit content');
   }
-  
+
   return response.json();
 }
 
 export async function getSearchConsoleData(siteUrl: string) {
-  const response = await fetch(`${API_BASE}/search-console?siteUrl=${encodeURIComponent(siteUrl)}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
-  
+  const response = await fetch(
+    `${API_BASE}/search-console?siteUrl=${encodeURIComponent(siteUrl)}`,
+    {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to get search console data');
   }
-  
+
   return response.json();
 }
 
@@ -132,7 +135,7 @@ export async function getIndexingStats(days: number = 30) {
     if (error) throw error;
 
     const total = data?.length || 0;
-    const successful = data?.filter(log => log.status === 'success').length || 0;
+    const successful = data?.filter((log) => log.status === 'success').length || 0;
     const failed = total - successful;
 
     return {

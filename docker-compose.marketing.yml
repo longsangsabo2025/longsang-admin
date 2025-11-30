@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 services:
   n8n:
@@ -8,7 +8,7 @@ services:
     env_file:
       - .env.marketing
     ports:
-      - "5678:5678"
+      - '5678:5678'
     environment:
       - N8N_HOST=localhost
       - N8N_PORT=5678
@@ -48,7 +48,7 @@ services:
     container_name: longsang-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     networks:
@@ -60,7 +60,7 @@ services:
     container_name: longsang-mautic
     restart: unless-stopped
     ports:
-      - "8081:80"
+      - '8081:80'
     environment:
       - MAUTIC_DB_HOST=aws-1-us-east-2.pooler.supabase.com
       - MAUTIC_DB_PORT=6543

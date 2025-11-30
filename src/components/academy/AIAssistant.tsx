@@ -10,15 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { 
-  Bot, 
-  Send, 
-  Sparkles, 
-  User,
-  X,
-  Minimize2,
-  Maximize2 
-} from 'lucide-react';
+import { Bot, Send, Sparkles, User, X, Minimize2, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface Message {
@@ -36,12 +28,12 @@ export interface AIAssistantProps {
   onToggle?: () => void;
 }
 
-export function AIAssistant({ 
-  lessonId, 
-  lessonTitle, 
+export function AIAssistant({
+  lessonId,
+  lessonTitle,
   lessonContext = '',
   isOpen: controlledIsOpen,
-  onToggle
+  onToggle,
 }: AIAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -56,8 +48,8 @@ I can help you with:
 - 🚀 Best practices
 
 Ask me anything!`,
-      timestamp: new Date()
-    }
+      timestamp: new Date(),
+    },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -81,10 +73,10 @@ Ask me anything!`,
       id: Date.now().toString(),
       role: 'user',
       content: input,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
@@ -97,12 +89,12 @@ Ask me anything!`,
           lessonId,
           lessonTitle,
           lessonContext,
-          messages: messages.map(m => ({
+          messages: messages.map((m) => ({
             role: m.role,
-            content: m.content
+            content: m.content,
           })),
-          userMessage: input
-        })
+          userMessage: input,
+        }),
       });
 
       const data = await response.json();
@@ -115,19 +107,19 @@ Ask me anything!`,
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: data.response || 'Sorry, I encountered an error. Please try again.',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('AI Assistant error:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: '❌ Sorry, I\'m having trouble connecting. Please try again in a moment.',
-        timestamp: new Date()
+        content: "❌ Sorry, I'm having trouble connecting. Please try again in a moment.",
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -174,11 +166,11 @@ Ask me anything!`,
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0, y: 100, scale: 0.8 }}
-        animate={{ 
-          opacity: 1, 
-          y: 0, 
+        animate={{
+          opacity: 1,
+          y: 0,
           scale: 1,
-          height: isMinimized ? '60px' : '600px'
+          height: isMinimized ? '60px' : '600px',
         }}
         exit={{ opacity: 0, y: 100, scale: 0.8 }}
         className="fixed bottom-6 right-6 z-50 w-96"
@@ -207,7 +199,11 @@ Ask me anything!`,
                 onClick={toggleMinimize}
                 className="text-white hover:bg-white/20 h-8 w-8"
               >
-                {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+                {isMinimized ? (
+                  <Maximize2 className="w-4 h-4" />
+                ) : (
+                  <Minimize2 className="w-4 h-4" />
+                )}
               </Button>
               <Button
                 variant="ghost"
@@ -233,8 +229,16 @@ Ask me anything!`,
                       className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
                     >
                       <Avatar className="w-8 h-8 mt-1">
-                        <AvatarFallback className={message.role === 'user' ? 'bg-gaming-cyan' : 'bg-gaming-purple'}>
-                          {message.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                        <AvatarFallback
+                          className={
+                            message.role === 'user' ? 'bg-gaming-cyan' : 'bg-gaming-purple'
+                          }
+                        >
+                          {message.role === 'user' ? (
+                            <User className="w-4 h-4" />
+                          ) : (
+                            <Bot className="w-4 h-4" />
+                          )}
                         </AvatarFallback>
                       </Avatar>
                       <div className={`flex-1 ${message.role === 'user' ? 'text-right' : ''}`}>

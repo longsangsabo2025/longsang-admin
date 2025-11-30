@@ -1,4 +1,4 @@
-import { Plus, Minus, Trophy, Check } from "lucide-react";
+import { Plus, Minus, Trophy, Check } from 'lucide-react';
 
 export const MatchScoringScreen = () => {
   return (

@@ -3,35 +3,35 @@
  * Global search functionality with keyboard shortcuts
  */
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { Bot, FileText, GraduationCap, Search, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { Bot, FileText, GraduationCap, Search, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Search items configuration
 const searchItems = [
   // Pages
-  { title: "Trang chủ", href: "/", icon: FileText, category: "Pages" },
-  { title: "Academy", href: "/academy", icon: GraduationCap, category: "Pages" },
-  { title: "AI Marketplace", href: "/marketplace", icon: Bot, category: "Pages" },
-  { title: "Dự án", href: "/project-showcase", icon: FileText, category: "Pages" },
-  { title: "Tư vấn", href: "/consultation", icon: FileText, category: "Pages" },
-  { title: "Pricing", href: "/pricing", icon: FileText, category: "Pages" },
+  { title: 'Trang chủ', href: '/', icon: FileText, category: 'Pages' },
+  { title: 'Academy', href: '/academy', icon: GraduationCap, category: 'Pages' },
+  { title: 'AI Marketplace', href: '/marketplace', icon: Bot, category: 'Pages' },
+  { title: 'Dự án', href: '/project-showcase', icon: FileText, category: 'Pages' },
+  { title: 'Tư vấn', href: '/consultation', icon: FileText, category: 'Pages' },
+  { title: 'Pricing', href: '/pricing', icon: FileText, category: 'Pages' },
 
   // Admin
-  { title: "Admin Dashboard", href: "/admin", icon: Bot, category: "Admin" },
-  { title: "Automation", href: "/automation", icon: Bot, category: "Admin" },
-  { title: "Agent Center", href: "/agent-center", icon: Bot, category: "Admin" },
-  { title: "Analytics", href: "/admin/analytics", icon: Bot, category: "Admin" },
+  { title: 'Admin Dashboard', href: '/admin', icon: Bot, category: 'Admin' },
+  { title: 'Automation', href: '/automation', icon: Bot, category: 'Admin' },
+  { title: 'Agent Center', href: '/agent-center', icon: Bot, category: 'Admin' },
+  { title: 'Analytics', href: '/admin/analytics', icon: Bot, category: 'Admin' },
 ];
 
 interface SearchDialogProps {
@@ -40,7 +40,7 @@ interface SearchDialogProps {
 }
 
 export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [results, setResults] = useState(searchItems);
   const navigate = useNavigate();
 
@@ -64,12 +64,12 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   const handleSelect = (href: string) => {
     navigate(href);
     onOpenChange(false);
-    setQuery("");
+    setQuery('');
   };
 
   // Clear search
   const handleClear = () => {
-    setQuery("");
+    setQuery('');
   };
 
   return (
@@ -109,7 +109,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
           {results.length > 0 ? (
             <div className="p-2">
               {/* Group by category */}
-              {["Pages", "Admin"].map((category) => {
+              {['Pages', 'Admin'].map((category) => {
                 const categoryItems = results.filter((item) => item.category === category);
                 if (categoryItems.length === 0) return null;
 
@@ -125,8 +125,8 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                           key={item.href}
                           onClick={() => handleSelect(item.href)}
                           className={cn(
-                            "w-full flex items-center gap-3 px-3 py-2.5 rounded-md",
-                            "hover:bg-accent transition-colors text-left"
+                            'w-full flex items-center gap-3 px-3 py-2.5 rounded-md',
+                            'hover:bg-accent transition-colors text-left'
                           )}
                         >
                           <IconComponent className="h-5 w-5 text-primary flex-shrink-0" />
@@ -148,7 +148,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
 
         {/* Footer hint */}
         <div className="px-6 py-3 border-t bg-muted/30 text-xs text-muted-foreground">
-          <kbd className="px-2 py-1 bg-background border rounded">Ctrl</kbd> +{" "}
+          <kbd className="px-2 py-1 bg-background border rounded">Ctrl</kbd> +{' '}
           <kbd className="px-2 py-1 bg-background border rounded">K</kbd> to open search
         </div>
       </DialogContent>

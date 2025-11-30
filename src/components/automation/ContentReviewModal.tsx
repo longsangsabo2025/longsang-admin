@@ -3,16 +3,16 @@
 // ================================================
 // Admin reviews generated content before publishing
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
-import { Calendar, Check, Edit, Eye, Share2, User, X } from "lucide-react";
-import { useState } from "react";
-import { PublishToSocialModal } from "./PublishToSocialModal";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { Calendar, Check, Edit, Eye, Share2, User, X } from 'lucide-react';
+import { useState } from 'react';
+import { PublishToSocialModal } from './PublishToSocialModal';
 
 interface ContentReviewModalProps {
   open: boolean;
@@ -29,7 +29,7 @@ export function ContentReviewModal({
 }: ContentReviewModalProps) {
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState(content?.content?.body || "");
+  const [editedContent, setEditedContent] = useState(content?.content?.body || '');
   const [saving, setSaving] = useState(false);
   const [socialModalOpen, setSocialModalOpen] = useState(false);
 
@@ -39,29 +39,29 @@ export function ContentReviewModal({
     setSaving(true);
     try {
       const { error } = await supabase
-        .from("content_queue")
+        .from('content_queue')
         .update({
-          status: "approved",
+          status: 'approved',
           reviewed_at: new Date().toISOString(),
           content: editing ? { ...content.content, body: editedContent } : content.content,
         })
-        .eq("id", content.id);
+        .eq('id', content.id);
 
       if (error) throw error;
 
       toast({
-        title: "✅ Content Approved",
-        description: "Content has been approved and will be published",
+        title: '✅ Content Approved',
+        description: 'Content has been approved and will be published',
       });
 
       onUpdate();
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to approve:", error);
+      console.error('Failed to approve:', error);
       toast({
-        title: "❌ Approval Failed",
-        description: "Could not approve content",
-        variant: "destructive",
+        title: '❌ Approval Failed',
+        description: 'Could not approve content',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -72,28 +72,28 @@ export function ContentReviewModal({
     setSaving(true);
     try {
       const { error } = await supabase
-        .from("content_queue")
+        .from('content_queue')
         .update({
-          status: "rejected",
+          status: 'rejected',
           reviewed_at: new Date().toISOString(),
         })
-        .eq("id", content.id);
+        .eq('id', content.id);
 
       if (error) throw error;
 
       toast({
-        title: "❌ Content Rejected",
-        description: "Content has been rejected and will not be published",
+        title: '❌ Content Rejected',
+        description: 'Content has been rejected and will not be published',
       });
 
       onUpdate();
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to reject:", error);
+      console.error('Failed to reject:', error);
       toast({
-        title: "❌ Rejection Failed",
-        description: "Could not reject content",
-        variant: "destructive",
+        title: '❌ Rejection Failed',
+        description: 'Could not reject content',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -104,27 +104,27 @@ export function ContentReviewModal({
     setSaving(true);
     try {
       const { error } = await supabase
-        .from("content_queue")
+        .from('content_queue')
         .update({
           content: { ...content.content, body: editedContent },
         })
-        .eq("id", content.id);
+        .eq('id', content.id);
 
       if (error) throw error;
 
       toast({
-        title: "✅ Edits Saved",
-        description: "Your changes have been saved",
+        title: '✅ Edits Saved',
+        description: 'Your changes have been saved',
       });
 
       setEditing(false);
       onUpdate();
     } catch (error) {
-      console.error("Failed to save edit:", error);
+      console.error('Failed to save edit:', error);
       toast({
-        title: "❌ Save Failed",
-        description: "Could not save changes",
-        variant: "destructive",
+        title: '❌ Save Failed',
+        description: 'Could not save changes',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -142,13 +142,13 @@ export function ContentReviewModal({
             </DialogTitle>
             <Badge
               variant={
-                content.status === "pending"
-                  ? "outline"
-                  : content.status === "approved"
-                  ? "default"
-                  : content.status === "rejected"
-                  ? "destructive"
-                  : "secondary"
+                content.status === 'pending'
+                  ? 'outline'
+                  : content.status === 'approved'
+                    ? 'default'
+                    : content.status === 'rejected'
+                      ? 'destructive'
+                      : 'secondary'
               }
             >
               {content.status}
@@ -162,7 +162,7 @@ export function ContentReviewModal({
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">Created:</span>
-              <span>{format(new Date(content.created_at), "PPp")}</span>
+              <span>{format(new Date(content.created_at), 'PPp')}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <User className="h-4 w-4 text-muted-foreground" />
@@ -183,13 +183,13 @@ export function ContentReviewModal({
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium">Content</h3>
-              {!editing && content.status === "pending" && (
+              {!editing && content.status === 'pending' && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
                     setEditing(true);
-                    setEditedContent(content.content?.body || "");
+                    setEditedContent(content.content?.body || '');
                   }}
                 >
                   <Edit className="h-4 w-4 mr-1" />
@@ -220,7 +220,7 @@ export function ContentReviewModal({
                 <div
                   className="prose prose-sm max-w-none"
                   dangerouslySetInnerHTML={{
-                    __html: content.content?.body || "No content",
+                    __html: content.content?.body || 'No content',
                   }}
                 />
               </div>
@@ -234,15 +234,15 @@ export function ContentReviewModal({
               <div className="p-4 border rounded-lg space-y-2 text-sm">
                 {content.content.seo.keywords && (
                   <div>
-                    <span className="font-medium">Keywords:</span>{" "}
+                    <span className="font-medium">Keywords:</span>{' '}
                     <span className="text-muted-foreground">
-                      {content.content.seo.keywords.join(", ")}
+                      {content.content.seo.keywords.join(', ')}
                     </span>
                   </div>
                 )}
                 {content.content.seo.description && (
                   <div>
-                    <span className="font-medium">Description:</span>{" "}
+                    <span className="font-medium">Description:</span>{' '}
                     <span className="text-muted-foreground">{content.content.seo.description}</span>
                   </div>
                 )}
@@ -255,13 +255,13 @@ export function ContentReviewModal({
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm">
                 <Calendar className="inline h-4 w-4 mr-1" />
-                <strong>Scheduled for:</strong> {format(new Date(content.scheduled_for), "PPp")}
+                <strong>Scheduled for:</strong> {format(new Date(content.scheduled_for), 'PPp')}
               </p>
             </div>
           )}
 
           {/* Action Buttons */}
-          {content.status === "pending" && (
+          {content.status === 'pending' && (
             <div className="flex flex-col gap-2 pt-4 border-t">
               <div className="flex gap-2">
                 <Button onClick={handleApprove} disabled={saving} className="flex-1">
@@ -291,7 +291,7 @@ export function ContentReviewModal({
           )}
 
           {/* Approved content can also be shared to social */}
-          {content.status === "approved" && (
+          {content.status === 'approved' && (
             <div className="flex gap-2 pt-4 border-t">
               <Button onClick={() => setSocialModalOpen(true)} variant="outline" className="w-full">
                 <Share2 className="h-4 w-4 mr-2" />

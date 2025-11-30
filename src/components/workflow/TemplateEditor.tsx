@@ -1,25 +1,29 @@
-import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from 'react';
 import {
-  Save,
-  X,
-  Plus,
-  Code,
-  Settings,
-  FileJson,
-  Sparkles,
-  RefreshCw,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Save, X, Plus, Code, Settings, FileJson, Sparkles, RefreshCw } from 'lucide-react';
 
 // ============================================================
 // TYPES
@@ -38,7 +42,7 @@ interface WorkflowTemplate {
   default_config: object;
   required_credentials: string[];
   version: string;
-  status: "active" | "deprecated" | "draft";
+  status: 'active' | 'deprecated' | 'draft';
   is_public: boolean;
 }
 
@@ -46,7 +50,7 @@ interface TemplateEditorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   template?: WorkflowTemplate | null;
-  mode: "create" | "edit";
+  mode: 'create' | 'edit';
 }
 
 // ============================================================
@@ -54,45 +58,62 @@ interface TemplateEditorProps {
 // ============================================================
 
 const CATEGORIES = [
-  { id: "content", label: "Content", icon: "✍️" },
-  { id: "crm", label: "CRM/Sales", icon: "💼" },
-  { id: "marketing", label: "Marketing", icon: "📱" },
-  { id: "customer-service", label: "Support", icon: "🎧" },
-  { id: "analytics", label: "Analytics", icon: "📊" },
-  { id: "automation", label: "Automation", icon: "⚡" },
-  { id: "integration", label: "Integration", icon: "🔗" },
-  { id: "notification", label: "Notification", icon: "🔔" },
+  { id: 'content', label: 'Content', icon: '✍️' },
+  { id: 'crm', label: 'CRM/Sales', icon: '💼' },
+  { id: 'marketing', label: 'Marketing', icon: '📱' },
+  { id: 'customer-service', label: 'Support', icon: '🎧' },
+  { id: 'analytics', label: 'Analytics', icon: '📊' },
+  { id: 'automation', label: 'Automation', icon: '⚡' },
+  { id: 'integration', label: 'Integration', icon: '🔗' },
+  { id: 'notification', label: 'Notification', icon: '🔔' },
 ];
 
-const ICONS = ["⚙️", "✍️", "💼", "📱", "🎧", "📊", "⚡", "🔗", "🔔", "🤖", "📧", "💰", "🎯", "🚀", "💡", "🔥"];
+const ICONS = [
+  '⚙️',
+  '✍️',
+  '💼',
+  '📱',
+  '🎧',
+  '📊',
+  '⚡',
+  '🔗',
+  '🔔',
+  '🤖',
+  '📧',
+  '💰',
+  '🎯',
+  '🚀',
+  '💡',
+  '🔥',
+];
 
 const CREDENTIAL_TYPES = [
-  "openai",
-  "anthropic",
-  "google",
-  "supabase",
-  "postgres",
-  "mysql",
-  "gmail",
-  "sendgrid",
-  "mailchimp",
-  "slack",
-  "discord",
-  "telegram",
-  "facebook",
-  "linkedin",
-  "twitter",
-  "stripe",
-  "paypal",
-  "shopify",
-  "wordpress",
-  "notion",
-  "airtable",
-  "github",
-  "gitlab",
-  "aws",
-  "gcp",
-  "azure",
+  'openai',
+  'anthropic',
+  'google',
+  'supabase',
+  'postgres',
+  'mysql',
+  'gmail',
+  'sendgrid',
+  'mailchimp',
+  'slack',
+  'discord',
+  'telegram',
+  'facebook',
+  'linkedin',
+  'twitter',
+  'stripe',
+  'paypal',
+  'shopify',
+  'wordpress',
+  'notion',
+  'airtable',
+  'github',
+  'gitlab',
+  'aws',
+  'gcp',
+  'azure',
 ];
 
 // ============================================================
@@ -105,59 +126,64 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
 
   // Form state
   const [formData, setFormData] = useState<Partial<WorkflowTemplate>>({
-    name: "",
-    slug: "",
-    description: "",
-    category: "automation",
-    icon: "⚙️",
+    name: '',
+    slug: '',
+    description: '',
+    category: 'automation',
+    icon: '⚙️',
     n8n_template_json: null,
     config_schema: {},
     default_config: {},
     required_credentials: [],
-    version: "1.0.0",
-    status: "draft",
+    version: '1.0.0',
+    status: 'draft',
     is_public: true,
   });
 
-  const [jsonInput, setJsonInput] = useState("");
-  const [configSchemaInput, setConfigSchemaInput] = useState("{}");
-  const [defaultConfigInput, setDefaultConfigInput] = useState("{}");
+  const [jsonInput, setJsonInput] = useState('');
+  const [configSchemaInput, setConfigSchemaInput] = useState('{}');
+  const [defaultConfigInput, setDefaultConfigInput] = useState('{}');
   const [selectedCredentials, setSelectedCredentials] = useState<string[]>([]);
 
   // Initialize form when template changes
   useEffect(() => {
-    if (template && mode === "edit") {
+    if (template && mode === 'edit') {
       setFormData(template);
-      setJsonInput(template.n8n_template_json ? JSON.stringify(template.n8n_template_json, null, 2) : "");
+      setJsonInput(
+        template.n8n_template_json ? JSON.stringify(template.n8n_template_json, null, 2) : ''
+      );
       setConfigSchemaInput(JSON.stringify(template.config_schema || {}, null, 2));
       setDefaultConfigInput(JSON.stringify(template.default_config || {}, null, 2));
       setSelectedCredentials(template.required_credentials || []);
     } else {
       // Reset for create mode
       setFormData({
-        name: "",
-        slug: "",
-        description: "",
-        category: "automation",
-        icon: "⚙️",
+        name: '',
+        slug: '',
+        description: '',
+        category: 'automation',
+        icon: '⚙️',
         n8n_template_json: null,
         config_schema: {},
         default_config: {},
         required_credentials: [],
-        version: "1.0.0",
-        status: "draft",
+        version: '1.0.0',
+        status: 'draft',
         is_public: true,
       });
-      setJsonInput("");
-      setConfigSchemaInput("{}");
-      setDefaultConfigInput("{}");
+      setJsonInput('');
+      setConfigSchemaInput('{}');
+      setDefaultConfigInput('{}');
       setSelectedCredentials([]);
     }
   }, [template, mode, open]);
 
   // Auto-generate slug from name
   const handleNameChange = (name: string) => {
-    const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    const slug = name
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
     setFormData({ ...formData, name, slug });
   };
 
@@ -194,11 +220,11 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
         required_credentials: selectedCredentials,
       };
 
-      if (mode === "edit" && template?.id) {
+      if (mode === 'edit' && template?.id) {
         const { data: result, error } = await supabase
-          .from("workflow_templates")
+          .from('workflow_templates')
           .update(templateData)
-          .eq("id", template.id)
+          .eq('id', template.id)
           .select()
           .single();
 
@@ -206,7 +232,7 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
         return result;
       } else {
         const { data: result, error } = await supabase
-          .from("workflow_templates")
+          .from('workflow_templates')
           .insert(templateData)
           .select()
           .single();
@@ -217,17 +243,17 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
     },
     onSuccess: () => {
       toast({
-        title: mode === "create" ? "✅ Template đã tạo!" : "✅ Template đã cập nhật!",
-        description: "Workflow template đã được lưu thành công.",
+        title: mode === 'create' ? '✅ Template đã tạo!' : '✅ Template đã cập nhật!',
+        description: 'Workflow template đã được lưu thành công.',
       });
-      queryClient.invalidateQueries({ queryKey: ["workflow-templates"] });
+      queryClient.invalidateQueries({ queryKey: ['workflow-templates'] });
       onOpenChange(false);
     },
     onError: (error: Error) => {
       toast({
-        title: "❌ Lỗi",
+        title: '❌ Lỗi',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
@@ -236,9 +262,9 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
     // Validate required fields
     if (!formData.name?.trim()) {
       toast({
-        title: "❌ Thiếu thông tin",
-        description: "Vui lòng nhập tên template",
-        variant: "destructive",
+        title: '❌ Thiếu thông tin',
+        description: 'Vui lòng nhập tên template',
+        variant: 'destructive',
       });
       return;
     }
@@ -246,9 +272,9 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
     // Validate JSON if provided
     if (jsonInput.trim() && !validateJson(jsonInput)) {
       toast({
-        title: "❌ JSON không hợp lệ",
-        description: "Workflow JSON không đúng định dạng",
-        variant: "destructive",
+        title: '❌ JSON không hợp lệ',
+        description: 'Workflow JSON không đúng định dạng',
+        variant: 'destructive',
       });
       return;
     }
@@ -261,7 +287,7 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {mode === "create" ? (
+            {mode === 'create' ? (
               <>
                 <Plus className="h-5 w-5" />
                 Tạo Template Mới
@@ -274,9 +300,9 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
             )}
           </DialogTitle>
           <DialogDescription>
-            {mode === "create"
-              ? "Tạo workflow template mới để sử dụng cho các projects"
-              : "Chỉnh sửa thông tin và cấu hình của template"}
+            {mode === 'create'
+              ? 'Tạo workflow template mới để sử dụng cho các projects'
+              : 'Chỉnh sửa thông tin và cấu hình của template'}
           </DialogDescription>
         </DialogHeader>
 
@@ -321,7 +347,7 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
             <div className="space-y-2">
               <Label>Mô tả</Label>
               <Textarea
-                value={formData.description || ""}
+                value={formData.description || ''}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Mô tả chức năng của workflow template..."
                 rows={3}
@@ -386,7 +412,7 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
                 {CREDENTIAL_TYPES.map((cred) => (
                   <Badge
                     key={cred}
-                    variant={selectedCredentials.includes(cred) ? "default" : "outline"}
+                    variant={selectedCredentials.includes(cred) ? 'default' : 'outline'}
                     className="cursor-pointer"
                     onClick={() => toggleCredential(cred)}
                   >
@@ -404,7 +430,7 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
                 <Label>Status</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(v: "active" | "deprecated" | "draft") =>
+                  onValueChange={(v: 'active' | 'deprecated' | 'draft') =>
                     setFormData({ ...formData, status: v })
                   }
                 >
@@ -489,7 +515,7 @@ export function TemplateEditor({ open, onOpenChange, template, mode }: TemplateE
             ) : (
               <Save className="h-4 w-4 mr-2" />
             )}
-            {mode === "create" ? "Tạo Template" : "Lưu thay đổi"}
+            {mode === 'create' ? 'Tạo Template' : 'Lưu thay đổi'}
           </Button>
         </DialogFooter>
       </DialogContent>

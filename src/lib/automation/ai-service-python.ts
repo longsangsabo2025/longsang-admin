@@ -69,9 +69,7 @@ export async function executeAutomationAgent(
 /**
  * Generate content using AI (general purpose)
  */
-export async function generateWithAI(
-  request: AIGenerationRequest
-): Promise<AIGenerationResponse> {
+export async function generateWithAI(request: AIGenerationRequest): Promise<AIGenerationResponse> {
   try {
     const result = await callPythonBackend('/task', {
       task: request.prompt,

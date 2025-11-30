@@ -11,7 +11,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { ExecutionPlanPreview } from '@/components/copilot/ExecutionPlanPreview';
@@ -229,12 +235,11 @@ export function CommandInput() {
       const data = await response.json();
 
       // Extract project context from response
-      const projectId = data.parsed?.functions?.[0]?.arguments?.project_id ||
-                       data.context_used?.project_id ||
-                       null;
+      const projectId =
+        data.parsed?.functions?.[0]?.arguments?.project_id || data.context_used?.project_id || null;
 
       // Find project name
-      const project = projects.find(p => p.id === projectId);
+      const project = projects.find((p) => p.id === projectId);
       const projectName = project?.name || null;
 
       setHistory((prev) =>
@@ -438,8 +443,8 @@ export function CommandInput() {
                             item.status === 'success'
                               ? 'default'
                               : item.status === 'error'
-                              ? 'destructive'
-                              : 'secondary'
+                                ? 'destructive'
+                                : 'secondary'
                           }
                         >
                           {item.status}

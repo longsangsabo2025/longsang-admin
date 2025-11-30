@@ -3,9 +3,9 @@
  * Shows current page location in navigation hierarchy
  */
 
-import { cn } from "@/lib/utils";
-import { ChevronRight, Home } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { cn } from '@/lib/utils';
+import { ChevronRight, Home } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 interface BreadcrumbItem {
   label: string;
@@ -17,20 +17,20 @@ export function Breadcrumbs() {
 
   // Generate breadcrumb items from pathname
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
-    const paths = location.pathname.split("/").filter(Boolean);
+    const paths = location.pathname.split('/').filter(Boolean);
 
-    const breadcrumbs: BreadcrumbItem[] = [{ label: "Home", href: "/" }];
+    const breadcrumbs: BreadcrumbItem[] = [{ label: 'Home', href: '/' }];
 
     // Build breadcrumbs from path segments
-    let currentPath = "";
+    let currentPath = '';
     for (const path of paths) {
       currentPath += `/${path}`;
 
       // Convert path to readable label
       const label = path
-        .split("-")
+        .split('-')
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+        .join(' ');
 
       breadcrumbs.push({
         label,
@@ -67,8 +67,8 @@ export function Breadcrumbs() {
                 <Link
                   to={item.href}
                   className={cn(
-                    "flex items-center gap-1.5 hover:text-foreground transition-colors",
-                    "text-muted-foreground"
+                    'flex items-center gap-1.5 hover:text-foreground transition-colors',
+                    'text-muted-foreground'
                   )}
                 >
                   {isHome && <Home className="h-4 w-4" />}

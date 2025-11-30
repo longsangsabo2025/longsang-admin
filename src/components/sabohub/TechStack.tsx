@@ -1,12 +1,12 @@
-import { motion } from "framer-motion";
-import { Smartphone, Database, Zap, Layers, Palette } from "lucide-react";
+import { motion } from 'framer-motion';
+import { Smartphone, Database, Zap, Layers, Palette } from 'lucide-react';
 
 const technologies = [
-  { icon: Smartphone, name: "Flutter/Dart", description: "Cross-platform" },
-  { icon: Database, name: "PostgreSQL", description: "Supabase Backend" },
-  { icon: Zap, name: "Real-time Sync", description: "Instant Updates" },
-  { icon: Layers, name: "Clean Architecture", description: "Scalable Code" },
-  { icon: Palette, name: "Material Design", description: "Modern UI" },
+  { icon: Smartphone, name: 'Flutter/Dart', description: 'Cross-platform' },
+  { icon: Database, name: 'PostgreSQL', description: 'Supabase Backend' },
+  { icon: Zap, name: 'Real-time Sync', description: 'Instant Updates' },
+  { icon: Layers, name: 'Clean Architecture', description: 'Scalable Code' },
+  { icon: Palette, name: 'Material Design', description: 'Modern UI' },
 ];
 
 export const TechStack = () => {

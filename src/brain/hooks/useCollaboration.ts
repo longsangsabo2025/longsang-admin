@@ -50,7 +50,9 @@ export function useAddComment() {
   return useMutation<Comment, Error, AddCommentRequest>({
     mutationFn: (request) => brainAPI.addComment(request),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [...QUERY_KEY_COLLABORATION, 'comments', variables.knowledgeId] });
+      queryClient.invalidateQueries({
+        queryKey: [...QUERY_KEY_COLLABORATION, 'comments', variables.knowledgeId],
+      });
       toast.success('Comment added successfully.');
     },
     onError: (error) => {
@@ -119,4 +121,3 @@ export function useAddTeamMember() {
     },
   });
 }
-

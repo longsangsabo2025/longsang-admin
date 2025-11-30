@@ -1,17 +1,17 @@
-import { useState } from "react";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from 'react';
+import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 const CVContactSection = () => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -23,21 +23,27 @@ const CVContactSection = () => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     toast({
-      title: "Message Sent! ✨",
+      title: 'Message Sent! ✨',
       description: "Thank you for reaching out. I'll get back to you soon!",
     });
 
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    setFormData({ name: '', email: '', subject: '', message: '' });
     setIsSubmitting(false);
   };
 
   return (
-    <section id="contact" className="section-padding bg-background-secondary relative overflow-hidden">
+    <section
+      id="contact"
+      className="section-padding bg-background-secondary relative overflow-hidden"
+    >
       {/* Animated Background */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20" />
         <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/30 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-secondary/30 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
+        <div
+          className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-secondary/30 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: '1s' }}
+        />
       </div>
 
       <div className="container mx-auto relative z-10">
@@ -46,7 +52,7 @@ const CVContactSection = () => {
           <h2 className="text-5xl md:text-6xl font-heading font-black text-gradient-gold">
             LET'S WORK TOGETHER
           </h2>
-          
+
           <p className="text-xl text-foreground-secondary max-w-2xl mx-auto">
             Ready to start your next project? Let's create something amazing!
           </p>
@@ -95,7 +101,10 @@ const CVContactSection = () => {
 
           {/* Contact Form */}
           <div className="lg:col-span-3">
-            <form onSubmit={handleSubmit} className="bg-card/50 backdrop-glass border border-border rounded-2xl p-8 shadow-elevated">
+            <form
+              onSubmit={handleSubmit}
+              className="bg-card/50 backdrop-glass border border-border rounded-2xl p-8 shadow-elevated"
+            >
               <div className="space-y-6">
                 <div>
                   <Input
@@ -145,7 +154,7 @@ const CVContactSection = () => {
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-lg h-14 shadow-glow group"
                 >
                   {isSubmitting ? (
-                    "Sending..."
+                    'Sending...'
                   ) : (
                     <>
                       Send Message

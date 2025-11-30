@@ -1,26 +1,32 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { NeonBadge } from "./NeonBadge";
-import { GlowCard } from "./GlowCard";
-import { Progress } from "@/components/ui/progress";
-import { projectsData } from "@/data/projects-data";
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { NeonBadge } from './NeonBadge';
+import { GlowCard } from './GlowCard';
+import { Progress } from '@/components/ui/progress';
+import { projectsData } from '@/data/projects-data';
 
 interface ProjectSidebarProps {
   activeProjectId: number;
   onProjectChange: (id: number) => void;
 }
 
-const categories = ["All", "Mobile App", "Business Management Platform", "AI Platform", "Analytics"];
+const categories = [
+  'All',
+  'Mobile App',
+  'Business Management Platform',
+  'AI Platform',
+  'Analytics',
+];
 
 export const ProjectSidebar = ({ activeProjectId, onProjectChange }: ProjectSidebarProps) => {
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredProjects = projectsData.filter(
     (p) =>
-      (activeCategory === "All" || p.category === activeCategory) &&
+      (activeCategory === 'All' || p.category === activeCategory) &&
       p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -33,9 +39,7 @@ export const ProjectSidebar = ({ activeProjectId, onProjectChange }: ProjectSide
       >
         {/* Logo/Title */}
         <div className="mb-6">
-          <h2 className="font-display text-2xl font-bold gradient-text mb-2">
-            DỰ ÁN
-          </h2>
+          <h2 className="font-display text-2xl font-bold gradient-text mb-2">DỰ ÁN</h2>
           <p className="text-sm text-muted-foreground">Danh Sách Các Dự Án</p>
         </div>
 
@@ -52,15 +56,13 @@ export const ProjectSidebar = ({ activeProjectId, onProjectChange }: ProjectSide
 
         {/* Filter Tags */}
         <div className="mb-6">
-          <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">
-            Categories
-          </p>
+          <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">Categories</p>
           <div className="flex flex-wrap gap-2">
             {categories.map((cat) => (
               <NeonBadge
                 key={cat}
-                variant={activeCategory === cat ? "cyan" : "blue"}
-                className={activeCategory === cat ? "bg-neon-cyan/20" : ""}
+                variant={activeCategory === cat ? 'cyan' : 'blue'}
+                className={activeCategory === cat ? 'bg-neon-cyan/20' : ''}
                 onClick={() => setActiveCategory(cat)}
               >
                 {cat}
@@ -71,9 +73,7 @@ export const ProjectSidebar = ({ activeProjectId, onProjectChange }: ProjectSide
 
         {/* Project List */}
         <div className="space-y-3">
-          <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">
-            Projects
-          </p>
+          <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">Projects</p>
           {filteredProjects.map((project, index) => (
             <motion.div
               key={project.id}
@@ -84,18 +84,16 @@ export const ProjectSidebar = ({ activeProjectId, onProjectChange }: ProjectSide
               <GlowCard
                 className={`cursor-pointer p-4 ${
                   activeProjectId === project.id
-                    ? "border-neon-cyan bg-neon-cyan/5"
-                    : "border-border/30"
+                    ? 'border-neon-cyan bg-neon-cyan/5'
+                    : 'border-border/30'
                 }`}
-                glowColor={activeProjectId === project.id ? "cyan" : "blue"}
+                glowColor={activeProjectId === project.id ? 'cyan' : 'blue'}
                 onClick={() => onProjectChange(project.id)}
               >
                 <div className="flex items-start gap-3">
                   <div
                     className={`p-2 rounded-lg ${
-                      activeProjectId === project.id
-                        ? "bg-neon-cyan/20"
-                        : "bg-dark-surface"
+                      activeProjectId === project.id ? 'bg-neon-cyan/20' : 'bg-dark-surface'
                     }`}
                   >
                     <project.icon className="h-5 w-5 text-neon-cyan" />
@@ -104,20 +102,13 @@ export const ProjectSidebar = ({ activeProjectId, onProjectChange }: ProjectSide
                     <h3 className="font-display text-sm font-semibold text-foreground truncate">
                       {project.name}
                     </h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {project.description}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{project.description}</p>
                     <div className="mt-3">
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="text-muted-foreground">Progress</span>
-                        <span className="text-neon-cyan font-medium">
-                          {project.progress}%
-                        </span>
+                        <span className="text-neon-cyan font-medium">{project.progress}%</span>
                       </div>
-                      <Progress
-                        value={project.progress}
-                        className="h-1 bg-dark-surface"
-                      />
+                      <Progress value={project.progress} className="h-1 bg-dark-surface" />
                     </div>
                   </div>
                 </div>

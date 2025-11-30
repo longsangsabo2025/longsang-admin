@@ -1,25 +1,25 @@
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { projectsData } from "@/data/projects-data";
-import { GlowCard } from "@/components/GlowCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
-  TrendingUp, 
-  DollarSign, 
-  PieChart, 
+import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { projectsData } from '@/data/projects-data';
+import { GlowCard } from '@/components/GlowCard';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  TrendingUp,
+  DollarSign,
+  PieChart,
   Calendar,
   Download,
   Calculator,
   BarChart3,
-  Target
-} from "lucide-react";
+  Target,
+} from 'lucide-react';
 
 const InvestmentFinancials = () => {
   const { slug } = useParams();
   const project = projectsData.find((p) => p.slug === slug);
-  
+
   // ROI Calculator State
   const [investmentAmount, setInvestmentAmount] = useState<number>(100000000); // 100M VNĐ
   const [investmentYears, setInvestmentYears] = useState<number>(3);
@@ -34,10 +34,30 @@ const InvestmentFinancials = () => {
   ];
 
   const useOfFunds = [
-    { category: "Product Development", percentage: 40, amount: 20000000000, color: "from-blue-500 to-cyan-500" },
-    { category: "Marketing & Sales", percentage: 30, amount: 15000000000, color: "from-purple-500 to-pink-500" },
-    { category: "Team & Operations", percentage: 20, amount: 10000000000, color: "from-yellow-500 to-orange-500" },
-    { category: "Infrastructure & Tech", percentage: 10, amount: 5000000000, color: "from-green-500 to-emerald-500" },
+    {
+      category: 'Product Development',
+      percentage: 40,
+      amount: 20000000000,
+      color: 'from-blue-500 to-cyan-500',
+    },
+    {
+      category: 'Marketing & Sales',
+      percentage: 30,
+      amount: 15000000000,
+      color: 'from-purple-500 to-pink-500',
+    },
+    {
+      category: 'Team & Operations',
+      percentage: 20,
+      amount: 10000000000,
+      color: 'from-yellow-500 to-orange-500',
+    },
+    {
+      category: 'Infrastructure & Tech',
+      percentage: 10,
+      amount: 5000000000,
+      color: 'from-green-500 to-emerald-500',
+    },
   ];
 
   // ROI Calculator
@@ -46,12 +66,12 @@ const InvestmentFinancials = () => {
     const totalReturn = investmentAmount * expectedMultiplier;
     const profit = totalReturn - investmentAmount;
     const annualReturn = (profit / investmentAmount / investmentYears) * 100;
-    
+
     return {
       totalReturn,
       profit,
       annualReturn: annualReturn.toFixed(2),
-      multiplier: expectedMultiplier
+      multiplier: expectedMultiplier,
     };
   };
 
@@ -110,7 +130,7 @@ const InvestmentFinancials = () => {
             <TrendingUp className="w-6 h-6 text-yellow-400" />
             <h2 className="text-2xl font-bold">Dự Báo Doanh Thu & Lợi Nhuận</h2>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -124,10 +144,15 @@ const InvestmentFinancials = () => {
               </thead>
               <tbody>
                 {revenueProjections.map((year, index) => {
-                  const growth = index > 0 
-                    ? ((year.revenue - revenueProjections[index - 1].revenue) / revenueProjections[index - 1].revenue * 100).toFixed(0)
-                    : "-";
-                  
+                  const growth =
+                    index > 0
+                      ? (
+                          ((year.revenue - revenueProjections[index - 1].revenue) /
+                            revenueProjections[index - 1].revenue) *
+                          100
+                        ).toFixed(0)
+                      : '-';
+
                   return (
                     <motion.tr
                       key={year.year}
@@ -141,20 +166,22 @@ const InvestmentFinancials = () => {
                       <td className="py-4 px-4 text-right text-green-400 font-mono">
                         {formatUSD(year.revenue)}
                       </td>
-                      <td className={`py-4 px-4 text-right font-mono ${year.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <td
+                        className={`py-4 px-4 text-right font-mono ${year.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
+                      >
                         {formatUSD(year.profit)}
                       </td>
                       <td className="py-4 px-4 text-right text-cyan-400 font-mono">
                         {year.users.toLocaleString()}
                       </td>
                       <td className="py-4 px-4 text-right">
-                        {growth !== "-" && (
+                        {growth !== '-' && (
                           <span className="inline-flex items-center gap-1 text-yellow-400">
                             <TrendingUp className="w-4 h-4" />
                             {growth}%
                           </span>
                         )}
-                        {growth === "-" && <span className="text-gray-500">-</span>}
+                        {growth === '-' && <span className="text-gray-500">-</span>}
                       </td>
                     </motion.tr>
                   );
@@ -200,9 +227,7 @@ const InvestmentFinancials = () => {
                   className="bg-white/5 border-white/10"
                   placeholder="100,000,000"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Tối thiểu: 50,000,000 VNĐ
-                </p>
+                <p className="text-xs text-gray-500 mt-1">Tối thiểu: 50,000,000 VNĐ</p>
               </div>
 
               <div>
@@ -213,11 +238,12 @@ const InvestmentFinancials = () => {
                   {[3, 5, 7].map((years) => (
                     <Button
                       key={years}
-                      variant={investmentYears === years ? "default" : "outline"}
+                      variant={investmentYears === years ? 'default' : 'outline'}
                       onClick={() => setInvestmentYears(years)}
-                      className={investmentYears === years 
-                        ? "bg-gradient-to-r from-cyan-500 to-blue-500" 
-                        : "border-white/10"
+                      className={
+                        investmentYears === years
+                          ? 'bg-gradient-to-r from-cyan-500 to-blue-500'
+                          : 'border-white/10'
                       }
                     >
                       {years} năm
@@ -231,12 +257,16 @@ const InvestmentFinancials = () => {
             <div className="space-y-4">
               <div className="p-4 rounded-lg bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20">
                 <div className="text-sm text-gray-400 mb-1">Tổng Giá Trị Nhận Lại</div>
-                <div className="text-3xl font-bold text-cyan-400">{formatCurrency(roi.totalReturn)}</div>
+                <div className="text-3xl font-bold text-cyan-400">
+                  {formatCurrency(roi.totalReturn)}
+                </div>
               </div>
 
               <div className="p-4 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
                 <div className="text-sm text-gray-400 mb-1">Lợi Nhuận</div>
-                <div className="text-3xl font-bold text-green-400">{formatCurrency(roi.profit)}</div>
+                <div className="text-3xl font-bold text-green-400">
+                  {formatCurrency(roi.profit)}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -278,7 +308,9 @@ const InvestmentFinancials = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium">{item.category}</span>
-                  <span className="text-gray-400">{item.percentage}% • {formatCurrency(item.amount)}</span>
+                  <span className="text-gray-400">
+                    {item.percentage}% • {formatCurrency(item.amount)}
+                  </span>
                 </div>
                 <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden">
                   <motion.div
@@ -319,8 +351,8 @@ const InvestmentFinancials = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="h-auto flex-col items-start p-4 border-white/10 hover:border-yellow-500/50 hover:bg-yellow-500/5"
             >
               <DollarSign className="w-6 h-6 text-yellow-400 mb-2" />
@@ -328,8 +360,8 @@ const InvestmentFinancials = () => {
               <span className="text-xs text-gray-400">Excel 5-year projection</span>
             </Button>
 
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="h-auto flex-col items-start p-4 border-white/10 hover:border-cyan-500/50 hover:bg-cyan-500/5"
             >
               <Calendar className="w-6 h-6 text-cyan-400 mb-2" />
@@ -337,8 +369,8 @@ const InvestmentFinancials = () => {
               <span className="text-xs text-gray-400">PDF presentation</span>
             </Button>
 
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="h-auto flex-col items-start p-4 border-white/10 hover:border-green-500/50 hover:bg-green-500/5"
             >
               <BarChart3 className="w-6 h-6 text-green-400 mb-2" />

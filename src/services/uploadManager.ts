@@ -1,9 +1,9 @@
 /**
  * 🚀 Global Upload Manager - Elon Musk Approved
- * 
+ *
  * Problem: Upload state was lost when switching tabs
  * Solution: Singleton service that persists across component lifecycle
- * 
+ *
  * Features:
  * - Global singleton - survives component unmounts
  * - localStorage persistence - survives page refresh
@@ -50,7 +50,7 @@ class UploadManager {
   private constructor() {
     this.loadFromStorage();
     this.resumePendingUploads();
-    
+
     // Listen for visibility changes to resume uploads
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
@@ -59,7 +59,7 @@ class UploadManager {
         }
       });
     }
-    
+
     console.log('[UploadManager] 🚀 Initialized with', this.tasks.size, 'tasks');
   }
 
@@ -77,7 +77,7 @@ class UploadManager {
     this.listeners.add(listener);
     // Immediately send current state
     listener(this.getState());
-    
+
     return () => {
       this.listeners.delete(listener);
     };
@@ -98,7 +98,7 @@ class UploadManager {
    */
   addToQueue(file: File, userId: string, assistantType: AssistantType): string {
     const taskId = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const task: UploadTask = {
       id: taskId,
       file,
@@ -136,7 +136,7 @@ class UploadManager {
     this.tasks.delete(taskId);
     this.saveToStorage();
     this.notifyListeners();
-    
+
     if (task.status === 'uploading') {
       this.isProcessing = false;
       this.processQueue();
@@ -156,7 +156,7 @@ class UploadManager {
     task.progress = 0;
     task.error = undefined;
     task.retryCount++;
-    
+
     this.tasks.set(taskId, task);
     this.saveToStorage();
     this.notifyListeners();
@@ -184,16 +184,14 @@ class UploadManager {
   private async processQueue(): Promise<void> {
     if (this.isProcessing) return;
 
-    const pendingTask = Array.from(this.tasks.values()).find(
-      (t) => t.status === 'pending'
-    );
+    const pendingTask = Array.from(this.tasks.values()).find((t) => t.status === 'pending');
 
     if (!pendingTask) return;
 
     this.isProcessing = true;
     await this.uploadTask(pendingTask);
     this.isProcessing = false;
-    
+
     // Process next in queue
     this.processQueue();
   }
@@ -227,7 +225,7 @@ class UploadManager {
 
         xhr.addEventListener('load', () => {
           this.currentXHR = null;
-          
+
           if (xhr.status === 200) {
             try {
               const response = JSON.parse(xhr.responseText);
@@ -259,7 +257,7 @@ class UploadManager {
             task.error = `Upload failed: ${xhr.statusText || xhr.status}`;
             reject(new Error(task.error));
           }
-          
+
           this.tasks.set(task.id, { ...task });
           this.saveToStorage();
           this.notifyListeners();
@@ -286,17 +284,20 @@ class UploadManager {
       });
     } catch (error: any) {
       console.error('[UploadManager] ❌ Error:', error.message);
-      
+
       // Auto-retry logic
       if (task.retryCount < this.MAX_RETRIES && task.status === 'failed') {
-        setTimeout(() => {
-          task.status = 'pending';
-          task.retryCount++;
-          this.tasks.set(task.id, { ...task });
-          this.saveToStorage();
-          this.notifyListeners();
-          this.processQueue();
-        }, 2000 * (task.retryCount + 1)); // Exponential backoff
+        setTimeout(
+          () => {
+            task.status = 'pending';
+            task.retryCount++;
+            this.tasks.set(task.id, { ...task });
+            this.saveToStorage();
+            this.notifyListeners();
+            this.processQueue();
+          },
+          2000 * (task.retryCount + 1)
+        ); // Exponential backoff
       }
     }
   }
@@ -308,7 +309,7 @@ class UploadManager {
     const hasPending = Array.from(this.tasks.values()).some(
       (t) => t.status === 'pending' || t.status === 'uploading'
     );
-    
+
     if (hasPending && !this.isProcessing) {
       // Reset any 'uploading' tasks to 'pending' (interrupted by page refresh)
       for (const [id, task] of this.tasks) {

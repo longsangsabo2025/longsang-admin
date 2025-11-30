@@ -3,10 +3,10 @@
  * ║               COPILOT BRIDGE COMPONENT                        ║
  * ║   Send messages directly to VS Code Copilot from Web UI       ║
  * ╚═══════════════════════════════════════════════════════════════╝
- * 
+ *
  * This component provides a floating chat interface that allows
  * users to send messages directly to VS Code Copilot (Claude).
- * 
+ *
  * Flow:
  * 1. User types message in Web UI
  * 2. Message is sent to API → saved to file queue
@@ -17,19 +17,19 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  MessageSquare, 
-  Send, 
-  X, 
-  Loader2, 
-  Bot, 
+import {
+  MessageSquare,
+  Send,
+  X,
+  Loader2,
+  Bot,
   User,
   Minimize2,
   Maximize2,
   Sparkles,
   CheckCircle,
   AlertCircle,
-  Clock
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -60,7 +60,7 @@ export function CopilotBridge() {
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState<BridgeStats | null>(null);
   const [pendingMessageIds, setPendingMessageIds] = useState<Set<string>>(new Set());
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -91,27 +91,27 @@ export function CopilotBridge() {
           const data = await response.json();
           if (data.status === 'completed' || data.status === 'error') {
             // Add response to messages
-            setMessages(prev => [
-              ...prev.map(m => m.id === messageId ? { ...m, status: data.status } : m),
+            setMessages((prev) => [
+              ...prev.map((m) => (m.id === messageId ? { ...m, status: data.status } : m)),
               {
                 id: `${messageId}-response`,
                 type: 'copilot' as const,
                 content: data.response,
                 timestamp: new Date(data.processedAt),
-                status: data.status
-              }
+                status: data.status,
+              },
             ]);
-            
+
             // Remove from pending
-            setPendingMessageIds(prev => {
+            setPendingMessageIds((prev) => {
               const newSet = new Set(prev);
               newSet.delete(messageId);
               return newSet;
             });
-            
+
             // Delete processed message
             await fetch(`${API_BASE}/api/copilot-bridge/message/${messageId}`, {
-              method: 'DELETE'
+              method: 'DELETE',
             });
           }
         }
@@ -126,7 +126,7 @@ export function CopilotBridge() {
     if (isOpen && pendingMessageIds.size > 0) {
       pollingRef.current = setInterval(pollForResponses, 2000);
     }
-    
+
     return () => {
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
@@ -152,10 +152,10 @@ export function CopilotBridge() {
       type: 'user',
       content: inputValue.trim(),
       timestamp: new Date(),
-      status: 'pending'
+      status: 'pending',
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
 
@@ -169,10 +169,10 @@ export function CopilotBridge() {
           context: {
             source: 'web-ui',
             timestamp: userMessage.timestamp.toISOString(),
-            currentPage: window.location.pathname
+            currentPage: window.location.pathname,
           },
-          priority: 'normal'
-        })
+          priority: 'normal',
+        }),
       });
 
       if (!response.ok) {
@@ -180,34 +180,39 @@ export function CopilotBridge() {
       }
 
       const data = await response.json();
-      
-      // Update message with server ID and set to processing
-      setMessages(prev => prev.map(m => 
-        m.id === userMessage.id 
-          ? { ...m, id: data.messageId, status: 'processing' as const }
-          : m
-      ));
-      
-      // Add to pending for polling
-      setPendingMessageIds(prev => new Set(prev).add(data.messageId));
-      
-      // Add system message
-      setMessages(prev => [...prev, {
-        id: `system-${Date.now()}`,
-        type: 'system',
-        content: '📤 Đã gửi đến VS Code Copilot. Đang chờ xử lý...',
-        timestamp: new Date()
-      }]);
 
+      // Update message with server ID and set to processing
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === userMessage.id ? { ...m, id: data.messageId, status: 'processing' as const } : m
+        )
+      );
+
+      // Add to pending for polling
+      setPendingMessageIds((prev) => new Set(prev).add(data.messageId));
+
+      // Add system message
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `system-${Date.now()}`,
+          type: 'system',
+          content: '📤 Đã gửi đến VS Code Copilot. Đang chờ xử lý...',
+          timestamp: new Date(),
+        },
+      ]);
     } catch (error) {
       console.error('Failed to send message:', error);
-      setMessages(prev => [...prev, {
-        id: `error-${Date.now()}`,
-        type: 'system',
-        content: '❌ Không thể gửi tin nhắn. Vui lòng thử lại.',
-        timestamp: new Date(),
-        status: 'error'
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          type: 'system',
+          content: '❌ Không thể gửi tin nhắn. Vui lòng thử lại.',
+          timestamp: new Date(),
+          status: 'error',
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -240,8 +245,8 @@ export function CopilotBridge() {
               <Sparkles className="h-6 w-6" />
             </Button>
             {stats && stats.pendingMessages > 0 && (
-              <Badge 
-                variant="destructive" 
+              <Badge
+                variant="destructive"
                 className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center"
               >
                 {stats.pendingMessages}
@@ -256,16 +261,16 @@ export function CopilotBridge() {
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 100, scale: 0.9 }}
-            animate={{ 
-              opacity: 1, 
-              y: 0, 
+            animate={{
+              opacity: 1,
+              y: 0,
               scale: 1,
-              height: isMinimized ? 'auto' : '500px'
+              height: isMinimized ? 'auto' : '500px',
             }}
             exit={{ opacity: 0, y: 100, scale: 0.9 }}
             className={cn(
-              "fixed bottom-6 right-6 z-50 w-[400px] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col",
-              isMinimized && "h-auto"
+              'fixed bottom-6 right-6 z-50 w-[400px] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col',
+              isMinimized && 'h-auto'
             )}
           >
             {/* Header */}
@@ -286,7 +291,11 @@ export function CopilotBridge() {
                   onClick={() => setIsMinimized(!isMinimized)}
                   className="h-8 w-8 text-zinc-400 hover:text-white"
                 >
-                  {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                  {isMinimized ? (
+                    <Maximize2 className="h-4 w-4" />
+                  ) : (
+                    <Minimize2 className="h-4 w-4" />
+                  )}
                 </Button>
                 <Button
                   variant="ghost"
@@ -312,11 +321,11 @@ export function CopilotBridge() {
                       </p>
                     </div>
                   )}
-                  
+
                   {messages.map((message) => (
                     <MessageBubble key={message.id} message={message} />
                   ))}
-                  
+
                   <div ref={messagesEndRef} />
                 </div>
 
@@ -376,7 +385,7 @@ export function CopilotBridge() {
 function MessageBubble({ message }: { message: Message }) {
   const isUser = message.type === 'user';
   const isSystem = message.type === 'system';
-  
+
   if (isSystem) {
     return (
       <div className="flex justify-center">
@@ -388,43 +397,33 @@ function MessageBubble({ message }: { message: Message }) {
   }
 
   return (
-    <div className={cn(
-      "flex gap-2",
-      isUser ? "flex-row-reverse" : "flex-row"
-    )}>
-      <div className={cn(
-        "h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0",
-        isUser 
-          ? "bg-violet-600" 
-          : "bg-gradient-to-r from-violet-600 to-indigo-600"
-      )}>
-        {isUser ? (
-          <User className="h-4 w-4 text-white" />
-        ) : (
-          <Bot className="h-4 w-4 text-white" />
+    <div className={cn('flex gap-2', isUser ? 'flex-row-reverse' : 'flex-row')}>
+      <div
+        className={cn(
+          'h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0',
+          isUser ? 'bg-violet-600' : 'bg-gradient-to-r from-violet-600 to-indigo-600'
         )}
+      >
+        {isUser ? <User className="h-4 w-4 text-white" /> : <Bot className="h-4 w-4 text-white" />}
       </div>
-      
-      <div className={cn(
-        "max-w-[80%] rounded-2xl px-4 py-2",
-        isUser 
-          ? "bg-violet-600 text-white" 
-          : "bg-zinc-800 text-zinc-100"
-      )}>
+
+      <div
+        className={cn(
+          'max-w-[80%] rounded-2xl px-4 py-2',
+          isUser ? 'bg-violet-600 text-white' : 'bg-zinc-800 text-zinc-100'
+        )}
+      >
         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-        <div className={cn(
-          "flex items-center gap-2 mt-1",
-          isUser ? "justify-end" : "justify-start"
-        )}>
+        <div
+          className={cn('flex items-center gap-2 mt-1', isUser ? 'justify-end' : 'justify-start')}
+        >
           <span className="text-[10px] opacity-60">
-            {message.timestamp.toLocaleTimeString('vi-VN', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
+            {message.timestamp.toLocaleTimeString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </span>
-          {message.status && (
-            <StatusIndicator status={message.status} />
-          )}
+          {message.status && <StatusIndicator status={message.status} />}
         </div>
       </div>
     </div>

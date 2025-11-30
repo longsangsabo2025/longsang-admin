@@ -1,4 +1,4 @@
-import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
 
 export const Footer = () => {
   return (
@@ -12,13 +12,22 @@ export const Footer = () => {
               Nền tảng quản lý thông minh cho doanh nghiệp dịch vụ
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-lg glass-card flex items-center justify-center hover:glow-purple transition-shadow">
+              <a
+                href="#"
+                className="w-10 h-10 rounded-lg glass-card flex items-center justify-center hover:glow-purple transition-shadow"
+              >
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-lg glass-card flex items-center justify-center hover:glow-purple transition-shadow">
+              <a
+                href="#"
+                className="w-10 h-10 rounded-lg glass-card flex items-center justify-center hover:glow-purple transition-shadow"
+              >
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-lg glass-card flex items-center justify-center hover:glow-cyan transition-shadow">
+              <a
+                href="#"
+                className="w-10 h-10 rounded-lg glass-card flex items-center justify-center hover:glow-cyan transition-shadow"
+              >
                 <Linkedin className="w-5 h-5" />
               </a>
             </div>
@@ -28,10 +37,38 @@ export const Footer = () => {
           <div>
             <h4 className="font-bold text-lg mb-4 text-foreground">Sản Phẩm</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Tính năng</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Bảng giá</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Demo</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Tải xuống</a></li>
+              <li>
+                <a
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Tính năng
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Bảng giá
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Demo
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Tải xuống
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -39,10 +76,38 @@ export const Footer = () => {
           <div>
             <h4 className="font-bold text-lg mb-4 text-foreground">Hỗ Trợ</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Trung tâm trợ giúp</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Hướng dẫn</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">API Docs</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Liên hệ</a></li>
+              <li>
+                <a
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Trung tâm trợ giúp
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Hướng dẫn
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  API Docs
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Liên hệ
+                </a>
+              </li>
             </ul>
           </div>
 

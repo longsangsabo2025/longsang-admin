@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { googleDriveAPI } from '@/lib/api/google-drive-http';
 import type { DriveFile, DriveFolder } from '@/lib/api/google-drive-http';
@@ -21,11 +21,11 @@ const GoogleDriveIntegrationTest = () => {
     try {
       console.log('Testing Google Drive API - List Files...');
       const result = await googleDriveAPI.listFiles('root');
-      
+
       setFiles(result.files);
       setFolders(result.folders);
       setConnectionStatus('✅ Connected - Google Drive API Working');
-      
+
       toast.success(`✅ Found ${result.files.length} files and ${result.folders.length} folders`);
       console.log('API Response:', result);
     } catch (error: any) {
@@ -48,10 +48,10 @@ const GoogleDriveIntegrationTest = () => {
     try {
       console.log('Testing file upload:', selectedFile.name);
       const result = await googleDriveAPI.uploadFile(selectedFile, 'root');
-      
+
       toast.success(`✅ Uploaded: ${result.name}`);
       console.log('Upload result:', result);
-      
+
       // Refresh file list
       await testListFiles();
     } catch (error: any) {
@@ -69,10 +69,10 @@ const GoogleDriveIntegrationTest = () => {
     try {
       console.log('Testing folder creation:', folderName);
       const result = await googleDriveAPI.createFolder(folderName, 'root');
-      
+
       toast.success(`✅ Created folder: ${result.name}`);
       console.log('Folder created:', result);
-      
+
       // Refresh file list
       await testListFiles();
     } catch (error: any) {
@@ -101,17 +101,17 @@ const GoogleDriveIntegrationTest = () => {
 
           {/* Test Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button 
-              onClick={testListFiles} 
+            <Button
+              onClick={testListFiles}
               disabled={isLoading}
               variant="outline"
               className="w-full"
             >
               📋 Test List Files
             </Button>
-            
-            <Button 
-              onClick={testCreateFolder} 
+
+            <Button
+              onClick={testCreateFolder}
               disabled={isLoading}
               variant="outline"
               className="w-full"
@@ -119,8 +119,8 @@ const GoogleDriveIntegrationTest = () => {
               📁 Test Create Folder
             </Button>
 
-            <Button 
-              onClick={testUploadFile} 
+            <Button
+              onClick={testUploadFile}
               disabled={isLoading || !selectedFile}
               variant="outline"
               className="w-full"
@@ -162,7 +162,8 @@ const GoogleDriveIntegrationTest = () => {
                   <div className="space-y-1">
                     {folders.map((folder) => (
                       <div key={folder.id} className="p-2 bg-blue-50 rounded text-sm">
-                        📁 {folder.name} - Modified: {new Date(folder.modifiedTime).toLocaleString()}
+                        📁 {folder.name} - Modified:{' '}
+                        {new Date(folder.modifiedTime).toLocaleString()}
                       </div>
                     ))}
                   </div>
@@ -176,7 +177,7 @@ const GoogleDriveIntegrationTest = () => {
                   <div className="space-y-1 max-h-60 overflow-y-auto">
                     {files.map((file) => (
                       <div key={file.id} className="p-2 bg-gray-50 rounded text-sm">
-                        📄 {file.name} - {file.mimeType} 
+                        📄 {file.name} - {file.mimeType}
                         {file.size && ` - ${(parseInt(file.size) / 1024).toFixed(1)} KB`}
                         <br />
                         <span className="text-xs text-gray-500">
@@ -202,7 +203,9 @@ const GoogleDriveIntegrationTest = () => {
             <p>• Frontend: http://localhost:8082</p>
             <p>• Backend API: http://localhost:3001</p>
             <p>• Google Drive API: /api/drive/list</p>
-            <p>• Service Account: automation-bot-102@long-sang-automation.iam.gserviceaccount.com</p>
+            <p>
+              • Service Account: automation-bot-102@long-sang-automation.iam.gserviceaccount.com
+            </p>
             <p>• CORS: Enabled</p>
           </div>
         </CardContent>

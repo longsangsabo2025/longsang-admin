@@ -29,11 +29,11 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
   selected,
   onSelectionChange,
   isOpen,
-  onToggle
+  onToggle,
 }) => {
   const handleOptionToggle = (option: string) => {
     if (selected.includes(option)) {
-      onSelectionChange(selected.filter(item => item !== option));
+      onSelectionChange(selected.filter((item) => item !== option));
     } else {
       onSelectionChange([...selected, option]);
     }
@@ -87,7 +87,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
                 </button>
               ))}
             </div>
-            
+
             {selected.length > 0 && (
               <div className="border-t border-gray-600 mt-2 pt-2">
                 <button
@@ -108,50 +108,76 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
 export const SearchBar: React.FC<SearchBarProps> = ({
   onSearchChange,
   onFilterChange,
-  placeholder = "Search projects..."
+  placeholder = 'Search projects...',
 }) => {
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<ProjectFilters>({
     technologies: [],
     status: [],
-    category: []
+    category: [],
   });
   const [openFilter, setOpenFilter] = useState<string | null>(null);
 
   // Technology options based on your projects
   const technologyOptions = [
-    'React', 'TypeScript', 'Node.js', 'Express', 'Supabase', 'PostgreSQL',
-    'Tailwind CSS', 'Framer Motion', 'Next.js', 'Vite', 'Python', 'FastAPI',
-    'MongoDB', 'Redis', 'Docker', 'AWS', 'Vercel', 'Firebase'
+    'React',
+    'TypeScript',
+    'Node.js',
+    'Express',
+    'Supabase',
+    'PostgreSQL',
+    'Tailwind CSS',
+    'Framer Motion',
+    'Next.js',
+    'Vite',
+    'Python',
+    'FastAPI',
+    'MongoDB',
+    'Redis',
+    'Docker',
+    'AWS',
+    'Vercel',
+    'Firebase',
   ];
 
-  const statusOptions = [
-    'In Development', 'Completed', 'Planning', 'Beta', 'Live', 'Maintenance'
-  ];
+  const statusOptions = ['In Development', 'Completed', 'Planning', 'Beta', 'Live', 'Maintenance'];
 
   const categoryOptions = [
-    'Web Application', 'Mobile App', 'Desktop App', 'API/Backend', 'Tool/Utility',
-    'Game', 'Portfolio', 'E-commerce', 'Blog', 'Dashboard'
+    'Web Application',
+    'Mobile App',
+    'Desktop App',
+    'API/Backend',
+    'Tool/Utility',
+    'Game',
+    'Portfolio',
+    'E-commerce',
+    'Blog',
+    'Dashboard',
   ];
 
-  const handleSearchChange = useCallback((value: string) => {
-    setQuery(value);
-    onSearchChange(value);
-  }, [onSearchChange]);
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setQuery(value);
+      onSearchChange(value);
+    },
+    [onSearchChange]
+  );
 
-  const handleFilterChange = useCallback((newFilters: ProjectFilters) => {
-    setFilters(newFilters);
-    onFilterChange(newFilters);
-  }, [onFilterChange]);
+  const handleFilterChange = useCallback(
+    (newFilters: ProjectFilters) => {
+      setFilters(newFilters);
+      onFilterChange(newFilters);
+    },
+    [onFilterChange]
+  );
 
   const clearSearch = () => {
     setQuery('');
     onSearchChange('');
   };
 
-  const hasActiveFilters = filters.technologies.length > 0 || 
-                          filters.status.length > 0 || 
-                          filters.category.length > 0;
+  const hasActiveFilters =
+    filters.technologies.length > 0 || filters.status.length > 0 || filters.category.length > 0;
 
   return (
     <div className="w-full max-w-4xl mx-auto mb-8">
@@ -184,7 +210,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           title="Technologies"
           options={technologyOptions}
           selected={filters.technologies}
-          onSelectionChange={(selected) => 
+          onSelectionChange={(selected) =>
             handleFilterChange({ ...filters, technologies: selected })
           }
           isOpen={openFilter === 'technologies'}
@@ -195,9 +221,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           title="Status"
           options={statusOptions}
           selected={filters.status}
-          onSelectionChange={(selected) => 
-            handleFilterChange({ ...filters, status: selected })
-          }
+          onSelectionChange={(selected) => handleFilterChange({ ...filters, status: selected })}
           isOpen={openFilter === 'status'}
           onToggle={() => setOpenFilter(openFilter === 'status' ? null : 'status')}
         />
@@ -206,9 +230,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           title="Category"
           options={categoryOptions}
           selected={filters.category}
-          onSelectionChange={(selected) => 
-            handleFilterChange({ ...filters, category: selected })
-          }
+          onSelectionChange={(selected) => handleFilterChange({ ...filters, category: selected })}
           isOpen={openFilter === 'category'}
           onToggle={() => setOpenFilter(openFilter === 'category' ? null : 'category')}
         />
@@ -249,17 +271,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                     if (filters.technologies.includes(filter)) {
                       handleFilterChange({
                         ...filters,
-                        technologies: filters.technologies.filter(t => t !== filter)
+                        technologies: filters.technologies.filter((t) => t !== filter),
                       });
                     } else if (filters.status.includes(filter)) {
                       handleFilterChange({
                         ...filters,
-                        status: filters.status.filter(s => s !== filter)
+                        status: filters.status.filter((s) => s !== filter),
                       });
                     } else if (filters.category.includes(filter)) {
                       handleFilterChange({
                         ...filters,
-                        category: filters.category.filter(c => c !== filter)
+                        category: filters.category.filter((c) => c !== filter),
                       });
                     }
                   }}

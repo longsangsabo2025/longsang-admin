@@ -3,17 +3,17 @@
  * Interface for querying across multiple domains
  */
 
-import { useMultiDomainQuery, useRelevantDomains } from "@/brain/hooks/useMultiDomain";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Search, Sparkles, Globe } from "lucide-react";
-import { useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useMultiDomainQuery, useRelevantDomains } from '@/brain/hooks/useMultiDomain';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Search, Sparkles, Globe } from 'lucide-react';
+import { useState } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function MultiDomainQuery() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [domainIds, setDomainIds] = useState<string[]>([]);
   const queryMutation = useMultiDomainQuery();
   const { data: relevantDomains, isLoading: isLoadingDomains } = useRelevantDomains(
@@ -35,7 +35,7 @@ export function MultiDomainQuery() {
         },
       });
     } catch (error) {
-      console.error("Query error:", error);
+      console.error('Query error:', error);
     }
   };
 
@@ -44,7 +44,8 @@ export function MultiDomainQuery() {
       <div>
         <h2 className="text-2xl font-bold">Multi-Domain Query</h2>
         <p className="text-muted-foreground">
-          Query across all your domains simultaneously. The system will automatically route to relevant domains.
+          Query across all your domains simultaneously. The system will automatically route to
+          relevant domains.
         </p>
       </div>
 
@@ -65,7 +66,7 @@ export function MultiDomainQuery() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleQuery();
                 }
@@ -97,7 +98,7 @@ export function MultiDomainQuery() {
                 {relevantDomains.map((domain) => (
                   <Badge
                     key={domain.domainId}
-                    variant={domainIds.includes(domain.domainId) ? "default" : "outline"}
+                    variant={domainIds.includes(domain.domainId) ? 'default' : 'outline'}
                     className="cursor-pointer"
                     onClick={() => {
                       if (domainIds.includes(domain.domainId)) {
@@ -125,10 +126,10 @@ export function MultiDomainQuery() {
               Synthesized Response
             </CardTitle>
             <CardDescription>
-              Response synthesized from {queryMutation.data.resultCount} results across{" "}
+              Response synthesized from {queryMutation.data.resultCount} results across{' '}
               {queryMutation.data.results.length > 0
                 ? new Set(queryMutation.data.results.map((r) => r.domainId)).size
-                : 0}{" "}
+                : 0}{' '}
               domains
             </CardDescription>
           </CardHeader>
@@ -156,7 +157,9 @@ export function MultiDomainQuery() {
                             {(result.combinedScore || result.similarity || 0) * 100}%
                           </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2">{result.content}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {result.content}
+                        </p>
                       </Card>
                     ))}
                   </div>
@@ -169,4 +172,3 @@ export function MultiDomainQuery() {
     </div>
   );
 }
-

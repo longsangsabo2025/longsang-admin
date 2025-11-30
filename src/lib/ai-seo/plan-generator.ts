@@ -25,7 +25,7 @@ export interface ContentCalendar {
 export interface SEOPlan {
   domain: string;
   generatedAt: string;
-  
+
   // Executive Summary
   summary: {
     currentState: string;
@@ -78,24 +78,21 @@ export interface SEOPlan {
  */
 function getOpenAIClient(): OpenAI {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.OPENAI_API_KEY;
-  
+
   if (!apiKey) {
     throw new Error('OpenAI API key not found');
   }
 
   return new OpenAI({
     apiKey,
-    dangerouslyAllowBrowser: true
+    dangerouslyAllowBrowser: true,
   });
 }
 
 /**
  * Generate comprehensive SEO plan
  */
-export async function generateSEOPlan(
-  domain: string,
-  keywords: KeywordAnalysis
-): Promise<SEOPlan> {
+export async function generateSEOPlan(domain: string, keywords: KeywordAnalysis): Promise<SEOPlan> {
   try {
     // Analyze domain
     const domainAnalysis = await analyzeDomain(domain);
@@ -113,7 +110,10 @@ KEYWORD RESEARCH COMPLETED:
 - Total Search Volume: ${keywords.avgSearchVolume * keywords.totalKeywords}/month
 
 Top 10 Target Keywords:
-${keywords.primaryKeywords.slice(0, 10).map(kw => `- ${kw.keyword} (${kw.searchVolume}/month, ${kw.competition} competition)`).join('\n')}
+${keywords.primaryKeywords
+  .slice(0, 10)
+  .map((kw) => `- ${kw.keyword} (${kw.searchVolume}/month, ${kw.competition} competition)`)
+  .join('\n')}
 
 Create a detailed 6-month SEO implementation plan including:
 
@@ -226,22 +226,23 @@ Return ONLY valid JSON (no markdown):
 `;
 
     const openai = getOpenAIClient();
-    
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [
         {
           role: 'system',
-          content: 'You are a senior SEO strategist creating comprehensive implementation plans. Return valid JSON only.'
+          content:
+            'You are a senior SEO strategist creating comprehensive implementation plans. Return valid JSON only.',
         },
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       temperature: 0.8,
       max_tokens: 4000,
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
     });
 
     const responseText = completion.choices[0].message.content || '{}';
@@ -255,9 +256,8 @@ Return ONLY valid JSON (no markdown):
       contentStrategy: parsed.contentStrategy,
       linkBuilding: parsed.linkBuilding,
       timeline: parsed.timeline,
-      kpis: parsed.kpis || []
+      kpis: parsed.kpis || [],
     };
-
   } catch (error) {
     console.error('SEO plan generation error:', error);
     throw new Error(`Failed to generate SEO plan: ${error.message}`);
@@ -295,23 +295,25 @@ Return ONLY valid JSON array:
 `;
 
     const openai = getOpenAIClient();
-    
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [
-        { role: 'system', content: 'You are an SEO expert identifying quick wins. Return valid JSON array only.' },
-        { role: 'user', content: prompt }
+        {
+          role: 'system',
+          content: 'You are an SEO expert identifying quick wins. Return valid JSON array only.',
+        },
+        { role: 'user', content: prompt },
       ],
       temperature: 0.7,
       max_tokens: 2000,
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
     });
 
     const responseText = completion.choices[0].message.content || '{"tasks":[]}';
     const parsed = JSON.parse(responseText);
-    
-    return parsed.tasks || parsed || [];
 
+    return parsed.tasks || parsed || [];
   } catch (error) {
     console.error('Quick wins generation error:', error);
     throw new Error(`Failed to generate quick wins: ${error.message}`);
@@ -358,21 +360,23 @@ Return ONLY valid JSON:
 `;
 
     const openai = getOpenAIClient();
-    
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [
-        { role: 'system', content: 'You are an expert content strategist. Return valid JSON only.' },
-        { role: 'user', content: prompt }
+        {
+          role: 'system',
+          content: 'You are an expert content strategist. Return valid JSON only.',
+        },
+        { role: 'user', content: prompt },
       ],
       temperature: 0.8,
       max_tokens: 1500,
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
     });
 
     const responseText = completion.choices[0].message.content || '{}';
     return JSON.parse(responseText);
-
   } catch (error) {
     console.error('Content outline generation error:', error);
     throw new Error(`Failed to generate content outline: ${error.message}`);

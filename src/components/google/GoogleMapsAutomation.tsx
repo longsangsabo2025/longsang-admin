@@ -130,7 +130,7 @@ export const GoogleMapsAutomation = () => {
 
       // Note: Commented out for demo
       // const result = await autoSyncConsultationLocations(businessEmail, accountId);
-      
+
       toast.success('Auto-sync feature ready!');
       toast.info('Configure Google My Business API to enable');
     } catch (error) {
@@ -215,9 +215,7 @@ export const GoogleMapsAutomation = () => {
             <Search className="h-5 w-5 text-blue-500" />
             Geocode Address
           </CardTitle>
-          <CardDescription>
-            Convert địa chỉ thành tọa độ GPS (lat/lng)
-          </CardDescription>
+          <CardDescription>Convert địa chỉ thành tọa độ GPS (lat/lng)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -228,7 +226,11 @@ export const GoogleMapsAutomation = () => {
               onKeyPress={(e) => e.key === 'Enter' && handleGeocode()}
             />
             <Button onClick={handleGeocode} disabled={loading}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
               Geocode
             </Button>
           </div>
@@ -272,9 +274,7 @@ export const GoogleMapsAutomation = () => {
             <Building2 className="h-5 w-5 text-green-500" />
             Create Business Location
           </CardTitle>
-          <CardDescription>
-            Tạo địa chỉ business trên Google Maps
-          </CardDescription>
+          <CardDescription>Tạo địa chỉ business trên Google Maps</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -325,7 +325,12 @@ export const GoogleMapsAutomation = () => {
                 id="categories"
                 placeholder="Restaurant, Cafe, Store"
                 value={businessData.categories.join(', ')}
-                onChange={(e) => setBusinessData({ ...businessData, categories: e.target.value.split(',').map(c => c.trim()) })}
+                onChange={(e) =>
+                  setBusinessData({
+                    ...businessData,
+                    categories: e.target.value.split(',').map((c) => c.trim()),
+                  })
+                }
               />
             </div>
 
@@ -343,7 +348,11 @@ export const GoogleMapsAutomation = () => {
 
           <div className="flex gap-2">
             <Button onClick={handleCreateLocation} disabled={loading}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Building2 className="h-4 w-4 mr-2" />}
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Building2 className="h-4 w-4 mr-2" />
+              )}
               Create Location
             </Button>
             <Button variant="outline" onClick={handleAutoSync} disabled={loading}>
@@ -354,7 +363,8 @@ export const GoogleMapsAutomation = () => {
 
           <Alert>
             <AlertDescription>
-              <strong>Note:</strong> Requires Google My Business API setup and account ID configuration.
+              <strong>Note:</strong> Requires Google My Business API setup and account ID
+              configuration.
             </AlertDescription>
           </Alert>
         </CardContent>

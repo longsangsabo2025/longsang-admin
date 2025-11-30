@@ -4,6 +4,6 @@
  * =================================================================
  */
 
-export { AutoPostScheduler } from "./AutoPostScheduler";
-export { PlatformConnectionCard } from "./PlatformConnectionCard";
-export { SocialPostComposer } from "./SocialPostComposer";
+export { AutoPostScheduler } from './AutoPostScheduler';
+export { PlatformConnectionCard } from './PlatformConnectionCard';
+export { SocialPostComposer } from './SocialPostComposer';

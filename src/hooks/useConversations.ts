@@ -90,85 +90,100 @@ export function useConversations({ assistantType, userId }: UseConversationsOpti
   /**
    * Get single conversation by ID
    */
-  const getConversation = useCallback(async (conversationId: string): Promise<Conversation | null> => {
-    if (!userId) return null;
+  const getConversation = useCallback(
+    async (conversationId: string): Promise<Conversation | null> => {
+      if (!userId) return null;
 
-    try {
-      const response = await fetch(`/api/assistants/conversation/${conversationId}`, {
-        headers: {
-          'x-user-id': userId,
-        },
-      });
+      try {
+        const response = await fetch(`/api/assistants/conversation/${conversationId}`, {
+          headers: {
+            'x-user-id': userId,
+          },
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.conversation || null;
+      } catch (err: any) {
+        console.error('[useConversations] Error getting conversation:', err);
+        return null;
       }
-
-      const data = await response.json();
-      return data.conversation || null;
-    } catch (err: any) {
-      console.error('[useConversations] Error getting conversation:', err);
-      return null;
-    }
-  }, [assistantType, userId]);
+    },
+    [assistantType, userId]
+  );
 
   /**
    * Delete a conversation
    */
-  const deleteConversation = useCallback(async (conversationId: string): Promise<boolean> => {
-    if (!userId || !assistantType) return false;
+  const deleteConversation = useCallback(
+    async (conversationId: string): Promise<boolean> => {
+      if (!userId || !assistantType) return false;
 
-    try {
-      const response = await fetch(`/api/assistants/${assistantType}/conversations/${conversationId}`, {
-        method: 'DELETE',
-        headers: {
-          'x-user-id': userId,
-        },
-      });
+      try {
+        const response = await fetch(
+          `/api/assistants/${assistantType}/conversations/${conversationId}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'x-user-id': userId,
+            },
+          }
+        );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Remove from local state
+        setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+        return true;
+      } catch (err: any) {
+        console.error('[useConversations] Error deleting conversation:', err);
+        return false;
       }
-
-      // Remove from local state
-      setConversations((prev) => prev.filter((c) => c.id !== conversationId));
-      return true;
-    } catch (err: any) {
-      console.error('[useConversations] Error deleting conversation:', err);
-      return false;
-    }
-  }, [assistantType, userId]);
+    },
+    [assistantType, userId]
+  );
 
   /**
    * Rename a conversation
    */
-  const renameConversation = useCallback(async (conversationId: string, newTitle: string): Promise<boolean> => {
-    if (!userId || !assistantType) return false;
+  const renameConversation = useCallback(
+    async (conversationId: string, newTitle: string): Promise<boolean> => {
+      if (!userId || !assistantType) return false;
 
-    try {
-      const response = await fetch(`/api/assistants/${assistantType}/conversations/${conversationId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': userId,
-        },
-        body: JSON.stringify({ title: newTitle }),
-      });
+      try {
+        const response = await fetch(
+          `/api/assistants/${assistantType}/conversations/${conversationId}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-id': userId,
+            },
+            body: JSON.stringify({ title: newTitle }),
+          }
+        );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Update local state
+        setConversations((prev) =>
+          prev.map((c) => (c.id === conversationId ? { ...c, title: newTitle } : c))
+        );
+        return true;
+      } catch (err: any) {
+        console.error('[useConversations] Error renaming conversation:', err);
+        return false;
       }
-
-      // Update local state
-      setConversations((prev) =>
-        prev.map((c) => (c.id === conversationId ? { ...c, title: newTitle } : c))
-      );
-      return true;
-    } catch (err: any) {
-      console.error('[useConversations] Error renaming conversation:', err);
-      return false;
-    }
-  }, [assistantType, userId]);
+    },
+    [assistantType, userId]
+  );
 
   return {
     conversations,

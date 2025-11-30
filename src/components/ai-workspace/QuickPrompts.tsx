@@ -5,19 +5,18 @@
 
 import { useState, useMemo } from 'react';
 import { AssistantType } from '@/hooks/useAssistant';
-import { getPromptsForAssistant, getPromptsByCategory, searchPrompts, PromptTemplate } from '@/data/ai-workspace-prompts';
+import {
+  getPromptsForAssistant,
+  getPromptsByCategory,
+  searchPrompts,
+  PromptTemplate,
+} from '@/data/ai-workspace-prompts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Sparkles,
-  Search,
-  Zap,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react';
+import { Sparkles, Search, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface QuickPromptsProps {
@@ -29,7 +28,9 @@ interface QuickPromptsProps {
 export function QuickPrompts({ assistantType, onPromptSelect, className }: QuickPromptsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<'common' | 'advanced' | 'examples'>('common');
+  const [activeCategory, setActiveCategory] = useState<'common' | 'advanced' | 'examples'>(
+    'common'
+  );
 
   const prompts = useMemo(() => {
     if (searchQuery.trim()) {
@@ -112,9 +113,7 @@ export function QuickPrompts({ assistantType, onPromptSelect, className }: Quick
                         <Zap className="h-3 w-3 text-primary" />
                         <span className="font-medium text-sm">{prompt.title}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {prompt.prompt}
-                      </p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{prompt.prompt}</p>
                     </div>
                   </Button>
                 ))}
@@ -126,4 +125,3 @@ export function QuickPrompts({ assistantType, onPromptSelect, className }: Quick
     </div>
   );
 }
-

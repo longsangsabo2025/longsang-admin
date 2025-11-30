@@ -1,14 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  FileText,
-  Plus,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Calendar
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { FileText, Plus, Clock, CheckCircle, AlertCircle, Calendar } from 'lucide-react';
 
 interface ProjectContentTabProps {
   projectId: string;
@@ -17,36 +10,36 @@ interface ProjectContentTabProps {
 export function ProjectContentTab({ projectId }: ProjectContentTabProps) {
   // Placeholder content items
   const contentItems = [
-    { 
-      id: 1, 
-      title: "Blog Post: AI trong Marketing", 
-      status: "published",
-      date: "2025-01-15",
-      type: "blog"
+    {
+      id: 1,
+      title: 'Blog Post: AI trong Marketing',
+      status: 'published',
+      date: '2025-01-15',
+      type: 'blog',
     },
-    { 
-      id: 2, 
-      title: "Video: Hướng dẫn sử dụng", 
-      status: "draft",
-      date: "2025-01-18",
-      type: "video"
+    {
+      id: 2,
+      title: 'Video: Hướng dẫn sử dụng',
+      status: 'draft',
+      date: '2025-01-18',
+      type: 'video',
     },
-    { 
-      id: 3, 
-      title: "Social Post: Khuyến mãi", 
-      status: "scheduled",
-      date: "2025-01-20",
-      type: "social"
+    {
+      id: 3,
+      title: 'Social Post: Khuyến mãi',
+      status: 'scheduled',
+      date: '2025-01-20',
+      type: 'social',
     },
   ];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "published":
+      case 'published':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "draft":
+      case 'draft':
         return <Clock className="h-4 w-4 text-yellow-500" />;
-      case "scheduled":
+      case 'scheduled':
         return <Calendar className="h-4 w-4 text-blue-500" />;
       default:
         return <AlertCircle className="h-4 w-4 text-gray-500" />;
@@ -59,9 +52,7 @@ export function ProjectContentTab({ projectId }: ProjectContentTabProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Content Queue</h3>
-          <p className="text-sm text-muted-foreground">
-            Quản lý nội dung và lịch đăng bài
-          </p>
+          <p className="text-sm text-muted-foreground">Quản lý nội dung và lịch đăng bài</p>
         </div>
         <Button>
           <Plus className="h-4 w-4 mr-2" />
@@ -111,9 +102,7 @@ export function ProjectContentTab({ projectId }: ProjectContentTabProps) {
                       <span className="text-sm text-muted-foreground capitalize">
                         {item.status}
                       </span>
-                      <span className="text-sm text-muted-foreground">
-                        • {item.date}
-                      </span>
+                      <span className="text-sm text-muted-foreground">• {item.date}</span>
                     </div>
                   </div>
                 </div>
@@ -131,9 +120,7 @@ export function ProjectContentTab({ projectId }: ProjectContentTabProps) {
         <CardContent className="py-8 text-center">
           <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h4 className="font-semibold mb-2">Content Calendar Coming Soon</h4>
-          <p className="text-sm text-muted-foreground">
-            Tích hợp content calendar và scheduling
-          </p>
+          <p className="text-sm text-muted-foreground">Tích hợp content calendar và scheduling</p>
         </CardContent>
       </Card>
     </div>

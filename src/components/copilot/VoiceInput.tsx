@@ -34,8 +34,7 @@ export function VoiceInput({
 
   useEffect(() => {
     // Check if browser supports Speech Recognition
-    const SpeechRecognition =
-      window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (SpeechRecognition) {
       setIsSupported(true);
@@ -130,31 +129,16 @@ export function VoiceInput({
         size="icon"
         onClick={isListening ? stopListening : startListening}
         disabled={disabled || !isSupported}
-        className={cn(
-          'h-9 w-9',
-          isListening && 'animate-pulse'
-        )}
+        className={cn('h-9 w-9', isListening && 'animate-pulse')}
       >
-        {isListening ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Mic className="h-4 w-4" />
-        )}
-        <span className="sr-only">
-          {isListening ? 'Dừng voice input' : 'Bắt đầu voice input'}
-        </span>
+        {isListening ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
+        <span className="sr-only">{isListening ? 'Dừng voice input' : 'Bắt đầu voice input'}</span>
       </Button>
 
-      {error && (
-        <div className="text-sm text-destructive">
-          {error}
-        </div>
-      )}
+      {error && <div className="text-sm text-destructive">{error}</div>}
 
       {isListening && (
-        <div className="text-sm text-muted-foreground animate-pulse">
-          Đang nghe...
-        </div>
+        <div className="text-sm text-muted-foreground animate-pulse">Đang nghe...</div>
       )}
     </div>
   );
@@ -167,4 +151,3 @@ declare global {
     webkitSpeechRecognition: any;
   }
 }
-

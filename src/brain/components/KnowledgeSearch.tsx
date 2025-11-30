@@ -3,22 +3,22 @@
  * Search interface for finding knowledge using vector similarity
  */
 
-import { useDomains } from "@/brain/hooks/useDomains";
-import { useSearchKnowledge } from "@/brain/hooks/useKnowledge";
-import type { KnowledgeSearchResult } from "@/brain/types/brain.types";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useDomains } from '@/brain/hooks/useDomains';
+import { useSearchKnowledge } from '@/brain/hooks/useKnowledge';
+import type { KnowledgeSearchResult } from '@/brain/types/brain.types';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { BookOpen, Loader2, Search, TrendingUp } from "lucide-react";
-import { useMemo, useState } from "react";
+} from '@/components/ui/select';
+import { BookOpen, Loader2, Search, TrendingUp } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 interface KnowledgeSearchProps {
   readonly selectedDomainId?: string | null;
@@ -26,7 +26,7 @@ interface KnowledgeSearchProps {
 
 export function KnowledgeSearch({ selectedDomainId }: KnowledgeSearchProps) {
   const { data: domains } = useDomains();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [domainFilter, setDomainFilter] = useState<string | null>(selectedDomainId || null);
   const [matchThreshold, setMatchThreshold] = useState(0.7);
 
@@ -79,8 +79,8 @@ export function KnowledgeSearch({ selectedDomainId }: KnowledgeSearchProps) {
         <div>
           <Label htmlFor="domain-filter">Filter by Domain</Label>
           <Select
-            value={domainFilter || "all"}
-            onValueChange={(value) => setDomainFilter(value === "all" ? null : value)}
+            value={domainFilter || 'all'}
+            onValueChange={(value) => setDomainFilter(value === 'all' ? null : value)}
           >
             <SelectTrigger id="domain-filter">
               <SelectValue />
@@ -129,7 +129,7 @@ export function KnowledgeSearch({ selectedDomainId }: KnowledgeSearchProps) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">
-              {results.length} {results.length === 1 ? "result" : "results"} found
+              {results.length} {results.length === 1 ? 'result' : 'results'} found
             </h3>
           </div>
 

@@ -171,7 +171,11 @@ export async function apiCall() {
   }
 
   // Detect database
-  if (lowerCommand.includes('database') || lowerCommand.includes('db') || lowerCommand.includes('cơ sở dữ liệu')) {
+  if (
+    lowerCommand.includes('database') ||
+    lowerCommand.includes('db') ||
+    lowerCommand.includes('cơ sở dữ liệu')
+  ) {
     components.push({
       id: `db-${Date.now()}`,
       type: 'database',
@@ -233,7 +237,7 @@ function extractFormFields(command: string): string[] {
   // Extract from "fields: email, password" pattern
   const match = command.match(/fields?[:\s]+([^,]+(?:,\s*[^,]+)*)/i);
   if (match) {
-    const fieldList = match[1].split(',').map(f => f.trim());
+    const fieldList = match[1].split(',').map((f) => f.trim());
     fields.push(...fieldList);
   }
 
@@ -259,4 +263,3 @@ function extractAPIEndpoint(command: string): string | null {
   const match = command.match(/\/api\/[\w\/-]+/i);
   return match ? match[0] : null;
 }
-

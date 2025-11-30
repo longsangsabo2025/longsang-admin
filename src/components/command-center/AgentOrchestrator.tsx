@@ -38,14 +38,14 @@ import {
 import { cn } from '@/lib/utils';
 
 // Agent Types
-export type AgentType = 
-  | 'dev' 
-  | 'content' 
-  | 'marketing' 
-  | 'sales' 
-  | 'analytics' 
-  | 'design' 
-  | 'security' 
+export type AgentType =
+  | 'dev'
+  | 'content'
+  | 'marketing'
+  | 'sales'
+  | 'analytics'
+  | 'design'
+  | 'security'
   | 'advisor';
 
 export interface Agent {
@@ -179,7 +179,12 @@ const defaultAgents: Agent[] = [
     icon: <Shield className="h-5 w-5" />,
     status: 'active',
     enabled: true,
-    capabilities: ['Vulnerability scan', 'Dependency audit', 'Security monitoring', 'Incident response'],
+    capabilities: [
+      'Vulnerability scan',
+      'Dependency audit',
+      'Security monitoring',
+      'Incident response',
+    ],
     completedToday: 3,
     successRate: 100,
     lastActive: new Date(),
@@ -192,7 +197,12 @@ const defaultAgents: Agent[] = [
     icon: <Brain className="h-5 w-5" />,
     status: 'idle',
     enabled: true,
-    capabilities: ['Market analysis', 'Strategy suggestions', 'Risk assessment', 'Competitor tracking'],
+    capabilities: [
+      'Market analysis',
+      'Strategy suggestions',
+      'Risk assessment',
+      'Competitor tracking',
+    ],
     completedToday: 2,
     successRate: 90,
     lastActive: new Date(Date.now() - 7200000),
@@ -244,16 +254,20 @@ export function AgentOrchestrator() {
   const [userMessage, setUserMessage] = useState('');
 
   // Calculate stats
-  const activeAgents = agents.filter(a => a.status === 'active' && a.enabled).length;
+  const activeAgents = agents.filter((a) => a.status === 'active' && a.enabled).length;
   const totalCompleted = agents.reduce((sum, a) => sum + a.completedToday, 0);
-  const avgSuccessRate = Math.round(agents.reduce((sum, a) => sum + a.successRate, 0) / agents.length);
-  const pendingTasks = tasks.filter(t => t.status === 'pending' || t.status === 'running').length;
+  const avgSuccessRate = Math.round(
+    agents.reduce((sum, a) => sum + a.successRate, 0) / agents.length
+  );
+  const pendingTasks = tasks.filter((t) => t.status === 'pending' || t.status === 'running').length;
 
   // Toggle agent enabled
   const toggleAgent = (agentId: AgentType) => {
-    setAgents(prev => prev.map(a => 
-      a.id === agentId ? { ...a, enabled: !a.enabled, status: a.enabled ? 'paused' : 'idle' } : a
-    ));
+    setAgents((prev) =>
+      prev.map((a) =>
+        a.id === agentId ? { ...a, enabled: !a.enabled, status: a.enabled ? 'paused' : 'idle' } : a
+      )
+    );
   };
 
   // Send message to agent
@@ -269,7 +283,7 @@ export function AgentOrchestrator() {
       type: 'request',
     };
 
-    setMessages(prev => [...prev, newMessage]);
+    setMessages((prev) => [...prev, newMessage]);
     setUserMessage('');
 
     // Simulate agent response
@@ -282,7 +296,7 @@ export function AgentOrchestrator() {
         timestamp: new Date(),
         type: 'response',
       };
-      setMessages(prev => [...prev, response]);
+      setMessages((prev) => [...prev, response]);
     }, 1000);
   };
 
@@ -298,7 +312,7 @@ export function AgentOrchestrator() {
       priority: 'medium',
       createdAt: new Date(),
     };
-    setTasks(prev => [...prev, newTask]);
+    setTasks((prev) => [...prev, newTask]);
   };
 
   return (
@@ -310,9 +324,7 @@ export function AgentOrchestrator() {
             <Zap className="h-6 w-6 text-primary" />
             Agent Orchestrator
           </h1>
-          <p className="text-muted-foreground">
-            Quản lý và điều phối tất cả AI Agents
-          </p>
+          <p className="text-muted-foreground">Quản lý và điều phối tất cả AI Agents</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
@@ -333,7 +345,9 @@ export function AgentOrchestrator() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Active Agents</p>
-                <p className="text-2xl font-bold">{activeAgents}/{agents.length}</p>
+                <p className="text-2xl font-bold">
+                  {activeAgents}/{agents.length}
+                </p>
               </div>
               <Activity className="h-8 w-8 text-green-500/50" />
             </div>
@@ -389,9 +403,9 @@ export function AgentOrchestrator() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 {agents.map((agent) => (
-                  <AgentCard 
-                    key={agent.id} 
-                    agent={agent} 
+                  <AgentCard
+                    key={agent.id}
+                    agent={agent}
                     isSelected={selectedAgent?.id === agent.id}
                     onSelect={() => setSelectedAgent(agent)}
                     onToggle={() => toggleAgent(agent.id)}
@@ -418,22 +432,33 @@ export function AgentOrchestrator() {
               {/* Messages */}
               <ScrollArea className="flex-1 mb-4">
                 <div className="space-y-3">
-                  {messages.filter(m => !selectedAgent || m.from === selectedAgent.id || m.to === selectedAgent.id || m.to === 'all').map((msg) => (
-                    <div 
-                      key={msg.id}
-                      className={cn(
-                        "p-3 rounded-lg max-w-[90%]",
-                        msg.from === 'user' 
-                          ? "bg-primary text-primary-foreground ml-auto" 
-                          : "bg-muted"
-                      )}
-                    >
-                      <p className="text-sm">{msg.content}</p>
-                      <p className="text-xs opacity-70 mt-1">
-                        {msg.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  ))}
+                  {messages
+                    .filter(
+                      (m) =>
+                        !selectedAgent ||
+                        m.from === selectedAgent.id ||
+                        m.to === selectedAgent.id ||
+                        m.to === 'all'
+                    )
+                    .map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={cn(
+                          'p-3 rounded-lg max-w-[90%]',
+                          msg.from === 'user'
+                            ? 'bg-primary text-primary-foreground ml-auto'
+                            : 'bg-muted'
+                        )}
+                      >
+                        <p className="text-sm">{msg.content}</p>
+                        <p className="text-xs opacity-70 mt-1">
+                          {msg.timestamp.toLocaleTimeString('vi-VN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                    ))}
                   {messages.length === 0 && (
                     <div className="text-center text-muted-foreground py-8">
                       <Brain className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -446,8 +471,12 @@ export function AgentOrchestrator() {
 
               {/* Input */}
               <div className="flex gap-2">
-                <Textarea 
-                  placeholder={selectedAgent ? `Gửi lệnh cho ${selectedAgent.name}...` : "Gửi lệnh cho tất cả agents..."}
+                <Textarea
+                  placeholder={
+                    selectedAgent
+                      ? `Gửi lệnh cho ${selectedAgent.name}...`
+                      : 'Gửi lệnh cho tất cả agents...'
+                  }
                   value={userMessage}
                   onChange={(e) => setUserMessage(e.target.value)}
                   className="min-h-[60px] resize-none"
@@ -486,13 +515,13 @@ export function AgentOrchestrator() {
 }
 
 // Sub-components
-function AgentCard({ 
-  agent, 
-  isSelected, 
-  onSelect, 
-  onToggle 
-}: { 
-  agent: Agent; 
+function AgentCard({
+  agent,
+  isSelected,
+  onSelect,
+  onToggle,
+}: {
+  agent: Agent;
   isSelected: boolean;
   onSelect: () => void;
   onToggle: () => void;
@@ -505,11 +534,11 @@ function AgentCard({
   };
 
   return (
-    <Card 
+    <Card
       className={cn(
-        "cursor-pointer transition-all hover:shadow-md",
-        isSelected && "ring-2 ring-primary",
-        !agent.enabled && "opacity-50"
+        'cursor-pointer transition-all hover:shadow-md',
+        isSelected && 'ring-2 ring-primary',
+        !agent.enabled && 'opacity-50'
       )}
       onClick={onSelect}
     >
@@ -520,18 +549,20 @@ function AgentCard({
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                 {agent.icon}
               </div>
-              <div className={cn(
-                "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
-                statusColors[agent.status]
-              )} />
+              <div
+                className={cn(
+                  'absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background',
+                  statusColors[agent.status]
+                )}
+              />
             </div>
             <div>
               <h4 className="font-medium">{agent.name}</h4>
               <p className="text-xs text-muted-foreground">{agent.currentTask || agent.status}</p>
             </div>
           </div>
-          <Switch 
-            checked={agent.enabled} 
+          <Switch
+            checked={agent.enabled}
             onCheckedChange={(e) => {
               e.stopPropagation();
               onToggle();
@@ -546,7 +577,7 @@ function AgentCard({
             <span className="font-medium">{agent.successRate}%</span>
           </div>
           <Progress value={agent.successRate} className="h-1" />
-          
+
           <div className="flex justify-between text-xs text-muted-foreground pt-2">
             <span>{agent.completedToday} completed today</span>
             <span>{agent.config.autoMode ? '🤖 Auto' : '👤 Manual'}</span>
@@ -558,8 +589,8 @@ function AgentCard({
 }
 
 function TaskCard({ task, agents }: { task: AgentTask; agents: Agent[] }) {
-  const agent = agents.find(a => a.id === task.agentId);
-  
+  const agent = agents.find((a) => a.id === task.agentId);
+
   const statusIcons = {
     pending: <Clock className="h-4 w-4 text-yellow-500" />,
     running: <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />,
@@ -582,11 +613,13 @@ function TaskCard({ task, agents }: { task: AgentTask; agents: Agent[] }) {
         </div>
         <div>
           <h4 className="font-medium text-sm">{task.title}</h4>
-          <p className="text-xs text-muted-foreground">{agent?.name} • {task.type}</p>
+          <p className="text-xs text-muted-foreground">
+            {agent?.name} • {task.type}
+          </p>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Badge variant="outline" className={cn("text-xs", priorityColors[task.priority])}>
+        <Badge variant="outline" className={cn('text-xs', priorityColors[task.priority])}>
           {task.priority}
         </Badge>
         {task.status === 'completed' && task.result && (

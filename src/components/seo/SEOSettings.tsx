@@ -1,31 +1,31 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { Settings, Save, Key, Globe } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { Settings, Save, Key, Globe } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 export function SEOSettings() {
   const { toast } = useToast();
   const [settings, setSettings] = useState({
     googleApiEnabled: true,
-    googleServiceAccount: "",
+    googleServiceAccount: '',
     bingApiEnabled: false,
-    bingApiKey: "",
+    bingApiKey: '',
     autoSubmitNewContent: true,
     dailyQuotaLimit: 200,
     retryFailedAfterHours: 24,
     sitemapAutoUpdate: true,
-    searchConsoleWebhook: ""
+    searchConsoleWebhook: '',
   });
 
   const handleSave = () => {
     toast({
-      title: "✅ Đã lưu",
-      description: "Cài đặt SEO đã được cập nhật thành công"
+      title: '✅ Đã lưu',
+      description: 'Cài đặt SEO đã được cập nhật thành công',
     });
   };
 
@@ -38,9 +38,7 @@ export function SEOSettings() {
             <Globe className="w-5 h-5" />
             Google Indexing API
           </CardTitle>
-          <CardDescription>
-            Cấu hình Google Indexing API để tự động submit URLs
-          </CardDescription>
+          <CardDescription>Cấu hình Google Indexing API để tự động submit URLs</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -52,25 +50,19 @@ export function SEOSettings() {
             </div>
             <Switch
               checked={settings.googleApiEnabled}
-              onCheckedChange={(checked) => 
-                setSettings({...settings, googleApiEnabled: checked})
-              }
+              onCheckedChange={(checked) => setSettings({ ...settings, googleApiEnabled: checked })}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="googleServiceAccount">
-              Google Service Account JSON
-            </Label>
+            <Label htmlFor="googleServiceAccount">Google Service Account JSON</Label>
             <Textarea
               id="googleServiceAccount"
               placeholder='{"type": "service_account", "project_id": "...", ...}'
               className="font-mono text-xs"
               rows={6}
               value={settings.googleServiceAccount}
-              onChange={(e) => 
-                setSettings({...settings, googleServiceAccount: e.target.value})
-              }
+              onChange={(e) => setSettings({ ...settings, googleServiceAccount: e.target.value })}
             />
             <p className="text-xs text-muted-foreground">
               Paste toàn bộ nội dung file JSON từ Google Cloud Console
@@ -83,8 +75,8 @@ export function SEOSettings() {
               id="dailyQuota"
               type="number"
               value={settings.dailyQuotaLimit}
-              onChange={(e) => 
-                setSettings({...settings, dailyQuotaLimit: parseInt(e.target.value)})
+              onChange={(e) =>
+                setSettings({ ...settings, dailyQuotaLimit: parseInt(e.target.value) })
               }
             />
             <p className="text-xs text-muted-foreground">
@@ -101,9 +93,7 @@ export function SEOSettings() {
             <Globe className="w-5 h-5" />
             Bing Webmaster Tools
           </CardTitle>
-          <CardDescription>
-            Cấu hình Bing Webmaster API
-          </CardDescription>
+          <CardDescription>Cấu hình Bing Webmaster API</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -115,9 +105,7 @@ export function SEOSettings() {
             </div>
             <Switch
               checked={settings.bingApiEnabled}
-              onCheckedChange={(checked) => 
-                setSettings({...settings, bingApiEnabled: checked})
-              }
+              onCheckedChange={(checked) => setSettings({ ...settings, bingApiEnabled: checked })}
             />
           </div>
 
@@ -128,9 +116,7 @@ export function SEOSettings() {
               type="password"
               placeholder="Nhập Bing Webmaster API key"
               value={settings.bingApiKey}
-              onChange={(e) => 
-                setSettings({...settings, bingApiKey: e.target.value})
-              }
+              onChange={(e) => setSettings({ ...settings, bingApiKey: e.target.value })}
             />
           </div>
         </CardContent>
@@ -143,9 +129,7 @@ export function SEOSettings() {
             <Settings className="w-5 h-5" />
             Tự Động Hóa
           </CardTitle>
-          <CardDescription>
-            Cấu hình các tính năng tự động
-          </CardDescription>
+          <CardDescription>Cấu hình các tính năng tự động</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -157,8 +141,8 @@ export function SEOSettings() {
             </div>
             <Switch
               checked={settings.autoSubmitNewContent}
-              onCheckedChange={(checked) => 
-                setSettings({...settings, autoSubmitNewContent: checked})
+              onCheckedChange={(checked) =>
+                setSettings({ ...settings, autoSubmitNewContent: checked })
               }
             />
           </div>
@@ -172,8 +156,8 @@ export function SEOSettings() {
             </div>
             <Switch
               checked={settings.sitemapAutoUpdate}
-              onCheckedChange={(checked) => 
-                setSettings({...settings, sitemapAutoUpdate: checked})
+              onCheckedChange={(checked) =>
+                setSettings({ ...settings, sitemapAutoUpdate: checked })
               }
             />
           </div>
@@ -184,8 +168,8 @@ export function SEOSettings() {
               id="retryHours"
               type="number"
               value={settings.retryFailedAfterHours}
-              onChange={(e) => 
-                setSettings({...settings, retryFailedAfterHours: parseInt(e.target.value)})
+              onChange={(e) =>
+                setSettings({ ...settings, retryFailedAfterHours: parseInt(e.target.value) })
               }
             />
           </div>
@@ -196,9 +180,7 @@ export function SEOSettings() {
               id="webhook"
               placeholder="https://your-domain.com/api/seo-webhook"
               value={settings.searchConsoleWebhook}
-              onChange={(e) => 
-                setSettings({...settings, searchConsoleWebhook: e.target.value})
-              }
+              onChange={(e) => setSettings({ ...settings, searchConsoleWebhook: e.target.value })}
             />
             <p className="text-xs text-muted-foreground">
               URL nhận thông báo khi có thay đổi từ Search Console

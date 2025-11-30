@@ -1,12 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { 
-  Search,
-  TrendingUp,
-  Target,
-  FileText,
-  ExternalLink
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Search, TrendingUp, Target, FileText, ExternalLink } from 'lucide-react';
 
 interface ProjectSEOTabProps {
   projectId: string;
@@ -35,9 +29,7 @@ export function ProjectSEOTab({ projectId }: ProjectSEOTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-sm mb-4">
-              Quản lý keywords mục tiêu cho SEO
-            </p>
+            <p className="text-muted-foreground text-sm mb-4">Quản lý keywords mục tiêu cho SEO</p>
             <Button variant="outline" className="w-full">
               <Search className="h-4 w-4 mr-2" />
               Quản lý Keywords
@@ -71,9 +63,7 @@ export function ProjectSEOTab({ projectId }: ProjectSEOTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-sm mb-4">
-              Theo dõi thứ hạng và traffic
-            </p>
+            <p className="text-muted-foreground text-sm mb-4">Theo dõi thứ hạng và traffic</p>
             <Button variant="outline" className="w-full">
               <TrendingUp className="h-4 w-4 mr-2" />
               Xem Báo Cáo
@@ -89,9 +79,7 @@ export function ProjectSEOTab({ projectId }: ProjectSEOTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-sm mb-4">
-              Quản lý và theo dõi backlinks
-            </p>
+            <p className="text-muted-foreground text-sm mb-4">Quản lý và theo dõi backlinks</p>
             <Button variant="outline" className="w-full">
               <ExternalLink className="h-4 w-4 mr-2" />
               Xem Backlinks

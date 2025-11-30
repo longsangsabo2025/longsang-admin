@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Plus, Key, Database, Mail, CreditCard, Globe, Cloud, Shield } from 'lucide-react';
 
@@ -59,12 +65,12 @@ const AddCredentialForm = ({ onSave, onCancel, editingCredential }: AddCredentia
     payment: CreditCard,
     social: Globe,
     cloud: Cloud,
-    other: Shield
+    other: Shield,
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.platform) {
       toast.error('❌ Name and Platform are required');
       return;
@@ -75,7 +81,7 @@ const AddCredentialForm = ({ onSave, onCancel, editingCredential }: AddCredentia
   };
 
   const updateFormData = (field: keyof CredentialFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -121,7 +127,10 @@ const AddCredentialForm = ({ onSave, onCancel, editingCredential }: AddCredentia
 
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select value={formData.category} onValueChange={(value) => updateFormData('category', value)}>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => updateFormData('category', value)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

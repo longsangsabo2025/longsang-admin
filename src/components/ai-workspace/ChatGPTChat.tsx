@@ -304,7 +304,7 @@ export function ChatGPTChat({
           <Badge variant="outline" className="h-7 text-xs font-normal hidden sm:flex">
             {settings.model === 'auto' ? '🤖 Auto' : settings.model}
           </Badge>
-          
+
           {messages.length > 0 && (
             <Button variant="ghost" size="sm" onClick={handleNewChat} className="h-8 gap-1.5">
               <Trash2 className="w-3.5 h-3.5" />
@@ -315,10 +315,10 @@ export function ChatGPTChat({
             <Plus className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Mới</span>
           </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setSettingsOpen(true)} 
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSettingsOpen(true)}
             className="h-8 w-8 p-0"
             title="Cài đặt AI"
           >
@@ -336,86 +336,88 @@ export function ChatGPTChat({
           {messages.length === 0 ? (
             /* Welcome Screen */
             <div className="flex flex-col items-center justify-center h-full py-8 px-4">
-            <div
-              className={cn(
-                'w-14 h-14 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br shadow-lg',
-                activeAssistantInfo?.gradient || 'from-primary to-primary/60'
-              )}
-            >
-              {activeAssistantInfo ? (
-                <activeAssistantInfo.icon className="w-7 h-7 text-white" />
-              ) : (
-                <Sparkles className="w-7 h-7 text-white" />
-              )}
-            </div>
-            <h2 className="text-xl font-semibold mb-1">{activeAssistantInfo?.name}</h2>
-            <p className="text-sm text-muted-foreground mb-6">{activeAssistantInfo?.description}</p>
+              <div
+                className={cn(
+                  'w-14 h-14 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br shadow-lg',
+                  activeAssistantInfo?.gradient || 'from-primary to-primary/60'
+                )}
+              >
+                {activeAssistantInfo ? (
+                  <activeAssistantInfo.icon className="w-7 h-7 text-white" />
+                ) : (
+                  <Sparkles className="w-7 h-7 text-white" />
+                )}
+              </div>
+              <h2 className="text-xl font-semibold mb-1">{activeAssistantInfo?.name}</h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                {activeAssistantInfo?.description}
+              </p>
 
-            {/* Quick Prompts Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-md">
-              {quickPrompts.map((prompt, i) => (
-                <Button
-                  key={i}
-                  variant="outline"
-                  size="sm"
-                  className="h-auto py-2.5 px-3 justify-start text-left"
-                  onClick={() => handleQuickPrompt(prompt.text)}
-                >
-                  <span className="mr-2 text-base">{prompt.icon}</span>
-                  <span className="text-xs leading-tight">{prompt.text}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          /* Messages List */
-          <div className="divide-y">
-            {messages.map((message, index) => (
-              <ChatMessage
-                key={message.id}
-                role={message.role}
-                content={message.content}
-                isStreaming={message.isStreaming}
-                assistantName={activeAssistantInfo?.name}
-                assistantColor={activeAssistantInfo?.color}
-                onRegenerate={reload}
-                showRegenerate={
-                  message.role === 'assistant' && index === messages.length - 1 && !isLoading
-                }
-              />
-            ))}
-
-            {/* Thinking indicator */}
-            {isThinking && (
-              <div className="py-4 px-4 md:px-6 bg-muted/30">
-                <div className="max-w-3xl mx-auto flex gap-3">
-                  <div
-                    className={cn(
-                      'w-7 h-7 rounded-md flex items-center justify-center bg-gradient-to-br shrink-0',
-                      activeAssistantInfo?.gradient || 'from-primary to-primary/60'
-                    )}
+              {/* Quick Prompts Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-md">
+                {quickPrompts.map((prompt, i) => (
+                  <Button
+                    key={i}
+                    variant="outline"
+                    size="sm"
+                    className="h-auto py-2.5 px-3 justify-start text-left"
+                    onClick={() => handleQuickPrompt(prompt.text)}
                   >
-                    <Loader2 className="w-4 h-4 text-white animate-spin" />
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    Đang suy nghĩ...
-                  </div>
-                </div>
+                    <span className="mr-2 text-base">{prompt.icon}</span>
+                    <span className="text-xs leading-tight">{prompt.text}</span>
+                  </Button>
+                ))}
               </div>
-            )}
+            </div>
+          ) : (
+            /* Messages List */
+            <div className="divide-y">
+              {messages.map((message, index) => (
+                <ChatMessage
+                  key={message.id}
+                  role={message.role}
+                  content={message.content}
+                  isStreaming={message.isStreaming}
+                  assistantName={activeAssistantInfo?.name}
+                  assistantColor={activeAssistantInfo?.color}
+                  onRegenerate={reload}
+                  showRegenerate={
+                    message.role === 'assistant' && index === messages.length - 1 && !isLoading
+                  }
+                />
+              ))}
 
-            {/* Error */}
-            {error && (
-              <div className="py-4 px-4 md:px-6">
-                <div className="max-w-3xl mx-auto">
-                  <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive">
-                    ❌ {error.message || 'Đã xảy ra lỗi'}
+              {/* Thinking indicator */}
+              {isThinking && (
+                <div className="py-4 px-4 md:px-6 bg-muted/30">
+                  <div className="max-w-3xl mx-auto flex gap-3">
+                    <div
+                      className={cn(
+                        'w-7 h-7 rounded-md flex items-center justify-center bg-gradient-to-br shrink-0',
+                        activeAssistantInfo?.gradient || 'from-primary to-primary/60'
+                      )}
+                    >
+                      <Loader2 className="w-4 h-4 text-white animate-spin" />
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      Đang suy nghĩ...
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+
+              {/* Error */}
+              {error && (
+                <div className="py-4 px-4 md:px-6">
+                  <div className="max-w-3xl mx-auto">
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+                      ❌ {error.message || 'Đã xảy ra lỗi'}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </ScrollArea>
       </div>
 

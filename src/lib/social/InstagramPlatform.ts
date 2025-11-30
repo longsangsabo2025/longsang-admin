@@ -13,14 +13,14 @@ import {
   PlatformSettings,
   SocialPostRequest,
   SocialPostResponse,
-} from "@/types/social-media";
-import { BaseSocialPlatform } from "./BaseSocialPlatform";
+} from '@/types/social-media';
+import { BaseSocialPlatform } from './BaseSocialPlatform';
 
 export class InstagramPlatform extends BaseSocialPlatform {
-  private readonly API_BASE = "https://graph.facebook.com/v18.0";
+  private readonly API_BASE = 'https://graph.facebook.com/v18.0';
 
   constructor(credentials: PlatformCredentials, settings?: PlatformSettings) {
-    super("instagram", credentials, settings);
+    super('instagram', credentials, settings);
   }
 
   async authenticate(): Promise<boolean> {
@@ -48,12 +48,12 @@ export class InstagramPlatform extends BaseSocialPlatform {
       this.validatePost(request);
 
       if (!this.credentials.businessAccountId) {
-        throw new Error("Instagram Business Account ID not configured");
+        throw new Error('Instagram Business Account ID not configured');
       }
 
       // Instagram requires media for posts
       if (!request.media || request.media.length === 0) {
-        throw new Error("Instagram posts require at least one image or video");
+        throw new Error('Instagram posts require at least one image or video');
       }
 
       const media = request.media[0];
@@ -63,20 +63,20 @@ export class InstagramPlatform extends BaseSocialPlatform {
 
       if (this.settings.autoHashtags && request.hashtags && request.hashtags.length > 0) {
         const hashtags = this.formatHashtags(request.hashtags).slice(0, 30); // Instagram limit
-        caption = `${caption}\n\n${hashtags.join(" ")}`;
+        caption = `${caption}\n\n${hashtags.join(' ')}`;
       }
 
       // Step 1: Create media container
       const containerPayload: Record<string, string> = {
-        access_token: this.credentials.accessToken || "",
+        access_token: this.credentials.accessToken || '',
         caption: caption,
       };
 
-      if (media.type === "image") {
+      if (media.type === 'image') {
         containerPayload.image_url = media.url;
-      } else if (media.type === "video") {
+      } else if (media.type === 'video') {
         containerPayload.video_url = media.url;
-        containerPayload.media_type = "VIDEO";
+        containerPayload.media_type = 'VIDEO';
       }
 
       // Add location if provided
@@ -92,9 +92,9 @@ export class InstagramPlatform extends BaseSocialPlatform {
       const containerResponse = await fetch(
         `${this.API_BASE}/${this.credentials.businessAccountId}/media`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify(containerPayload),
         }
@@ -103,7 +103,7 @@ export class InstagramPlatform extends BaseSocialPlatform {
       if (!containerResponse.ok) {
         const error = await containerResponse.json();
         throw new Error(
-          `Instagram API error: ${error.error?.message || "Failed to create media container"}`
+          `Instagram API error: ${error.error?.message || 'Failed to create media container'}`
         );
       }
 
@@ -114,9 +114,9 @@ export class InstagramPlatform extends BaseSocialPlatform {
       const publishResponse = await fetch(
         `${this.API_BASE}/${this.credentials.businessAccountId}/media_publish`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             creation_id: containerId,
@@ -127,27 +127,27 @@ export class InstagramPlatform extends BaseSocialPlatform {
 
       if (!publishResponse.ok) {
         const error = await publishResponse.json();
-        throw new Error(`Instagram API error: ${error.error?.message || "Failed to publish"}`);
+        throw new Error(`Instagram API error: ${error.error?.message || 'Failed to publish'}`);
       }
 
       const publishData = (await publishResponse.json()) as { id: string };
 
       return {
-        platform: "instagram",
+        platform: 'instagram',
         success: true,
         postId: publishData.id,
         postUrl: `https://www.instagram.com/p/${publishData.id}`,
-        status: "published",
+        status: 'published',
         publishedAt: new Date(),
       };
     } catch (error) {
       return {
-        platform: "instagram",
+        platform: 'instagram',
         success: false,
-        status: "failed",
+        status: 'failed',
         error: {
-          code: "POST_FAILED",
-          message: error instanceof Error ? error.message : "Unknown error",
+          code: 'POST_FAILED',
+          message: error instanceof Error ? error.message : 'Unknown error',
           details: error,
         },
       };
@@ -183,18 +183,18 @@ export class InstagramPlatform extends BaseSocialPlatform {
           };
         }
       } catch (error) {
-        console.error("Failed to get Instagram account info:", error);
+        console.error('Failed to get Instagram account info:', error);
       }
     }
 
     return {
-      platform: "instagram",
+      platform: 'instagram',
       connected: isHealthy,
       accountInfo,
       health: {
-        status: isHealthy ? "healthy" : "error",
+        status: isHealthy ? 'healthy' : 'error',
         lastChecked: new Date(),
-        message: isHealthy ? "Connected" : "Authentication failed",
+        message: isHealthy ? 'Connected' : 'Authentication failed',
       },
       credentials: this.credentials,
       settings: this.settings,
@@ -203,7 +203,7 @@ export class InstagramPlatform extends BaseSocialPlatform {
 
   getCapabilities(): PlatformCapabilities {
     return {
-      platform: "instagram",
+      platform: 'instagram',
       features: {
         textPosts: false, // Instagram requires media
         imagePosts: true,

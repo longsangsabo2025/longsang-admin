@@ -3,7 +3,7 @@ import { googleDriveService } from '@/lib/google-drive/service';
 export interface DriveFile {
   id: string;
   name: string;
-  type: "folder" | "file";
+  type: 'folder' | 'file';
   mimeType: string;
   size?: string;
   modifiedTime: string;
@@ -11,17 +11,18 @@ export interface DriveFile {
   starred?: boolean;
   thumbnailLink?: string;
   webViewLink?: string;
-  fileType?: "image" | "document" | "video" | "audio" | "other";
+  fileType?: 'image' | 'document' | 'video' | 'audio' | 'other';
 }
 
 // Transform Google Drive file to our interface
 export const transformDriveFile = (driveFile: any): DriveFile => {
   const isFolder = driveFile.mimeType === 'application/vnd.google-apps.folder';
-  
+
   let fileType: DriveFile['fileType'] = 'other';
   if (!isFolder) {
     if (driveFile.mimeType?.startsWith('image/')) fileType = 'image';
-    else if (driveFile.mimeType?.includes('document') || driveFile.mimeType?.includes('text')) fileType = 'document';
+    else if (driveFile.mimeType?.includes('document') || driveFile.mimeType?.includes('text'))
+      fileType = 'document';
     else if (driveFile.mimeType?.startsWith('video/')) fileType = 'video';
     else if (driveFile.mimeType?.startsWith('audio/')) fileType = 'audio';
   }
@@ -37,18 +38,18 @@ export const transformDriveFile = (driveFile: any): DriveFile => {
     starred: driveFile.starred,
     thumbnailLink: driveFile.thumbnailLink,
     webViewLink: driveFile.webViewLink,
-    fileType
+    fileType,
   };
 };
 
 // Format file size
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';
-  
+
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
 
@@ -57,15 +58,15 @@ const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
-  
+
   const minutes = Math.floor(diff / (1000 * 60));
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  
+
   if (minutes < 60) return `${minutes} minutes ago`;
   if (hours < 24) return `${hours} hours ago`;
   if (days < 7) return `${days} days ago`;
-  
+
   return date.toLocaleDateString();
 };
 
@@ -101,7 +102,7 @@ export const useDriveOperations = () => {
   const downloadFile = async (fileId: string, fileName: string) => {
     try {
       const blob = await googleDriveService.downloadFile(fileId);
-      
+
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -164,6 +165,6 @@ export const useDriveOperations = () => {
     toggleStar,
     searchFiles,
     listFiles,
-    isAvailable: googleDriveService.isAvailable()
+    isAvailable: googleDriveService.isAvailable(),
   };
 };
