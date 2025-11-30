@@ -322,10 +322,14 @@ export function AICostDashboard() {
 
       {/* Budget Alert */}
       {isWarning && (
-        <Card className={isOverBudget ? 'border-red-500 bg-red-50' : 'border-yellow-500 bg-yellow-50'}>
+        <Card
+          className={isOverBudget ? 'border-red-500 bg-red-50' : 'border-yellow-500 bg-yellow-50'}
+        >
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <AlertTriangle className={`h-5 w-5 ${isOverBudget ? 'text-red-500' : 'text-yellow-500'}`} />
+              <AlertTriangle
+                className={`h-5 w-5 ${isOverBudget ? 'text-red-500' : 'text-yellow-500'}`}
+              />
               <div>
                 <p className={`font-medium ${isOverBudget ? 'text-red-700' : 'text-yellow-700'}`}>
                   {isOverBudget ? '🚨 Budget Exceeded!' : '⚠️ Approaching Budget Limit'}

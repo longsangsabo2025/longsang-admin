@@ -44,11 +44,10 @@ interface FileMetadata {
 }
 
 class GoogleDriveService {
-   
   private drive: any = null;
-   
+
   private docs: any = null;
-   
+
   private auth: any = null;
 
   constructor() {

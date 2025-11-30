@@ -41,7 +41,7 @@ import {
 
 // Type-safe Supabase client for project_social_links
 // Note: Types will be updated after regenerating Supabase types
- 
+
 const socialLinksTable = () => supabase.from('project_social_links') as any;
 
 interface SocialLink {
@@ -254,7 +254,6 @@ export function ProjectSocialTab({ projectId, projectName }: Readonly<ProjectSoc
   useEffect(() => {
     fetchSocialLinks();
     fetchCredentials();
-     
   }, [projectId]);
 
   const fetchCredentials = async () => {

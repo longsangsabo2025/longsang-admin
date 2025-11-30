@@ -130,12 +130,20 @@ export default function VisualWorkspace() {
           };
 
           processEvent(plan);
-          processEvent({ type: 'step_start', stepId: 'layer-1' });
 
-          // CALL REAL SOLO HUB API
-          const response = await fetch(`${API_BASE}/api/solo-hub/chat-smart`, {
+          // 🚀 REAL SSE STREAMING - 4-layer architecture
+          // Use stream-test for fast testing, stream for real AI
+          const USE_FAST_TEST = true; // Toggle for production
+          const streamEndpoint = USE_FAST_TEST
+            ? `${API_BASE}/api/solo-hub/chat-smart/stream-test`
+            : `${API_BASE}/api/solo-hub/chat-smart/stream`;
+
+          const response = await fetch(streamEndpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'text/event-stream',
+            },
             body: JSON.stringify({
               message,
               agentRole: 'content',
@@ -148,65 +156,80 @@ export default function VisualWorkspace() {
             throw new Error(`API Error: ${response.status}`);
           }
 
-          const result = await response.json();
+          // Process SSE stream
+          const reader = response.body?.getReader();
+          const decoder = new TextDecoder();
+          let finalResult: any = null;
 
-          // Update execution steps based on actual API response
-          if (result.success) {
-            // Layer 1 complete
-            processEvent({ type: 'step_complete', stepId: 'layer-1' });
-            processEvent({ type: 'step_start', stepId: 'layer-2' });
+          if (reader) {
+            let buffer = '';
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
 
-            // Check which layers were used
-            const layersUsed = result.metadata?.layersUsed || [];
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
-            // Simulate layer progression based on actual response
-            await new Promise((r) => setTimeout(r, 300));
-            processEvent({ type: 'step_complete', stepId: 'layer-2' });
-            processEvent({ type: 'step_start', stepId: 'layer-3' });
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6).trim();
+                  if (data === '[DONE]') continue;
 
-            await new Promise((r) => setTimeout(r, 300));
-            processEvent({ type: 'step_complete', stepId: 'layer-3' });
-            processEvent({ type: 'step_start', stepId: 'layer-4' });
+                  try {
+                    const event = JSON.parse(data);
+                    console.log('📨 SSE Event:', event.type, event);
 
-            await new Promise((r) => setTimeout(r, 200));
-            processEvent({ type: 'step_complete', stepId: 'layer-4' });
+                    // Forward event to execution steps
+                    processEvent(event);
 
-            // Parse for visual components if applicable
-            const parsed = await parseAICommand(message);
-            const newNodes: Node[] = [];
-            for (const component of parsed.components) {
-              const x = newNodes.length * 250 + 50;
-              const y = Math.floor(newNodes.length / 3) * 200 + 50;
-              const node = addNode(component, { x, y });
-              newNodes.push(node);
+                    if (event.type === 'complete') {
+                      finalResult = event;
+                    }
+                  } catch (e) {
+                    console.warn('Failed to parse SSE event:', data);
+                  }
+                }
+              }
             }
-
-            const totalDuration = Date.now() - startTimeRef.current;
-
-            // Save to execution history (now goes to Supabase!)
-            addExecution({
-              command: message,
-              steps: steps,
-              duration: totalDuration,
-              status: 'completed',
-              layers_used: layersUsed,
-              metadata: {
-                apiResponse: result.type,
-                agents: result.orchestration?.agents,
-                totalTime: result.metadata?.totalTime,
-              },
-            });
-
-            processEvent({ type: 'complete' });
-
-            toast({
-              title: '✅ Hoàn thành',
-              description:
-                result.message?.substring(0, 100) || `Đã xử lý với ${layersUsed.length} layers`,
-            });
-          } else {
-            throw new Error(result.error || 'Unknown error');
           }
+
+          // Parse for visual components if applicable
+          const parsed = await parseAICommand(message);
+          const newNodes: Node[] = [];
+          for (const component of parsed.components) {
+            const x = newNodes.length * 250 + 50;
+            const y = Math.floor(newNodes.length / 3) * 200 + 50;
+            const node = addNode(component, { x, y });
+            newNodes.push(node);
+          }
+
+          const totalDuration = Date.now() - startTimeRef.current;
+
+          // Save to execution history (now goes to Supabase!)
+          addExecution({
+            command: message,
+            steps: steps,
+            duration: totalDuration,
+            status: 'completed',
+            layers_used: finalResult?.metadata?.layersUsed || [
+              'planning',
+              'orchestration',
+              'execution',
+              'learning',
+            ],
+            metadata: {
+              streaming: true,
+              apiResponse: finalResult?.type,
+              agents: finalResult?.orchestration?.agents,
+              totalTime: finalResult?.metadata?.totalTime,
+            },
+          });
+
+          toast({
+            title: '✅ Hoàn thành',
+            description: finalResult?.message?.substring(0, 100) || `Xử lý xong với 4 layers`,
+          });
 
           setIsGenerating(false);
         } else {

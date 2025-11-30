@@ -6,22 +6,9 @@
 import { useWebSocket, WSMessage } from '@/hooks/useWebSocket';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Wifi, 
-  WifiOff, 
-  Bell, 
-  Loader2,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  X,
-} from 'lucide-react';
+import { Wifi, WifiOff, Bell, Loader2, CheckCircle, AlertCircle, Info, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 interface Notification {
@@ -48,9 +35,9 @@ export function ConnectionStatus() {
         timestamp: new Date(),
         read: false,
       };
-      
-      setNotifications(prev => [newNotification, ...prev].slice(0, 50)); // Keep last 50
-      setUnreadCount(prev => prev + 1);
+
+      setNotifications((prev) => [newNotification, ...prev].slice(0, 50)); // Keep last 50
+      setUnreadCount((prev) => prev + 1);
     }
   }, []);
 
@@ -59,7 +46,7 @@ export function ConnectionStatus() {
   });
 
   const markAllRead = useCallback(() => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
   }, []);
 
@@ -69,12 +56,12 @@ export function ConnectionStatus() {
   }, []);
 
   const removeNotification = useCallback((id: string) => {
-    setNotifications(prev => {
-      const notification = prev.find(n => n.id === id);
+    setNotifications((prev) => {
+      const notification = prev.find((n) => n.id === id);
       if (notification && !notification.read) {
-        setUnreadCount(c => Math.max(0, c - 1));
+        setUnreadCount((c) => Math.max(0, c - 1));
       }
-      return prev.filter(n => n.id !== id);
+      return prev.filter((n) => n.id !== id);
     });
   }, []);
 
@@ -155,7 +142,7 @@ export function ConnectionStatus() {
               </div>
             ) : (
               <div className="divide-y">
-                {notifications.map(notification => (
+                {notifications.map((notification) => (
                   <div
                     key={notification.id}
                     className={`p-3 hover:bg-muted/50 transition-colors ${
