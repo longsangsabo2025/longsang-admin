@@ -112,7 +112,6 @@ export interface ProjectFullData extends Project {
 // HELPER: Generic Supabase query wrapper
 // ============================================================
 
- 
 const db = supabase as any;
 
 // ============================================================

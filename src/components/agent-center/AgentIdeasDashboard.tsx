@@ -483,7 +483,6 @@ const AgentIdeasDashboard = ({ onNavigateToTab, onIdeaCompleted }: AgentIdeasDas
     };
 
     try {
-       
       const { error } = await supabase.from('agent_ideas').insert([newIdea] as any);
 
       if (error) {

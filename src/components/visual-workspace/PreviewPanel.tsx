@@ -6,7 +6,16 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Code, Settings, Eye, RefreshCw, ExternalLink, Smartphone, Monitor, Tablet } from 'lucide-react';
+import {
+  Code,
+  Settings,
+  Eye,
+  RefreshCw,
+  ExternalLink,
+  Smartphone,
+  Monitor,
+  Tablet,
+} from 'lucide-react';
 import { Node } from 'reactflow';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -35,7 +44,7 @@ export function PreviewPanel({ selectedNode, className = '' }: PreviewPanelProps
             variant="ghost"
             size="icon"
             className={cn(
-              "h-7 w-7",
+              'h-7 w-7',
               viewMode === 'desktop' ? 'bg-[#2a2a2a] text-white' : 'text-gray-500 hover:text-white'
             )}
             onClick={() => setViewMode('desktop')}
@@ -46,7 +55,7 @@ export function PreviewPanel({ selectedNode, className = '' }: PreviewPanelProps
             variant="ghost"
             size="icon"
             className={cn(
-              "h-7 w-7",
+              'h-7 w-7',
               viewMode === 'tablet' ? 'bg-[#2a2a2a] text-white' : 'text-gray-500 hover:text-white'
             )}
             onClick={() => setViewMode('tablet')}
@@ -57,7 +66,7 @@ export function PreviewPanel({ selectedNode, className = '' }: PreviewPanelProps
             variant="ghost"
             size="icon"
             className={cn(
-              "h-7 w-7",
+              'h-7 w-7',
               viewMode === 'mobile' ? 'bg-[#2a2a2a] text-white' : 'text-gray-500 hover:text-white'
             )}
             onClick={() => setViewMode('mobile')}
@@ -79,21 +88,21 @@ export function PreviewPanel({ selectedNode, className = '' }: PreviewPanelProps
         {selectedNode ? (
           <Tabs defaultValue="preview" className="h-full flex flex-col">
             <TabsList className="mx-3 mt-3 bg-[#2a2a2a] border-0">
-              <TabsTrigger 
-                value="preview" 
+              <TabsTrigger
+                value="preview"
                 className="data-[state=active]:bg-[#3a3a3a] data-[state=active]:text-white text-gray-400 text-xs"
               >
                 <Eye className="h-3 w-3 mr-1.5" />
                 Preview
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="code"
                 className="data-[state=active]:bg-[#3a3a3a] data-[state=active]:text-white text-gray-400 text-xs"
               >
                 <Code className="h-3 w-3 mr-1.5" />
                 Code
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="properties"
                 className="data-[state=active]:bg-[#3a3a3a] data-[state=active]:text-white text-gray-400 text-xs"
               >
@@ -101,14 +110,16 @@ export function PreviewPanel({ selectedNode, className = '' }: PreviewPanelProps
                 Props
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="preview" className="flex-1 min-h-0 m-3">
-              <div className={cn(
-                "h-full bg-white rounded-lg mx-auto transition-all duration-300",
-                viewMode === 'desktop' && 'w-full',
-                viewMode === 'tablet' && 'max-w-[768px]',
-                viewMode === 'mobile' && 'max-w-[375px]'
-              )}>
+              <div
+                className={cn(
+                  'h-full bg-white rounded-lg mx-auto transition-all duration-300',
+                  viewMode === 'desktop' && 'w-full',
+                  viewMode === 'tablet' && 'max-w-[768px]',
+                  viewMode === 'mobile' && 'max-w-[375px]'
+                )}
+              >
                 <div className="p-4 text-center text-gray-500">
                   <div className="text-sm font-medium text-gray-800 mb-2">
                     {selectedNode.data?.label || 'Component'}
@@ -117,7 +128,7 @@ export function PreviewPanel({ selectedNode, className = '' }: PreviewPanelProps
                 </div>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="code" className="flex-1 min-h-0 m-3">
               <ScrollArea className="h-full rounded-lg bg-[#0d0d0d]">
                 <pre className="p-4 text-sm font-mono text-green-400 overflow-x-auto">
@@ -125,14 +136,16 @@ export function PreviewPanel({ selectedNode, className = '' }: PreviewPanelProps
                 </pre>
               </ScrollArea>
             </TabsContent>
-            
+
             <TabsContent value="properties" className="flex-1 min-h-0 m-3">
               <ScrollArea className="h-full">
                 <div className="space-y-3">
                   {Object.keys(componentProperties).length > 0 ? (
                     Object.entries(componentProperties).map(([key, value]) => (
                       <div key={key} className="p-3 bg-[#2a2a2a] rounded-lg">
-                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">{key}</label>
+                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+                          {key}
+                        </label>
                         <div className="mt-1 text-sm text-white font-mono">
                           {typeof value === 'object'
                             ? JSON.stringify(value, null, 2)

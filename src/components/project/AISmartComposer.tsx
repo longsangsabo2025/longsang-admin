@@ -128,7 +128,7 @@ export function AISmartComposer({
   const loadAccounts = useCallback(async () => {
     try {
       setLoading(true);
-       
+
       const { data, error } = await (supabase.from('project_social_accounts') as any)
         .select('*')
         .eq('project_id', projectId)
@@ -295,7 +295,6 @@ export function AISmartComposer({
 
       // Save successful posts to database
       if (result.success) {
-         
         await (supabase.from('project_posts') as any).insert({
           project_id: projectId,
           social_account_id: account.id,

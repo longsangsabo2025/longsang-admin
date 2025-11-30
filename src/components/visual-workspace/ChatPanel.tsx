@@ -121,22 +121,22 @@ export function ChatPanel({ onSendMessage, isGenerating = false, className = '' 
               <p className="text-gray-400 text-sm max-w-[250px]">
                 Describe what you want to build and I'll help you create it.
               </p>
-              
+
               {/* Quick Actions */}
               <div className="mt-6 space-y-2 w-full max-w-[280px]">
-                <button 
+                <button
                   onClick={() => setInput('Tạo bài post Facebook về bất động sản')}
                   className="w-full text-left px-4 py-3 bg-[#2a2a2a] hover:bg-[#333] rounded-lg text-sm text-gray-300 transition-colors"
                 >
                   📝 Tạo bài post Facebook
                 </button>
-                <button 
+                <button
                   onClick={() => setInput('Lên lịch content cả tuần')}
                   className="w-full text-left px-4 py-3 bg-[#2a2a2a] hover:bg-[#333] rounded-lg text-sm text-gray-300 transition-colors"
                 >
                   📅 Lên lịch content tuần
                 </button>
-                <button 
+                <button
                   onClick={() => setInput('Phân tích đối thủ cạnh tranh')}
                   className="w-full text-left px-4 py-3 bg-[#2a2a2a] hover:bg-[#333] rounded-lg text-sm text-gray-300 transition-colors"
                 >
@@ -154,30 +154,26 @@ export function ChatPanel({ onSendMessage, isGenerating = false, className = '' 
                     {formatTime(message.timestamp)}
                   </div>
                 )}
-                
+
                 {/* Message bubble */}
                 <div
-                  className={cn(
-                    'flex',
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  )}
+                  className={cn('flex', message.role === 'user' ? 'justify-end' : 'justify-start')}
                 >
                   <div
                     className={cn(
                       'rounded-2xl px-4 py-2.5 max-w-[85%] text-sm',
-                      message.role === 'user' 
-                        ? 'bg-purple-600 text-white rounded-br-md' 
+                      message.role === 'user'
+                        ? 'bg-purple-600 text-white rounded-br-md'
                         : 'bg-[#2a2a2a] text-gray-200 rounded-bl-md'
                     )}
                   >
-                    {message.content || (
-                      isGenerating && message.id === messages[messages.length - 1]?.id && (
+                    {message.content ||
+                      (isGenerating && message.id === messages[messages.length - 1]?.id && (
                         <div className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
                           <span className="text-gray-400">Thinking...</span>
                         </div>
-                      )
-                    )}
+                      ))}
                   </div>
                 </div>
               </div>
@@ -227,10 +223,10 @@ export function ChatPanel({ onSendMessage, isGenerating = false, className = '' 
               disabled={!input.trim() || isGenerating}
               size="icon"
               className={cn(
-                "h-9 w-9 rounded-xl shrink-0 transition-colors",
-                input.trim() 
-                  ? "bg-purple-600 hover:bg-purple-700 text-white" 
-                  : "bg-[#333] text-gray-500"
+                'h-9 w-9 rounded-xl shrink-0 transition-colors',
+                input.trim()
+                  ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                  : 'bg-[#333] text-gray-500'
               )}
             >
               {isGenerating ? (

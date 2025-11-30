@@ -10,19 +10,17 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
-import { 
-  Settings, 
-  DollarSign, 
-  Brain, 
-  Shield, 
-  Bell,
-  Save,
-  RotateCcw,
-} from 'lucide-react';
+import { Settings, DollarSign, Brain, Shield, Bell, Save, RotateCcw } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -31,18 +29,18 @@ interface AISettings {
   monthlyBudget: number;
   warningThreshold: number;
   autoDisableOnBudget: boolean;
-  
+
   // Model preferences
   defaultModel: string;
   maxTokens: number;
   temperature: number;
-  
+
   // Features
   enablePlanning: boolean;
   enableLearning: boolean;
   cacheResponses: boolean;
   cacheTTL: number;
-  
+
   // Notifications
   notifyOnError: boolean;
   notifyOnBudgetWarning: boolean;
@@ -95,7 +93,7 @@ export default function AISettingsPage() {
     try {
       // Save to localStorage
       localStorage.setItem('ai-settings', JSON.stringify(settings));
-      
+
       // Optionally sync to server
       // await fetch(`${API_BASE}/api/settings/ai`, {
       //   method: 'PUT',
@@ -128,7 +126,7 @@ export default function AISettingsPage() {
   };
 
   const updateSetting = <K extends keyof AISettings>(key: K, value: AISettings[K]) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+    setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   return (
@@ -140,9 +138,7 @@ export default function AISettingsPage() {
               <Settings className="h-8 w-8" />
               AI Settings
             </h1>
-            <p className="text-muted-foreground">
-              Configure AI behavior, budgets, and preferences
-            </p>
+            <p className="text-muted-foreground">Configure AI behavior, budgets, and preferences</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleReset} disabled={loading}>
@@ -193,7 +189,9 @@ export default function AISettingsPage() {
                       min={0}
                       step={5}
                       value={settings.monthlyBudget}
-                      onChange={(e) => updateSetting('monthlyBudget', parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        updateSetting('monthlyBudget', parseFloat(e.target.value) || 0)
+                      }
                     />
                     <p className="text-xs text-muted-foreground">
                       Maximum amount to spend on AI services per month

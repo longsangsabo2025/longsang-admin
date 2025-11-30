@@ -51,7 +51,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WSMessage | null>(null);
-  const [connectionState, setConnectionState] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  const [connectionState, setConnectionState] = useState<
+    'connecting' | 'connected' | 'disconnected' | 'error'
+  >('disconnected');
 
   // Clear all timers
   const clearTimers = useCallback(() => {
@@ -94,13 +96,15 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         setIsConnected(true);
         setConnectionState('connected');
         startHeartbeat();
-        
+
         // Send identify message
-        wsRef.current?.send(JSON.stringify({
-          type: 'identify',
-          clientId: `web_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          timestamp: new Date().toISOString(),
-        }));
+        wsRef.current?.send(
+          JSON.stringify({
+            type: 'identify',
+            clientId: `web_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: new Date().toISOString(),
+          })
+        );
 
         onOpen?.();
       };
@@ -109,7 +113,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         try {
           const message: WSMessage = JSON.parse(event.data);
           setLastMessage(message);
-          
+
           // Handle pong (heartbeat response)
           if (message.type === 'pong') {
             return;
@@ -144,7 +148,16 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
       console.error('Failed to create WebSocket:', err);
       setConnectionState('error');
     }
-  }, [autoReconnect, clearTimers, onClose, onError, onMessage, onOpen, reconnectInterval, startHeartbeat]);
+  }, [
+    autoReconnect,
+    clearTimers,
+    onClose,
+    onError,
+    onMessage,
+    onOpen,
+    reconnectInterval,
+    startHeartbeat,
+  ]);
 
   // Disconnect from WebSocket
   const disconnect = useCallback(() => {
@@ -160,10 +173,12 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
   // Send message
   const sendMessage = useCallback((message: WSMessage) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        ...message,
-        timestamp: message.timestamp || new Date().toISOString(),
-      }));
+      wsRef.current.send(
+        JSON.stringify({
+          ...message,
+          timestamp: message.timestamp || new Date().toISOString(),
+        })
+      );
     } else {
       console.warn('WebSocket not connected, cannot send message');
     }

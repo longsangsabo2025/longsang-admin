@@ -50,7 +50,6 @@ export const WorkflowDashboard = ({ agentId }: WorkflowDashboardProps) => {
 
   useEffect(() => {
     loadDashboardData();
-     
   }, []);
 
   const loadDashboardData = async () => {

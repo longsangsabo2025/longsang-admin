@@ -15,11 +15,11 @@
 import { supabase } from '@/integrations/supabase/client';
 
 // Type-safe table accessors (bypass generated types for now)
- 
+
 const aiAgentsTable = () => supabase.from('ai_agents') as any;
- 
+
 const workflowsTable = () => supabase.from('workflows') as any;
- 
+
 const workflowExecutionsTable = () => supabase.from('workflow_executions') as any;
 
 import {
@@ -930,7 +930,6 @@ export const promoteN8nWorkflow = async (
 
     // Assign to agent if provided
     if (options.agentId) {
-       
       (workflowData as any).agent_id = options.agentId;
     }
 

@@ -139,13 +139,13 @@ export function VisualCanvas({
       >
         {/* Dark grid background */}
         <Background color="#2a2a2a" gap={20} size={1} />
-        
+
         {/* Dark styled controls */}
-        <Controls 
+        <Controls
           className="!bg-[#1a1a1a] !border-[#2a2a2a] !rounded-lg !shadow-lg [&>button]:!bg-[#1a1a1a] [&>button]:!border-[#2a2a2a] [&>button]:!text-gray-400 [&>button:hover]:!bg-[#2a2a2a] [&>button:hover]:!text-white"
           position="bottom-right"
         />
-        
+
         {/* Dark styled minimap */}
         <MiniMap
           className="!bg-[#1a1a1a] !border-[#2a2a2a] !rounded-lg"
@@ -175,47 +175,50 @@ export function VisualCanvas({
           }}
           position="bottom-left"
         />
-        
+
         {/* Lovable-style floating toolbar */}
-        <Panel position="top-right" className="flex gap-1 bg-[#1a1a1a] p-1 rounded-lg border border-[#2a2a2a]">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+        <Panel
+          position="top-right"
+          className="flex gap-1 bg-[#1a1a1a] p-1 rounded-lg border border-[#2a2a2a]"
+        >
+          <Button
+            variant="ghost"
+            size="icon"
             className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
-            onClick={handleZoomIn} 
+            onClick={handleZoomIn}
             title="Zoom In"
           >
             <ZoomIn className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
-            onClick={handleZoomOut} 
+            onClick={handleZoomOut}
             title="Zoom Out"
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
           <div className="w-px h-6 bg-[#2a2a2a] self-center" />
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
-            onClick={handleFitView} 
+            onClick={handleFitView}
             title="Fit View"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
             title="Toggle Grid"
           >
             <Grid3X3 className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a]"
             title="Layers"
@@ -223,18 +226,18 @@ export function VisualCanvas({
             <Layers className="h-4 w-4" />
           </Button>
           <div className="w-px h-6 bg-[#2a2a2a] self-center" />
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-            onClick={handleReset} 
+            onClick={handleReset}
             title="Reset Canvas"
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
         </Panel>
       </ReactFlow>
-      
+
       {/* Empty state overlay when no nodes */}
       {canvasNodes.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
