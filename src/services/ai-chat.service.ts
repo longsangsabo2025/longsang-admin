@@ -24,6 +24,7 @@ export interface AgentChatRequest {
     temperature?: number;
     maxTokens?: number;
     stream?: boolean;
+    smartMode?: boolean; // Use multi-agent orchestrator for intelligent responses
   };
 }
 
@@ -46,14 +47,49 @@ export interface AgentChatResponse {
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
+ * Smart chat using multi-agent orchestrator (Advanced mode)
+ * This uses the full multi-layer architecture for intelligent content generation
+ */
+export async function chatWithSmartAgent(request: AgentChatRequest): Promise<AgentChatResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/api/solo-hub/chat-smart`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: request.message,
+        agentRole: request.agentRole,
+        conversationHistory: request.context?.previousMessages || [],
+        projectId: request.context?.currentTask?.id,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Smart Chat API error:', error);
+    // Fallback to regular chat
+    return chatWithAgent(request);
+  }
+}
+
+/**
  * Chat with an AI Agent via backend API (with action execution)
  */
 export async function chatWithAgent(request: AgentChatRequest): Promise<AgentChatResponse> {
   try {
-    // Use chat-with-actions for marketing/content agents
-    const endpoint = ['marketing', 'content', 'sales'].includes(request.agentRole)
-      ? '/api/solo-hub/chat-with-actions'
-      : '/api/solo-hub/chat';
+    // Use chat-smart for advanced mode, chat-with-actions for standard
+    const useSmartMode = request.options?.smartMode === true;
+    const endpoint = useSmartMode
+      ? '/api/solo-hub/chat-smart'
+      : ['marketing', 'content', 'sales'].includes(request.agentRole)
+        ? '/api/solo-hub/chat-with-actions'
+        : '/api/solo-hub/chat';
       
     const response = await fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',

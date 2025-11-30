@@ -8,6 +8,9 @@ const router = express.Router();
 const OpenAI = require('openai');
 const Anthropic = require('@anthropic-ai/sdk').default;
 const aiActionExecutor = require('../services/ai-action-executor');
+const multiAgentOrchestrator = require('../services/multi-agent-orchestrator');
+const copilotPlanner = require('../services/copilot-planner');
+const copilotExecutor = require('../services/copilot-executor');
 
 // Agent System Prompts
 const AGENT_SYSTEM_PROMPTS = {
@@ -456,5 +459,95 @@ router.post('/execute-action', async (req, res) => {
     });
   }
 });
+
+/**
+ * POST /api/solo-hub/chat-smart
+ * Smart chat using multi-agent orchestrator with intelligent content generation
+ * This is the ADVANCED endpoint that uses the full multi-layer architecture
+ */
+router.post('/chat-smart', async (req, res) => {
+  try {
+    const { message, agentRole, conversationHistory = [], projectId } = req.body;
+
+    if (!message) {
+      return res.status(400).json({
+        success: false,
+        error: 'message is required',
+      });
+    }
+
+    console.log(`[Smart Chat] Processing: "${message.substring(0, 50)}..."`);
+
+    // Use multi-agent orchestrator for intelligent processing
+    const result = await multiAgentOrchestrator.orchestrate(message, {
+      projectId,
+      usePlanning: true,
+      onProgress: (progress) => {
+        console.log(`[Smart Chat] Progress: ${progress.progress?.percentage || 0}%`);
+      },
+    });
+
+    if (!result.success) {
+      // Fallback to simple chat if orchestration fails
+      console.log('[Smart Chat] Orchestration failed, falling back to simple chat');
+      return res.json({
+        success: true,
+        type: 'chat',
+        message: result.error || 'Không thể xử lý yêu cầu. Vui lòng thử lại.',
+        model: 'fallback',
+      });
+    }
+
+    // Format response based on orchestration result
+    const formattedMessage = formatOrchestrationResult(result);
+
+    res.json({
+      success: true,
+      type: 'orchestrated',
+      message: formattedMessage,
+      orchestration: {
+        agents: result.selectedAgents,
+        plan: result.plan,
+        results: result.results,
+      },
+      model: 'multi-agent-orchestrator',
+    });
+  } catch (error) {
+    console.error('❌ Smart chat error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Unknown error',
+    });
+  }
+});
+
+/**
+ * Format orchestration result into readable message
+ */
+function formatOrchestrationResult(result) {
+  let message = '';
+
+  // Add summary
+  if (result.summary) {
+    message += `✅ **Đã hoàn thành** với ${result.metadata?.totalAgents || 0} agents\n\n`;
+  }
+
+  // Add agent results
+  if (result.results?.agentResults) {
+    result.results.agentResults.forEach((agentResult, i) => {
+      if (agentResult.result?.success) {
+        message += `**${i + 1}. ${agentResult.agent}:**\n`;
+        message += `${agentResult.result.content || agentResult.result.message || JSON.stringify(agentResult.result)}\n\n`;
+      }
+    });
+  }
+
+  // Add synthesized result if available
+  if (result.results?.synthesized) {
+    message += `\n---\n**Tổng hợp:**\n${result.results.synthesized}\n`;
+  }
+
+  return message || 'Đã xử lý xong yêu cầu của bạn.';
+}
 
 module.exports = router;

@@ -25,10 +25,28 @@ const AVAILABLE_ACTIONS = {
   // Facebook/Instagram Posts
   'post_facebook': {
     description: 'Post content to Facebook page',
-    params: ['page', 'content', 'imageUrl?', 'scheduledTime?'],
+    params: ['page', 'content', 'topic?', 'imageUrl?', 'scheduledTime?'],
     executor: async (params) => {
+      let finalContent = params.content;
+      
+      // Auto-generate smart content if content is too short or looks like a topic
+      const needsGeneration = !finalContent || 
+        finalContent.length < 50 || 
+        !finalContent.includes(' ') || // Single word = topic
+        finalContent.toLowerCase().startsWith('giới thiệu') ||
+        finalContent.toLowerCase().startsWith('quảng bá');
+      
+      if (needsGeneration) {
+        const topic = params.topic || params.content || 'general update';
+        const pageInfo = getPageContext(params.page);
+        
+        console.log(`🎨 Auto-generating content for topic: "${topic}"`);
+        
+        finalContent = await generateSmartContent(topic, pageInfo);
+      }
+      
       return await facebookPublisher.createPost(params.page || 'sabo_billiards', {
-        message: params.content,
+        message: finalContent,
         imageUrl: params.imageUrl,
         scheduledTime: params.scheduledTime,
       });
@@ -315,6 +333,80 @@ async function processWithActions(message, agentRole) {
     type: 'chat_only',
     intent,
   };
+}
+
+/**
+ * Get context info for each Facebook page
+ */
+function getPageContext(pageKey) {
+  const pageContexts = {
+    'sabo_billiards': {
+      name: 'SABO Billiards',
+      description: 'Câu lạc bộ Billiards chuyên nghiệp',
+      location: 'Vũng Tàu',
+      tone: 'thân thiện, thể thao, năng động',
+      keywords: ['billiards', 'snooker', 'pool', 'carom', 'thể thao'],
+    },
+    'sabo_arena': {
+      name: 'SABO Arena',
+      description: 'Billiards club & entertainment center',
+      location: '96 Bạch Đằng, Tân Bình, HCM',
+      tone: 'chuyên nghiệp, trẻ trung, cộng đồng',
+      keywords: ['billiards', 'gaming', 'giải đấu', 'entertainment', 'cafe'],
+      highlights: ['Không gian hiện đại', 'Bàn xịn', 'Cộng đồng đông đảo', 'Giải đấu hàng tuần'],
+    },
+    'ai_newbie': {
+      name: 'AI Newbie VN', 
+      description: 'Cộng đồng học AI cho người mới',
+      tone: 'học thuật nhưng dễ hiểu, khích lệ',
+      keywords: ['AI', 'machine learning', 'học AI', 'ChatGPT', 'automation'],
+    },
+    'sabo_media': {
+      name: 'SABO Media',
+      description: 'Production & Creative Agency',
+      tone: 'sáng tạo, chuyên nghiệp',
+      keywords: ['video', 'photography', 'content', 'production'],
+    },
+  };
+  
+  return pageContexts[pageKey] || pageContexts['sabo_arena'];
+}
+
+/**
+ * Generate smart, creative content using AI
+ */
+async function generateSmartContent(topic, pageContext) {
+  const systemPrompt = `Bạn là copywriter sáng tạo cho ${pageContext.name}.
+
+📍 Về ${pageContext.name}:
+- ${pageContext.description}
+${pageContext.location ? `- Địa chỉ: ${pageContext.location}` : ''}
+${pageContext.highlights ? `- Điểm nổi bật: ${pageContext.highlights.join(', ')}` : ''}
+
+🎯 Giọng điệu: ${pageContext.tone}
+📝 Keywords: ${pageContext.keywords?.join(', ')}
+
+Quy tắc viết bài:
+1. Mở đầu HẤP DẪN (câu hook)
+2. Nội dung cô đọng, có GIÁ TRỊ
+3. Thêm emoji phù hợp 🎱🔥✨
+4. Kết thúc với CALL-TO-ACTION rõ ràng
+5. 3-5 hashtags thông minh
+6. Độ dài: 100-250 ký tự (lý tưởng cho Facebook)
+
+QUAN TRỌNG: Viết nội dung SÁNG TẠO và ĐỘC ĐÁO, không copy paste topic!`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: `Viết bài Facebook về: ${topic}` },
+    ],
+    temperature: 0.8, // Higher creativity
+    max_tokens: 400,
+  });
+
+  return response.choices[0].message.content;
 }
 
 /**

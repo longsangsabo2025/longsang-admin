@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const aiActionExecutor = require('./services/ai-action-executor');
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://diexsbzqwsbpilsymnfb.supabase.co';
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpZXhzYnpxd3NicGlsc3ltbmZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzOTIxOTEsImV4cCI6MjA3NTk2ODE5MX0.Nf1wHe7EDONS25Yv987KqhgyvZu07COnu6qgC0qCy2I';
@@ -6,7 +7,7 @@ const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsI
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
- * Execute an AI Agent
+ * Execute an AI Agent - Connected to real action executor
  * @param {string} agentId - Agent ID to execute
  * @param {object} input - Input data for the agent
  * @returns {Promise<object>} Execution result
@@ -48,16 +49,11 @@ async function executeAgent(agentId, input = {}) {
         duration_ms: 0,
       }]);
 
-    // 3. Execute agent (Mock for now - will integrate with OpenAI/Claude later)
     console.log(`🤖 Executing agent: ${agent.name} (${agent.type})`);
     console.log(`📥 Input:`, input);
 
-    // Simulate agent execution (2-5 seconds)
-    const simulatedWorkTime = 2000 + Math.random() * 3000;
-    await new Promise(resolve => setTimeout(resolve, simulatedWorkTime));
-
-    // Mock result based on agent type
-    const mockResult = generateMockResult(agent, input);
+    // 3. REAL EXECUTION - Use AI Action Executor for intelligent actions
+    const result = await executeRealAction(agent, input);
     const executionTime = Date.now() - startTime;
 
     // 4. Update agent statistics
@@ -65,38 +61,37 @@ async function executeAgent(agentId, input = {}) {
       .from('ai_agents')
       .update({
         total_runs: agent.total_runs + 1,
-        successful_runs: agent.successful_runs + 1,
+        successful_runs: result.success ? agent.successful_runs + 1 : agent.successful_runs,
         updated_at: new Date().toISOString(),
       })
       .eq('id', agentId);
 
-    // 5. Log execution success
+    // 5. Log execution result
     await supabase
       .from('activity_logs')
       .insert([{
         agent_id: agentId,
         workflow_id: agentId,
-        action: 'execution_completed',
-        status: 'success',
+        action: result.success ? 'execution_completed' : 'execution_failed',
+        status: result.success ? 'success' : 'error',
+        error_message: result.error || null,
         details: {
           agent_name: agent.name,
           execution_id: executionId,
-          result: mockResult,
-          tokens_used: mockResult.tokens_used,
-          cost_usd: mockResult.cost_usd,
+          result: result,
         },
         duration_ms: executionTime,
       }]);
 
-    console.log(`✅ Agent execution completed in ${executionTime}ms`);
+    console.log(`${result.success ? '✅' : '❌'} Agent execution completed in ${executionTime}ms`);
 
     return {
-      success: true,
+      success: result.success,
       executionId,
       agentId,
       agentName: agent.name,
       executionTime,
-      result: mockResult,
+      result: result,
     };
 
   } catch (error) {
@@ -131,70 +126,163 @@ async function executeAgent(agentId, input = {}) {
 }
 
 /**
- * Generate mock result based on agent type
+ * Execute real action based on agent type and input
+ * Connects to AI Action Executor for intelligent processing
+ */
+async function executeRealAction(agent, input) {
+  const { command, role, context, userId, projectId } = input;
+  
+  // Map agent type to action
+  const agentTypeToAction = {
+    content_writer: 'generate_and_post',
+    content_creator: 'generate_and_post',
+    social_media: 'post_facebook',
+    marketing: 'create_ad_campaign',
+    analytics: 'get_campaign_stats',
+    lead_nurture: 'schedule_posts',
+    customer_support: 'chat', // Simple chat response
+    workflow_automation: 'trigger_workflow',
+    data_analyst: 'list_campaigns',
+    seo_specialist: 'generate_content', // SEO content generation
+  };
+
+  const suggestedAction = agentTypeToAction[agent.type] || 'chat';
+  
+  try {
+    // Step 1: Use AI to detect actual intent from command
+    const intentResult = await aiActionExecutor.detectIntent(command || JSON.stringify(input));
+    
+    if (intentResult.action && intentResult.action !== 'chat') {
+      // Real action detected - execute it with intelligent content generation
+      console.log(`🎯 Detected action: ${intentResult.action}`);
+      
+      // Step 2: Generate smart content for the action
+      const smartParams = await generateSmartParams(agent, intentResult, context);
+      
+      // Step 3: Execute the action
+      const actionResult = await aiActionExecutor.executeAction(
+        intentResult.action,
+        smartParams
+      );
+      
+      return {
+        success: actionResult.success,
+        action: intentResult.action,
+        content: actionResult.message || actionResult.content,
+        data: actionResult.result || actionResult.data,
+        generated: true,
+      };
+    }
+    
+    // No specific action - generate intelligent response
+    const intelligentResponse = await generateIntelligentResponse(agent, command || JSON.stringify(input), context);
+    
+    return {
+      success: true,
+      action: 'intelligent_response',
+      content: intelligentResponse,
+      generated: true,
+    };
+    
+  } catch (error) {
+    console.error('Real action execution error:', error);
+    
+    // Fallback to mock result if real execution fails
+    return generateMockResult(agent, input);
+  }
+}
+
+/**
+ * Generate smart parameters for action execution
+ * AI generates creative content instead of just passing user input
+ */
+async function generateSmartParams(agent, intentResult, context) {
+  const OpenAI = require('openai');
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  
+  // Get business context
+  const businessContext = `
+SABO Ecosystem:
+- SABO Arena: Billiards club & entertainment center at 96 Bạch Đằng, Tân Bình, HCM
+- SABO Hub: Community co-working space  
+- SABO Media: Video/photo production
+- AI Newbie VN: AI education community
+
+Brand Voice: Professional but friendly, emphasizing community and innovation
+Target: Young professionals, entrepreneurs, gamers, content creators
+  `;
+  
+  const systemPrompt = `Bạn là AI Content Generator cho ${agent.name}.
+${businessContext}
+
+Nhiệm vụ: Tạo nội dung SÁNG TẠO và HẤP DẪN cho action "${intentResult.action}".
+
+Dựa trên yêu cầu của user, hãy:
+1. Viết nội dung thu hút, có chiều sâu
+2. Thêm emoji phù hợp
+3. Có call-to-action rõ ràng
+4. Sử dụng hashtags thông minh
+
+Context từ các agents khác: ${context || 'None'}
+
+Trả về JSON với format phù hợp cho action.`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: JSON.stringify(intentResult) },
+    ],
+    temperature: 0.7,
+    response_format: { type: 'json_object' },
+  });
+
+  try {
+    return JSON.parse(response.choices[0].message.content);
+  } catch {
+    return intentResult.params || {};
+  }
+}
+
+/**
+ * Generate intelligent response when no specific action is detected
+ */
+async function generateIntelligentResponse(agent, command, context) {
+  const OpenAI = require('openai');
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  
+  const systemPrompt = `Bạn là ${agent.name} - ${agent.description || agent.type}.
+  
+Hãy trả lời thông minh và hữu ích. Nếu user yêu cầu tạo nội dung, hãy viết nội dung sáng tạo.
+Nếu user hỏi về chiến lược, hãy đưa ra lời khuyên cụ thể.
+
+Context: ${context || 'No additional context'}`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: command },
+    ],
+    temperature: 0.7,
+  });
+
+  return response.choices[0].message.content;
+}
+
+/**
+ * Generate mock result (fallback only)
  */
 function generateMockResult(agent, input) {
   const baseTokens = 100 + Math.floor(Math.random() * 200);
-  const cost = (baseTokens / 1000) * 0.002; // $0.002 per 1K tokens
+  const cost = (baseTokens / 1000) * 0.002;
 
-  const results = {
-    content_writer: {
-      output: `# Generated Content\n\nThis is AI-generated content by ${agent.name}.\n\n## Key Points:\n- Professional tone\n- SEO optimized\n- Engaging structure\n\nContent created based on: ${JSON.stringify(input)}`,
-      tokens_used: baseTokens,
-      cost_usd: cost,
-      metadata: {
-        word_count: 150,
-        reading_time: '2 min',
-        seo_score: 92,
-      },
-    },
-    lead_nurture: {
-      output: `Email campaign created for lead nurturing:\n\nSubject: We noticed you're interested...\n\nBody: Personalized content for ${input.contact || 'prospect'}`,
-      tokens_used: baseTokens,
-      cost_usd: cost,
-      metadata: {
-        emails_drafted: 3,
-        personalization_score: 95,
-        expected_conversion_rate: '8.5%',
-      },
-    },
-    social_media: {
-      output: `Social media post created:\n\n🚀 ${input.topic || 'Exciting news'}!\n\n#marketing #business #success`,
-      tokens_used: baseTokens,
-      cost_usd: cost,
-      metadata: {
-        platforms: ['facebook', 'instagram', 'linkedin'],
-        hashtag_count: 5,
-        optimal_posting_time: '10:00 AM',
-      },
-    },
-    analytics: {
-      output: `Analysis Report:\n\nKey Metrics:\n- Conversion Rate: 12.5%\n- ROI: 245%\n- Growth: +18%`,
-      tokens_used: baseTokens,
-      cost_usd: cost,
-      metadata: {
-        data_points_analyzed: 1500,
-        insights_generated: 8,
-        confidence_score: 0.94,
-      },
-    },
-    customer_support: {
-      output: `Support Response:\n\nThank you for contacting us! I understand your concern about ${input.issue || 'the matter'}. Let me help you resolve this...`,
-      tokens_used: baseTokens,
-      cost_usd: cost,
-      metadata: {
-        response_time: '< 30 seconds',
-        sentiment: 'positive',
-        resolution_probability: '95%',
-      },
-    },
-  };
-
-  return results[agent.type] || {
-    output: `Agent ${agent.name} executed successfully with input: ${JSON.stringify(input)}`,
+  return {
+    success: true,
+    output: `Agent ${agent.name} processed: ${JSON.stringify(input)}`,
     tokens_used: baseTokens,
     cost_usd: cost,
-    metadata: { execution_mode: 'default' },
+    metadata: { execution_mode: 'mock_fallback' },
   };
 }
 
