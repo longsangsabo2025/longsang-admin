@@ -100,7 +100,7 @@ export function TaskList() {
   };
 
   const handleDeleteTask = async (id: string) => {
-    // eslint-disable-next-line no-alert
+     
     if (window.confirm('Are you sure you want to delete this task?')) {
       await deleteTaskMutation.mutateAsync(id);
     }

@@ -24,7 +24,7 @@ describe('Command Parser', () => {
   let commandParser;
   let mockOpenAI;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     mockOpenAI = new OpenAI();
     // Import after mock

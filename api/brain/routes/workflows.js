@@ -58,7 +58,7 @@ router.post('/', async (req, res) => {
       data,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Workflows Route] Create workflow error:', error);
     return res.status(500).json({
       success: false,
@@ -112,7 +112,7 @@ router.put('/:id', async (req, res) => {
       data,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Workflows Route] Update workflow error:', error);
     return res.status(500).json({
       success: false,
@@ -155,7 +155,7 @@ router.delete('/:id', async (req, res) => {
       message: 'Workflow deleted successfully',
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Workflows Route] Delete workflow error:', error);
     return res.status(500).json({
       success: false,
@@ -194,7 +194,7 @@ router.get('/', async (req, res) => {
       data: data || [],
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Workflows Route] Get workflows error:', error);
     return res.status(500).json({
       success: false,
@@ -238,7 +238,7 @@ router.get('/:id', async (req, res) => {
       data,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Workflows Route] Get single workflow error:', error);
     return res.status(500).json({
       success: false,
@@ -293,7 +293,7 @@ router.post('/:id/test', async (req, res) => {
       },
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Workflows Route] Test workflow error:', error);
     return res.status(500).json({
       success: false,

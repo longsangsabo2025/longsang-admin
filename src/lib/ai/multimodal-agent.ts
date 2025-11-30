@@ -344,7 +344,7 @@ export async function multimodalInteraction(input: MultimodalInput): Promise<{
     }
 
     // Combine all inputs into comprehensive response
-    let contextParts: string[] = [];
+    const contextParts: string[] = [];
 
     if (input.text) {
       contextParts.push(`User text: ${input.text}`);

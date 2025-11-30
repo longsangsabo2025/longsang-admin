@@ -3,7 +3,7 @@ import { ContentData } from '../types/automation';
 // SEO Score Calculator
 export function calculateSEOScore(content: ContentData): number {
   let score = 0;
-  let maxScore = 100;
+  const maxScore = 100;
   
   // Title optimization (20 points)
   if (content.seo_title) {

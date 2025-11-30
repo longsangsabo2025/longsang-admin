@@ -67,12 +67,12 @@ async function runWorkflow(workflow, userId, context = {}) {
     return JSON.parse(rendered || "{}");
   };
 
-  // eslint-disable-next-line no-restricted-syntax
+   
   for (const step of actions) {
     const actionType = step.action_type || step.type;
     const payloadTemplate = step.payload || step.payload_template || {};
     const payload = renderTemplate(payloadTemplate);
-    // eslint-disable-next-line no-await-in-loop
+     
     await actionExecutor.queueAction(userId, actionType, payload, sessionId);
   }
 

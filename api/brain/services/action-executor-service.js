@@ -141,9 +141,9 @@ async function executePendingActions(limit = 50) {
   if (error) throw new Error(`Failed to fetch actions: ${error.message}`);
   if (!actions || actions.length === 0) return 0;
 
-  // eslint-disable-next-line no-restricted-syntax
+   
   for (const action of actions) {
-    // eslint-disable-next-line no-await-in-loop
+     
     await executeAction(action);
   }
   return actions.length;

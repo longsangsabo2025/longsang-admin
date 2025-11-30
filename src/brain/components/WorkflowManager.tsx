@@ -120,7 +120,7 @@ export function WorkflowManager() {
   };
 
   const handleDeleteWorkflow = async (id: string) => {
-    // eslint-disable-next-line no-alert
+     
     if (window.confirm('Are you sure you want to delete this workflow?')) {
       await deleteWorkflowMutation.mutateAsync(id);
     }

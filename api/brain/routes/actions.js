@@ -43,7 +43,7 @@ router.post('/', async (req, res) => {
       data: action,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Actions Route] Queue action error:', error);
     return res.status(500).json({
       success: false,
@@ -94,7 +94,7 @@ router.get('/', async (req, res) => {
       data: data || [],
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Actions Route] Get actions error:', error);
     return res.status(500).json({
       success: false,
@@ -115,7 +115,7 @@ router.post('/execute-pending', async (req, res) => {
       message: `Attempted to execute ${executedCount} pending actions.`,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Actions Route] Manual execute pending error:', error);
     return res.status(500).json({
       success: false,

@@ -66,7 +66,7 @@ router.get('/', async (req, res) => {
       data: data || [],
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Notifications Route] Get notifications error:', error);
     return res.status(500).json({
       success: false,
@@ -120,7 +120,7 @@ router.post('/', async (req, res) => {
       data,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Notifications Route] Create notification error:', error);
     return res.status(500).json({
       success: false,
@@ -166,7 +166,7 @@ router.put('/:id/read', async (req, res) => {
       data,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Notifications Route] Mark read error:', error);
     return res.status(500).json({
       success: false,
@@ -210,7 +210,7 @@ router.delete('/:id', async (req, res) => {
       message: 'Notification deleted successfully',
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Notifications Route] Delete notification error:', error);
     return res.status(500).json({
       success: false,

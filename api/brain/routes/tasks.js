@@ -73,7 +73,7 @@ router.post('/', async (req, res) => {
       data,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Tasks Route] Create task error:', error);
     return res.status(500).json({
       success: false,
@@ -132,7 +132,7 @@ router.put('/:id', async (req, res) => {
       data,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Tasks Route] Update task error:', error);
     return res.status(500).json({
       success: false,
@@ -176,7 +176,7 @@ router.delete('/:id', async (req, res) => {
       message: 'Task deleted successfully',
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Tasks Route] Delete task error:', error);
     return res.status(500).json({
       success: false,
@@ -228,7 +228,7 @@ router.get('/', async (req, res) => {
       data: data || [],
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Tasks Route] Get tasks error:', error);
     return res.status(500).json({
       success: false,
@@ -273,7 +273,7 @@ router.get('/:id', async (req, res) => {
       data,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[Tasks Route] Get single task error:', error);
     return res.status(500).json({
       success: false,

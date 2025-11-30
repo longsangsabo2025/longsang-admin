@@ -109,7 +109,7 @@ export function useCopilot(options: UseCopilotOptions = {}) {
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
 
-      let assistantMessage: Message = {
+      const assistantMessage: Message = {
         role: 'assistant',
         content: '',
         timestamp: new Date(),

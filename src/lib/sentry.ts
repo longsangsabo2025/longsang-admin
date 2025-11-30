@@ -57,7 +57,7 @@ async function sendToLocalCopilotBridge(event: Sentry.Event, hint: Sentry.EventH
     
     // Extract file path from stacktrace
     let file = lastFrame?.filename || '';
-    let line = lastFrame?.lineno || 1;
+    const line = lastFrame?.lineno || 1;
     
     // Convert URL to local path
     if (file.includes('localhost')) {
