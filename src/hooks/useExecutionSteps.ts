@@ -54,8 +54,10 @@ export function useExecutionSteps() {
   const [steps, setSteps] = useState<Map<string, ExecutionStep>>(new Map());
   const [stepOrder, setStepOrder] = useState<string[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [isCancelled, setIsCancelled] = useState(false);
   const [parallelSteps, setParallelSteps] = useState<Map<string, string[]>>(new Map()); // Group ID -> Step IDs
   const stepTimers = useRef<Map<string, number>>(new Map());
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Convert step to node
   const stepToNode = useCallback((step: ExecutionStep, index: number): Node<ExecutionStepData> => {
@@ -119,7 +121,10 @@ export function useExecutionSteps() {
   const handlePlan = useCallback((plan: ExecutionEvent["plan"]) => {
     if (!plan) return;
 
+    // Create new AbortController for this execution
+    abortControllerRef.current = new AbortController();
     setIsExecuting(true);
+    setIsCancelled(false);
     const newSteps = new Map<string, ExecutionStep>();
     const order: string[] = [];
     const parallelGroups = new Map<string, string[]>();
@@ -311,7 +316,53 @@ export function useExecutionSteps() {
     setSteps(new Map());
     setStepOrder([]);
     setIsExecuting(false);
+    setIsCancelled(false);
     stepTimers.current.clear();
+    abortControllerRef.current = null;
+  }, []);
+
+  // Cancel execution
+  const cancelExecution = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    setIsCancelled(true);
+    
+    // Mark current running step as cancelled
+    setSteps((prev) => {
+      const updated = new Map(prev);
+      prev.forEach((step, stepId) => {
+        if (step.status === "running") {
+          const endTime = Date.now();
+          const startTime = stepTimers.current.get(stepId) || endTime;
+          const duration = endTime - startTime;
+          stepTimers.current.delete(stepId);
+          
+          updated.set(stepId, {
+            ...step,
+            status: "failed",
+            error: "Cancelled by user",
+            endTime,
+            duration,
+          });
+        } else if (step.status === "pending") {
+          updated.set(stepId, {
+            ...step,
+            status: "failed",
+            error: "Cancelled",
+          });
+        }
+      });
+      return updated;
+    });
+    
+    setIsExecuting(false);
+  }, []);
+
+  // Get abort signal for fetch requests
+  const getAbortSignal = useCallback(() => {
+    return abortControllerRef.current?.signal;
   }, []);
 
   // Get nodes and edges for React Flow
@@ -321,9 +372,12 @@ export function useExecutionSteps() {
     steps: Array.from(steps.values()),
     stepOrder,
     isExecuting,
+    isCancelled,
     nodes,
     edges,
     processEvent,
     clearSteps,
+    cancelExecution,
+    getAbortSignal,
   };
 }

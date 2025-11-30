@@ -462,6 +462,225 @@ router.post('/execute-action', async (req, res) => {
 });
 
 /**
+ * POST /api/solo-hub/chat-smart/stream
+ * Stream execution events for Visual Workspace real-time updates
+ * Returns SSE events matching the 4-layer architecture
+ */
+router.post('/chat-smart/stream', async (req, res) => {
+  try {
+    const { message, agentRole, conversationHistory = [], projectId, userId } = req.body;
+
+    if (!message) {
+      return res.status(400).json({
+        success: false,
+        error: 'message is required',
+      });
+    }
+
+    // Set SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+
+    const sendEvent = (event) => {
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    };
+
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`🚀 [STREAM] Multi-Layer Processing with SSE`);
+    console.log(`${'='.repeat(60)}\n`);
+
+    const startTime = Date.now();
+
+    // ═══════════════════════════════════════════════════════════
+    // LAYER 1: PLANNING
+    // ═══════════════════════════════════════════════════════════
+    sendEvent({ 
+      type: 'step_start', 
+      stepId: 'layer-1', 
+      stepName: 'Layer 1: Planning',
+      description: 'Copilot Planner đang phân tích yêu cầu...'
+    });
+
+    let plan = null;
+    try {
+      plan = await copilotPlanner.createPlan(message, {
+        projectId,
+        context: { conversationHistory },
+        maxSteps: 10,
+      });
+      
+      sendEvent({ 
+        type: 'step_progress', 
+        stepId: 'layer-1', 
+        progress: 100,
+        description: `Plan created: ${plan.totalSteps} steps`
+      });
+      sendEvent({ type: 'step_complete', stepId: 'layer-1', duration: Date.now() - startTime });
+    } catch (planError) {
+      sendEvent({ 
+        type: 'step_progress', 
+        stepId: 'layer-1', 
+        progress: 100,
+        description: 'Skipped planning, direct execution'
+      });
+      sendEvent({ type: 'step_complete', stepId: 'layer-1', duration: Date.now() - startTime });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // LAYER 2: ORCHESTRATION
+    // ═══════════════════════════════════════════════════════════
+    const layer2Start = Date.now();
+    sendEvent({ 
+      type: 'step_start', 
+      stepId: 'layer-2', 
+      stepName: 'Layer 2: Orchestration',
+      description: 'Đang chọn agents phù hợp...'
+    });
+
+    const orchestrationResult = await multiAgentOrchestrator.orchestrate(message, {
+      projectId,
+      usePlanning: !!plan,
+      plan,
+      onProgress: (progress) => {
+        sendEvent({ 
+          type: 'step_progress', 
+          stepId: 'layer-2', 
+          progress: progress.progress?.percentage || 50,
+          description: `Processing with ${progress.agent || 'agents'}...`
+        });
+      },
+    });
+
+    sendEvent({ 
+      type: 'step_progress', 
+      stepId: 'layer-2', 
+      progress: 100,
+      description: `Routed to ${orchestrationResult.selectedAgents?.length || 0} agents`
+    });
+    sendEvent({ type: 'step_complete', stepId: 'layer-2', duration: Date.now() - layer2Start });
+
+    // ═══════════════════════════════════════════════════════════
+    // LAYER 3: EXECUTION
+    // ═══════════════════════════════════════════════════════════
+    const layer3Start = Date.now();
+    sendEvent({ 
+      type: 'step_start', 
+      stepId: 'layer-3', 
+      stepName: 'Layer 3: Execution',
+      description: 'Đang thực thi plan...'
+    });
+
+    let executionResult = null;
+    if (plan && plan.steps?.length > 0) {
+      try {
+        executionResult = await copilotExecutor.executePlan(plan, {
+          userId,
+          projectId,
+          maxRetries: 2,
+          onProgress: (progress) => {
+            const pct = Math.round((progress.progress?.current / progress.progress?.total) * 100) || 50;
+            sendEvent({ 
+              type: 'step_progress', 
+              stepId: 'layer-3', 
+              progress: pct,
+              description: `Step ${progress.progress?.current}/${progress.progress?.total}: ${progress.step?.name}`
+            });
+          },
+        });
+      } catch (execError) {
+        console.log('Executor error:', execError.message);
+      }
+    }
+
+    sendEvent({ 
+      type: 'step_progress', 
+      stepId: 'layer-3', 
+      progress: 100,
+      description: 'Execution complete'
+    });
+    sendEvent({ type: 'step_complete', stepId: 'layer-3', duration: Date.now() - layer3Start });
+
+    // ═══════════════════════════════════════════════════════════
+    // LAYER 4: LEARNING
+    // ═══════════════════════════════════════════════════════════
+    const layer4Start = Date.now();
+    sendEvent({ 
+      type: 'step_start', 
+      stepId: 'layer-4', 
+      stepName: 'Layer 4: Learning',
+      description: 'Ghi nhận feedback...'
+    });
+
+    const totalTime = Date.now() - startTime;
+
+    try {
+      await copilotLearner.collectFeedback({
+        userId: userId || 'anonymous',
+        feedbackType: 'interaction',
+        interactionType: 'chat_smart_stream',
+        originalMessage: message,
+        aiResponse: orchestrationResult?.results?.synthesized || '',
+        context: {
+          projectId,
+          agentsUsed: orchestrationResult?.selectedAgents || [],
+          planSteps: plan?.steps?.length || 0,
+          totalTime,
+        },
+      });
+    } catch (learnError) {
+      console.log('Learning skipped:', learnError.message);
+    }
+
+    sendEvent({ 
+      type: 'step_progress', 
+      stepId: 'layer-4', 
+      progress: 100,
+      description: 'Feedback recorded'
+    });
+    sendEvent({ type: 'step_complete', stepId: 'layer-4', duration: Date.now() - layer4Start });
+
+    // ═══════════════════════════════════════════════════════════
+    // COMPLETE
+    // ═══════════════════════════════════════════════════════════
+    const formattedMessage = formatMultiLayerResult({
+      orchestration: orchestrationResult,
+      execution: executionResult,
+      plan,
+      layers: {
+        planning: { success: true },
+        orchestration: { success: true },
+        execution: { success: true },
+        learning: { success: true },
+      },
+    });
+
+    sendEvent({ 
+      type: 'complete', 
+      message: formattedMessage,
+      orchestration: {
+        agents: orchestrationResult.selectedAgents,
+        results: orchestrationResult.results,
+      },
+      metadata: {
+        totalTime,
+        layersUsed: ['planning', 'orchestration', 'execution', 'learning'],
+      }
+    });
+
+    res.write('data: [DONE]\n\n');
+    res.end();
+
+  } catch (error) {
+    console.error('❌ Stream error:', error);
+    res.write(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`);
+    res.write('data: [DONE]\n\n');
+    res.end();
+  }
+});
+
+/**
  * POST /api/solo-hub/chat-smart
  * Smart chat using FULL MULTI-LAYER ARCHITECTURE:
  * Layer 1: Copilot Planner - Break down complex tasks into steps

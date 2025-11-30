@@ -1,0 +1,208 @@
+{
+  "total_count": 4,
+  "jobs": [
+    {
+      "id": 56721364770,
+      "run_id": 19798116755,
+      "workflow_name": "CI/CD Pipeline",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798116755",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOQfoUzM8AAAANNNtXIg",
+      "head_sha": "0dd503c7967691ac7695e7faf4e4aa83af6590d5",
+      "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/jobs/56721364770",
+      "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798116755/job/56721364770",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2025-11-30T11:18:43Z",
+      "started_at": "2025-11-30T11:18:49Z",
+      "completed_at": "2025-11-30T11:19:01Z",
+      "name": "🧪 Test",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2025-11-30T11:18:50Z",
+          "completed_at": "2025-11-30T11:18:51Z"
+        },
+        {
+          "name": "📥 Checkout",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2025-11-30T11:18:51Z",
+          "completed_at": "2025-11-30T11:18:52Z"
+        },
+        {
+          "name": "🟢 Setup Node.js",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2025-11-30T11:18:52Z",
+          "completed_at": "2025-11-30T11:18:57Z"
+        },
+        {
+          "name": "📦 Install dependencies",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 4,
+          "started_at": "2025-11-30T11:18:57Z",
+          "completed_at": "2025-11-30T11:18:59Z"
+        },
+        {
+          "name": "🔍 Lint",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5,
+          "started_at": "2025-11-30T11:18:59Z",
+          "completed_at": "2025-11-30T11:18:59Z"
+        },
+        {
+          "name": "📘 Type check",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6,
+          "started_at": "2025-11-30T11:18:59Z",
+          "completed_at": "2025-11-30T11:18:59Z"
+        },
+        {
+          "name": "🧪 Run tests",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7,
+          "started_at": "2025-11-30T11:18:59Z",
+          "completed_at": "2025-11-30T11:18:59Z"
+        },
+        {
+          "name": "📊 Upload coverage",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2025-11-30T11:18:59Z",
+          "completed_at": "2025-11-30T11:19:00Z"
+        },
+        {
+          "name": "Post 🟢 Setup Node.js",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 15,
+          "started_at": "2025-11-30T11:19:00Z",
+          "completed_at": "2025-11-30T11:19:00Z"
+        },
+        {
+          "name": "Post 📥 Checkout",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2025-11-30T11:19:00Z",
+          "completed_at": "2025-11-30T11:19:01Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2025-11-30T11:19:01Z",
+          "completed_at": "2025-11-30T11:19:01Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721364770",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000373,
+      "runner_name": "GitHub Actions 1000000373",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 56721364883,
+      "run_id": 19798116755,
+      "workflow_name": "CI/CD Pipeline",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798116755",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOQfoUzM8AAAANNNtXkw",
+      "head_sha": "0dd503c7967691ac7695e7faf4e4aa83af6590d5",
+      "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/jobs/56721364883",
+      "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798116755/job/56721364883",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2025-11-30T11:18:43Z",
+      "started_at": "2025-11-30T11:18:43Z",
+      "completed_at": "2025-11-30T11:18:43Z",
+      "name": "🔧 Auto-Fix",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721364883",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 56721371952,
+      "run_id": 19798116755,
+      "workflow_name": "CI/CD Pipeline",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798116755",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOQfoUzM8AAAANNNtzMA",
+      "head_sha": "0dd503c7967691ac7695e7faf4e4aa83af6590d5",
+      "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/jobs/56721371952",
+      "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798116755/job/56721371952",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2025-11-30T11:19:02Z",
+      "started_at": "2025-11-30T11:19:02Z",
+      "completed_at": "2025-11-30T11:19:02Z",
+      "name": "🏗️ Build",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721371952",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 56721372062,
+      "run_id": 19798116755,
+      "workflow_name": "CI/CD Pipeline",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/runs/19798116755",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOQfoUzM8AAAANNNtzng",
+      "head_sha": "0dd503c7967691ac7695e7faf4e4aa83af6590d5",
+      "url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/actions/jobs/56721372062",
+      "html_url": "https://github.com/longsangsabo2025/longsang-admin/actions/runs/19798116755/job/56721372062",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2025-11-30T11:19:02Z",
+      "started_at": "2025-11-30T11:19:02Z",
+      "completed_at": "2025-11-30T11:19:02Z",
+      "name": "🚀 Deploy",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/longsangsabo2025/longsang-admin/check-runs/56721372062",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    }
+  ]
+}

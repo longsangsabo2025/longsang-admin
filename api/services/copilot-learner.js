@@ -1,11 +1,14 @@
 /**
  * 🧠 Copilot Learner Service
  *
- * Learning system that collects feedback, recognizes patterns,
- * updates embeddings, and learns user preferences
+ * Advanced Learning system with:
+ * - Feedback collection & analysis
+ * - Pattern recognition from behavior
+ * - Content style auto-adjustment
+ * - Preference learning & personalization
  *
  * @author LongSang Admin
- * @version 1.0.0
+ * @version 2.0.0 - Enhanced with Advanced Learning
  */
 
 const OpenAI = require('openai');
@@ -21,6 +24,594 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANO
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ADVANCED CONTENT STYLE LEARNING
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Analyze content performance patterns to auto-adjust style
+ */
+async function analyzeContentPerformance(pageId, days = 30) {
+  try {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    // Get content performance data
+    const { data: contentData, error } = await supabase
+      .from('content_performance')
+      .select('*')
+      .eq('page_id', pageId)
+      .gte('posted_at', startDate.toISOString())
+      .order('engagement_rate', { ascending: false });
+    
+    if (error) throw error;
+    if (!contentData || contentData.length < 5) {
+      return { success: false, message: 'Not enough data for analysis' };
+    }
+
+    // Separate top and bottom performers
+    const topPerformers = contentData.slice(0, Math.ceil(contentData.length * 0.3));
+    const bottomPerformers = contentData.slice(-Math.ceil(contentData.length * 0.3));
+
+    // Analyze patterns using AI
+    const analysisResult = await analyzeContentPatterns(topPerformers, bottomPerformers, pageId);
+    
+    // Store learned patterns
+    if (analysisResult.patterns) {
+      await storeContentPatterns(pageId, analysisResult.patterns);
+    }
+
+    return {
+      success: true,
+      topPerformersCount: topPerformers.length,
+      bottomPerformersCount: bottomPerformers.length,
+      patterns: analysisResult.patterns,
+      recommendations: analysisResult.recommendations,
+    };
+  } catch (error) {
+    console.error('Error analyzing content performance:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Use AI to analyze patterns in content
+ */
+async function analyzeContentPatterns(topPerformers, bottomPerformers, pageId) {
+  const topSamples = topPerformers.slice(0, 5).map(c => ({
+    content: c.content_preview,
+    engagement: c.engagement_rate,
+    likes: c.likes,
+    comments: c.comments,
+    shares: c.shares,
+    time: new Date(c.posted_at).getHours(),
+    dayOfWeek: new Date(c.posted_at).getDay(),
+  }));
+
+  const bottomSamples = bottomPerformers.slice(0, 5).map(c => ({
+    content: c.content_preview,
+    engagement: c.engagement_rate,
+    likes: c.likes,
+    comments: c.comments,
+    shares: c.shares,
+    time: new Date(c.posted_at).getHours(),
+    dayOfWeek: new Date(c.posted_at).getDay(),
+  }));
+
+  const response = await openai.chat.completions.create({
+    model: DEFAULT_MODEL,
+    messages: [
+      {
+        role: 'system',
+        content: `Bạn là Content Performance Analyst. Phân tích patterns giữa top performers và bottom performers.
+
+Trả về JSON:
+{
+  "patterns": {
+    "contentStyle": {
+      "optimalLength": { "min": number, "max": number },
+      "emojiUsage": "none|minimal|moderate|heavy",
+      "hashtagCount": { "min": number, "max": number },
+      "toneOfVoice": "formal|casual|playful|urgent|inspirational",
+      "hookTypes": ["question", "statistic", "story", "benefit"],
+      "ctaStyle": "direct|subtle|question|urgency"
+    },
+    "timing": {
+      "bestHours": [number],
+      "bestDays": [0-6],
+      "worstHours": [number],
+      "worstDays": [0-6]
+    },
+    "contentTypes": {
+      "bestPerforming": ["promotional", "educational", "entertainment", "community"],
+      "worstPerforming": ["promotional", "educational", "entertainment", "community"]
+    },
+    "engagement": {
+      "likeDrivers": ["element that drives likes"],
+      "commentDrivers": ["element that drives comments"],
+      "shareDrivers": ["element that drives shares"]
+    }
+  },
+  "recommendations": [
+    {
+      "category": "content|timing|style",
+      "action": "what to do",
+      "impact": "high|medium|low",
+      "reasoning": "why this helps"
+    }
+  ],
+  "avoidPatterns": ["patterns that consistently underperform"]
+}`
+      },
+      {
+        role: 'user',
+        content: `Phân tích content cho page ${pageId}:
+
+TOP PERFORMERS:
+${JSON.stringify(topSamples, null, 2)}
+
+BOTTOM PERFORMERS:
+${JSON.stringify(bottomSamples, null, 2)}`
+      }
+    ],
+    response_format: { type: 'json_object' },
+    temperature: 0.3,
+    max_tokens: 1500,
+  });
+
+  try {
+    return JSON.parse(response.choices[0].message.content);
+  } catch {
+    return { patterns: null, recommendations: [] };
+  }
+}
+
+/**
+ * Store learned content patterns
+ */
+async function storeContentPatterns(pageId, patterns) {
+  try {
+    await supabase
+      .from('copilot_patterns')
+      .upsert({
+        user_id: `page_${pageId}`,
+        pattern_type: 'content_style',
+        pattern_name: 'Auto-learned Content Style',
+        pattern_description: 'Patterns learned from content performance analysis',
+        pattern_data: patterns,
+        confidence: 0.8,
+        occurrence_count: 1,
+        last_occurred_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id,pattern_type,pattern_name',
+      });
+  } catch (error) {
+    console.error('Error storing content patterns:', error);
+  }
+}
+
+/**
+ * Get learned content style for a page
+ */
+async function getLearnedContentStyle(pageId) {
+  try {
+    const { data, error } = await supabase
+      .from('copilot_patterns')
+      .select('pattern_data')
+      .eq('user_id', `page_${pageId}`)
+      .eq('pattern_type', 'content_style')
+      .single();
+
+    if (error || !data) {
+      return getDefaultContentStyle();
+    }
+
+    return data.pattern_data;
+  } catch (error) {
+    return getDefaultContentStyle();
+  }
+}
+
+/**
+ * Default content style
+ */
+function getDefaultContentStyle() {
+  return {
+    contentStyle: {
+      optimalLength: { min: 100, max: 250 },
+      emojiUsage: 'moderate',
+      hashtagCount: { min: 3, max: 5 },
+      toneOfVoice: 'casual',
+      hookTypes: ['question', 'benefit'],
+      ctaStyle: 'direct',
+    },
+    timing: {
+      bestHours: [10, 12, 19, 21],
+      bestDays: [1, 2, 3, 4, 5],
+    },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ADVANCED PATTERN RECOGNITION
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Advanced pattern recognition with ML-like scoring
+ */
+async function advancedPatternRecognition(userId, interactionHistory = []) {
+  const patterns = {
+    behavioral: [],
+    preference: [],
+    temporal: [],
+    contextual: [],
+  };
+
+  // 1. Behavioral Patterns - What user does
+  const behavioralPatterns = await analyzeBehavioralPatterns(userId, interactionHistory);
+  patterns.behavioral = behavioralPatterns;
+
+  // 2. Preference Patterns - What user likes
+  const preferencePatterns = await analyzePreferencePatterns(userId);
+  patterns.preference = preferencePatterns;
+
+  // 3. Temporal Patterns - When user is active
+  const temporalPatterns = await analyzeTemporalPatterns(userId);
+  patterns.temporal = temporalPatterns;
+
+  // 4. Contextual Patterns - Context-specific behaviors
+  const contextualPatterns = await analyzeContextualPatterns(userId);
+  patterns.contextual = contextualPatterns;
+
+  // Store all patterns with confidence scores
+  await storeAdvancedPatterns(userId, patterns);
+
+  return patterns;
+}
+
+/**
+ * Analyze behavioral patterns
+ */
+async function analyzeBehavioralPatterns(userId, recentInteractions = []) {
+  const patterns = [];
+  
+  try {
+    // Get recent feedback
+    const { data: feedback } = await supabase
+      .from('copilot_feedback')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (!feedback || feedback.length === 0) return patterns;
+
+    // Analyze interaction types
+    const interactionTypes = {};
+    feedback.forEach(f => {
+      interactionTypes[f.interaction_type] = (interactionTypes[f.interaction_type] || 0) + 1;
+    });
+
+    // Find dominant interaction patterns
+    const sortedTypes = Object.entries(interactionTypes)
+      .sort((a, b) => b[1] - a[1]);
+
+    if (sortedTypes.length > 0) {
+      const dominantType = sortedTypes[0];
+      const totalInteractions = feedback.length;
+      const confidence = dominantType[1] / totalInteractions;
+
+      patterns.push({
+        type: 'dominant_interaction',
+        name: `Primary Use: ${dominantType[0]}`,
+        data: {
+          interactionType: dominantType[0],
+          frequency: dominantType[1],
+          percentage: (confidence * 100).toFixed(1),
+        },
+        confidence,
+        actionable: true,
+        suggestion: `Optimize ${dominantType[0]} workflows for this user`,
+      });
+    }
+
+    // Analyze feedback sentiment distribution
+    const sentimentCounts = {
+      positive: feedback.filter(f => f.feedback_type === 'positive').length,
+      negative: feedback.filter(f => f.feedback_type === 'negative').length,
+      correction: feedback.filter(f => f.feedback_type === 'correction').length,
+    };
+
+    const satisfactionRate = sentimentCounts.positive / 
+      (sentimentCounts.positive + sentimentCounts.negative + 0.001);
+
+    patterns.push({
+      type: 'satisfaction_level',
+      name: 'User Satisfaction',
+      data: {
+        satisfactionRate: (satisfactionRate * 100).toFixed(1),
+        ...sentimentCounts,
+      },
+      confidence: Math.min(0.9, feedback.length / 50),
+      actionable: satisfactionRate < 0.7,
+      suggestion: satisfactionRate < 0.7 
+        ? 'Increase personalization, review negative feedback' 
+        : 'Maintain current approach',
+    });
+
+    return patterns;
+  } catch (error) {
+    console.error('Error analyzing behavioral patterns:', error);
+    return patterns;
+  }
+}
+
+/**
+ * Analyze preference patterns from feedback
+ */
+async function analyzePreferencePatterns(userId) {
+  const patterns = [];
+
+  try {
+    // Get positive feedback to understand what user likes
+    const { data: positiveFeedback } = await supabase
+      .from('copilot_feedback')
+      .select('original_message, ai_response, context')
+      .eq('user_id', userId)
+      .eq('feedback_type', 'positive')
+      .limit(30);
+
+    // Get corrections to understand style preferences
+    const { data: corrections } = await supabase
+      .from('copilot_feedback')
+      .select('original_message, ai_response, corrected_response')
+      .eq('user_id', userId)
+      .eq('feedback_type', 'correction')
+      .limit(20);
+
+    if (corrections && corrections.length >= 3) {
+      // Use AI to extract style preferences from corrections
+      const stylePreferences = await extractStylePreferences(corrections);
+      if (stylePreferences) {
+        patterns.push({
+          type: 'style_preference',
+          name: 'Content Style Preferences',
+          data: stylePreferences,
+          confidence: Math.min(0.85, corrections.length / 10),
+          actionable: true,
+          suggestion: 'Apply these style preferences to generated content',
+        });
+      }
+    }
+
+    return patterns;
+  } catch (error) {
+    console.error('Error analyzing preference patterns:', error);
+    return patterns;
+  }
+}
+
+/**
+ * Extract style preferences from corrections using AI
+ */
+async function extractStylePreferences(corrections) {
+  if (!corrections || corrections.length === 0) return null;
+
+  try {
+    const samples = corrections.slice(0, 5).map(c => ({
+      original: c.ai_response?.substring(0, 200),
+      corrected: c.corrected_response?.substring(0, 200),
+    }));
+
+    const response = await openai.chat.completions.create({
+      model: DEFAULT_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `Phân tích corrections để extract style preferences.
+
+Trả về JSON:
+{
+  "tone": "formal|casual|playful|professional",
+  "length": "shorter|same|longer",
+  "emoji": "more|less|same",
+  "formatting": "bullet_points|paragraphs|mixed",
+  "language": "simple|technical|mixed",
+  "key_changes": ["change 1", "change 2"]
+}`
+        },
+        {
+          role: 'user',
+          content: `Corrections:\n${JSON.stringify(samples, null, 2)}`
+        }
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.3,
+    });
+
+    return JSON.parse(response.choices[0].message.content);
+  } catch (error) {
+    console.error('Error extracting style preferences:', error);
+    return null;
+  }
+}
+
+/**
+ * Analyze temporal patterns
+ */
+async function analyzeTemporalPatterns(userId) {
+  const patterns = [];
+
+  try {
+    const { data: feedback } = await supabase
+      .from('copilot_feedback')
+      .select('created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (!feedback || feedback.length < 10) return patterns;
+
+    // Analyze by hour
+    const hourlyActivity = new Array(24).fill(0);
+    const dailyActivity = new Array(7).fill(0);
+
+    feedback.forEach(f => {
+      const date = new Date(f.created_at);
+      hourlyActivity[date.getHours()]++;
+      dailyActivity[date.getDay()]++;
+    });
+
+    // Find peak hours (top 3)
+    const peakHours = hourlyActivity
+      .map((count, hour) => ({ hour, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3)
+      .filter(h => h.count > 0);
+
+    // Find peak days
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const peakDays = dailyActivity
+      .map((count, day) => ({ day: dayNames[day], dayIndex: day, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3)
+      .filter(d => d.count > 0);
+
+    patterns.push({
+      type: 'activity_schedule',
+      name: 'Activity Schedule',
+      data: {
+        peakHours: peakHours.map(h => `${h.hour}:00`),
+        peakDays: peakDays.map(d => d.day),
+        hourlyDistribution: hourlyActivity,
+        dailyDistribution: dailyActivity,
+      },
+      confidence: Math.min(0.9, feedback.length / 100),
+      actionable: true,
+      suggestion: `User most active at ${peakHours[0]?.hour || '12'}:00 on ${peakDays[0]?.day || 'weekdays'}`,
+    });
+
+    return patterns;
+  } catch (error) {
+    console.error('Error analyzing temporal patterns:', error);
+    return patterns;
+  }
+}
+
+/**
+ * Analyze contextual patterns
+ */
+async function analyzeContextualPatterns(userId) {
+  const patterns = [];
+
+  try {
+    const { data: feedback } = await supabase
+      .from('copilot_feedback')
+      .select('context, interaction_type, feedback_type')
+      .eq('user_id', userId)
+      .not('context', 'is', null)
+      .limit(100);
+
+    if (!feedback || feedback.length < 5) return patterns;
+
+    // Analyze page/project context
+    const contextCounts = {};
+    feedback.forEach(f => {
+      const ctx = f.context;
+      if (ctx?.page_id) {
+        contextCounts[ctx.page_id] = (contextCounts[ctx.page_id] || 0) + 1;
+      }
+      if (ctx?.project) {
+        contextCounts[`project:${ctx.project}`] = (contextCounts[`project:${ctx.project}`] || 0) + 1;
+      }
+    });
+
+    const topContexts = Object.entries(contextCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+
+    if (topContexts.length > 0) {
+      patterns.push({
+        type: 'context_preference',
+        name: 'Preferred Contexts',
+        data: {
+          topContexts: topContexts.map(([ctx, count]) => ({ context: ctx, count })),
+          totalContexts: Object.keys(contextCounts).length,
+        },
+        confidence: Math.min(0.85, topContexts[0][1] / feedback.length + 0.3),
+        actionable: true,
+        suggestion: `User primarily works in ${topContexts[0][0]} context`,
+      });
+    }
+
+    return patterns;
+  } catch (error) {
+    console.error('Error analyzing contextual patterns:', error);
+    return patterns;
+  }
+}
+
+/**
+ * Store advanced patterns
+ */
+async function storeAdvancedPatterns(userId, patterns) {
+  try {
+    const allPatterns = [
+      ...patterns.behavioral,
+      ...patterns.preference,
+      ...patterns.temporal,
+      ...patterns.contextual,
+    ];
+
+    for (const pattern of allPatterns) {
+      if (pattern.confidence >= 0.5) {
+        await supabase
+          .from('copilot_patterns')
+          .upsert({
+            user_id: userId,
+            pattern_type: pattern.type,
+            pattern_name: pattern.name,
+            pattern_description: pattern.suggestion,
+            pattern_data: pattern.data,
+            confidence: pattern.confidence,
+            is_active: true,
+            occurrence_count: 1,
+            last_occurred_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'user_id,pattern_type,pattern_name',
+          });
+      }
+    }
+  } catch (error) {
+    console.error('Error storing advanced patterns:', error);
+  }
+}
+
+/**
+ * Apply learned patterns to content generation
+ */
+async function applyLearnedPatternsToContent(pageId, contentPrompt) {
+  const learnedStyle = await getLearnedContentStyle(pageId);
+  
+  if (!learnedStyle || !learnedStyle.contentStyle) {
+    return contentPrompt;
+  }
+
+  const style = learnedStyle.contentStyle;
+  
+  const styleGuide = `
+📏 LENGTH: ${style.optimalLength?.min || 100}-${style.optimalLength?.max || 250} characters
+😊 EMOJI: ${style.emojiUsage || 'moderate'} usage
+#️⃣ HASHTAGS: ${style.hashtagCount?.min || 3}-${style.hashtagCount?.max || 5} hashtags
+🎨 TONE: ${style.toneOfVoice || 'casual'}
+🎣 HOOK: Use ${style.hookTypes?.join(' or ') || 'question or benefit'}
+📢 CTA: ${style.ctaStyle || 'direct'} style`;
+
+  return `${contentPrompt}\n\n🧠 LEARNED STYLE GUIDE (from performance data):\n${styleGuide}`;
+}
 
 /**
  * Collect and store feedback
@@ -482,6 +1073,7 @@ async function learnFromBatch(userId) {
 }
 
 module.exports = {
+  // Original functions
   collectFeedback,
   recognizePatterns,
   getUserPreferences,
@@ -491,5 +1083,15 @@ module.exports = {
   analyzeTimePatterns,
   analyzeCommandPatterns,
   analyzeProjectPatterns,
+  
+  // Advanced Learning (Phase 6)
+  analyzeContentPerformance,
+  getLearnedContentStyle,
+  advancedPatternRecognition,
+  applyLearnedPatternsToContent,
+  analyzeBehavioralPatterns,
+  analyzePreferencePatterns,
+  analyzeTemporalPatterns,
+  analyzeContextualPatterns,
 };
 

@@ -9,15 +9,19 @@ const { FacebookAdsManager } = require('./facebook-ads-manager');
 const facebookPublisher = require('./facebook-publisher');
 const n8nService = require('./n8n-service');
 const smartPostComposer = require('./smart-post-composer');
+const aiUsageTracker = require('./ai-usage-tracker');
 const OpenAI = require('openai');
 
 // Create instance of FacebookAdsManager
 const facebookAdsManager = new FacebookAdsManager();
 
-// OpenAI for intent detection
+// OpenAI for intent detection - with usage tracking
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// Wrap OpenAI with usage tracking
+aiUsageTracker.createTrackedOpenAI(openai);
 
 /**
  * Available actions that AI can execute
@@ -339,6 +343,433 @@ const AVAILABLE_ACTIONS = {
     },
   },
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW AI ACTIONS (Phase 3 - Added 5 new actions)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  'auto_reply_comments': {
+    description: 'Tự động trả lời comments trên Facebook posts',
+    params: ['postId?', 'page?', 'replyStyle?', 'maxReplies?'],
+    executor: async (params) => {
+      const page = params.page || 'sabo_arena';
+      const pageKey = page.replace(/_/g, '-');
+      const pageData = facebookPublisher.pages[pageKey];
+      
+      if (!pageData) throw new Error(`Unknown page: ${page}`);
+      
+      console.log(`💬 Auto-replying comments for ${pageData.name}...`);
+      
+      // Get recent posts if no specific postId
+      let targetPosts = [];
+      if (params.postId) {
+        targetPosts = [{ id: params.postId }];
+      } else {
+        const postsResponse = await fetch(
+          `https://graph.facebook.com/v18.0/${pageData.id}/feed?fields=id,message,created_time&limit=5&access_token=${pageData.token}`
+        );
+        const postsData = await postsResponse.json();
+        targetPosts = postsData.data || [];
+      }
+      
+      const results = [];
+      const maxReplies = params.maxReplies || 10;
+      let totalReplied = 0;
+      
+      for (const post of targetPosts) {
+        if (totalReplied >= maxReplies) break;
+        
+        // Get comments for this post
+        const commentsResponse = await fetch(
+          `https://graph.facebook.com/v18.0/${post.id}/comments?fields=id,message,from,created_time&limit=20&access_token=${pageData.token}`
+        );
+        const commentsData = await commentsResponse.json();
+        
+        if (!commentsData.data) continue;
+        
+        for (const comment of commentsData.data) {
+          if (totalReplied >= maxReplies) break;
+          
+          // Skip if already replied (check replies)
+          const repliesCheck = await fetch(
+            `https://graph.facebook.com/v18.0/${comment.id}/comments?limit=1&access_token=${pageData.token}`
+          );
+          const repliesData = await repliesCheck.json();
+          if (repliesData.data && repliesData.data.length > 0) continue;
+          
+          // Generate smart reply
+          const replyStyle = params.replyStyle || 'friendly';
+          const reply = await generateSmartReply(comment.message, pageData.name, replyStyle);
+          
+          // Post reply
+          const replyResponse = await fetch(
+            `https://graph.facebook.com/v18.0/${comment.id}/comments`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message: reply,
+                access_token: pageData.token,
+              }),
+            }
+          );
+          const replyResult = await replyResponse.json();
+          
+          results.push({
+            commentId: comment.id,
+            originalComment: comment.message.substring(0, 50) + '...',
+            reply: reply.substring(0, 100) + '...',
+            success: !replyResult.error,
+            replyId: replyResult.id,
+          });
+          
+          totalReplied++;
+          
+          // Rate limiting - wait 2 seconds between replies
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+      
+      return {
+        success: true,
+        page,
+        totalReplied,
+        results,
+        message: `Đã trả lời ${totalReplied} comments`,
+      };
+    },
+  },
+
+  'generate_video_script': {
+    description: 'Tạo script cho video TikTok/Reels/YouTube Shorts',
+    params: ['topic', 'platform?', 'duration?', 'style?', 'page?'],
+    executor: async (params) => {
+      const platform = params.platform || 'tiktok';
+      const duration = params.duration || 30; // seconds
+      const style = params.style || 'entertaining';
+      const page = params.page || 'sabo_arena';
+      const context = getPageContext(page);
+      
+      console.log(`🎬 Generating video script for ${platform}: "${params.topic}"`);
+      
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `Bạn là Video Script Writer chuyên nghiệp cho ${context.name}.
+
+📍 Về brand: ${context.description}
+🎯 Giọng điệu: ${context.tone}
+
+Platform: ${platform.toUpperCase()}
+Thời lượng: ${duration} giây
+Style: ${style}
+
+Tạo script video với format:
+{
+  "hook": "3 giây đầu - câu hook gây tò mò",
+  "scenes": [
+    {
+      "time": "0-3s",
+      "visual": "mô tả hình ảnh/action",
+      "voiceover": "lời thoại/voiceover",
+      "text_overlay": "text hiển thị trên màn hình",
+      "music_mood": "nhạc nền gợi ý"
+    }
+  ],
+  "cta": "call-to-action cuối video",
+  "hashtags": ["hashtag1", "hashtag2"],
+  "caption": "caption để đăng video",
+  "tips": ["mẹo quay/edit"]
+}`
+          },
+          {
+            role: 'user',
+            content: `Viết script video ${duration}s về: ${params.topic}`
+          }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.8,
+        max_tokens: 1500,
+      });
+      
+      try {
+        const script = JSON.parse(response.choices[0].message.content);
+        return {
+          success: true,
+          platform,
+          duration: `${duration}s`,
+          style,
+          script,
+          message: `Script video ${platform} đã sẵn sàng với ${script.scenes?.length || 0} scenes`,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: 'Failed to parse script',
+          rawContent: response.choices[0].message.content,
+        };
+      }
+    },
+  },
+
+  'analyze_competitors': {
+    description: 'Phân tích pages đối thủ cạnh tranh',
+    params: ['competitorPageId?', 'competitorUrl?', 'analysisType?', 'page?'],
+    executor: async (params) => {
+      const page = params.page || 'sabo_arena';
+      const analysisType = params.analysisType || 'full';
+      
+      console.log(`🔍 Analyzing competitors for ${page}...`);
+      
+      // Get our page's recent performance first
+      const pageKey = page.replace(/_/g, '-');
+      const pageData = facebookPublisher.pages[pageKey];
+      
+      let ownPerformance = null;
+      if (pageData) {
+        const postsResponse = await fetch(
+          `https://graph.facebook.com/v18.0/${pageData.id}/posts?fields=id,message,created_time,shares,reactions.summary(total_count),comments.summary(total_count)&limit=10&access_token=${pageData.token}`
+        );
+        const postsData = await postsResponse.json();
+        
+        if (postsData.data) {
+          const posts = postsData.data;
+          ownPerformance = {
+            totalPosts: posts.length,
+            avgReactions: Math.round(posts.reduce((sum, p) => sum + (p.reactions?.summary?.total_count || 0), 0) / posts.length),
+            avgComments: Math.round(posts.reduce((sum, p) => sum + (p.comments?.summary?.total_count || 0), 0) / posts.length),
+            avgShares: Math.round(posts.reduce((sum, p) => sum + (p.shares?.count || 0), 0) / posts.length),
+            topPost: posts.sort((a, b) => (b.reactions?.summary?.total_count || 0) - (a.reactions?.summary?.total_count || 0))[0],
+          };
+        }
+      }
+      
+      // Generate competitive analysis using AI
+      const analysisResponse = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `Bạn là Marketing Analyst chuyên phân tích đối thủ cho ngành ${getPageContext(page).description}.
+
+Dựa trên performance data của page, đưa ra phân tích và recommendations.
+
+Trả về JSON:
+{
+  "marketPosition": "vị thế thị trường ước tính",
+  "strengths": ["điểm mạnh 1", "điểm mạnh 2"],
+  "weaknesses": ["điểm yếu cần cải thiện"],
+  "opportunities": ["cơ hội có thể khai thác"],
+  "contentStrategy": {
+    "recommendedPostTypes": ["loại bài hiệu quả"],
+    "optimalPostingFrequency": "tần suất đăng gợi ý",
+    "engagementTactics": ["cách tăng engagement"]
+  },
+  "competitorInsights": {
+    "typicalCompetitorTactics": ["chiến thuật đối thủ hay dùng"],
+    "differentiationOpportunities": ["cách tạo sự khác biệt"]
+  },
+  "actionItems": ["việc cần làm ngay 1", "việc cần làm 2"]
+}`
+          },
+          {
+            role: 'user',
+            content: `Phân tích competitive cho ${getPageContext(page).name}:
+Performance hiện tại: ${JSON.stringify(ownPerformance)}
+Yêu cầu phân tích: ${analysisType}`
+          }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.7,
+        max_tokens: 1200,
+      });
+      
+      try {
+        const analysis = JSON.parse(analysisResponse.choices[0].message.content);
+        return {
+          success: true,
+          page,
+          ownPerformance,
+          analysis,
+          generatedAt: new Date().toISOString(),
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: 'Analysis failed',
+          ownPerformance,
+        };
+      }
+    },
+  },
+
+  'create_content_calendar': {
+    description: 'Lên lịch content cả tháng tự động',
+    params: ['month?', 'postsPerWeek?', 'themes?', 'page?', 'startDate?'],
+    executor: async (params) => {
+      const page = params.page || 'sabo_arena';
+      const context = getPageContext(page);
+      const postsPerWeek = params.postsPerWeek || 5;
+      const startDate = params.startDate ? new Date(params.startDate) : new Date();
+      const themes = params.themes || ['promotion', 'community', 'educational', 'entertainment', 'event'];
+      
+      console.log(`📅 Creating content calendar for ${context.name}...`);
+      
+      // Calculate number of posts needed (4 weeks)
+      const totalPosts = postsPerWeek * 4;
+      
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `Bạn là Content Strategist cho ${context.name} (${context.description}).
+
+Tạo content calendar 1 tháng với ${totalPosts} bài viết.
+Themes cho phép: ${themes.join(', ')}
+Giọng điệu: ${context.tone}
+
+Trả về JSON:
+{
+  "calendarName": "Tên lịch content",
+  "period": "khoảng thời gian",
+  "strategy": "chiến lược tổng thể ngắn gọn",
+  "posts": [
+    {
+      "day": 1,
+      "dayOfWeek": "Monday",
+      "theme": "promotion",
+      "title": "tiêu đề ngắn",
+      "contentIdea": "ý tưởng nội dung chi tiết",
+      "suggestedTime": "19:00",
+      "hashtags": ["hashtag1", "hashtag2"],
+      "imageHint": "gợi ý hình ảnh",
+      "priority": "high|medium|low"
+    }
+  ],
+  "specialDates": ["ngày lễ/sự kiện đặc biệt trong tháng"],
+  "kpis": {
+    "targetEngagement": "mục tiêu engagement",
+    "targetReach": "mục tiêu reach"
+  }
+}`
+          },
+          {
+            role: 'user',
+            content: `Tạo content calendar bắt đầu từ ${startDate.toISOString().split('T')[0]} với ${postsPerWeek} bài/tuần`
+          }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.8,
+        max_tokens: 3000,
+      });
+      
+      try {
+        const calendar = JSON.parse(response.choices[0].message.content);
+        
+        // Add actual dates to each post
+        let currentDate = new Date(startDate);
+        const postsWithDates = calendar.posts.map((post, index) => {
+          const postDate = new Date(currentDate);
+          postDate.setDate(postDate.getDate() + Math.floor(index * 7 / postsPerWeek));
+          return {
+            ...post,
+            scheduledDate: postDate.toISOString().split('T')[0],
+            fullDateTime: `${postDate.toISOString().split('T')[0]}T${post.suggestedTime || '19:00'}:00`,
+          };
+        });
+        
+        return {
+          success: true,
+          page,
+          calendar: {
+            ...calendar,
+            posts: postsWithDates,
+          },
+          totalPosts: postsWithDates.length,
+          message: `Content calendar created với ${postsWithDates.length} bài viết`,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: 'Failed to generate calendar',
+        };
+      }
+    },
+  },
+
+  'optimize_hashtags': {
+    description: 'Gợi ý hashtags trending và tối ưu cho bài viết',
+    params: ['topic', 'platform?', 'page?', 'count?'],
+    executor: async (params) => {
+      const platform = params.platform || 'facebook';
+      const page = params.page || 'sabo_arena';
+      const context = getPageContext(page);
+      const count = params.count || 10;
+      
+      console.log(`#️⃣ Optimizing hashtags for: "${params.topic}"`);
+      
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `Bạn là Hashtag Expert cho ${platform.toUpperCase()}.
+Brand: ${context.name} - ${context.description}
+Keywords ngành: ${context.keywords?.join(', ')}
+
+Tạo ${count} hashtags tối ưu cho topic.
+
+Trả về JSON:
+{
+  "primaryHashtags": [
+    {
+      "tag": "#hashtag",
+      "category": "brand|trending|niche|community|location",
+      "estimatedReach": "high|medium|low",
+      "reason": "lý do chọn"
+    }
+  ],
+  "secondaryHashtags": ["#tag1", "#tag2"],
+  "avoidHashtags": ["#tag_nên_tránh"],
+  "hashtagStrategy": {
+    "optimal_count": "số lượng hashtag tối ưu cho platform",
+    "placement": "đặt ở đâu trong bài",
+    "tips": ["mẹo sử dụng hashtag"]
+  },
+  "trendingNow": ["hashtag đang trending liên quan"],
+  "readyToUse": "chuỗi hashtags copy-paste sẵn"
+}`
+          },
+          {
+            role: 'user',
+            content: `Tối ưu hashtags cho topic: ${params.topic}`
+          }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.7,
+        max_tokens: 1000,
+      });
+      
+      try {
+        const hashtags = JSON.parse(response.choices[0].message.content);
+        return {
+          success: true,
+          platform,
+          topic: params.topic,
+          hashtags,
+          message: `Generated ${hashtags.primaryHashtags?.length || 0} primary + ${hashtags.secondaryHashtags?.length || 0} secondary hashtags`,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: 'Failed to generate hashtags',
+        };
+      }
+    },
+  },
+
   // Facebook Ads
   'create_ad_campaign': {
     description: 'Create Facebook/Instagram ad campaign',
@@ -522,6 +953,26 @@ async function detectIntent(message) {
 - list_campaigns: Xem danh sách chiến dịch
 - get_campaign_stats: Xem thống kê chiến dịch
 
+💬 ENGAGEMENT (MỚI):
+- auto_reply_comments: Tự động trả lời comments trên posts
+  Keywords: "trả lời comment", "reply", "auto reply", "tương tác"
+
+🎬 VIDEO CONTENT (MỚI):
+- generate_video_script: Tạo script video TikTok/Reels/Shorts
+  Keywords: "script video", "tiktok", "reels", "shorts", "video script"
+
+🔍 ANALYTICS (MỚI):
+- analyze_competitors: Phân tích đối thủ cạnh tranh
+  Keywords: "phân tích đối thủ", "competitor", "đối thủ", "so sánh"
+
+📅 PLANNING (MỚI):
+- create_content_calendar: Lên lịch content cả tháng
+  Keywords: "content calendar", "lịch content", "plan tháng", "calendar"
+
+#️⃣ HASHTAGS (MỚI):
+- optimize_hashtags: Tối ưu hashtags cho bài viết
+  Keywords: "hashtag", "trending hashtag", "tối ưu hashtag"
+
 📍 PAGES: sabo_billiards (Vũng Tàu), sabo_arena (HCM), ai_newbie (AI community), sabo_media (production)
 
 🧠 QUY TẮC THÔNG MINH:
@@ -532,8 +983,13 @@ async function detectIntent(message) {
 5. "Carousel/nhiều ảnh/slide/story" → create_carousel
 6. "Đăng lên tất cả/cross-platform/nhiều kênh/IG+FB" → publish_cross_platform
 7. "Xem kết quả test/winner/variant nào tốt" → get_ab_results
-8. Nếu đề cập ảnh/hình/image → set includeImage=true
-9. Mặc định includeImage=true cho mọi bài post
+8. "Trả lời comment/reply/auto reply comments" → auto_reply_comments
+9. "Script video/tiktok script/reels/shorts script" → generate_video_script
+10. "Phân tích đối thủ/competitor/so sánh với đối thủ" → analyze_competitors
+11. "Content calendar/lịch tháng/plan content" → create_content_calendar
+12. "Hashtag/trending hashtag/tối ưu hashtag" → optimize_hashtags
+13. Nếu đề cập ảnh/hình/image → set includeImage=true
+14. Mặc định includeImage=true cho mọi bài post
 
 🕐 SCHEDULE KEYWORDS (Vietnamese):
 - "lên lịch", "hẹn giờ", "schedule", "đăng sau", "đăng tối", "đăng sáng"
@@ -555,7 +1011,13 @@ Trả về JSON:
     "variantCount": 3,
     "strategy": "tone|cta|length|hook|mixed",
     "slideCount": 5,
-    "theme": "story|tips|showcase|comparison|journey|countdown"
+    "theme": "story|tips|showcase|comparison|journey|countdown",
+    "platform": "tiktok|reels|shorts|youtube",
+    "duration": 30,
+    "style": "entertaining|educational|promotional",
+    "replyStyle": "friendly|professional|casual|helpful",
+    "postsPerWeek": 5,
+    "count": 10
   },
   "reasoning": "giải thích ngắn tại sao chọn action này"
 }`,
@@ -719,6 +1181,49 @@ QUAN TRỌNG: Viết nội dung SÁNG TẠO và ĐỘC ĐÁO, không copy paste 
     max_tokens: 400,
   });
 
+  return response.choices[0].message.content;
+}
+
+/**
+ * Generate smart reply for Facebook comments
+ */
+async function generateSmartReply(commentText, pageName, replyStyle = 'friendly') {
+  const styleGuides = {
+    friendly: 'Thân thiện, ấm áp, dùng emoji vừa phải 😊',
+    professional: 'Chuyên nghiệp, lịch sự, không dùng quá nhiều emoji',
+    casual: 'Thoải mái, gần gũi như bạn bè, nhiều emoji 🎉',
+    helpful: 'Hữu ích, cung cấp thông tin cụ thể, hướng dẫn chi tiết',
+    promotional: 'Khuyến khích hành động, đề cập ưu đãi nếu phù hợp',
+  };
+  
+  const style = styleGuides[replyStyle] || styleGuides.friendly;
+  
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      {
+        role: 'system',
+        content: `Bạn là Community Manager cho ${pageName}.
+        
+Giọng điệu: ${style}
+
+Quy tắc trả lời comment:
+1. Ngắn gọn (1-2 câu max)
+2. Cảm ơn nếu là compliment
+3. Giải đáp nếu là câu hỏi
+4. Tích cực với feedback tiêu cực
+5. KHÔNG bao giờ spam hoặc quảng cáo lộ liễu
+6. Cá nhân hóa nếu có thể (dùng tên nếu biết)`
+      },
+      {
+        role: 'user',
+        content: `Trả lời comment: "${commentText}"`
+      }
+    ],
+    temperature: 0.7,
+    max_tokens: 100,
+  });
+  
   return response.choices[0].message.content;
 }
 

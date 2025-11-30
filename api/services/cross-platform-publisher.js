@@ -9,15 +9,82 @@
  * - Optimal timing per platform
  * - Image resizing/optimization
  * - Hashtag optimization per platform
+ * - Retry logic for failed API calls
  * 
  * @author LongSang Admin
- * @version 1.0.0
+ * @version 2.0.0 - Added retry logic
  */
 
 const OpenAI = require('openai');
 const fetch = require('node-fetch');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RETRY LOGIC CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════════════
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  baseDelay: 1000, // 1 second
+  maxDelay: 10000, // 10 seconds
+  backoffMultiplier: 2,
+  retryableErrors: [
+    'ETIMEDOUT',
+    'ECONNRESET', 
+    'ENOTFOUND',
+    'ESOCKETTIMEDOUT',
+    'rate_limit',
+    'timeout',
+    'network_error',
+    '429', // Too Many Requests
+    '500', // Internal Server Error
+    '502', // Bad Gateway
+    '503', // Service Unavailable
+    '504', // Gateway Timeout
+  ],
+};
+
+/**
+ * Retry wrapper for async functions
+ */
+async function withRetry(fn, options = {}) {
+  const { 
+    maxRetries = RETRY_CONFIG.maxRetries,
+    context = 'API Call',
+  } = options;
+
+  let lastError;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      const errorMessage = error.message || error.code || String(error);
+      
+      // Check if error is retryable
+      const isRetryable = RETRY_CONFIG.retryableErrors.some(
+        e => errorMessage.toLowerCase().includes(e.toLowerCase())
+      );
+      
+      if (!isRetryable || attempt === maxRetries) {
+        console.error(`❌ [${context}] Failed after ${attempt} attempts:`, errorMessage);
+        throw error;
+      }
+      
+      // Calculate delay with exponential backoff
+      const delay = Math.min(
+        RETRY_CONFIG.baseDelay * Math.pow(RETRY_CONFIG.backoffMultiplier, attempt - 1),
+        RETRY_CONFIG.maxDelay
+      );
+      
+      console.warn(`⚠️ [${context}] Attempt ${attempt}/${maxRetries} failed, retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError;
+}
 
 /**
  * Platform configurations
@@ -209,28 +276,45 @@ Trả về JSON:
 }
 
 /**
- * Publish to a specific platform
+ * Publish to a specific platform with retry logic
  */
 async function publishToPlatform(platform, content, options = {}) {
-  const { sourcePageId, delay = 0 } = options;
+  const { sourcePageId, delay = 0, useRetry = true } = options;
 
   // Wait if staggered
   if (delay > 0) {
     await new Promise(resolve => setTimeout(resolve, delay));
   }
 
+  // Wrap platform calls with retry logic for resilience
+  const publishWithRetry = useRetry 
+    ? (fn, name) => withRetry(fn, name)
+    : (fn) => fn();
+
   switch (platform) {
     case 'facebook':
-      return await publishToFacebook(content, sourcePageId);
+      return await publishWithRetry(
+        () => publishToFacebook(content, sourcePageId),
+        'Facebook Publish'
+      );
     
     case 'instagram':
-      return await publishToInstagram(content, sourcePageId);
+      return await publishWithRetry(
+        () => publishToInstagram(content, sourcePageId),
+        'Instagram Publish'
+      );
     
     case 'threads':
-      return await publishToThreads(content, sourcePageId);
+      return await publishWithRetry(
+        () => publishToThreads(content, sourcePageId),
+        'Threads Publish'
+      );
     
     case 'linkedin':
-      return await publishToLinkedIn(content);
+      return await publishWithRetry(
+        () => publishToLinkedIn(content),
+        'LinkedIn Publish'
+      );
     
     default:
       return {
@@ -276,12 +360,27 @@ async function publishToInstagram(content, sourcePageId) {
     // 2. Use Instagram Graph API through Facebook
     
     const facebookPublisher = require('./facebook-publisher');
-    const pageConfig = facebookPublisher.pages[sourcePageId.replace(/_/g, '-')];
+    const normalizedPageId = sourcePageId.replace(/_/g, '-');
+    const pageConfig = facebookPublisher.pages[normalizedPageId];
     
-    if (!pageConfig?.instagramAccountId) {
+    // Support both instagram_id and instagramAccountId for backward compatibility
+    const instagramId = pageConfig?.instagramAccountId || pageConfig?.instagram_id;
+    
+    if (!pageConfig) {
       return {
         success: false,
-        error: 'Instagram account not linked to this page',
+        error: `Page not found: ${normalizedPageId}. Available pages: ${Object.keys(facebookPublisher.pages).join(', ')}`,
+        prepared: {
+          content: content.adapted || content.content,
+          hashtags: content.hashtags,
+        },
+      };
+    }
+    
+    if (!instagramId) {
+      return {
+        success: false,
+        error: `Instagram account not linked to page: ${pageConfig.name}`,
         prepared: {
           content: content.adapted || content.content,
           hashtags: content.hashtags,
@@ -300,9 +399,11 @@ async function publishToInstagram(content, sourcePageId) {
       };
     }
 
+    console.log(`📸 [Instagram] Publishing to account ID: ${instagramId} using page token from ${pageConfig.name}`);
+    
     // Step 1: Create media container
     const containerResponse = await fetch(
-      `https://graph.facebook.com/v18.0/${pageConfig.instagramAccountId}/media`,
+      `https://graph.facebook.com/v18.0/${instagramId}/media`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -317,12 +418,15 @@ async function publishToInstagram(content, sourcePageId) {
     const container = await containerResponse.json();
     
     if (container.error) {
+      console.error(`❌ [Instagram] Container creation failed:`, container.error);
       throw new Error(container.error.message);
     }
+    
+    console.log(`✅ [Instagram] Container created: ${container.id}`);
 
     // Step 2: Publish the container
     const publishResponse = await fetch(
-      `https://graph.facebook.com/v18.0/${pageConfig.instagramAccountId}/media_publish`,
+      `https://graph.facebook.com/v18.0/${instagramId}/media_publish`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -648,4 +752,8 @@ module.exports = {
   previewCrossPost,
   getCrossPostSchedule,
   PLATFORMS,
+  
+  // Retry utilities (can be used by other services)
+  withRetry,
+  RETRY_CONFIG,
 };

@@ -13,23 +13,47 @@ class FacebookPublisher {
         token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
         name: 'SABO Billiards - TP. Vũng Tàu',
         instagram_id: process.env.INSTAGRAM_SABO_BILLIARDS_ID,
+        instagramAccountId: process.env.INSTAGRAM_SABO_BILLIARDS_ID, // Alias for cross-platform
       },
       'sabo-arena': {
         id: process.env.FACEBOOK_PAGE_SABO_ARENA_ID,
         token: process.env.FACEBOOK_PAGE_SABO_ARENA_TOKEN,
         name: 'SABO Arena',
+        // SABO Arena doesn't have its own Instagram - can use SABO Billiards token
       },
       'ai-newbie': {
         id: process.env.FACEBOOK_PAGE_AI_NEWBIE_VN_ID,
         token: process.env.FACEBOOK_PAGE_AI_NEWBIE_VN_TOKEN,
         name: 'AI Newbie VN',
         instagram_id: process.env.INSTAGRAM_AI_NEWBIE_VN_ID,
+        instagramAccountId: process.env.INSTAGRAM_AI_NEWBIE_VN_ID, // @newbiehocmake
       },
       'sabo-media': {
         id: process.env.FACEBOOK_PAGE_SABO_MEDIA_ID,
         token: process.env.FACEBOOK_PAGE_SABO_MEDIA_TOKEN,
         name: 'SABO Media',
         instagram_id: process.env.INSTAGRAM_SABO_MEDIA_ID,
+        instagramAccountId: process.env.INSTAGRAM_SABO_MEDIA_ID, // @sabomediavt
+      },
+      'ai-art-newbie': {
+        id: process.env.FACEBOOK_PAGE_AI_ART_NEWBIE_ID,
+        token: process.env.FACEBOOK_PAGE_AI_ART_NEWBIE_TOKEN,
+        name: 'AI Art Newbie',
+        instagram_id: process.env.INSTAGRAM_AI_ART_NEWBIE_ID,
+        instagramAccountId: process.env.INSTAGRAM_AI_ART_NEWBIE_ID, // @lsfusionlab
+      },
+      'sabo-billiard-shop': {
+        id: process.env.FACEBOOK_PAGE_SABO_BILLIARD_SHOP_ID,
+        token: process.env.FACEBOOK_PAGE_SABO_BILLIARD_SHOP_TOKEN,
+        name: 'SABO Billiard Shop',
+        instagram_id: process.env.INSTAGRAM_SABO_BILLIARD_SHOP_ID,
+        instagramAccountId: process.env.INSTAGRAM_SABO_BILLIARD_SHOP_ID, // @sabobidashop
+      },
+      'tho-san-hoang-hon': {
+        id: process.env.FACEBOOK_PAGE_THO_SAN_HOANG_HON_ID,
+        token: process.env.FACEBOOK_PAGE_THO_SAN_HOANG_HON_TOKEN,
+        name: 'Thợ Săn Hoàng Hôn',
+        // No Instagram linked
       },
     };
     this.graphApiUrl = 'https://graph.facebook.com/v18.0';

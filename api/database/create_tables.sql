@@ -134,6 +134,25 @@ CREATE TABLE IF NOT EXISTS public.ai_usage (
 -- Index for usage analytics
 CREATE INDEX IF NOT EXISTS idx_ai_usage_service_date ON public.ai_usage(service, created_at DESC);
 
+-- 9. Execution History Table (for Visual Workspace)
+CREATE TABLE IF NOT EXISTS public.execution_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL DEFAULT 'anonymous',
+  command TEXT NOT NULL,
+  steps JSONB NOT NULL DEFAULT '[]',
+  duration INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'completed' CHECK (status IN ('completed', 'failed', 'cancelled')),
+  error TEXT,
+  layers_used JSONB DEFAULT '[]',
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for execution history
+CREATE INDEX IF NOT EXISTS idx_execution_history_user ON public.execution_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_execution_history_created ON public.execution_history(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_execution_history_status ON public.execution_history(status);
+
 -- ============================================
 -- ROW LEVEL SECURITY (Optional but recommended)
 -- ============================================
@@ -171,6 +190,12 @@ CREATE POLICY "Service role has full access to content_performance" ON public.co
   FOR ALL USING (true) WITH CHECK (true);
 
 CREATE POLICY "Service role has full access to ai_usage" ON public.ai_usage
+  FOR ALL USING (true) WITH CHECK (true);
+
+-- Enable RLS on execution_history
+ALTER TABLE public.execution_history ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Service role has full access to execution_history" ON public.execution_history
   FOR ALL USING (true) WITH CHECK (true);
 
 -- ============================================
@@ -218,3 +243,4 @@ COMMENT ON TABLE public.cross_platform_posts IS 'Cross-platform publishing recor
 COMMENT ON TABLE public.platform_analytics IS 'Daily analytics per platform';
 COMMENT ON TABLE public.content_performance IS 'Individual content performance metrics';
 COMMENT ON TABLE public.ai_usage IS 'AI API usage tracking for cost analysis';
+COMMENT ON TABLE public.execution_history IS 'Visual Workspace execution history for replay and analytics';

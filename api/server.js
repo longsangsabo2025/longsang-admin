@@ -153,6 +153,9 @@ const crossPlatformRoutes = require('./routes/cross-platform');
 // AI Feedback & Learning API
 const feedbackRoutes = require('./routes/feedback');
 
+// AI Usage Tracking API
+const aiUsageRoutes = require('./routes/ai-usage');
+
 // Fix Request API (File watcher integration for Copilot)
 const fixRequestRoutes = require('./routes/fix-request');
 
@@ -279,6 +282,9 @@ app.use('/api/cross-platform', aiLimiter, crossPlatformRoutes);
 
 // AI Feedback & Learning API
 app.use('/api/ai/feedback', aiLimiter, feedbackRoutes);
+
+// AI Usage Tracking API
+app.use('/api/ai-usage', aiLimiter, aiUsageRoutes);
 
 // GitHub API (Workflow runs, PRs, Issues - for auto-fix dashboard)
 const githubRoutes = require('./routes/github');

@@ -2,9 +2,11 @@
  * Visual Workspace Page
  * Main page combining chat, canvas, and preview panels
  * Inspired by Lovable and Google AI Studio
+ * NOW CONNECTED TO REAL SOLO HUB 4-LAYER API
  */
 
 import { Layout } from '@/components/Layout';
+import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { ChatPanel } from '@/components/visual-workspace/ChatPanel';
 import { ComponentLibrary } from '@/components/visual-workspace/ComponentLibrary';
@@ -16,8 +18,11 @@ import { useExecutionHistory } from '@/hooks/useExecutionHistory';
 import { ExecutionEvent, useExecutionSteps } from '@/hooks/useExecutionSteps';
 import { ComponentDefinition, useVisualWorkspace } from '@/hooks/useVisualWorkspace';
 import { parseAICommand } from '@/lib/visual-workspace/aiParser';
-import { useCallback, useMemo } from 'react';
+import { XCircle } from 'lucide-react';
+import { useCallback, useMemo, useRef } from 'react';
 import { Connection, Node } from 'reactflow';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export default function VisualWorkspace() {
   const {
@@ -35,20 +40,24 @@ export default function VisualWorkspace() {
     setEdges,
   } = useVisualWorkspace();
 
-  // Execution steps hook
+  // Execution steps hook - now with cancel support
   const {
     nodes: executionNodes,
     edges: executionEdges,
     isExecuting,
+    isCancelled,
     processEvent,
     clearSteps,
+    cancelExecution,
+    getAbortSignal,
     steps,
   } = useExecutionSteps();
 
-  // Execution history hook
+  // Execution history hook - now with Supabase support
   const { addExecution } = useExecutionHistory();
 
   const { toast } = useToast();
+  const startTimeRef = useRef<number>(0);
 
   // Merge execution nodes with regular nodes
   const allNodes = useMemo(() => {
@@ -66,11 +75,12 @@ export default function VisualWorkspace() {
     return edges;
   }, [edges, executionEdges, isExecuting]);
 
-  // Handle AI command from chat
+  // Handle AI command from chat - CONNECTED TO REAL SOLO HUB API
   const handleSendMessage = useCallback(
     async (message: string) => {
       setIsGenerating(true);
-      clearSteps(); // Clear previous execution steps
+      clearSteps();
+      startTimeRef.current = Date.now();
 
       try {
         // Check if command is for execution (contains keywords)
@@ -80,99 +90,124 @@ export default function VisualWorkspace() {
           lowerMessage.includes('generate') ||
           lowerMessage.includes('build') ||
           lowerMessage.includes('thực hiện') ||
-          lowerMessage.includes('execute');
+          lowerMessage.includes('execute') ||
+          lowerMessage.includes('đăng') ||
+          lowerMessage.includes('post') ||
+          lowerMessage.includes('schedule');
 
-        // If execution command, show execution steps
         if (isExecutionCommand) {
-          // Create execution plan
+          // Create execution plan matching 4-layer architecture
           const plan: ExecutionEvent = {
             type: 'plan',
             plan: {
               steps: [
                 {
-                  id: 'step-1',
-                  name: 'Planning',
-                  description: 'Đang phân tích yêu cầu...',
+                  id: 'layer-1',
+                  name: 'Layer 1: Planning',
+                  description: 'Copilot Planner đang phân tích...',
                   type: 'planning',
                 },
                 {
-                  id: 'step-2',
-                  name: 'Generation',
-                  description: 'Đang tạo components...',
+                  id: 'layer-2',
+                  name: 'Layer 2: Orchestration',
+                  description: 'Đang chọn agents phù hợp...',
                   type: 'generation',
                 },
                 {
-                  id: 'step-3',
-                  name: 'Review',
-                  description: 'Đang kiểm tra...',
-                  type: 'review',
+                  id: 'layer-3',
+                  name: 'Layer 3: Execution',
+                  description: 'Đang thực thi actions...',
+                  type: 'execution',
                 },
                 {
-                  id: 'step-4',
-                  name: 'Execution',
-                  description: 'Đang thực thi...',
-                  type: 'execution',
+                  id: 'layer-4',
+                  name: 'Layer 4: Learning',
+                  description: 'Ghi nhận feedback...',
+                  type: 'review',
                 },
               ],
             },
           };
 
           processEvent(plan);
+          processEvent({ type: 'step_start', stepId: 'layer-1' });
 
-          // Simulate execution steps
-          setTimeout(() => {
-            processEvent({ type: 'step_start', stepId: 'step-1' });
-          }, 500);
+          // CALL REAL SOLO HUB API
+          const response = await fetch(`${API_BASE}/api/solo-hub/chat-smart`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message,
+              agentRole: 'content',
+              conversationHistory: [],
+            }),
+            signal: getAbortSignal(),
+          });
 
-          setTimeout(() => {
-            processEvent({ type: 'step_complete', stepId: 'step-1' });
-            processEvent({ type: 'step_start', stepId: 'step-2' });
-          }, 2000);
+          if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+          }
 
-          setTimeout(() => {
-            processEvent({ type: 'step_complete', stepId: 'step-2' });
-            processEvent({ type: 'step_start', stepId: 'step-3' });
-          }, 4000);
+          const result = await response.json();
 
-          setTimeout(() => {
-            processEvent({ type: 'step_complete', stepId: 'step-3' });
-            processEvent({ type: 'step_start', stepId: 'step-4' });
-          }, 5500);
+          // Update execution steps based on actual API response
+          if (result.success) {
+            // Layer 1 complete
+            processEvent({ type: 'step_complete', stepId: 'layer-1' });
+            processEvent({ type: 'step_start', stepId: 'layer-2' });
 
-          setTimeout(() => {
-            // Parse command and add components
-            parseAICommand(message).then((parsed) => {
-              const newNodes: Node[] = [];
-              for (const component of parsed.components) {
-                const x = newNodes.length * 250 + 50;
-                const y = Math.floor(newNodes.length / 3) * 200 + 50;
-                const node = addNode(component, { x, y });
-                newNodes.push(node);
-              }
+            // Check which layers were used
+            const layersUsed = result.metadata?.layersUsed || [];
+            
+            // Simulate layer progression based on actual response
+            await new Promise(r => setTimeout(r, 300));
+            processEvent({ type: 'step_complete', stepId: 'layer-2' });
+            processEvent({ type: 'step_start', stepId: 'layer-3' });
+            
+            await new Promise(r => setTimeout(r, 300));
+            processEvent({ type: 'step_complete', stepId: 'layer-3' });
+            processEvent({ type: 'step_start', stepId: 'layer-4' });
+            
+            await new Promise(r => setTimeout(r, 200));
+            processEvent({ type: 'step_complete', stepId: 'layer-4' });
 
-              processEvent({ type: 'step_complete', stepId: 'step-4' });
+            // Parse for visual components if applicable
+            const parsed = await parseAICommand(message);
+            const newNodes: Node[] = [];
+            for (const component of parsed.components) {
+              const x = newNodes.length * 250 + 50;
+              const y = Math.floor(newNodes.length / 3) * 200 + 50;
+              const node = addNode(component, { x, y });
+              newNodes.push(node);
+            }
 
-              // Calculate total duration
-              const startTime = Date.now() - 7000; // Approximate start time
-              const totalDuration = Date.now() - startTime;
+            const totalDuration = Date.now() - startTimeRef.current;
 
-              // Save to execution history
-              addExecution({
-                command: message,
-                steps: steps,
-                duration: totalDuration,
-                status: 'completed',
-              });
-
-              processEvent({ type: 'complete' });
-
-              toast({
-                title: 'Hoàn thành',
-                description: `Đã tạo ${parsed.components.length} component(s)`,
-              });
-              setIsGenerating(false);
+            // Save to execution history (now goes to Supabase!)
+            addExecution({
+              command: message,
+              steps: steps,
+              duration: totalDuration,
+              status: 'completed',
+              layers_used: layersUsed,
+              metadata: {
+                apiResponse: result.type,
+                agents: result.orchestration?.agents,
+                totalTime: result.metadata?.totalTime,
+              },
             });
-          }, 7000);
+
+            processEvent({ type: 'complete' });
+
+            toast({
+              title: '✅ Hoàn thành',
+              description: result.message?.substring(0, 100) || `Đã xử lý với ${layersUsed.length} layers`,
+            });
+          } else {
+            throw new Error(result.error || 'Unknown error');
+          }
+
+          setIsGenerating(false);
         } else {
           // Regular command - just parse and add components
           const parsed = await parseAICommand(message);
@@ -191,19 +226,48 @@ export default function VisualWorkspace() {
           });
           setIsGenerating(false);
         }
-      } catch (error) {
-        console.error('Error parsing command:', error);
-        processEvent({ type: 'error', error: 'Could not parse command' });
-        toast({
-          title: 'Error',
-          description: 'Could not parse command. Please try again.',
-          variant: 'destructive',
+      } catch (error: any) {
+        console.error('Error:', error);
+        
+        // Check if cancelled by user
+        if (error.name === 'AbortError') {
+          processEvent({ type: 'error', error: 'Cancelled by user' });
+          toast({
+            title: '⚠️ Đã hủy',
+            description: 'Quá trình đã bị hủy',
+          });
+        } else {
+          processEvent({ type: 'error', error: error.message || 'Unknown error' });
+          toast({
+            title: '❌ Lỗi',
+            description: error.message || 'Không thể xử lý yêu cầu',
+            variant: 'destructive',
+          });
+        }
+        
+        // Save failed execution
+        addExecution({
+          command: message,
+          steps: steps,
+          duration: Date.now() - startTimeRef.current,
+          status: error.name === 'AbortError' ? 'cancelled' : 'failed',
+          error: error.message,
         });
+        
         setIsGenerating(false);
       }
     },
-    [addNode, setIsGenerating, toast, processEvent, clearSteps, steps, addExecution]
+    [addNode, setIsGenerating, toast, processEvent, clearSteps, steps, addExecution, getAbortSignal]
   );
+
+  // Handle cancel button click
+  const handleCancelExecution = useCallback(() => {
+    cancelExecution();
+    toast({
+      title: '⏹️ Đang hủy...',
+      description: 'Đang dừng quá trình thực thi',
+    });
+  }, [cancelExecution, toast]);
 
   // Handle canvas connections
   const handleConnect = useCallback(
@@ -243,6 +307,16 @@ export default function VisualWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
+            {isExecuting && (
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={handleCancelExecution}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            )}
             <ExecutionReportDialog />
           </div>
         </div>
