@@ -3,7 +3,7 @@
  * React hooks for AI Agent communication
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { 
@@ -54,6 +54,16 @@ export function useAgentChat(options: UseAgentChatOptions) {
     error: null,
     usage: { totalTokens: 0, totalCost: 0 },
   });
+  
+  // Reset chat when agent changes
+  useEffect(() => {
+    setState({
+      messages: [],
+      isLoading: false,
+      error: null,
+      usage: { totalTokens: 0, totalCost: 0 },
+    });
+  }, [agentRole]);
   
   // Get memories for context if needed
   const { data: memories } = useMemories(
