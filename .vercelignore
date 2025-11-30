@@ -1,7 +1,7 @@
-api/server.js
-api/routes/
-api/google-drive.js
-api/test-*.js
+# Ignore entire API folder - runs on separate server
+api/
+
+# Ignore docs and config
 *.md
 .git
 .github
@@ -11,3 +11,6 @@ node_modules
 *.log
 *.backup
 *.ts.backup
+electron/
+tests/
+scripts/

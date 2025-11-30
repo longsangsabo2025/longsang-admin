@@ -5,11 +5,8 @@
   "installCommand": "npm install",
   "framework": "vite",
   "alias": ["admin.longsang.org"],
+  "functions": {},
   "rewrites": [
-    {
-      "source": "/api/agents/:agentId",
-      "destination": "/api/agents/[agentId]"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
