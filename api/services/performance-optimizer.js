@@ -10,7 +10,15 @@
 
 const NodeCache = require('node-cache');
 const { createClient } = require('@supabase/supabase-js');
-const contextRetrieval = require('./context-retrieval');
+
+// Lazy require to avoid circular dependency
+let contextRetrieval = null;
+function getContextRetrieval() {
+  if (!contextRetrieval) {
+    contextRetrieval = require('./context-retrieval');
+  }
+  return contextRetrieval;
+}
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://diexsbzqwsbpilsymnfb.supabase.co';
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
@@ -70,7 +78,7 @@ async function getCachedContext(query, options = {}) {
 
     // Retrieve from database
     const startTime = Date.now();
-    const results = await contextRetrieval.retrieveEnhancedContext(query, options);
+    const results = await getContextRetrieval().retrieveEnhancedContext(query, options);
     const retrievalTime = Date.now() - startTime;
 
     // Cache results
@@ -87,7 +95,7 @@ async function getCachedContext(query, options = {}) {
   } catch (error) {
     console.error('Error in cached context retrieval:', error);
     // Fallback to non-cached
-    return await contextRetrieval.retrieveEnhancedContext(query, options);
+    return await getContextRetrieval().retrieveEnhancedContext(query, options);
   }
 }
 
@@ -132,7 +140,7 @@ async function batchContextQueries(queries, options = {}) {
 
       for (const batch of batches) {
         const batchResults = await Promise.allSettled(
-          batch.map(({ query }) => contextRetrieval.retrieveEnhancedContext(query, options))
+          batch.map(({ query }) => getContextRetrieval().retrieveEnhancedContext(query, options))
         );
 
         batchResults.forEach((result, batchIndex) => {

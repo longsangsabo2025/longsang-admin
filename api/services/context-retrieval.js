@@ -77,12 +77,12 @@ async function retrieveContext(query, options = {}) {
       similarityThreshold = 0.7,
       maxResults = 10,
       useCache = true,
-      useOptimizer = true,
+      useOptimizer = false, // Disabled by default to avoid circular dependency
     } = options;
 
-    // Use performance optimizer for better caching
+    // Use performance optimizer for better caching (only if explicitly enabled)
     if (useOptimizer && useCache) {
-      return await performanceOptimizer.getCachedContext(query, options);
+      return await performanceOptimizer.getCachedContext(query, { ...options, useOptimizer: false });
     }
 
     // Check cache
@@ -265,11 +265,21 @@ async function retrieveContextBatch(queries, options = {}) {
  */
 async function retrieveEnhancedContext(query, options = {}) {
   try {
-    // Get semantic search results
-    const semanticContext = await retrieveContext(query, options);
-
-    // Get business context
+    // Get business context first (always works)
     const businessContextData = await businessContext.load();
+
+    // Try semantic search, but gracefully handle failures
+    let semanticContext = { results: [], error: null };
+    try {
+      semanticContext = await retrieveContext(query, { ...options, useOptimizer: false });
+    } catch (semanticError) {
+      console.warn('[Context] Semantic search unavailable:', semanticError.message);
+      semanticContext = { 
+        results: [], 
+        error: semanticError.message,
+        fallback: true,
+      };
+    }
 
     // Combine contexts
     return {
@@ -281,7 +291,7 @@ async function retrieveEnhancedContext(query, options = {}) {
       },
       combined: {
         projects: [
-          ...semanticContext.results.filter(r => r.entity_type === 'project'),
+          ...(semanticContext.results || []).filter(r => r.entity_type === 'project'),
           ...(businessContextData.currentProjects || []).map(p => ({
             entity_type: 'project',
             entity_id: p.id,
@@ -290,7 +300,7 @@ async function retrieveEnhancedContext(query, options = {}) {
           })),
         ],
         workflows: [
-          ...semanticContext.results.filter(r => r.entity_type === 'workflow'),
+          ...(semanticContext.results || []).filter(r => r.entity_type === 'workflow'),
           ...(businessContextData.recentWorkflows || []).map(w => ({
             entity_type: 'workflow',
             entity_id: w.id,
@@ -302,7 +312,12 @@ async function retrieveEnhancedContext(query, options = {}) {
     };
   } catch (error) {
     console.error('Error retrieving enhanced context:', error);
-    throw error;
+    // Return minimal context on error instead of throwing
+    return {
+      semantic: { results: [], error: error.message },
+      business: { currentProjects: [], recentWorkflows: [], domain: 'longsang' },
+      combined: { projects: [], workflows: [] },
+    };
   }
 }
 

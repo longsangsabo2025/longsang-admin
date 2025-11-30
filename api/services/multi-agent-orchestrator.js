@@ -375,12 +375,48 @@ async function executeAgentTasks(tasks, options = {}) {
 
 /**
  * Execute a single agent task
+ * Uses AI Action Executor for intelligent execution
  */
 async function executeAgentTask(task, options = {}) {
   try {
     const { userId, projectId, context = [] } = options;
+    const aiActionExecutor = require('./ai-action-executor');
 
-    // Get agent details
+    console.log(`[Orchestrator] Executing task: ${task.agent} - "${task.command?.substring(0, 50)}..."`);
+
+    // Map agent type to action
+    const agentToAction = {
+      content_creator: 'post_facebook',
+      data_analyst: 'analyze_data',
+      seo_specialist: 'analyze_seo',
+      workflow_automation: 'create_workflow',
+      research_agent: 'research',
+    };
+
+    // Build context from previous results
+    const contextSummary = context
+      .filter(r => r.result)
+      .map(r => `${r.agent}: ${JSON.stringify(r.result).substring(0, 100)}`)
+      .join('\n');
+
+    // Detect action from command
+    const { action, reasoning } = await aiActionExecutor.detectIntent(task.command);
+    console.log(`[Orchestrator] Detected action: ${action}, reason: ${reasoning?.substring(0, 50)}...`);
+
+    if (action && action !== 'chat') {
+      // Execute real action through AI Action Executor
+      const result = await aiActionExecutor.processWithActions(task.command, task.role || 'marketing');
+      
+      return {
+        success: result.type === 'action_executed' || result.type === 'action',
+        result: result,
+        agentType: task.agent,
+        action: action,
+        executionTime: Date.now(),
+      };
+    }
+
+    // Fallback: Try database agent if no action detected
     let agent;
     if (task.agentId) {
       const { data } = await supabase
@@ -388,12 +424,10 @@ async function executeAgentTask(task, options = {}) {
         .select('*')
         .eq('id', task.agentId)
         .single();
-
       agent = data;
     }
 
     if (!agent) {
-      // Try to get by type
       const { data } = await supabase
         .from('ai_agents')
         .select('*')
@@ -401,19 +435,39 @@ async function executeAgentTask(task, options = {}) {
         .eq('status', 'active')
         .limit(1)
         .single();
-
       agent = data;
     }
 
     if (!agent) {
-      throw new Error(`Agent ${task.agent} not found`);
-    }
+      // No agent in DB - use AI directly
+      console.log(`[Orchestrator] No DB agent, using direct AI for ${task.agent}`);
+      
+      const openaiResponse = await openai.chat.completions.create({
+        model: DEFAULT_MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: `Bạn là ${AGENT_TYPES[task.agent]?.name || task.agent}.
+${AGENT_TYPES[task.agent]?.description || ''}
+Context: ${contextSummary}
+Hãy thực hiện nhiệm vụ và trả lời bằng tiếng Việt.`,
+          },
+          { role: 'user', content: task.command },
+        ],
+        temperature: 0.7,
+        max_tokens: 1500,
+      });
 
-    // Build context from previous results
-    const contextSummary = context
-      .filter(r => r.result)
-      .map(r => `${r.agent}: ${JSON.stringify(r.result).substring(0, 100)}`)
-      .join('\n');
+      return {
+        success: true,
+        result: {
+          message: openaiResponse.choices[0].message.content,
+          agentType: task.agent,
+        },
+        agentType: task.agent,
+        executionTime: Date.now(),
+      };
+    }
 
     // Execute agent via API
     const response = await fetch(`http://localhost:3001/api/agents/${agent.id}/execute`, {
