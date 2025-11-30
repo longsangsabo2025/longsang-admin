@@ -15,14 +15,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Bell, Key, DollarSign, Brain, Save, Loader2, Server } from 'lucide-react';
+import { Settings, Bell, Key, DollarSign, Brain, Save, Loader2, Server, Database } from 'lucide-react';
+import { MCPSupabaseStatus } from '@/components/admin/MCPSupabaseStatus';
 
 export default function AdminSettings() {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [envVars, setEnvVars] = useState<Record<string, string>>({});
   const [loadingEnvVars, setLoadingEnvVars] = useState(false);
-  
+
   // Helper function for port validation
   const getStandardPort = (key: string): number => {
     const standardPorts: Record<string, number> = {
@@ -36,11 +37,11 @@ export default function AdminSettings() {
     };
     return standardPorts[key] || 0;
   };
-  
+
   const getPortDescription = (key: string): string => {
     const descriptions: Record<string, string> = {
       admin: 'Main admin dashboard and SABO Arena',
-      ainewbie: 'AI learning platform for beginners', 
+      ainewbie: 'AI learning platform for beginners',
       vungtau: 'Real estate platform for Vung Tau',
       secretary: 'AI assistant frontend',
       portfolio: 'Personal portfolio website',
@@ -93,12 +94,12 @@ export default function AdminSettings() {
         .from('admin_settings')
         .select('*')
         .single();
-      
+
       if (error && error.code !== 'PGRST116') {
         console.warn('Failed to load settings:', error);
         return;
       }
-      
+
       if (settings) {
         // Apply loaded settings
         const config = settings.config || {};
@@ -112,7 +113,7 @@ export default function AdminSettings() {
         setGlobalDailyLimit(config.global_daily_limit || 50);
         setGlobalMonthlyLimit(config.global_monthly_limit || 1000);
         setAlertThreshold(config.alert_threshold || 75);
-        
+
         if (config.port_policy) {
           setPortPolicy(config.port_policy);
         }
@@ -147,9 +148,9 @@ export default function AdminSettings() {
       // Upsert to Supabase admin_settings table
       const { error } = await supabase
         .from('admin_settings')
-        .upsert({ 
+        .upsert({
           id: 'system_config',
-          config: settingsConfig 
+          config: settingsConfig
         });
 
       if (error) {
@@ -183,7 +184,7 @@ export default function AdminSettings() {
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid grid-cols-6 w-full max-w-3xl">
+          <TabsList className="grid grid-cols-8 w-full max-w-5xl">
             <TabsTrigger value="general">
               <Settings className="h-4 w-4 mr-1" />
               General
@@ -211,6 +212,10 @@ export default function AdminSettings() {
             <TabsTrigger value="environment">
               <Server className="h-4 w-4 mr-1" />
               Environment
+            </TabsTrigger>
+            <TabsTrigger value="mcp-supabase">
+              <Database className="h-4 w-4 mr-1" />
+              MCP Supabase
             </TabsTrigger>
           </TabsList>
 
@@ -281,12 +286,12 @@ export default function AdminSettings() {
                     All launch scripts, docs, and configs must match this table.
                   </p>
                 </div>
-                
+
                 <div className="space-y-4">
                   {Object.entries(portPolicy).map(([key, config]) => {
                     const standardPort = getStandardPort(key);
                     const isStandardPort = config.port === standardPort;
-                    
+
                     return (
                       <div key={key} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex-1">
@@ -318,17 +323,17 @@ export default function AdminSettings() {
                     );
                   })}
                 </div>
-                
+
                 <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-900">
-                    <strong>⚠️ Warning:</strong> Changing ports requires updating all launch scripts, 
+                    <strong>⚠️ Warning:</strong> Changing ports requires updating all launch scripts,
                     documentation, and may break existing automation workflows.
                   </p>
                 </div>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full" 
+
+                <Button
+                  variant="outline"
+                  className="w-full"
                   onClick={() => {
                     // Reset to standard values
                     setPortPolicy({
@@ -529,12 +534,12 @@ export default function AdminSettings() {
                   </p>
                 </div>
 
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full"
                   onClick={async () => {
                     const results = [];
-                    
+
                     // Test OpenAI
                     if (openaiKey) {
                       try {
@@ -546,7 +551,7 @@ export default function AdminSettings() {
                         results.push('OpenAI: ❌ Network Error');
                       }
                     }
-                    
+
                     // Test webhook if provided
                     if (webhookUrl) {
                       try {
@@ -560,7 +565,7 @@ export default function AdminSettings() {
                         results.push('Webhook: ❌ Network Error');
                       }
                     }
-                    
+
                     toast({
                       title: '🔗 Connection Test Results',
                       description: results.join('\n') || 'No API keys to test',
@@ -749,7 +754,7 @@ export default function AdminSettings() {
                           Download .env
                         </Button>
                       </div>
-                      
+
                       <div className="text-xs text-muted-foreground p-3 bg-muted rounded-lg">
                         <strong>📋 Common Variables:</strong><br/>
                         <code>OPENAI_API_KEY</code>, <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>, <code>VITE_API_URL</code><br/>
@@ -760,6 +765,11 @@ export default function AdminSettings() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* MCP Supabase Tab */}
+          <TabsContent value="mcp-supabase" className="space-y-4">
+            <MCPSupabaseStatus />
           </TabsContent>
         </Tabs>
 

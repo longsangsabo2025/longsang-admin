@@ -7,12 +7,14 @@
 ### 1. 📚 Tài Liệu Hướng Dẫn
 
 - ✅ **`_DOCS/SETUP_MCP_SUPABASE.md`** - Hướng dẫn chi tiết đầy đủ
+
   - Các bước cài đặt từng bước
   - Cấu hình nâng cao
   - Troubleshooting
   - Bảo mật
 
 - ✅ **`_DOCS/MCP_SUPABASE_QUICKSTART.md`** - Hướng dẫn nhanh 5 phút
+
   - Quick start guide
   - Test kết nối
   - Các lệnh thường dùng
@@ -28,6 +30,7 @@
 ### 3. 🧪 Scripts & Tools
 
 - ✅ **`scripts/test-mcp-supabase.js`** - Script kiểm tra kết nối
+
   - Test Supabase connection
   - Kiểm tra environment variables
   - Verify tables và data
@@ -49,11 +52,13 @@
 ### 2. Cấu Hình MCP trong Cursor
 
 **Windows:**
+
 ```
 %APPDATA%\Cursor\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json
 ```
 
 **Mac:**
+
 ```
 ~/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json
 ```
@@ -71,6 +76,7 @@ npm run test:mcp-supabase
 ```
 
 Hoặc hỏi AI trong Cursor:
+
 ```
 Liệt kê các bảng trong Supabase database
 ```
@@ -89,10 +95,9 @@ Liệt kê các bảng trong Supabase database
 
 Sau khi cài đặt, bạn sẽ có:
 
-✅ **Kết nối ổn định** với Supabase qua MCP
-✅ **AI tự động** query, tạo bảng, migrate database
-✅ **Code nhanh hơn** với AI hỗ trợ database operations
-✅ **Tự động hóa** các tác vụ database thường dùng
+✅ **Kết nối ổn định** với Supabase qua MCP ✅ **AI tự động** query, tạo bảng,
+migrate database ✅ **Code nhanh hơn** với AI hỗ trợ database operations ✅ **Tự
+động hóa** các tác vụ database thường dùng
 
 ## 🔗 Tài Liệu Tham Khảo
 
@@ -108,6 +113,5 @@ Sau khi cài đặt, bạn sẽ có:
 
 ---
 
-**Ngày tạo:** 2025-01-29
-**Trạng thái:** ✅ Hoàn tất setup
-**Sẵn sàng sử dụng:** Sau khi cấu hình token trong Cursor
+**Ngày tạo:** 2025-01-29 **Trạng thái:** ✅ Hoàn tất setup **Sẵn sàng sử dụng:**
+Sau khi cấu hình token trong Cursor

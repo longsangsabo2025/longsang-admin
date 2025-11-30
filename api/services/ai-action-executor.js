@@ -5,10 +5,13 @@
  * When AI detects actionable intents, this executor runs the corresponding services
  */
 
-const facebookAdsManager = require('./facebook-ads-manager');
+const { FacebookAdsManager } = require('./facebook-ads-manager');
 const facebookPublisher = require('./facebook-publisher');
 const n8nService = require('./n8n-service');
 const OpenAI = require('openai');
+
+// Create instance of FacebookAdsManager
+const facebookAdsManager = new FacebookAdsManager();
 
 // OpenAI for intent detection
 const openai = new OpenAI({
@@ -217,8 +220,13 @@ async function processWithActions(message, agentRole) {
   
   // Step 2: If action detected with high confidence, execute it
   if (intent.action !== 'none' && intent.confidence >= 0.7) {
-    // Check if clarification needed
-    if (intent.clarification_needed) {
+    // Check if clarification needed (and is actually a question, not empty/null)
+    const needsClarification = intent.clarification_needed && 
+      intent.clarification_needed.trim() !== '' &&
+      !intent.clarification_needed.toLowerCase().includes('không cần') &&
+      !intent.clarification_needed.toLowerCase().includes('đủ thông tin');
+      
+    if (needsClarification) {
       return {
         type: 'clarification',
         message: intent.clarification_needed,

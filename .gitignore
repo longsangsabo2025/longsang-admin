@@ -90,3 +90,6 @@ _DOCS/04-DEPLOYMENT/FINAL_SETUP.md
 .env.example
 n8n/FULL_AUTOMATION_STRATEGY.md
 n8n/*.md
+
+.vercel
+.env*.local
