@@ -456,6 +456,5 @@ router.post('/execute-action', async (req, res) => {
     });
   }
 });
-});
 
 module.exports = router;

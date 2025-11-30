@@ -61,6 +61,11 @@ scripts/get-linkedin-token.cjs
 *.credentials.json
 *client_secret*.json
 
+# MCP Supabase config with tokens
+.vscode/mcp-supabase.config.local.json
+*config.local.json
+*mcp*.local.json
+
 # n8n sensitive files
 n8n/*.json
 n8n/*.pickle

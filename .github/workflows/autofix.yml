@@ -54,9 +54,16 @@ jobs:
           fi
         continue-on-error: true
 
-      # Autofix.ci - Commit & Push fixes automatically
-      - name: ✨ Apply autofix.ci
-        uses: autofix-ci/action@v1
-        with:
-          fail-fast: false
-          commit-message: "style: 🤖 auto-fix code quality issues"
+      # Autofix - Commit & Push fixes automatically
+      - name: ✨ Commit fixes
+        run: |
+          git config --global user.name 'Auto-Fix Bot'
+          git config --global user.email 'bot@longsang.org'
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "style: 🤖 auto-fix code quality issues"
+            git push
+          fi
+        continue-on-error: true
