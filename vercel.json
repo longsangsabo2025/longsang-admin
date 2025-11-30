@@ -4,7 +4,7 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "vite",
-  "alias": ["longsang.org", "www.longsang.org"],
+  "alias": ["admin.longsang.org"],
   "rewrites": [
     {
       "source": "/api/agents/:agentId",
