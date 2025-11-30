@@ -1,0 +1,221 @@
+# 🎯 LONGSANG ADMIN - AI CODING GUIDELINES
+
+> Đây là file `.cursorrules` - Cursor AI sẽ tự động đọc và tuân theo
+
+## 🔑 ENVIRONMENT VARIABLES
+
+**File `.env` có sẵn tại root folder với đầy đủ API keys:**
+- Supabase: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- Facebook: Nhiều pages với `FACEBOOK_PAGE_*_ID` và `FACEBOOK_PAGE_*_TOKEN`
+- Instagram: `INSTAGRAM_*_ID` 
+- YouTube: `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_REFRESH_TOKEN`
+- Google Drive: `GOOGLE_DRIVE_REFRESH_TOKEN`
+- LinkedIn: `LINKEDIN_*`
+- Threads: `THREADS_*`
+
+**Cách dùng:**
+- Backend: `process.env.KEY_NAME`
+- Frontend: `import.meta.env.VITE_KEY_NAME` (chỉ VITE_ prefix)
+
+**Xem chi tiết:** `_DOCS/ENV_KEYS_REFERENCE.md`
+
+## 🏗️ PROJECT STRUCTURE
+
+```
+longsang-admin/
+├── api/                    # Express.js backend
+│   ├── server.js          # Main server (port 3001)
+│   ├── routes/            # API route handlers
+│   ├── google-drive.js    # Google Drive integration
+│   └── backup.js          # Backup functionality
+├── src/
+│   ├── components/
+│   │   ├── ui/           # shadcn/ui components (DO NOT MODIFY)
+│   │   ├── admin/        # Admin-specific components
+│   │   ├── ai/           # AI-related components
+│   │   ├── media/        # Media/file components
+│   │   ├── social/       # Social media components
+│   │   └── seo/          # SEO components
+│   ├── pages/            # Page components
+│   ├── hooks/            # Custom React hooks
+│   ├── lib/              # Utilities
+│   └── App.tsx           # Router configuration
+└── .env                  # Environment variables
+```
+
+## 📐 CODING STANDARDS
+
+### TypeScript
+```typescript
+// ✅ DO: Use proper types
+interface Props {
+  readonly projectId: string;
+  readonly onSave?: (data: ProjectData) => void;
+}
+
+// ✅ DO: Use Readonly for props
+function Component({ projectId }: Readonly<Props>) {}
+
+// ❌ DON'T: Use any
+const data: any = {};
+```
+
+### React Components
+```typescript
+// ✅ DO: Functional components with hooks
+export function MyComponent() {
+  const [state, setState] = useState<string>("");
+  const { toast } = useToast();
+  
+  return <div>...</div>;
+}
+
+// ✅ DO: Export barrel files
+// components/media/index.ts
+export { MediaLibrary } from "./MediaLibrary";
+export { ImagePicker } from "./ImagePicker";
+```
+
+### API Routes
+```javascript
+// ✅ DO: Proper error handling
+router.post('/endpoint', async (req, res) => {
+  try {
+    const result = await doSomething();
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+```
+
+### UI Components
+```typescript
+// ✅ DO: Use shadcn/ui
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+
+// ✅ DO: Use lucide-react icons
+import { Loader2, Send, Check } from "lucide-react";
+```
+
+## 🎨 UI PATTERNS
+
+### Loading States
+```typescript
+{loading ? (
+  <Loader2 className="h-4 w-4 animate-spin" />
+) : (
+  <Send className="h-4 w-4" />
+)}
+```
+
+### Toast Notifications
+```typescript
+const { toast } = useToast();
+
+// Success
+toast({ title: "✅ Thành công", description: "Đã lưu dữ liệu" });
+
+// Error
+toast({ 
+  title: "❌ Lỗi", 
+  description: "Không thể thực hiện", 
+  variant: "destructive" 
+});
+```
+
+### Card Layout
+```typescript
+<Card>
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2">
+      <Icon className="h-5 w-5" />
+      Tiêu đề
+    </CardTitle>
+    <CardDescription>Mô tả</CardDescription>
+  </CardHeader>
+  <CardContent>
+    {/* Content */}
+  </CardContent>
+</Card>
+```
+
+## 🔌 API INTEGRATION
+
+### Frontend → Backend
+```typescript
+// Always use relative path (Vite proxy handles it)
+const response = await fetch('/api/endpoint', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data)
+});
+
+if (!response.ok) throw new Error('API Error');
+const result = await response.json();
+```
+
+### Environment Variables
+```javascript
+// Backend: process.env.VAR_NAME
+const apiKey = process.env.OPENAI_API_KEY;
+
+// Frontend: import.meta.env.VITE_VAR_NAME
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+```
+
+## 🚀 ADDING NEW FEATURES
+
+### 1. New Page
+```bash
+1. Create: src/pages/AdminNewFeature.tsx
+2. Add route: src/App.tsx
+3. Add menu: src/components/admin/AdminLayout.tsx
+```
+
+### 2. New API Endpoint
+```bash
+1. Create: api/routes/new-feature.js
+2. Register: api/server.js
+```
+
+### 3. New Component
+```bash
+1. Create: src/components/[category]/NewComponent.tsx
+2. Export: src/components/[category]/index.ts (if exists)
+```
+
+## 🇻🇳 VIETNAMESE UI
+
+- All user-facing text MUST be in Vietnamese
+- Use emoji for visual clarity: ✅ ❌ 🔄 ⚠️ 💾 🤖
+- Button labels: "Lưu", "Hủy", "Tạo mới", "Xóa", "Sửa"
+- Status: "Đang tải...", "Thành công", "Lỗi"
+
+## ⚡ PERFORMANCE
+
+- Use `useCallback` for functions passed to children
+- Use `useMemo` for expensive computations
+- Lazy load pages: `const Page = lazy(() => import('./Page'))`
+- Don't over-optimize - this is local single-user app
+
+## 🎯 FOCUS AREAS
+
+This app is for PERSONAL PRODUCTIVITY:
+1. **Speed** - Fast to use, fast to develop
+2. **Automation** - AI does the heavy lifting
+3. **Simplicity** - No over-engineering
+4. **Vietnamese** - Native language UI
+
+## ❌ AVOID
+
+- Complex authentication systems
+- Testing frameworks
+- CI/CD pipelines
+- Production deployment configs
+- Over-abstraction
+- Premature optimization

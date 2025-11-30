@@ -1,0 +1,122 @@
+{
+  "name": "📈 Business Intelligence Analytics System",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "business-analytics",
+        "options": {},
+        "httpMethod": "POST"
+      },
+      "id": "analytics-webhook",
+      "name": "📊 Analytics Data Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Business Data Collection & Processing\nconst request = $input.json;\n\n// Extract analytics data\nconst dataType = request.dataType || 'general';\nconst timeRange = request.timeRange || 'last_30_days';\nconst metrics = request.metrics || ['revenue', 'users', 'engagement'];\nconst segments = request.segments || ['all'];\nconst filters = request.filters || {};\n\n// Simulate business data collection\nfunction generateBusinessData(type, range) {\n    const baseData = {\n        revenue: {\n            current: Math.floor(Math.random() * 100000) + 50000,\n            previous: Math.floor(Math.random() * 90000) + 45000,\n            trend: Math.random() > 0.6 ? 'up' : 'down'\n        },\n        users: {\n            active: Math.floor(Math.random() * 10000) + 5000,\n            new: Math.floor(Math.random() * 1000) + 500,\n            retention: Math.floor(Math.random() * 20) + 70 // 70-90%\n        },\n        engagement: {\n            pageViews: Math.floor(Math.random() * 50000) + 25000,\n            sessionDuration: Math.floor(Math.random() * 300) + 180, // seconds\n            bounceRate: Math.floor(Math.random() * 30) + 20 // 20-50%\n        },\n        conversion: {\n            rate: Math.round((Math.random() * 5 + 2) * 100) / 100, // 2-7%\n            value: Math.floor(Math.random() * 500) + 100,\n            funnel: {\n                awareness: 10000,\n                interest: 5000,\n                consideration: 2000,\n                purchase: 500\n            }\n        }\n    };\n    \n    // Apply time range multipliers\n    const multipliers = {\n        last_7_days: 0.2,\n        last_30_days: 1.0,\n        last_90_days: 3.2,\n        last_year: 12.5\n    };\n    \n    const multiplier = multipliers[range] || 1.0;\n    \n    Object.keys(baseData).forEach(category => {\n        if (typeof baseData[category] === 'object') {\n            Object.keys(baseData[category]).forEach(metric => {\n                if (typeof baseData[category][metric] === 'number') {\n                    baseData[category][metric] = Math.floor(baseData[category][metric] * multiplier);\n                }\n            });\n        }\n    });\n    \n    return baseData;\n}\n\n// Generate comprehensive business data\nconst businessData = generateBusinessData(dataType, timeRange);\n\n// Calculate KPIs\nconst kpiCalculations = {\n    revenueGrowth: Math.round(((businessData.revenue.current - businessData.revenue.previous) / businessData.revenue.previous) * 10000) / 100,\n    customerAcquisitionCost: Math.floor(businessData.revenue.current * 0.15 / businessData.users.new),\n    lifetimeValue: Math.floor(businessData.revenue.current / businessData.users.active * 12),\n    returnOnInvestment: Math.round((businessData.revenue.current * 0.3 / businessData.revenue.current) * 10000) / 100,\n    marketingEfficiency: Math.round((businessData.users.new / (businessData.revenue.current * 0.2)) * 10000) / 100\n};\n\n// Performance insights\nconst performanceInsights = {\n    topPerformingChannels: [\n        { channel: 'Organic Search', contribution: Math.floor(Math.random() * 20) + 30 },\n        { channel: 'Social Media', contribution: Math.floor(Math.random() * 15) + 20 },\n        { channel: 'Email Marketing', contribution: Math.floor(Math.random() * 10) + 15 },\n        { channel: 'Paid Ads', contribution: Math.floor(Math.random() * 15) + 10 }\n    ],\n    userSegments: [\n        { segment: 'New Users', percentage: 25, behavior: 'exploring' },\n        { segment: 'Active Users', percentage: 45, behavior: 'engaged' },\n        { segment: 'Premium Users', percentage: 20, behavior: 'loyal' },\n        { segment: 'At-Risk Users', percentage: 10, behavior: 'declining' }\n    ],\n    trends: {\n        userGrowth: businessData.users.new > businessData.users.active * 0.1 ? 'strong' : 'moderate',\n        revenueHealth: kpiCalculations.revenueGrowth > 10 ? 'excellent' : kpiCalculations.revenueGrowth > 0 ? 'good' : 'concerning',\n        engagementTrend: businessData.engagement.sessionDuration > 240 ? 'increasing' : 'stable'\n    }\n};\n\nreturn {\n    originalRequest: request,\n    analyticsConfig: {\n        dataType: dataType,\n        timeRange: timeRange,\n        metrics: metrics,\n        segments: segments,\n        filters: filters\n    },\n    businessData: businessData,\n    kpiCalculations: kpiCalculations,\n    performanceInsights: performanceInsights,\n    dataCollectionComplete: true,\n    timestamp: new Date().toISOString()\n};"
+      },
+      "id": "data-collector",
+      "name": "🗂️ Business Data Collector",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Advanced Analytics Engine\nconst data = $input.json;\n\n// AI-powered trend analysis\nfunction analyzeTrends(businessData, kpis) {\n    const trends = {\n        revenue: {\n            direction: kpis.revenueGrowth > 0 ? 'upward' : 'downward',\n            strength: Math.abs(kpis.revenueGrowth) > 15 ? 'strong' : Math.abs(kpis.revenueGrowth) > 5 ? 'moderate' : 'weak',\n            prediction: kpis.revenueGrowth > 10 ? 'accelerating_growth' : kpis.revenueGrowth > 0 ? 'steady_growth' : 'declining',\n            confidence: Math.floor(Math.random() * 20) + 75 // 75-95%\n        },\n        users: {\n            acquisitionTrend: businessData.users.new > 500 ? 'growing' : 'stable',\n            retentionHealth: businessData.users.retention > 80 ? 'excellent' : businessData.users.retention > 70 ? 'good' : 'needs_attention',\n            churnRisk: businessData.users.retention < 70 ? 'high' : 'low'\n        },\n        engagement: {\n            quality: businessData.engagement.sessionDuration > 240 ? 'high' : 'moderate',\n            stickiness: businessData.engagement.bounceRate < 30 ? 'sticky' : 'average',\n            contentPerformance: businessData.engagement.pageViews / businessData.users.active > 5 ? 'engaging' : 'standard'\n        }\n    };\n    \n    return trends;\n}\n\n// Predictive modeling\nfunction generatePredictions(businessData, trends) {\n    const predictions = {\n        nextMonth: {\n            revenue: Math.floor(businessData.revenue.current * (1 + (trends.revenue.direction === 'upward' ? 0.1 : -0.05))),\n            users: Math.floor(businessData.users.active * (trends.users.acquisitionTrend === 'growing' ? 1.15 : 1.05)),\n            engagement: trends.engagement.quality === 'high' ? 'increasing' : 'stable'\n        },\n        quarterlyForecast: {\n            revenueTarget: Math.floor(businessData.revenue.current * 3.2),\n            userGrowthTarget: Math.floor(businessData.users.new * 3.5),\n            expectedChallenges: trends.users.churnRisk === 'high' ? ['user_retention'] : []\n        },\n        yearlyProjection: {\n            annualRevenue: Math.floor(businessData.revenue.current * 12.5),\n            marketPosition: trends.revenue.strength === 'strong' ? 'leader' : 'competitive',\n            growthPotential: trends.revenue.prediction === 'accelerating_growth' ? 'high' : 'moderate'\n        }\n    };\n    \n    return predictions;\n}\n\n// Risk assessment\nfunction assessRisks(businessData, kpis, trends) {\n    const risks = [];\n    \n    if (kpis.revenueGrowth < 0) risks.push({ type: 'revenue_decline', severity: 'high', impact: 'financial' });\n    if (businessData.users.retention < 70) risks.push({ type: 'high_churn', severity: 'medium', impact: 'growth' });\n    if (businessData.engagement.bounceRate > 45) risks.push({ type: 'poor_engagement', severity: 'medium', impact: 'conversion' });\n    if (kpis.customerAcquisitionCost > kpis.lifetimeValue * 0.3) risks.push({ type: 'inefficient_acquisition', severity: 'low', impact: 'profitability' });\n    \n    return risks;\n}\n\n// Generate comprehensive analysis\nconst trendAnalysis = analyzeTrends(data.businessData, data.kpiCalculations);\nconst predictions = generatePredictions(data.businessData, trendAnalysis);\nconst riskAssessment = assessRisks(data.businessData, data.kpiCalculations, trendAnalysis);\n\n// Opportunities identification\nconst opportunities = [\n    {\n        type: 'revenue_optimization',\n        description: 'Increase pricing for premium features',\n        impact: 'high',\n        effort: 'low',\n        priority: trendAnalysis.revenue.strength === 'strong' ? 1 : 3\n    },\n    {\n        type: 'user_engagement',\n        description: 'Implement personalization features',\n        impact: 'medium',\n        effort: 'medium',\n        priority: trendAnalysis.engagement.quality === 'high' ? 3 : 1\n    },\n    {\n        type: 'market_expansion',\n        description: 'Enter new geographical markets',\n        impact: 'high',\n        effort: 'high',\n        priority: predictions.yearlyProjection.growthPotential === 'high' ? 2 : 4\n    }\n];\n\nreturn {\n    ...data,\n    advancedAnalytics: {\n        trendAnalysis: trendAnalysis,\n        predictions: predictions,\n        riskAssessment: riskAssessment,\n        opportunities: opportunities,\n        analysisScore: Math.floor(Math.random() * 20) + 75, // 75-95\n        dataQuality: 'high',\n        confidenceLevel: Math.floor(Math.random() * 15) + 80 // 80-95%\n    },\n    analyticsComplete: true\n};"
+      },
+      "id": "analytics-engine",
+      "name": "🔮 Advanced Analytics Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Report Generation Engine\nconst data = $input.json;\n\n// Generate executive summary\nfunction generateExecutiveSummary(businessData, analytics) {\n    const summary = {\n        overview: 'Business performance shows ' + analytics.trendAnalysis.revenue.strength + ' revenue trends with ' + \n                 analytics.trendAnalysis.users.acquisitionTrend + ' user acquisition.',\n        keyHighlights: [\n            'Revenue: $' + businessData.revenue.current.toLocaleString() + ' (' + \n            (analytics.trendAnalysis.revenue.direction === 'upward' ? '+' : '') + \n            data.kpiCalculations.revenueGrowth + '%)',\n            'Active Users: ' + businessData.users.active.toLocaleString() + ' with ' + \n            businessData.users.retention + '% retention',\n            'Engagement: ' + Math.floor(businessData.engagement.sessionDuration / 60) + \n            ' min avg session, ' + businessData.engagement.bounceRate + '% bounce rate'\n        ],\n        criticalMetrics: {\n            revenueHealth: analytics.trendAnalysis.revenue.prediction,\n            userGrowth: analytics.trendAnalysis.users.acquisitionTrend,\n            operationalEfficiency: analytics.riskAssessment.length === 0 ? 'optimal' : 'needs_attention'\n        }\n    };\n    \n    return summary;\n}\n\n// Create actionable recommendations\nfunction generateRecommendations(analytics) {\n    const recommendations = [];\n    \n    // Revenue recommendations\n    if (analytics.trendAnalysis.revenue.direction === 'downward') {\n        recommendations.push({\n            category: 'revenue',\n            priority: 'high',\n            action: 'Implement revenue recovery strategy',\n            details: 'Focus on high-value customer segments and optimize pricing',\n            expectedImpact: '15-25% revenue increase',\n            timeframe: '3-6 months'\n        });\n    }\n    \n    // User growth recommendations\n    if (analytics.trendAnalysis.users.churnRisk === 'high') {\n        recommendations.push({\n            category: 'retention',\n            priority: 'high',\n            action: 'Launch user retention program',\n            details: 'Implement onboarding improvements and engagement campaigns',\n            expectedImpact: '10-15% retention improvement',\n            timeframe: '2-4 months'\n        });\n    }\n    \n    // Engagement recommendations\n    if (analytics.trendAnalysis.engagement.quality === 'moderate') {\n        recommendations.push({\n            category: 'engagement',\n            priority: 'medium',\n            action: 'Enhance user experience',\n            details: 'Optimize user interface and content personalization',\n            expectedImpact: '20-30% engagement increase',\n            timeframe: '1-3 months'\n        });\n    }\n    \n    // Growth opportunities\n    analytics.opportunities.slice(0, 2).forEach(opp => {\n        recommendations.push({\n            category: 'growth',\n            priority: opp.priority <= 2 ? 'high' : 'medium',\n            action: opp.description,\n            details: 'Strategic initiative with ' + opp.impact + ' impact potential',\n            expectedImpact: opp.impact + ' business impact',\n            timeframe: opp.effort === 'low' ? '1-2 months' : opp.effort === 'medium' ? '3-6 months' : '6-12 months'\n        });\n    });\n    \n    return recommendations;\n}\n\n// Dashboard data preparation\nfunction prepareDashboardData(businessData, analytics) {\n    return {\n        kpiCards: [\n            {\n                title: 'Total Revenue',\n                value: '$' + businessData.revenue.current.toLocaleString(),\n                change: data.kpiCalculations.revenueGrowth + '%',\n                trend: analytics.trendAnalysis.revenue.direction,\n                status: analytics.trendAnalysis.revenue.strength\n            },\n            {\n                title: 'Active Users',\n                value: businessData.users.active.toLocaleString(),\n                change: '+' + Math.floor((businessData.users.new / businessData.users.active) * 100) + '%',\n                trend: 'upward',\n                status: analytics.trendAnalysis.users.retentionHealth\n            },\n            {\n                title: 'Conversion Rate',\n                value: businessData.conversion.rate + '%',\n                change: '+0.3%',\n                trend: 'upward',\n                status: businessData.conversion.rate > 4 ? 'excellent' : 'good'\n            },\n            {\n                title: 'Customer LTV',\n                value: '$' + data.kpiCalculations.lifetimeValue.toLocaleString(),\n                change: '+$' + Math.floor(data.kpiCalculations.lifetimeValue * 0.1),\n                trend: 'upward',\n                status: 'growing'\n            }\n        ],\n        charts: {\n            revenueChart: {\n                type: 'line',\n                data: Array.from({length: 12}, (_, i) => \n                    Math.floor(businessData.revenue.current * (0.8 + Math.random() * 0.4))\n                ),\n                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']\n            },\n            userGrowthChart: {\n                type: 'area',\n                data: Array.from({length: 30}, (_, i) => \n                    Math.floor(businessData.users.active * (0.9 + Math.random() * 0.2))\n                ),\n                labels: Array.from({length: 30}, (_, i) => (i + 1).toString())\n            },\n            conversionFunnel: {\n                type: 'funnel',\n                data: businessData.conversion.funnel,\n                conversionRates: {\n                    'interest': Math.round((businessData.conversion.funnel.interest / businessData.conversion.funnel.awareness) * 100),\n                    'consideration': Math.round((businessData.conversion.funnel.consideration / businessData.conversion.funnel.interest) * 100),\n                    'purchase': Math.round((businessData.conversion.funnel.purchase / businessData.conversion.funnel.consideration) * 100)\n                }\n            }\n        }\n    };\n}\n\n// Generate comprehensive report\nconst executiveSummary = generateExecutiveSummary(data.businessData, data.advancedAnalytics);\nconst recommendations = generateRecommendations(data.advancedAnalytics);\nconst dashboardData = prepareDashboardData(data.businessData, data.advancedAnalytics);\n\nreturn {\n    ...data,\n    generatedReport: {\n        executiveSummary: executiveSummary,\n        recommendations: recommendations,\n        dashboardData: dashboardData,\n        reportMetadata: {\n            generatedAt: new Date().toISOString(),\n            reportType: 'comprehensive_business_intelligence',\n            dataRange: data.analyticsConfig.timeRange,\n            analysisDepth: 'advanced',\n            confidenceScore: data.advancedAnalytics.confidenceLevel\n        }\n    },\n    reportComplete: true\n};"
+      },
+      "id": "report-generator",
+      "name": "📋 Report Generation Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n    \"status\": \"success\",\n    \"message\": \"Business intelligence analysis completed\",\n    \"data\": {\n        \"analysisId\": \"BI_{{ Date.now() }}\",\n        \"timeRange\": \"{{ $('🗂️ Business Data Collector').item.json.analyticsConfig.timeRange }}\",\n        \"metricsAnalyzed\": {{ JSON.stringify($('🗂️ Business Data Collector').item.json.analyticsConfig.metrics) }},\n        \"businessData\": {{ JSON.stringify($('🗂️ Business Data Collector').item.json.businessData) }},\n        \"kpiCalculations\": {{ JSON.stringify($('🗂️ Business Data Collector').item.json.kpiCalculations) }},\n        \"advancedAnalytics\": {{ JSON.stringify($('🔮 Advanced Analytics Engine').item.json.advancedAnalytics) }},\n        \"executiveSummary\": {{ JSON.stringify($('📋 Report Generation Engine').item.json.generatedReport.executiveSummary) }},\n        \"recommendations\": {{ JSON.stringify($('📋 Report Generation Engine').item.json.generatedReport.recommendations) }},\n        \"dashboardData\": {{ JSON.stringify($('📋 Report Generation Engine').item.json.generatedReport.dashboardData) }},\n        \"reportMetadata\": {{ JSON.stringify($('📋 Report Generation Engine').item.json.generatedReport.reportMetadata) }},\n        \"generated\": \"{{ $('🗂️ Business Data Collector').item.json.timestamp }}\"\n    }\n}"
+      },
+      "id": "analytics-response",
+      "name": "📊 Analytics Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "📊 Analytics Data Webhook": {
+      "main": [
+        [
+          {
+            "node": "🗂️ Business Data Collector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🗂️ Business Data Collector": {
+      "main": [
+        [
+          {
+            "node": "🔮 Advanced Analytics Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔮 Advanced Analytics Engine": {
+      "main": [
+        [
+          {
+            "node": "📋 Report Generation Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📋 Report Generation Engine": {
+      "main": [
+        [
+          {
+            "node": "📊 Analytics Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

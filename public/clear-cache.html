@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Cache</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: monospace;
+      padding: 40px;
+      text-align: center;
+    }
+    button {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 20px 40px;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 20px;
+    }
+    button:hover {
+      background: #dc2626;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 20px;
+      background: #1e293b;
+      border-radius: 8px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <h1>🗑️ Clear All Cache</h1>
+  <p>This will clear localStorage, sessionStorage, and reload with fresh data</p>
+  
+  <button onclick="clearAll()">Clear All Cache & Reload</button>
+  
+  <div id="result" class="result" style="display:none;"></div>
+
+  <script>
+    function clearAll() {
+      const result = document.getElementById('result');
+      result.style.display = 'block';
+      result.innerHTML = '<p>⏳ Clearing cache...</p>';
+      
+      // Clear everything
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      result.innerHTML = `
+        <p>✅ localStorage cleared</p>
+        <p>✅ sessionStorage cleared</p>
+        <p>🔄 Reloading in 2 seconds...</p>
+      `;
+      
+      setTimeout(() => {
+        window.location.href = '/agent-center';
+      }, 2000);
+    }
+    
+    // Show current storage
+    window.onload = () => {
+      console.log('Current localStorage keys:', Object.keys(localStorage));
+      console.log('Current sessionStorage keys:', Object.keys(sessionStorage));
+    };
+  </script>
+</body>
+</html>

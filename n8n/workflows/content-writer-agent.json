@@ -1,0 +1,203 @@
+{
+  "name": "Content Writer Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "content-writer",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 200],
+      "id": "webhook-content-writer",
+      "name": "Webhook Trigger",
+      "webhookId": "content-writer-agent"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "input-topic",
+              "name": "topic",
+              "value": "={{ $json.body.topic || 'AI Technology Trends 2025' }}",
+              "type": "string"
+            },
+            {
+              "id": "input-type",
+              "name": "content_type",
+              "value": "={{ $json.body.content_type || 'blog_post' }}",
+              "type": "string"
+            },
+            {
+              "id": "input-tone",
+              "name": "tone",
+              "value": "={{ $json.body.tone || 'professional' }}",
+              "type": "string"
+            },
+            {
+              "id": "input-length",
+              "name": "word_count",
+              "value": "={{ $json.body.word_count || 500 }}",
+              "type": "number"
+            },
+            {
+              "id": "input-project",
+              "name": "project_id",
+              "value": "={{ $json.body.project_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 200],
+      "id": "set-input-params",
+      "name": "Extract Input"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 2000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [580, 400],
+      "id": "openai-model",
+      "name": "OpenAI GPT-4o Mini"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a {{ $json.content_type }} about: {{ $json.topic }}\n\nRequirements:\n- Tone: {{ $json.tone }}\n- Target length: approximately {{ $json.word_count }} words\n- Include engaging introduction and clear conclusion\n- Use proper formatting with headers if appropriate\n- Make it SEO-friendly with relevant keywords",
+        "options": {
+          "systemMessage": "You are a professional content writer. Create high-quality, engaging content that is well-structured and optimized for the target audience. Always deliver polished, publication-ready content."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [440, 200],
+      "id": "ai-content-agent",
+      "name": "Content Writer AI"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "output-success",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "output-content",
+              "name": "content",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "output-topic",
+              "name": "topic",
+              "value": "={{ $('Extract Input').item.json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "output-timestamp",
+              "name": "generated_at",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [680, 200],
+      "id": "format-output",
+      "name": "Format Response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 200],
+      "id": "respond-success",
+      "name": "Return Success"
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Input": {
+      "main": [
+        [
+          {
+            "node": "Content Writer AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Writer AI": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI GPT-4o Mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content Writer AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Return Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

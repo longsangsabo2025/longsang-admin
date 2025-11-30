@@ -1,0 +1,18 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "alias": ["longsang.org", "www.longsang.org"],
+  "rewrites": [
+    {
+      "source": "/api/agents/:agentId",
+      "destination": "/api/agents/[agentId]"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

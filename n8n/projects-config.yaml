@@ -1,0 +1,65 @@
+# 🚀 N8N Projects Configuration
+# Portfolio Project - longsang.org
+
+portfolio:
+  # Basic Info
+  project_name: "LongSang Portfolio"
+  domain: "longsang.org"
+  webhook_path: "portfolio-contact"
+  
+  # Google Sheet Config
+  sheet_name: "📧 Portfolio Contact Forms"
+  sheet_tab: "Contact Submissions"
+  folder_id: "11LP2w0omc9-rP4p--A8acCOq-o6phpTI"  # 🤖 N8N Automation folder
+  
+  # Form Fields Mapping
+  form_fields:
+    - name: "name"
+      label: "Full Name"
+      type: "string"
+      required: true
+    
+    - name: "email"
+      label: "Email Address"
+      type: "email"
+      required: true
+    
+    - name: "service"
+      label: "Service Interested"
+      type: "string"
+      required: false
+    
+    - name: "budget"
+      label: "Budget Range"
+      type: "string"
+      required: false
+    
+    - name: "message"
+      label: "Message"
+      type: "text"
+      required: true
+  
+  # Notifications
+  notifications:
+    enabled: false  # Skip email for now - just save to sheet
+    # If enabled later:
+    # method: "gmail_smtp"
+    # to: "longsangsabo@gmail.com"
+    # from: "noreply@longsang.org"
+  
+  # Testing
+  test_data:
+    name: "Test User"
+    email: "test@longsang.org"
+    service: "Web Development"
+    budget: "$5,000-$10,000"
+    message: "This is an automated test submission from N8N setup script."
+
+# Future projects (commented out for now)
+# ai_secretary:
+#   project_name: "AI Secretary (EVA)"
+#   ...
+
+# ainewbie_web:
+#   project_name: "AiNewbie Web"
+#   ...

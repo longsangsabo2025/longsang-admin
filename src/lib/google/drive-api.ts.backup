@@ -1,0 +1,496 @@
+/**
+ * Google Drive API - File Management & Sharing
+ * Upload files, tạo public links, quản lý permissions
+ */
+
+import { google } from 'googleapis';
+import { supabase } from '@/integrations/supabase/client';
+
+const SCOPES = ['https://www.googleapis.com/auth/drive'];
+
+/**
+ * Get authenticated Drive client
+ */
+function getDriveClient(userEmail: string) {
+  const credentials = JSON.parse(import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
+  
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: SCOPES,
+    clientOptions: {
+      subject: userEmail,
+    },
+  });
+
+  return google.drive({ version: 'v3', auth });
+}
+
+export interface UploadOptions {
+  name: string;
+  mimeType: string;
+  content: Buffer | string;
+  folderId?: string;
+  description?: string;
+}
+
+export interface FileResult {
+  status: 'success' | 'error';
+  fileId?: string;
+  fileLink?: string;
+  webViewLink?: string;
+  message: string;
+  timestamp: string;
+}
+
+// ============================================================
+// UPLOAD FILES
+// ============================================================
+
+/**
+ * 📁 Upload file to Google Drive
+ * ACTION: Upload file thật lên Drive, tạo shareable link
+ */
+export async function uploadFile(
+  driveEmail: string,
+  options: UploadOptions
+): Promise<FileResult> {
+  try {
+    const drive = getDriveClient(driveEmail);
+
+    // Create file metadata
+    const fileMetadata: Record<string, unknown> = {
+      name: options.name,
+      description: options.description,
+    };
+
+    if (options.folderId) {
+      fileMetadata.parents = [options.folderId];
+    }
+
+    // Upload file
+    const response = await drive.files.create({
+      requestBody: fileMetadata,
+      media: {
+        mimeType: options.mimeType,
+        body: options.content,
+      },
+      fields: 'id, name, webViewLink, webContentLink',
+    });
+
+    const fileId = response.data.id;
+
+    // Make file public (anyone with link can view)
+    if (fileId) {
+      await drive.permissions.create({
+        fileId,
+        requestBody: {
+          role: 'reader',
+          type: 'anyone',
+        },
+      });
+    }
+
+    const result: FileResult = {
+      status: 'success',
+      fileId: response.data.id,
+      fileLink: response.data.webContentLink,
+      webViewLink: response.data.webViewLink,
+      message: 'File uploaded successfully',
+      timestamp: new Date().toISOString(),
+    };
+
+    await logDriveAction(result, options);
+
+    return result;
+  } catch (error) {
+    const result: FileResult = {
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    };
+
+    await logDriveAction(result, options);
+    throw error;
+  }
+}
+
+/**
+ * 📁 Create folder in Drive
+ */
+export async function createFolder(
+  driveEmail: string,
+  folderName: string,
+  parentFolderId?: string
+): Promise<FileResult> {
+  try {
+    const drive = getDriveClient(driveEmail);
+
+    const fileMetadata: Record<string, unknown> = {
+      name: folderName,
+      mimeType: 'application/vnd.google-apps.folder',
+    };
+
+    if (parentFolderId) {
+      fileMetadata.parents = [parentFolderId];
+    }
+
+    const response = await drive.files.create({
+      requestBody: fileMetadata,
+      fields: 'id, name, webViewLink',
+    });
+
+    // Make folder public
+    const folderId = response.data.id;
+    if (folderId) {
+      await drive.permissions.create({
+        fileId: folderId,
+        requestBody: {
+          role: 'reader',
+          type: 'anyone',
+        },
+      });
+    }
+
+    return {
+      status: 'success',
+      fileId: response.data.id,
+      webViewLink: response.data.webViewLink,
+      message: 'Folder created successfully',
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    throw new Error(`Failed to create folder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Delete file from Drive
+ */
+export async function deleteFile(
+  driveEmail: string,
+  fileId: string
+): Promise<FileResult> {
+  try {
+    const drive = getDriveClient(driveEmail);
+
+    await drive.files.delete({
+      fileId,
+    });
+
+    return {
+      status: 'success',
+      fileId,
+      message: 'File deleted successfully',
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    throw new Error(`Failed to delete file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// FILE PERMISSIONS & SHARING
+// ============================================================
+
+/**
+ * 📁 Share file with specific email
+ */
+export async function shareFile(
+  driveEmail: string,
+  fileId: string,
+  targetEmail: string,
+  role: 'reader' | 'writer' | 'commenter' = 'reader'
+): Promise<FileResult> {
+  try {
+    const drive = getDriveClient(driveEmail);
+
+    await drive.permissions.create({
+      fileId,
+      requestBody: {
+        role,
+        type: 'user',
+        emailAddress: targetEmail,
+      },
+      sendNotificationEmail: true,
+    });
+
+    return {
+      status: 'success',
+      fileId,
+      message: `File shared with ${targetEmail}`,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    throw new Error(`Failed to share file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Get shareable link for file
+ */
+export async function getShareableLink(
+  driveEmail: string,
+  fileId: string
+): Promise<string> {
+  try {
+    const drive = getDriveClient(driveEmail);
+
+    const response = await drive.files.get({
+      fileId,
+      fields: 'webViewLink, webContentLink',
+    });
+
+    return response.data.webViewLink || response.data.webContentLink || '';
+  } catch (error) {
+    throw new Error(`Failed to get shareable link: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// LIST & SEARCH FILES
+// ============================================================
+
+/**
+ * List files in Drive
+ */
+export async function listFiles(
+  driveEmail: string,
+  folderId?: string,
+  pageSize: number = 50
+) {
+  try {
+    const drive = getDriveClient(driveEmail);
+
+    let query = "trashed = false";
+    if (folderId) {
+      query += ` and '${folderId}' in parents`;
+    }
+
+    const response = await drive.files.list({
+      pageSize,
+      fields: 'files(id, name, mimeType, size, createdTime, modifiedTime, webViewLink)',
+      q: query,
+      orderBy: 'modifiedTime desc',
+    });
+
+    return response.data.files || [];
+  } catch (error) {
+    throw new Error(`Failed to list files: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Search files by name
+ */
+export async function searchFiles(
+  driveEmail: string,
+  searchQuery: string
+) {
+  try {
+    const drive = getDriveClient(driveEmail);
+
+    const response = await drive.files.list({
+      q: `name contains '${searchQuery}' and trashed = false`,
+      fields: 'files(id, name, mimeType, webViewLink)',
+      pageSize: 50,
+    });
+
+    return response.data.files || [];
+  } catch (error) {
+    throw new Error(`Failed to search files: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// AUTO-UPLOAD WORKFLOWS
+// ============================================================
+
+/**
+ * 🔥 Auto-upload consultation contracts to Drive
+ */
+export async function autoUploadContracts(driveEmail: string, contractsFolderId: string) {
+  try {
+    // Get consultations needing contract upload
+    const { data: consultations, error } = await supabase
+      .from('consultations')
+      .select('*')
+      .eq('status', 'confirmed')
+      .is('contract_drive_link', null)
+      .limit(50);
+
+    if (error) throw error;
+
+    if (!consultations || consultations.length === 0) {
+      return {
+        status: 'success',
+        message: 'No contracts to upload',
+        uploaded: 0,
+      };
+    }
+
+    const results: FileResult[] = [];
+
+    for (const consultation of consultations) {
+      try {
+        // Generate contract content (simple text for demo)
+        const contractContent = `
+HỢP ĐỒNG TƯ VẤN
+
+Khách hàng: ${consultation.client_name}
+Email: ${consultation.client_email}
+Số điện thoại: ${consultation.client_phone}
+
+Dịch vụ: ${consultation.consultation_type}
+Ngày tư vấn: ${consultation.consultation_date}
+
+Ghi chú: ${consultation.notes || 'Không có'}
+
+---
+Long Sang Team
+${new Date().toISOString()}
+        `.trim();
+
+        // Upload to Drive
+        const result = await uploadFile(driveEmail, {
+          name: `Contract_${consultation.client_name}_${consultation.id}.txt`,
+          mimeType: 'text/plain',
+          content: contractContent,
+          folderId: contractsFolderId,
+          description: `Contract for consultation ${consultation.id}`,
+        });
+
+        results.push(result);
+
+        // Update consultation with Drive link
+        if (result.status === 'success') {
+          await supabase
+            .from('consultations')
+            .update({
+              contract_drive_link: result.webViewLink,
+            })
+            .eq('id', consultation.id);
+        }
+      } catch (error) {
+        console.error(`Failed to upload contract for consultation ${consultation.id}:`, error);
+      }
+    }
+
+    const successful = results.filter(r => r.status === 'success').length;
+
+    return {
+      status: 'success',
+      message: `Uploaded ${successful} out of ${consultations.length} contracts`,
+      uploaded: successful,
+      failed: consultations.length - successful,
+      results,
+    };
+  } catch (error) {
+    throw new Error(`Auto-upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * 🔥 Auto-organize files by date
+ */
+export async function autoOrganizeFilesByDate(driveEmail: string, rootFolderId: string) {
+  try {
+    // Get current month folder or create new one
+    const now = new Date();
+    const folderName = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    // Check if folder exists
+    const drive = getDriveClient(driveEmail);
+    const existing = await drive.files.list({
+      q: `name = '${folderName}' and '${rootFolderId}' in parents and trashed = false`,
+      fields: 'files(id)',
+    });
+
+    let monthFolderId: string;
+
+    if (existing.data.files && existing.data.files.length > 0) {
+      monthFolderId = existing.data.files[0].id!;
+    } else {
+      // Create folder
+      const folderResult = await createFolder(driveEmail, folderName, rootFolderId);
+      monthFolderId = folderResult.fileId!;
+    }
+
+    return {
+      status: 'success',
+      folderId: monthFolderId,
+      folderName,
+      message: 'Files organized by date',
+    };
+  } catch (error) {
+    throw new Error(`Auto-organize failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// LOGGING
+// ============================================================
+
+async function logDriveAction(result: FileResult, options: UploadOptions) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    await supabase.from('google_sync_logs').insert({
+      user_id: user?.id,
+      service: 'drive',
+      status: result.status,
+      records_synced: 1,
+      error_message: result.message,
+      started_at: result.timestamp,
+    });
+  } catch (error) {
+    console.error('Failed to log drive action:', error);
+  }
+}
+
+/**
+ * Get Drive action history
+ */
+export async function getDriveHistory(limit: number = 50) {
+  try {
+    const { data, error } = await supabase
+      .from('google_sync_logs')
+      .select('*')
+      .eq('service', 'drive')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error) {
+    throw new Error(`Failed to get drive history: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Get Drive stats
+ */
+export async function getDriveStats(days: number = 7) {
+  try {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await supabase
+      .from('google_sync_logs')
+      .select('status, records_synced')
+      .eq('service', 'drive')
+      .gte('created_at', since);
+
+    if (error) throw error;
+
+    const stats = {
+      total: data?.length || 0,
+      successful: data?.filter(d => d.status === 'success').length || 0,
+      failed: data?.filter(d => d.status === 'error').length || 0,
+      files: data?.reduce((sum, d) => sum + (d.records_synced || 0), 0) || 0,
+    };
+
+    return stats;
+  } catch (error) {
+    throw new Error(`Failed to get stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}

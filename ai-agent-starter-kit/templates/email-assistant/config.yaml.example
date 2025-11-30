@@ -1,0 +1,82 @@
+# AI Email Assistant Configuration
+# Long Sang Academy - Starter Kit
+
+# OpenAI Settings
+openai:
+  api_key: "YOUR_OPENAI_API_KEY_HERE"  # Get from: https://platform.openai.com/api-keys
+  model: "gpt-4o-mini"  # Cheaper than GPT-4, good for most use cases
+  max_tokens: 500  # Maximum reply length
+  temperature: 0.3  # 0 = consistent, 1 = creative
+
+# Email Settings
+email:
+  provider: "gmail"  # Supported: gmail, outlook
+  address: "your.email@gmail.com"
+  check_interval: 300  # Check every 5 minutes (300 seconds)
+
+# Agent Behavior
+agent:
+  name: "AI Assistant"
+  language: "vietnamese"  # or "english"
+  auto_reply: false  # Set to true to send without approval (not recommended initially)
+
+# Classification Keywords
+classify:
+  sales:
+    - "quote"
+    - "pricing"
+    - "price"
+    - "buy"
+    - "purchase"
+    - "order"
+    - "cost"
+    - "how much"
+  support:
+    - "help"
+    - "how to"
+    - "error"
+    - "problem"
+    - "issue"
+    - "not working"
+    - "can't"
+    - "unable"
+  complaint:
+    - "refund"
+    - "cancel"
+    - "bad"
+    - "terrible"
+    - "disappointed"
+    - "angry"
+    - "unacceptable"
+
+# Reply Templates
+templates:
+  sales: |
+    Thank you for your interest in our services!
+    
+    Our sales team will review your inquiry and get back to you within 2 business hours with a customized quote based on your specific needs.
+    
+    In the meantime, feel free to check out our pricing page: [your-website.com/pricing]
+    
+    Best regards,
+    AI Assistant
+    
+  support: |
+    Thank you for contacting our support team!
+    
+    We've received your request and our technical team is reviewing it. You can expect a detailed response within 4 business hours.
+    
+    If your issue is urgent, please reply with "URGENT" and we'll prioritize it.
+    
+    Best regards,
+    AI Assistant
+    
+  complaint: |
+    We sincerely apologize for the inconvenience you've experienced.
+    
+    Your feedback is very important to us, and this matter has been escalated to our management team for immediate attention. A senior team member will personally reach out to you within 1 business hour to resolve this.
+    
+    Thank you for bringing this to our attention.
+    
+    Best regards,
+    AI Assistant

@@ -1,0 +1,283 @@
+{
+  "nav": {
+    "home": "Trang Chủ",
+    "services": "Dịch Vụ",
+    "projects": "Dự Án",
+    "techStack": "Công Nghệ",
+    "learning": "Học Tập",
+    "contact": "Liên Hệ",
+    "bookCall": "Đặt Lịch Tư Vấn"
+  },
+  "hero": {
+    "greeting": "XIN CHÀO, TÔI LÀ LONG SANG",
+    "headline1": "KIẾN TẠO",
+    "headline2": "GIẢI PHÁP SỐ",
+    "headline3": "THÔNG MINH",
+    "subheadline": "Biến Ý Tưởng Thành Sản Phẩm • Tối Ưu Quy Trình • Tăng Trưởng Bền Vững",
+    "tagline": "Phát Triển Full-Stack • Tư Vấn • Đào Tạo",
+    "latestBadge": "✨ Mới nhất: SABO Arena V3 - Hệ Thống Quản Lý Giải Đấu",
+    "cta1": "Đặt Lịch Tư Vấn Miễn Phí",
+    "cta2": "Xem Dự Án",
+    "scrollText": "Khám Phá Dịch Vụ"
+  },
+  "stats": {
+    "projects": "Dự Án",
+    "linesOfCode": "Dòng Code",
+    "technologies": "Công Nghệ",
+    "experience": "Kinh Nghiệm",
+    "reliability": "Độ Tin Cậy",
+    "support": "Hỗ Trợ",
+    "years": "NĂM"
+  },
+  "services": {
+    "header": "DỊCH VỤ CỦA TÔI",
+    "subtitle": "Giải Pháp Số Toàn Diện",
+    "mobile": {
+      "title": "Phát Triển Ứng Dụng Di Động",
+      "description": "Xây dựng ứng dụng iOS và Android sẵn sàng production với Flutter. Từ ý tưởng đến triển khai App Store.",
+      "tech": "Flutter • Dart • iOS • Android"
+    },
+    "web": {
+      "title": "Phát Triển Web",
+      "description": "Ứng dụng web tùy chỉnh với React và Next.js. Nhanh, responsive và dễ mở rộng.",
+      "tech": "React • Next.js • TypeScript • Tailwind"
+    },
+    "automation": {
+      "title": "Tự Động Hóa Doanh Nghiệp",
+      "description": "Loại bỏ công việc lặp đi lặp lại. Giải pháp tự động hóa tiết kiệm 60-80% thời gian làm việc thủ công.",
+      "tech": "Zapier • Make • n8n • APIs"
+    },
+    "ai": {
+      "title": "Tích Hợp AI & Tư Vấn",
+      "description": "Tích hợp khả năng AI vào doanh nghiệp của bạn. Chatbot, xử lý tài liệu và nhiều hơn nữa.",
+      "tech": "OpenAI • Claude • Gemini • LangChain"
+    },
+    "learnMore": "Tìm Hiểu Thêm →"
+  },
+  "featured": {
+    "badge": "⭐ DỰ ÁN NỔI BẬT",
+    "title": "SABO Arena V3",
+    "tagline": "Hệ Thống Quản Lý Giải Đấu Chuyên Nghiệp",
+    "challengeTitle": "THÁCH THỨC",
+    "challengeText": "Các câu lạc bộ bi-a cần một hệ thống toàn diện để quản lý giải đấu phức tạp với nhiều định dạng bảng đấu, tính toán ELO thời gian thực và tự động tiến triển trận đấu - tất cả trong khi duy trì độ chính xác 99.9%.",
+    "solutionTitle": "GIẢI PHÁP",
+    "solutionIntro": "Xây dựng ứng dụng di động sẵn sàng production với:",
+    "features": [
+      "8 định dạng bảng đấu (Loại trực tiếp đơn/đôi, Vòng tròn, Swiss, v.v.)",
+      "Kiến trúc Factory Pattern cho khả năng mở rộng",
+      "Backend Supabase thời gian thực với PostgreSQL",
+      "Tự động tiến triển trận đấu với công thức toán học",
+      "Hệ thống xếp hạng ELO dựa trên vị trí",
+      "Tài liệu chuyên nghiệp và kiểm thử toàn diện"
+    ],
+    "techStackTitle": "CÔNG NGHỆ SỬ DỤNG",
+    "techStack": "Flutter • Dart • Supabase • PostgreSQL • Real-time",
+    "resultsTitle": "KẾT QUẢ & TÁC ĐỘNG",
+    "results": [
+      "Giảm 80% thời gian quản lý giải đấu thủ công",
+      "Hỗ trợ 100+ giải đấu đồng thời",
+      "Độ tin cậy 99.9% không mất dữ liệu",
+      "Triển khai production tại các câu lạc bộ thực tế",
+      "Phản hồi tích cực và được chấp nhận nhanh chóng"
+    ],
+    "cta": "Xem Chi Tiết Dự Án →"
+  },
+  "projects": {
+    "header": "DỰ ÁN KHÁC",
+    "subtitle": "Các Dự Án Tiêu Biểu",
+    "ecommerce": {
+      "title": "Hệ Thống Tự Động Hóa E-Commerce",
+      "description": "Hệ thống xử lý đơn hàng và quản lý tồn kho tự động, giảm 70% thời gian xử lý đơn hàng sử dụng Python, Zapier và Shopify API.",
+      "tech": "Python • Zapier • Shopify • PostgreSQL"
+    },
+    "analytics": {
+      "title": "Bảng Điều Khiển Phân Tích Doanh Nghiệp",
+      "description": "Nền tảng phân tích và báo cáo thời gian thực tổng hợp dữ liệu từ 5+ nguồn. Xây dựng với React, Node.js và PostgreSQL.",
+      "tech": "React • Node.js • PostgreSQL • Chart.js"
+    },
+    "aiDoc": {
+      "title": "Công Cụ Xử Lý Tài Liệu AI",
+      "description": "Hệ thống trích xuất và phân loại tài liệu tự động sử dụng OpenAI API. Tiết kiệm 20+ giờ mỗi tuần trong nhập liệu thủ công.",
+      "tech": "OpenAI • Python • Firebase • Cloud Functions"
+    },
+    "viewDetails": "Xem Chi Tiết →"
+  },
+  "techStack": {
+    "header": "CÔNG NGHỆ & CÔNG CỤ",
+    "subtitle": "Kho Vũ Khí Công Nghệ",
+    "mobile": "PHÁT TRIỂN DI ĐỘNG",
+    "web": "PHÁT TRIỂN WEB",
+    "backend": "BACKEND & CƠ SỞ DỮ LIỆU",
+    "ai": "AI & TỰ ĐỘNG HÓA",
+    "devops": "DEVOPS & CÔNG CỤ"
+  },
+  "process": {
+    "header": "QUY TRÌNH LÀM VIỆC",
+    "subtitle": "Từ Ý Tưởng Đến Ra Mắt",
+    "step1": {
+      "number": "01",
+      "title": "KHÁM PHÁ",
+      "activities": [
+        "Tư vấn miễn phí 30 phút",
+        "Hiểu mục tiêu và thách thức của bạn",
+        "Xác định phạm vi và yêu cầu dự án",
+        "Đưa ra ước tính thời gian và ngân sách ban đầu"
+      ]
+    },
+    "step2": {
+      "number": "02",
+      "title": "THIẾT KẾ",
+      "activities": [
+        "Tạo wireframe và prototype",
+        "Lập kế hoạch kiến trúc hệ thống",
+        "Thiết kế trải nghiệm người dùng (UX)",
+        "Nhận phản hồi và cải tiến"
+      ]
+    },
+    "step3": {
+      "number": "03",
+      "title": "XÂY DỰNG",
+      "activities": [
+        "Sprint phát triển Agile (chu kỳ 2 tuần)",
+        "Cập nhật tiến độ thường xuyên",
+        "Kiểm thử xuyên suốt quá trình phát triển",
+        "Đánh giá code và đảm bảo chất lượng"
+      ]
+    },
+    "step4": {
+      "number": "04",
+      "title": "RA MẮT",
+      "activities": [
+        "Triển khai lên production",
+        "Đào tạo người dùng và tài liệu hóa",
+        "Hỗ trợ sau ra mắt (30 ngày)",
+        "Bảo trì liên tục có sẵn"
+      ]
+    },
+    "timeline": "Thời Gian Dự Án Trung Bình: 4-12 tuần tùy độ phức tạp"
+  },
+  "learning": {
+    "header": "HỌC HỎI & PHÁT TRIỂN",
+    "subtitle": "Khóa Học và Tài Nguyên",
+    "courses": {
+      "badge": "📚 KHÓA HỌC TRỰC TUYẾN",
+      "items": [
+        "Làm Chủ Flutter",
+        "Cơ Bản Tự Động Hóa Doanh Nghiệp",
+        "Tích Hợp AI",
+        "Phát Triển Web Nâng Cao"
+      ],
+      "cta": "Xem Khóa Học →"
+    },
+    "resources": {
+      "badge": "🆓 TÀI NGUYÊN MIỄN PHÍ",
+      "items": [
+        "Bài Viết Kỹ Thuật",
+        "Mẫu Code & Templates",
+        "Hướng Dẫn Chuyển Đổi Số",
+        "Case Study Ngành"
+      ],
+      "cta": "Truy Cập Tài Nguyên →"
+    }
+  },
+  "contact": {
+    "header": "HÃY CÙNG XÂY DỰNG ĐIỀU GÌ ĐÓ TUYỆT VỜI",
+    "subtitle": "Sẵn Sàng Bắt Đầu Dự Án Của Bạn?",
+    "form": {
+      "name": "Họ và Tên *",
+      "namePlaceholder": "Nhập họ tên đầy đủ",
+      "email": "Địa Chỉ Email *",
+      "emailPlaceholder": "email.cua.ban@example.com",
+      "service": "Dịch Vụ Quan Tâm *",
+      "servicePlaceholder": "Chọn dịch vụ",
+      "serviceOptions": {
+        "mobile": "Phát Triển Ứng Dụng Di Động",
+        "web": "Phát Triển Web",
+        "automation": "Tự Động Hóa Doanh Nghiệp",
+        "ai": "Tích Hợp AI & Tư Vấn",
+        "notSure": "Chưa chắc chắn"
+      },
+      "budget": "Ngân Sách Dự Án (Tùy chọn)",
+      "budgetPlaceholder": "Chọn mức ngân sách",
+      "budgetOptions": {
+        "under5k": "Dưới 100 triệu VNĐ",
+        "5k15k": "100 - 300 triệu VNĐ",
+        "15k50k": "300 triệu - 1 tỷ VNĐ",
+        "50kPlus": "Trên 1 tỷ VNĐ",
+        "notSure": "Chưa chắc chắn"
+      },
+      "message": "Nói Cho Tôi Về Dự Án Của Bạn *",
+      "messagePlaceholder": "Mô tả dự án, mục tiêu và thời gian của bạn...",
+      "newsletter": "Đăng ký nhận bản tin để nhận tips và cập nhật",
+      "submit": "Gửi Tin Nhắn →",
+      "submitting": "Đang Gửi..."
+    },
+    "validation": {
+      "nameRequired": "Vui lòng nhập họ tên",
+      "nameMax": "Họ tên phải ít hơn 100 ký tự",
+      "emailRequired": "Vui lòng nhập email",
+      "emailInvalid": "Vui lòng nhập email hợp lệ",
+      "emailMax": "Email phải ít hơn 255 ký tự",
+      "serviceRequired": "Vui lòng chọn dịch vụ",
+      "messageRequired": "Vui lòng cho tôi biết về dự án của bạn",
+      "messageMin": "Tin nhắn phải có ít nhất 20 ký tự",
+      "messageMax": "Tin nhắn phải ít hơn 1000 ký tự"
+    },
+    "success": {
+      "title": "Cảm ơn bạn! Tin nhắn đã được gửi thành công.",
+      "message": "Tôi sẽ phản hồi trong vòng 24 giờ."
+    },
+    "error": {
+      "message": "Đã xảy ra lỗi. Vui lòng thử lại hoặc email trực tiếp tới contact@longsang.org"
+    },
+    "info": {
+      "email": "📧 EMAIL",
+      "bookCall": "💬 ĐẶT LỊCH GỌI",
+      "bookCallText": "Lên lịch tư vấn miễn phí 30 phút",
+      "connect": "🔗 KẾT NỐI",
+      "location": "📍 ĐỊA ĐIỂM",
+      "locationText": "Vũng Tàu, Việt Nam",
+      "timezone": "Múi Giờ: ICT (UTC+7)"
+    },
+    "consultations": {
+      "free": {
+        "badge": "🆓 MIỄN PHÍ",
+        "title": "Đánh Giá Nhanh",
+        "duration": "(30 phút)",
+        "description": "Hoàn hảo cho thảo luận dự án ban đầu và đánh giá khả thi.",
+        "cta": "Đặt Lịch Ngay"
+      },
+      "paid": {
+        "badge": "💎 TRẢ PHÍ",
+        "title": "Kiểm Tra Kỹ Thuật",
+        "duration": "(2 giờ)",
+        "description": "Phân tích chi tiết với lập kế hoạch kiến trúc và timeline chính xác.",
+        "price": "Bắt đầu từ 2,000,000 VNĐ",
+        "cta": "Tìm Hiểu Thêm"
+      }
+    }
+  },
+  "footer": {
+    "brand": "LONG SANG",
+    "tagline": "Nhà Phát Triển Sản Phẩm Số & Tư Vấn",
+    "description": "Xây dựng ứng dụng sẵn sàng production với Flutter, React và công nghệ hiện đại. Đặt tại Vũng Tàu, Việt Nam.",
+    "quickLinks": "LIÊN KẾT NHANH",
+    "links": {
+      "home": "Trang Chủ",
+      "about": "Giới Thiệu",
+      "projects": "Dự Án",
+      "contact": "Liên Hệ",
+      "blog": "Blog (sắp ra mắt)"
+    },
+    "services": "DỊCH VỤ",
+    "servicesList": {
+      "mobile": "Phát Triển Ứng Dụng Di Động",
+      "web": "Phát Triển Web",
+      "automation": "Tự Động Hóa Doanh Nghiệp",
+      "ai": "Tích Hợp AI & Tư Vấn"
+    },
+    "copyright": "© 2025 Long Sang. Được xây dựng với ❤️ bằng React + Lovable",
+    "privacy": "Chính Sách Bảo Mật",
+    "terms": "Điều Khoản Dịch Vụ"
+  }
+}

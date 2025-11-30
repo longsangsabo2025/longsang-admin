@@ -1,0 +1,130 @@
+<!-- 
+============================================
+ORDER CONFIRMATION EMAIL
+Use case: E-commerce order confirmation
+============================================
+-->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận đơn hàng #{{order_id}}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 26px;">
+                                ✅ Đơn hàng đã được xác nhận!
+                            </h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="margin: 0 0 20px; color: #333333; font-size: 16px;">
+                                Xin chào <strong>{{customer_name}}</strong>,
+                            </p>
+                            
+                            <p style="margin: 0 0 30px; color: #666666; font-size: 15px; line-height: 1.6;">
+                                Cảm ơn bạn đã đặt hàng! Đơn hàng của bạn đã được xác nhận và đang được xử lý.
+                            </p>
+                            
+                            <!-- Order Info -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0; border: 1px solid #e0e0e0; border-radius: 6px;">
+                                <tr>
+                                    <td style="padding: 20px; background-color: #f8f9fa;">
+                                        <table width="100%">
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #666666; font-size: 14px;">Mã đơn hàng:</td>
+                                                <td style="padding: 8px 0; color: #333333; font-size: 14px; font-weight: 600; text-align: right;">#{{order_id}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #666666; font-size: 14px;">Ngày đặt:</td>
+                                                <td style="padding: 8px 0; color: #333333; font-size: 14px; text-align: right;">{{order_date}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #666666; font-size: 14px;">Trạng thái:</td>
+                                                <td style="padding: 8px 0; text-align: right;">
+                                                    <span style="background-color: #2ecc71; color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                                        {{order_status}}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Products -->
+                            <h3 style="margin: 30px 0 15px; color: #333333; font-size: 18px;">Chi tiết sản phẩm:</h3>
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e0e0e0; border-radius: 6px;">
+                                <tr style="background-color: #f8f9fa;">
+                                    <th style="padding: 12px; text-align: left; color: #666666; font-size: 13px; font-weight: 600;">Sản phẩm</th>
+                                    <th style="padding: 12px; text-align: center; color: #666666; font-size: 13px; font-weight: 600;">SL</th>
+                                    <th style="padding: 12px; text-align: right; color: #666666; font-size: 13px; font-weight: 600;">Giá</th>
+                                </tr>
+                                <!-- LOOP: {{#each products}} -->
+                                <tr>
+                                    <td style="padding: 15px; border-top: 1px solid #e0e0e0; color: #333333; font-size: 14px;">{{product_name}}</td>
+                                    <td style="padding: 15px; border-top: 1px solid #e0e0e0; text-align: center; color: #666666; font-size: 14px;">{{quantity}}</td>
+                                    <td style="padding: 15px; border-top: 1px solid #e0e0e0; text-align: right; color: #333333; font-size: 14px; font-weight: 600;">{{price}}</td>
+                                </tr>
+                                <!-- END LOOP -->
+                                <tr>
+                                    <td colspan="2" style="padding: 15px; border-top: 2px solid #e0e0e0; text-align: right; color: #333333; font-size: 15px; font-weight: 600;">Tổng cộng:</td>
+                                    <td style="padding: 15px; border-top: 2px solid #e0e0e0; text-align: right; color: #2ecc71; font-size: 18px; font-weight: 700;">{{total_amount}}</td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Shipping Info -->
+                            <h3 style="margin: 30px 0 15px; color: #333333; font-size: 18px;">Địa chỉ giao hàng:</h3>
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e0e0e0; border-radius: 6px;">
+                                <tr>
+                                    <td style="padding: 20px; background-color: #f8f9fa;">
+                                        <p style="margin: 0 0 8px; color: #333333; font-size: 15px; font-weight: 600;">{{shipping_name}}</p>
+                                        <p style="margin: 0 0 5px; color: #666666; font-size: 14px;">📞 {{shipping_phone}}</p>
+                                        <p style="margin: 0; color: #666666; font-size: 14px;">📍 {{shipping_address}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Track Order Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{tracking_link}}" style="display: inline-block; padding: 14px 40px; background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                                            Theo dõi đơn hàng
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="margin: 20px 0 0; color: #666666; font-size: 14px; line-height: 1.6; text-align: center;">
+                                Cần hỗ trợ? Liên hệ: <a href="mailto:{{support_email}}" style="color: #2ecc71; text-decoration: none;">{{support_email}}</a>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px; text-align: center;">
+                            <p style="margin: 0; color: #999999; font-size: 13px;">
+                                © 2025 {{company_name}}. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

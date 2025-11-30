@@ -1,0 +1,108 @@
+# ============================================================================
+# 🐰 CODERABBIT AI - Intelligent PR Review & Suggestions
+# ============================================================================
+# Features:
+# - AI-powered code review on every PR
+# - Automatic bug detection
+# - Security vulnerability scanning
+# - Code quality suggestions
+# - Line-by-line review comments
+# ============================================================================
+
+name: 🐰 AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_review_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.repository }}-${{ github.event.number || github.head_ref || github.sha }}-${{ github.workflow }}-${{ github.event_name == 'pull_request_review_comment' && 'pr_comment' || 'pr' }}
+  cancel-in-progress: ${{ github.event_name != 'pull_request_review_comment' }}
+
+jobs:
+  ai-review:
+    name: 🤖 AI Code Review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐰 CodeRabbit AI Review
+        uses: coderabbitai/ai-pr-reviewer@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        with:
+          debug: false
+          review_simple_changes: true
+          review_comment_lgtm: false
+          path_filters: |
+            !dist/**
+            !node_modules/**
+            !*.lock
+            !*.min.js
+            !coverage/**
+          system_message: |
+            You are an expert code reviewer for a React/TypeScript project.
+            Focus on:
+            1. Bug detection and potential runtime errors
+            2. Security vulnerabilities (XSS, injection, etc.)
+            3. Performance issues
+            4. TypeScript type safety
+            5. React best practices (hooks, memo, etc.)
+            6. Code maintainability
+            
+            Be concise but thorough. Suggest specific fixes with code examples.
+          summarize: |
+            Provide a summary focusing on:
+            - 🐛 Bugs found
+            - 🔒 Security issues
+            - ⚡ Performance concerns
+            - 📝 Code quality improvements
+          summarize_release_notes: |
+            Generate release notes in this format:
+            ## What's Changed
+            - Feature/fix description
+            
+            ## Bug Fixes
+            - List of bugs fixed
+
+  # Fallback: Simple review if no OpenAI key
+  simple-review:
+    name: 📋 Static Analysis Review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run ESLint with annotations
+        run: npm run lint -- --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif || true
+        continue-on-error: true
+
+      - name: 📊 Upload analysis results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: eslint-results.sarif
+        continue-on-error: true

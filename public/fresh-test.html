@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fresh Supabase Test</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .status { padding: 20px; border-radius: 8px; margin: 20px 0; font-size: 18px; }
+    .loading { background: #1e40af; }
+    .success { background: #065f46; }
+    .error { background: #991b1b; }
+    .agent { background: #1e293b; padding: 15px; margin: 10px 0; border-radius: 6px; border-left: 4px solid #3b82f6; }
+    pre { background: #020617; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
+    h1 { color: #60a5fa; }
+  </style>
+</head>
+<body>
+  <h1>🔬 Fresh Supabase Connection Test (No Cache)</h1>
+  <p>Cache-Bust: <?= Date.now() ?></p>
+  
+  <div id="status" class="status loading">⏳ Connecting...</div>
+  <div id="results"></div>
+
+  <script type="module">
+    // Force fresh import
+    const timestamp = Date.now();
+    const { createClient } = await import(`https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm?t=${timestamp}`);
+    
+    // Hardcoded keys to bypass Vite env
+    const supabaseUrl = 'https://diexsbzqwsbpilsymnfb.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpZXhzYnpxd3NicGlsc3ltbmZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzOTIxOTEsImV4cCI6MjA3NTk2ODE5MX0.Nf1wHe7EDONS25Yv987KqhgyvZu07COnu6qgC0qCy2I';
+    
+    const statusEl = document.getElementById('status');
+    const resultsEl = document.getElementById('results');
+    
+    // Decode JWT to verify
+    const jwtParts = supabaseKey.split('.');
+    const payload = JSON.parse(atob(jwtParts[1]));
+    console.log('🔑 Using key with IAT:', payload.iat, '(Should be 1760392191)');
+    
+    try {
+      statusEl.textContent = '📡 Creating Supabase client...';
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      statusEl.textContent = '🔍 Querying ai_agents table...';
+      const { data, error } = await supabase
+        .from('ai_agents')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        statusEl.className = 'status error';
+        statusEl.textContent = '❌ Error: ' + error.message;
+        resultsEl.innerHTML = `
+          <h3>Error Details:</h3>
+          <pre>${JSON.stringify(error, null, 2)}</pre>
+          <h3>Hint:</h3>
+          <p>${error.hint || 'Check Supabase dashboard for RLS policies'}</p>
+        `;
+      } else {
+        statusEl.className = 'status success';
+        statusEl.textContent = `✅ SUCCESS! Found ${data.length} agents`;
+        
+        let html = '<h2>AI Agents:</h2>';
+        data.forEach(agent => {
+          html += `
+            <div class="agent">
+              <h3>${agent.name}</h3>
+              <p><strong>Type:</strong> ${agent.type}</p>
+              <p><strong>Status:</strong> ${agent.status}</p>
+              <p><strong>Executions:</strong> ${agent.total_executions}</p>
+            </div>
+          `;
+        });
+        
+        html += '<h3>Raw JSON:</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        resultsEl.innerHTML = html;
+      }
+    } catch (err) {
+      statusEl.className = 'status error';
+      statusEl.textContent = '❌ Exception: ' + err.message;
+      resultsEl.innerHTML = '<pre>' + err.stack + '</pre>';
+    }
+  </script>
+</body>
+</html>

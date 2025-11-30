@@ -1,0 +1,34 @@
+{
+  "recommendations": [
+    // AI & GitHub Copilot
+    "GitHub.copilot-chat",
+
+    // TypeScript & React
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+
+    // Supabase
+    "supabase.supabase-sql-syntax",
+
+    // Database Tools
+    "ms-mssql.mssql",
+
+    // Git
+    "eamodio.gitlens",
+
+    // Utilities
+    "christian-kohler.path-intellisense",
+    "usernamehw.errorlens",
+    "streetsidesoftware.code-spell-checker",
+
+    // Testing
+    "vitest.explorer",
+
+    // i18n
+    "lokalise.i18n-ally",
+
+    // Icons
+    "vscode-icons-team.vscode-icons"
+  ]
+}

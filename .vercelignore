@@ -1,0 +1,13 @@
+api/server.js
+api/routes/
+api/google-drive.js
+api/test-*.js
+*.md
+.git
+.github
+node_modules
+.env
+.env.local
+*.log
+*.backup
+*.ts.backup

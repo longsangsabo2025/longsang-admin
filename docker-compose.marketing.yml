@@ -1,0 +1,86 @@
+version: "3.8"
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: longsang-n8n
+    restart: unless-stopped
+    env_file:
+      - .env.marketing
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Asia/Ho_Chi_Minh
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_JWT_SECRET}
+      # Database connection to Supabase
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=postgres
+      - DB_POSTGRESDB_HOST=aws-1-us-east-2.pooler.supabase.com
+      - DB_POSTGRESDB_PORT=6543
+      - DB_POSTGRESDB_USER=postgres.diexsbzqwsbpilsymnfb
+      - DB_POSTGRESDB_PASSWORD=Acookingoil123
+      - DB_POSTGRESDB_SCHEMA=n8n
+      # Enable all features
+      - N8N_TEMPLATES_ENABLED=true
+      - N8N_TEMPLATES_HOST=https://api.n8n.io
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      # AI Settings
+      - N8N_AI_ENABLED=true
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/home/node/.n8n/workflows
+      - ./n8n/credentials:/home/node/.n8n/credentials
+    depends_on:
+      - redis
+    networks:
+      - longsang-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: longsang-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - longsang-network
+
+  # Mautic for email marketing
+  mautic:
+    image: mautic/mautic:latest
+    container_name: longsang-mautic
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      - MAUTIC_DB_HOST=aws-1-us-east-2.pooler.supabase.com
+      - MAUTIC_DB_PORT=6543
+      - MAUTIC_DB_NAME=postgres
+      - MAUTIC_DB_USER=postgres.diexsbzqwsbpilsymnfb
+      - MAUTIC_DB_PASSWORD=Acookingoil123
+      - MAUTIC_DB_TABLE_PREFIX=mautic_
+    volumes:
+      - mautic_data:/var/www/html
+    networks:
+      - longsang-network
+
+volumes:
+  n8n_data:
+    driver: local
+  redis_data:
+    driver: local
+  mautic_data:
+    driver: local
+
+networks:
+  longsang-network:
+    driver: bridge

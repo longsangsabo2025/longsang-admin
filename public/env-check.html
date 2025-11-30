@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Env Check</title>
+  <style>
+    body { 
+      background: #0f172a; 
+      color: white; 
+      font-family: monospace; 
+      padding: 40px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .box { 
+      background: #1e293b; 
+      border: 2px solid #475569; 
+      padding: 20px; 
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    .key {
+      word-break: break-all;
+      background: #020617;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .good { border-color: #22c55e; }
+    .bad { border-color: #ef4444; }
+  </style>
+</head>
+<body>
+  <h1>🔑 Environment Variables Check</h1>
+  
+  <div class="box" id="url-box">
+    <h3>VITE_SUPABASE_URL:</h3>
+    <div class="key" id="url">Loading...</div>
+  </div>
+  
+  <div class="box" id="key-box">
+    <h3>VITE_SUPABASE_ANON_KEY:</h3>
+    <div class="key" id="key">Loading...</div>
+  </div>
+  
+  <div class="box" id="decode-box">
+    <h3>JWT Decoded (iat timestamp):</h3>
+    <div class="key" id="decoded">Loading...</div>
+  </div>
+  
+  <div class="box">
+    <h3>Expected Values:</h3>
+    <p>✅ URL: https://diexsbzqwsbpilsymnfb.supabase.co</p>
+    <p>✅ Key IAT: 1760392191 (Nov 2024)</p>
+    <p>❌ Old Key IAT: 1730452959 (Oct 2024) - WRONG!</p>
+  </div>
+
+  <script type="module">
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    document.getElementById('url').textContent = url || 'NOT FOUND';
+    document.getElementById('key').textContent = key || 'NOT FOUND';
+    
+    // Decode JWT
+    if (key) {
+      try {
+        const parts = key.split('.');
+        const payload = JSON.parse(atob(parts[1]));
+        const iat = payload.iat;
+        const exp = payload.exp;
+        const iatDate = new Date(iat * 1000).toLocaleString();
+        const expDate = new Date(exp * 1000).toLocaleString();
+        
+        const isCorrect = iat === 1760392191;
+        
+        document.getElementById('decoded').innerHTML = `
+          <p><strong>IAT:</strong> ${iat} (${iatDate})</p>
+          <p><strong>EXP:</strong> ${exp} (${expDate})</p>
+          <p style="color: ${isCorrect ? '#22c55e' : '#ef4444'}; font-size: 20px; font-weight: bold;">
+            ${isCorrect ? '✅ CORRECT KEY!' : '❌ WRONG KEY! (Old cached key)'}
+          </p>
+        `;
+        
+        document.getElementById('url-box').className = url === 'https://diexsbzqwsbpilsymnfb.supabase.co' ? 'box good' : 'box bad';
+        document.getElementById('key-box').className = isCorrect ? 'box good' : 'box bad';
+        document.getElementById('decode-box').className = isCorrect ? 'box good' : 'box bad';
+      } catch (err) {
+        document.getElementById('decoded').textContent = 'Error decoding: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>

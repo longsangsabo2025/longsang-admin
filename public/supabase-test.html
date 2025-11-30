@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase Quick Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+    .status {
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .loading { background: #1e40af; }
+    .success { background: #065f46; }
+    .error { background: #991b1b; }
+    .agent-card {
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .agent-name {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .agent-detail {
+      font-size: 14px;
+      color: #94a3b8;
+      margin: 4px 0;
+    }
+    pre {
+      background: #020617;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔬 Supabase Connection Test</h1>
+  <div id="status" class="status loading">⏳ Connecting...</div>
+  <div id="results"></div>
+
+  <script>
+    const supabaseUrl = 'https://diexsbzqwsbpilsymnfb.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpZXhzYnpxd3NicGlsc3ltbmZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzOTIxOTEsImV4cCI6MjA3NTk2ODE5MX0.Nf1wHe7EDONS25Yv987KqhgyvZu07COnu6qgC0qCy2I';
+    
+    const { createClient } = supabase;
+    const client = createClient(supabaseUrl, supabaseKey);
+
+    async function test() {
+      const statusEl = document.getElementById('status');
+      const resultsEl = document.getElementById('results');
+      
+      try {
+        statusEl.textContent = '📡 Querying ai_agents table...';
+        
+        const { data, error } = await client
+          .from('ai_agents')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          statusEl.className = 'status error';
+          statusEl.textContent = '❌ Error: ' + error.message;
+          resultsEl.innerHTML = '<pre>' + JSON.stringify(error, null, 2) + '</pre>';
+        } else {
+          statusEl.className = 'status success';
+          statusEl.textContent = `✅ Success! Found ${data.length} agents`;
+          
+          let html = '<h2>Agents List:</h2>';
+          data.forEach(agent => {
+            html += `
+              <div class="agent-card">
+                <div class="agent-name">${agent.name}</div>
+                <div class="agent-detail">ID: ${agent.id}</div>
+                <div class="agent-detail">Type: ${agent.type}</div>
+                <div class="agent-detail">Status: ${agent.status}</div>
+                <div class="agent-detail">Executions: ${agent.total_executions}</div>
+              </div>
+            `;
+          });
+          
+          html += '<h3>Raw JSON:</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+          resultsEl.innerHTML = html;
+        }
+      } catch (err) {
+        statusEl.className = 'status error';
+        statusEl.textContent = '❌ Exception: ' + err.message;
+        resultsEl.innerHTML = '<pre>' + err.stack + '</pre>';
+      }
+    }
+
+    test();
+  </script>
+</body>
+</html>

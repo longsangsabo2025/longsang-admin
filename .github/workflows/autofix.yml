@@ -1,0 +1,62 @@
+# ============================================================================
+# 🤖 AUTOFIX.CI - Automatic Code Formatting & Linting Fixes
+# ============================================================================
+# This workflow automatically fixes:
+# - ESLint errors (auto-fixable)
+# - Prettier formatting issues
+# - TypeScript import organization
+# - And commits the fixes automatically!
+# ============================================================================
+
+name: ✨ Autofix
+
+on:
+  pull_request:
+  push:
+    branches: [main, master, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    name: 🔧 Auto-fix Code Quality Issues
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      # ESLint Auto-fix
+      - name: 🔍 ESLint --fix
+        run: npm run lint -- --fix || true
+        continue-on-error: true
+
+      # Prettier Format
+      - name: 💅 Prettier format
+        run: npx prettier --write "src/**/*.{ts,tsx,js,jsx,json,css,scss,md}" || true
+        continue-on-error: true
+
+      # TypeScript - Remove unused imports (if available)
+      - name: 🧹 Remove unused imports
+        run: |
+          if npx tsc --version > /dev/null 2>&1; then
+            echo "TypeScript available, checking for unused imports..."
+          fi
+        continue-on-error: true
+
+      # Autofix.ci - Commit & Push fixes automatically
+      - name: ✨ Apply autofix.ci
+        uses: autofix-ci/action@v1
+        with:
+          fail-fast: false
+          commit-message: "style: 🤖 auto-fix code quality issues"

@@ -1,0 +1,33 @@
+🔧 ENABLE PG_NET EXTENSION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❗ LỖI: schema "net" does not exist
+✅ GIẢI PHÁP: Enable pg_net extension
+
+📝 CHẠY SQL NÀY TRONG DASHBOARD:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣  Mở SQL Editor:
+   https://supabase.com/dashboard/project/diexsbzqwsbpilsymnfb/sql/new
+
+2️⃣  Paste và chạy SQL này:
+
+CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
+GRANT USAGE ON SCHEMA extensions TO postgres;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA extensions TO postgres;
+
+3️⃣  Sau đó UPDATE lại Cron Job command thành:
+
+SELECT extensions.http_post(
+    url:='https://diexsbzqwsbpilsymnfb.supabase.co/functions/v1/fetch-emails',
+    headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpZXhzYnpxd3NicGlsc3ltbmZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzOTIxOTEsImV4cCI6MjA3NTk2ODE5MX0.Nf1wHe7EDONS25Yv987KqhgyvZu07COnu6qgC0qCy2I"}'::jsonb,
+    body:='{}'::jsonb
+) AS request_id;
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  LƯU Ý: Thay "net.http_post" → "extensions.http_post"
+
+🔗 LINK:
+   SQL Editor: https://supabase.com/dashboard/project/diexsbzqwsbpilsymnfb/sql/new
+   Cron Jobs: https://supabase.com/dashboard/project/diexsbzqwsbpilsymnfb/database/cron-jobs

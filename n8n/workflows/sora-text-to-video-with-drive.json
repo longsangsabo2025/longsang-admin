@@ -1,0 +1,387 @@
+{
+  "name": "SORA ## Text to Video + Drive",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sora-text-to-video",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-300, 96],
+      "id": "webhook-001",
+      "name": "Webhook",
+      "webhookId": "sora-text-to-video"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "363abbd9-5ed8-4b6a-b1a0-739893a02fff",
+              "name": "video_prompt",
+              "value": "={{ $json.body.prompt }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-100, 96],
+      "id": "5f8a0916-2e4c-4fe8-a8de-59906aab7a6a",
+      "name": "Video Prompt3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Input: {{ $json.video_prompt }}",
+        "options": {
+          "systemMessage": "# Overview\nYou are an expert AI video prompt engineer trained to design optimized prompts for Sora 2 video generation. Your role is to take a raw input concept (such as a short idea, scene description, or video type) and transform it into a highly detailed, visually rich, and cinematic video prompt.\n\nYour output must describe a **realistic, natural-looking video** that matches the input intent. Focus on optimizing for visual quality, camera realism, lighting accuracy, subject movement, and environmental coherence.\n\nFollow these rules when creating each prompt:\n\n1. Always describe:\n   - The main subject(s): appearance, clothing, age, gender, expression, and motion.\n   - The setting: location, background, lighting, time of day, and atmosphere.\n   - The camera style: angle, lens type, framing, and movement (e.g., handheld, dolly, aerial).\n   - The tone or emotion of the scene (e.g., cinematic, documentary, upbeat, dramatic).\n   - Realistic environmental and lighting effects (e.g., soft sunlight, reflections, motion blur).\n\n2. The prompt should sound like a professional cinematographer describing a shot to a visual effects team.\n3. Avoid generic or repetitive phrasing—each sentence should add visual or contextual detail.\n4. Keep the tone natural and descriptive, not technical or robotic.\n5. Ensure that the prompt reads fluently and feels like a single cohesive vision.\n\nWhen ready, output only the final video prompt with no commentary or additional explanation."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [100, 96],
+      "id": "2a0a76ab-2c2e-4013-a9f1-2ae3d3bb7549",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [-100, 280],
+      "id": "3502904a-0077-44cc-9f5b-49853cbce63f",
+      "name": "GPT-5-mini",
+      "credentials": {
+        "openRouterApi": {
+          "id": "eVTxjExyNHOdwH45",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/jobs/createTask",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"sora-2-text-to-video\",\n  \"input\": {\n    \"prompt\": \"{{ $json.output.replace(/\"/g, '').replace(/\\r?\\n|\\r/g, ' ') }}\",\n    \"aspect_ratio\": \"landscape\",\n    \"n_frames\": \"10\",\n    \"remove_watermark\": true\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 96],
+      "id": "9dee5505-d5ac-4fe4-b450-334adc8e0788",
+      "name": "Text to Video2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "9Cun69xZ2FUFSkca",
+          "name": "Kie AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [460, 96],
+      "id": "2ecab8fa-22f8-453b-88ce-b9c274702664",
+      "name": "Wait4",
+      "webhookId": "9fd30610-c0b9-4f5c-9af5-89b821c11ec3"
+    },
+    {
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/jobs/recordInfo",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "={{ $json.data.taskId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [620, 96],
+      "id": "5bcee834-53c4-4563-8ec9-14a525140567",
+      "name": "Get Video4",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "9Cun69xZ2FUFSkca",
+          "name": "Kie AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4f9a9a29-cc45-4e39-a1a0-e78caadbab09",
+              "leftValue": "={{ $json.data.state }}",
+              "rightValue": "success",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [780, 96],
+      "id": "f0b9b65c-0cd3-4ca2-aa2c-86e12b149d53",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "714ed3d2-1e81-4aae-a977-8151769371a7",
+              "name": "video_url",
+              "value": "={{ JSON.parse($json.data.resultJson).resultUrls[0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [940, 96],
+      "id": "d3b5dcac-55f6-4cd6-a089-95efd4b77bc0",
+      "name": "Video URL4"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.video_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "video_data"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 96],
+      "id": "download-video-001",
+      "name": "Download Video"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/api/drive/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "video_data"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1260, 96],
+      "id": "upload-drive-001",
+      "name": "Upload to Drive"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'Video created and uploaded!', video_url: $('Video URL4').item.json.video_url, google_drive: { file_id: $json.id, file_name: $json.name, view_link: 'https://drive.google.com/file/d/' + $json.id + '/view' } }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1420, 96],
+      "id": "respond-success-001",
+      "name": "Respond Success"
+    },
+    {
+      "parameters": {
+        "content": "## Text to Video (w/ prompting) + Google Drive Upload\n\nWebhook: POST /webhook/sora-text-to-video\nBody: { \"prompt\": \"your video description\" }",
+        "height": 400,
+        "width": 1900,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-360, -50],
+      "id": "5fb3559d-9d94-4dbf-90a1-b0f3530666d6",
+      "name": "Sticky Note5"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Video Prompt3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video Prompt3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Text to Video2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-5-mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text to Video2": {
+      "main": [
+        [
+          {
+            "node": "Wait4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait4": {
+      "main": [
+        [
+          {
+            "node": "Get Video4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video4": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Video URL4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video URL4": {
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Video": {
+      "main": [
+        [
+          {
+            "node": "Upload to Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Drive": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

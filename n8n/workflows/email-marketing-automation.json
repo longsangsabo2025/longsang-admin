@@ -1,0 +1,164 @@
+{
+  "name": "Email Marketing Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "email-marketing",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "email-marketing-webhook"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Load email template based on type\nconst templateType = $input.item.json.template_type || 'welcome';\nconst templatePath = `D:/0.PROJECTS/00-MASTER-ADMIN/longsang-admin/templates/emails/${templateType}.html`;\n\n// Read template\nconst fs = require('fs');\nlet template = fs.readFileSync(templatePath, 'utf8');\n\n// Get variables from webhook\nconst vars = $input.item.json.variables || {};\n\n// Replace all {{variable}} with actual values\nObject.keys(vars).forEach(key => {\n  const regex = new RegExp(`{{${key}}}`, 'g');\n  template = template.replace(regex, vars[key]);\n});\n\n// Return processed template\nreturn {\n  json: {\n    html: template,\n    subject: $input.item.json.subject || 'Email từ Long Sang',\n    to: $input.item.json.to,\n    from: $input.item.json.from || 'admin@longsang.org',\n    original_data: $input.item.json\n  }\n};"
+      },
+      "id": "load-template",
+      "name": "Load Email Template",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "OAuth2",
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {
+          "senderName": "Long Sang Portfolio",
+          "appendAttribution": false
+        }
+      },
+      "id": "send-email",
+      "name": "Send via Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [650, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2-credential",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "1ZDrD-z7l4rnu5WCdEJ4tvg_oigeoaUHTjdbDGnEPMtk",
+        "sheetName": "Email Logs",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now.toISO() }}",
+            "template_type": "={{ $('Load Email Template').item.json.original_data.template_type }}",
+            "recipient": "={{ $json.to }}",
+            "subject": "={{ $json.subject }}",
+            "status": "sent",
+            "message_id": "={{ $json.id }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "log-to-sheet",
+      "name": "Log to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [850, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S9FM5C1u4OUgOU86",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Email sent successfully\", \"message_id\": $json.id, \"timestamp\": $now.toISO() } }}"
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": false, \"error\": $json.error, \"timestamp\": $now.toISO() } }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "error-response",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 500]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Load Email Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Email Template": {
+      "main": [
+        [
+          {
+            "node": "Send via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send via Gmail": {
+      "main": [
+        [
+          {
+            "node": "Log to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "longsang-admin-email-automation"
+  },
+  "tags": []
+}

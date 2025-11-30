@@ -1,0 +1,507 @@
+{
+  "name": "Auto Social Media Campaign Scheduler",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.*, array_agg(cp.id) as post_ids\nFROM marketing_campaigns c\nLEFT JOIN campaign_posts cp ON cp.campaign_id = c.id\nWHERE c.status = 'scheduled'\n  AND c.scheduled_at <= NOW()\n  AND c.scheduled_at >= NOW() - INTERVAL '15 minutes'\nGROUP BY c.id\nLIMIT 10",
+        "options": {}
+      },
+      "id": "fetch-scheduled",
+      "name": "Fetch Scheduled Campaigns",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "2",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.length }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "check-has-campaigns",
+      "name": "Has Campaigns?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {},
+      "id": "split-campaigns",
+      "name": "Split Into Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE marketing_campaigns\nSET status = 'running', started_at = NOW()\nWHERE id = '{{ $json.id }}'\nRETURNING *",
+        "options": {}
+      },
+      "id": "update-status-running",
+      "name": "Mark as Running",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1050, 200],
+      "credentials": {
+        "postgres": {
+          "id": "2",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "text": "={{ $json.content }}",
+        "options": {
+          "systemMessage": "You are a social media expert. Create 3 optimized versions of this content for LinkedIn, Facebook, and Twitter. Return JSON with keys: linkedin, facebook, twitter. Each should be platform-optimized with appropriate tone, length, and emojis.",
+          "maxTokens": 800,
+          "temperature": 0.7,
+          "responseFormat": "json_object"
+        }
+      },
+      "id": "ai-optimize-multi",
+      "name": "AI Multi-Platform Optimizer",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.0,
+      "position": [1250, 200],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const optimized = JSON.parse($input.item.json.message.content);\nconst campaign = $input.item.json;\nconst platforms = campaign.platforms || [];\n\nconst results = [];\n\nif (platforms.includes('linkedin')) {\n  results.push({\n    platform: 'linkedin',\n    content: optimized.linkedin,\n    campaign_id: campaign.id\n  });\n}\n\nif (platforms.includes('facebook')) {\n  results.push({\n    platform: 'facebook',\n    content: optimized.facebook,\n    campaign_id: campaign.id\n  });\n}\n\nif (platforms.includes('twitter')) {\n  results.push({\n    platform: 'twitter',\n    content: optimized.twitter,\n    campaign_id: campaign.id\n  });\n}\n\nreturn results;"
+      },
+      "id": "prepare-posts",
+      "name": "Prepare Platform Posts",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {},
+      "id": "split-platforms",
+      "name": "Split Platforms",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [1650, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.platform }}",
+              "operation": "equals",
+              "value2": "linkedin"
+            }
+          ]
+        }
+      },
+      "id": "if-linkedin",
+      "name": "Is LinkedIn?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1850, 100]
+    },
+    {
+      "parameters": {
+        "resource": "share",
+        "operation": "create",
+        "text": "={{ $json.content }}",
+        "options": {}
+      },
+      "id": "post-linkedin",
+      "name": "Post to LinkedIn",
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [2050, 100],
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "3",
+          "name": "LinkedIn OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.platform }}",
+              "operation": "equals",
+              "value2": "facebook"
+            }
+          ]
+        }
+      },
+      "id": "if-facebook",
+      "name": "Is Facebook?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "post",
+        "pageId": "={{ $credentials.facebookPageId }}",
+        "message": "={{ $json.content }}",
+        "options": {}
+      },
+      "id": "post-facebook",
+      "name": "Post to Facebook",
+      "type": "n8n-nodes-base.facebook",
+      "typeVersion": 1,
+      "position": [2050, 300],
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "4",
+          "name": "Facebook Graph API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.platform }}",
+              "operation": "equals",
+              "value2": "twitter"
+            }
+          ]
+        }
+      },
+      "id": "if-twitter",
+      "name": "Is Twitter?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1850, 500]
+    },
+    {
+      "parameters": {
+        "resource": "tweet",
+        "operation": "create",
+        "text": "={{ $json.content }}",
+        "options": {}
+      },
+      "id": "post-twitter",
+      "name": "Post to Twitter",
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 1,
+      "position": [2050, 500],
+      "credentials": {
+        "twitterOAuth1Api": {
+          "id": "5",
+          "name": "Twitter API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO campaign_posts (campaign_id, platform, content, status, posted_at, post_id, post_url)\nVALUES (\n  '{{ $json.campaign_id }}',\n  '{{ $json.platform }}',\n  '{{ $json.content }}',\n  'posted',\n  NOW(),\n  '{{ $json.post_id || \"\" }}',\n  '{{ $json.post_url || \"\" }}'\n)\nRETURNING *",
+        "options": {}
+      },
+      "id": "save-post-success",
+      "name": "Save Post to Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [2250, 300],
+      "credentials": {
+        "postgres": {
+          "id": "2",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE campaign_posts\nSET status = 'failed',\n    error_message = '{{ $json.error.message }}',\n    retry_count = retry_count + 1\nWHERE campaign_id = '{{ $json.campaign_id }}'\n  AND platform = '{{ $json.platform }}'\n  AND status = 'pending'",
+        "options": {}
+      },
+      "id": "save-post-error",
+      "name": "Save Error to Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [2250, 500],
+      "credentials": {
+        "postgres": {
+          "id": "2",
+          "name": "Supabase PostgreSQL"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH campaign_status AS (\n  SELECT \n    campaign_id,\n    COUNT(*) as total_posts,\n    COUNT(CASE WHEN status = 'posted' THEN 1 END) as posted_count,\n    COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_count\n  FROM campaign_posts\n  WHERE campaign_id = '{{ $json.campaign_id }}'\n  GROUP BY campaign_id\n)\nUPDATE marketing_campaigns c\nSET \n  status = CASE \n    WHEN cs.posted_count = cs.total_posts THEN 'completed'\n    WHEN cs.failed_count = cs.total_posts THEN 'failed'\n    ELSE 'running'\n  END,\n  completed_at = CASE \n    WHEN cs.posted_count = cs.total_posts THEN NOW()\n    ELSE NULL\n  END\nFROM campaign_status cs\nWHERE c.id = cs.campaign_id\n  AND c.id = '{{ $json.campaign_id }}'\nRETURNING c.*",
+        "options": {}
+      },
+      "id": "update-campaign-status",
+      "name": "Update Campaign Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [2450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "2",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO marketing_workflow_executions (user_id, workflow_name, workflow_id, execution_id, status, started_at, finished_at, duration_ms, input_data, output_data)\nVALUES (\n  '{{ $json.user_id }}',\n  'Auto Social Media Campaign Scheduler',\n  'auto-social-scheduler',\n  '{{ $workflow.id }}',\n  'success',\n  NOW() - INTERVAL '{{ $json.duration_ms }} milliseconds',\n  NOW(),\n  {{ $json.duration_ms }},\n  '{{ $json.input }}'::jsonb,\n  '{{ $json.output }}'::jsonb\n)",
+        "options": {}
+      },
+      "id": "log-execution",
+      "name": "Log Workflow Execution",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [2650, 300],
+      "credentials": {
+        "postgres": {
+          "id": "2",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "schedule-trigger": {
+      "main": [
+        [
+          {
+            "node": "fetch-scheduled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fetch-scheduled": {
+      "main": [
+        [
+          {
+            "node": "check-has-campaigns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-has-campaigns": {
+      "main": [
+        [
+          {
+            "node": "split-campaigns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "split-campaigns": {
+      "main": [
+        [
+          {
+            "node": "update-status-running",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update-status-running": {
+      "main": [
+        [
+          {
+            "node": "ai-optimize-multi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ai-optimize-multi": {
+      "main": [
+        [
+          {
+            "node": "prepare-posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare-posts": {
+      "main": [
+        [
+          {
+            "node": "split-platforms",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "split-platforms": {
+      "main": [
+        [
+          {
+            "node": "if-linkedin",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "if-facebook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "if-twitter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if-linkedin": {
+      "main": [
+        [
+          {
+            "node": "post-linkedin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "post-linkedin": {
+      "main": [
+        [
+          {
+            "node": "save-post-success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if-facebook": {
+      "main": [
+        [
+          {
+            "node": "post-facebook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "post-facebook": {
+      "main": [
+        [
+          {
+            "node": "save-post-success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if-twitter": {
+      "main": [
+        [
+          {
+            "node": "post-twitter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "post-twitter": {
+      "main": [
+        [
+          {
+            "node": "save-post-success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save-post-success": {
+      "main": [
+        [
+          {
+            "node": "update-campaign-status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update-campaign-status": {
+      "main": [
+        [
+          {
+            "node": "log-execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["marketing", "automation", "social-media"],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-18T00:00:00.000Z",
+  "versionId": "1"
+}

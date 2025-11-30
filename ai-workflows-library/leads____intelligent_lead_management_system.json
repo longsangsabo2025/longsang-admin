@@ -1,0 +1,195 @@
+{
+  "name": "🎯 Intelligent Lead Management System",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "lead-management",
+        "options": {},
+        "httpMethod": "POST"
+      },
+      "id": "webhook-lead",
+      "name": "📥 Lead Capture Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Intelligent Lead Processing & Enrichment\nconst request = $input.json;\n\nconst firstName = request.firstName || '';\nconst lastName = request.lastName || '';\nconst email = request.email || '';\nconst phone = request.phone || '';\nconst company = request.company || '';\nconst jobTitle = request.jobTitle || '';\nconst source = request.source || 'unknown';\nconst interests = request.interests || [];\n\n// Lead validation\nconst validation = {\n    emailValid: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email),\n    phoneValid: phone.length >= 10,\n    nameComplete: firstName.length > 0 && lastName.length > 0,\n    companyProvided: company.length > 0\n};\n\n// Calculate quality score\nlet qualityScore = 0;\nif (validation.emailValid) qualityScore += 30;\nif (validation.phoneValid) qualityScore += 20;\nif (validation.nameComplete) qualityScore += 20;\nif (validation.companyProvided) qualityScore += 15;\nif (jobTitle.length > 0) qualityScore += 10;\nif (interests.length > 0) qualityScore += 5;\n\n// Lead scoring\nconst sourceScores = {\n    'website_form': 85,\n    'social_media': 70,\n    'referral': 90,\n    'paid_ads': 60,\n    'unknown': 30\n};\n\nlet leadScore = sourceScores[source] || 30;\nleadScore += qualityScore * 0.5;\n\nif (jobTitle.toLowerCase().includes('ceo') || jobTitle.toLowerCase().includes('founder')) {\n    leadScore += 20;\n}\n\nleadScore = Math.min(100, Math.max(0, Math.round(leadScore)));\n\nreturn {\n    originalRequest: request,\n    leadData: {\n        firstName: firstName,\n        lastName: lastName,\n        fullName: (firstName + ' ' + lastName).trim(),\n        email: email,\n        phone: phone,\n        company: company,\n        jobTitle: jobTitle,\n        source: source,\n        interests: interests\n    },\n    validation: validation,\n    leadScore: leadScore,\n    leadGrade: leadScore >= 80 ? 'A' : leadScore >= 60 ? 'B' : leadScore >= 40 ? 'C' : 'D',\n    priority: leadScore >= 80 ? 'High' : leadScore >= 60 ? 'Medium' : 'Low',\n    nextAction: leadScore >= 80 ? 'immediate_contact' : leadScore >= 60 ? 'nurture_sequence' : 'newsletter_only',\n    leadId: 'lead_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),\n    capturedAt: new Date().toISOString()\n};"
+      },
+      "id": "lead-processor",
+      "name": "🧠 Lead Intelligence Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "high-priority",
+              "leftValue": "={{ $('🧠 Lead Intelligence Engine').item.json.priority }}",
+              "rightValue": "High",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "lead-router",
+      "name": "🚦 Lead Routing Engine",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// High-Priority Lead Processing\nconst data = $input.json;\n\nconst immediateActions = {\n    salesNotification: {\n        triggered: true,\n        method: 'slack_email',\n        urgency: 'high',\n        message: 'HIGH PRIORITY LEAD: ' + data.leadData.fullName + ' from ' + data.leadData.company,\n        assignedTo: 'sales_team_lead'\n    },\n    autoResponse: {\n        triggered: true,\n        template: 'vip_welcome',\n        subject: data.leadData.firstName + ', lets schedule a quick call',\n        scheduledFor: new Date(Date.now() + 5*60*1000).toISOString()\n    }\n};\n\nreturn {\n    ...data,\n    immediateActions: immediateActions,\n    escalated: true,\n    conversionProbability: 70\n};"
+      },
+      "id": "high-priority-processor",
+      "name": "🚨 High-Priority Lead Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Standard Lead Nurturing\nconst data = $input.json;\n\nlet nurtureTrack = 'standard';\nif (data.leadScore >= 60) nurtureTrack = 'warm';\nif (data.leadScore < 40) nurtureTrack = 'cold';\n\nconst nurtureSequence = [\n    {\n        day: 0,\n        action: 'welcome_email',\n        template: 'standard_welcome'\n    },\n    {\n        day: 3,\n        action: 'educational_content',\n        template: 'getting_started_guide'\n    },\n    {\n        day: 7,\n        action: 'value_proposition',\n        template: 'benefits_overview'\n    }\n];\n\nreturn {\n    ...data,\n    nurtureTrack: nurtureTrack,\n    nurtureSequence: nurtureSequence,\n    automationTriggered: true,\n    conversionProbability: nurtureTrack === 'warm' ? 25 : 15\n};"
+      },
+      "id": "nurture-processor",
+      "name": "🌱 Lead Nurturing Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lead Analytics & Scoring Engine\nconst data = $input.json;\n\nconst analytics = {\n    leadScore: data.leadScore,\n    leadGrade: data.leadGrade,\n    priority: data.priority,\n    conversionProbability: data.conversionProbability || 15,\n    estimatedValue: Math.floor(Math.random() * 50000) + 10000,\n    qualityIndicators: [\n        data.validation.emailValid ? 'Valid Email' : null,\n        data.validation.phoneValid ? 'Valid Phone' : null,\n        data.validation.companyProvided ? 'Company Info' : null\n    ].filter(Boolean)\n};\n\nreturn {\n    ...data,\n    analytics: analytics,\n    processingComplete: true\n};"
+      },
+      "id": "analytics-engine",
+      "name": "📊 Lead Analytics Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n    \"status\": \"success\",\n    \"message\": \"Lead processed and integrated successfully\",\n    \"data\": {\n        \"leadId\": \"{{ $('🧠 Lead Intelligence Engine').item.json.leadId }}\",\n        \"leadScore\": \"{{ $('🧠 Lead Intelligence Engine').item.json.leadScore }}\",\n        \"leadGrade\": \"{{ $('🧠 Lead Intelligence Engine').item.json.leadGrade }}\",\n        \"priority\": \"{{ $('🧠 Lead Intelligence Engine').item.json.priority }}\",\n        \"leadData\": {{ JSON.stringify($('🧠 Lead Intelligence Engine').item.json.leadData) }},\n        \"analytics\": {{ JSON.stringify($('📊 Lead Analytics Engine').item.json.analytics) }},\n        \"escalated\": \"{{ $('🚨 High-Priority Lead Processor').item.json.escalated || false }}\",\n        \"automationTriggered\": \"{{ $('🌱 Lead Nurturing Engine').item.json.automationTriggered || false }}\",\n        \"capturedAt\": \"{{ $('🧠 Lead Intelligence Engine').item.json.capturedAt }}\"\n    }\n}"
+      },
+      "id": "lead-response",
+      "name": "🎯 Lead Management Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "📥 Lead Capture Webhook": {
+      "main": [
+        [
+          {
+            "node": "🧠 Lead Intelligence Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧠 Lead Intelligence Engine": {
+      "main": [
+        [
+          {
+            "node": "🚦 Lead Routing Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚦 Lead Routing Engine": {
+      "main": [
+        [
+          {
+            "node": "🚨 High-Priority Lead Processor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🌱 Lead Nurturing Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚨 High-Priority Lead Processor": {
+      "main": [
+        [
+          {
+            "node": "📊 Lead Analytics Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🌱 Lead Nurturing Engine": {
+      "main": [
+        [
+          {
+            "node": "📊 Lead Analytics Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Lead Analytics Engine": {
+      "main": [
+        [
+          {
+            "node": "🎯 Lead Management Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

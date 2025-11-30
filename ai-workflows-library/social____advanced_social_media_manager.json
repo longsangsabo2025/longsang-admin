@@ -1,0 +1,228 @@
+{
+  "name": "📱 Advanced Social Media Manager",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "social-media-manager",
+        "options": {},
+        "httpMethod": "POST"
+      },
+      "id": "webhook-social",
+      "name": "📥 Social Media Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Advanced Social Media Request Processor\nconst request = $input.json;\n\n// Extract parameters\nconst content = request.content || 'Exciting news coming soon!';\nconst platforms = request.platforms || ['twitter', 'linkedin', 'facebook', 'instagram'];\nconst scheduledTime = request.scheduledTime || null;\nconst mediaType = request.mediaType || 'text';\nconst hashtags = request.hashtags || ['#automation', '#ai', '#technology'];\nconst campaign = request.campaign || null;\nconst audience = request.audience || 'general';\nconst tone = request.tone || 'professional';\nconst ctaType = request.ctaType || 'engagement';\n\n// Platform-specific configurations\nconst platformConfigs = {\n    twitter: {\n        maxLength: 280,\n        hashtagStrategy: 'moderate', // 2-3 hashtags\n        bestTimes: ['9:00', '15:00', '18:00'],\n        contentStyle: 'conversational'\n    },\n    linkedin: {\n        maxLength: 3000,\n        hashtagStrategy: 'minimal', // 1-2 hashtags\n        bestTimes: ['8:00', '12:00', '17:00'],\n        contentStyle: 'professional'\n    },\n    facebook: {\n        maxLength: 63206,\n        hashtagStrategy: 'light', // 1-2 hashtags\n        bestTimes: ['9:00', '13:00', '15:00'],\n        contentStyle: 'engaging'\n    },\n    instagram: {\n        maxLength: 2200,\n        hashtagStrategy: 'heavy', // 10-30 hashtags\n        bestTimes: ['11:00', '14:00', '17:00'],\n        contentStyle: 'visual-focused'\n    },\n    tiktok: {\n        maxLength: 150,\n        hashtagStrategy: 'trending',\n        bestTimes: ['6:00', '10:00', '19:00'],\n        contentStyle: 'trendy'\n    }\n};\n\n// Optimize schedule if not provided\nlet optimizedSchedule = {};\nif (!scheduledTime) {\n    platforms.forEach(platform => {\n        const config = platformConfigs[platform];\n        if (config && config.bestTimes) {\n            const randomTime = config.bestTimes[Math.floor(Math.random() * config.bestTimes.length)];\n            const today = new Date();\n            const [hours, minutes] = randomTime.split(':');\n            today.setHours(parseInt(hours), parseInt(minutes), 0, 0);\n            optimizedSchedule[platform] = today.toISOString();\n        }\n    });\n}\n\nreturn {\n    originalRequest: request,\n    content: content,\n    platforms: platforms,\n    scheduledTime: scheduledTime,\n    optimizedSchedule: optimizedSchedule,\n    mediaType: mediaType,\n    hashtags: hashtags,\n    campaign: campaign,\n    audience: audience,\n    tone: tone,\n    ctaType: ctaType,\n    platformConfigs: platformConfigs,\n    processingId: `social_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,\n    timestamp: new Date().toISOString()\n};"
+      },
+      "id": "social-processor",
+      "name": "🎯 Social Media Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Platform-Specific Content Optimization\nconst data = $input.json;\nconst platforms = data.platforms;\n\nconst optimizedContent = {};\n\nplatforms.forEach(platform => {\n    const config = data.platformConfigs[platform];\n    if (!config) return;\n\n    let platformContent = data.content;\n    let platformHashtags = [...data.hashtags];\n\n    // Platform-specific optimizations\n    switch (platform) {\n        case 'twitter':\n            // Shorten content for Twitter\n            if (platformContent.length > 240) {\n                platformContent = platformContent.substring(0, 240) + '...';\n            }\n            // Add Twitter-specific hashtags\n            platformHashtags = platformHashtags.slice(0, 3);\n            break;\n\n        case 'linkedin':\n            // Professional tone for LinkedIn\n            platformContent = `🚀 ${platformContent}\n\n#ProfessionalGrowth #Innovation #Leadership`;\n            platformHashtags = platformHashtags.slice(0, 2);\n            break;\n\n        case 'facebook':\n            // Engaging format for Facebook\n            platformContent = `✨ ${platformContent}\n\nWhat do you think? Share your thoughts in the comments! 👇`;\n            platformHashtags = platformHashtags.slice(0, 2);\n            break;\n\n        case 'instagram':\n            // Visual-focused for Instagram\n            platformContent = `📸 ${platformContent}\n\nFollow for more! ✨`;\n            // Add trending hashtags\n            platformHashtags = [...platformHashtags, '#instagood', '#photooftheday', '#trending'];\n            break;\n\n        case 'tiktok':\n            // Trendy format for TikTok\n            platformContent = `🔥 ${platformContent} #fyp #viral`;\n            platformHashtags = [...platformHashtags, '#fyp', '#viral', '#trending'];\n            break;\n    }\n\n    optimizedContent[platform] = {\n        content: platformContent,\n        hashtags: platformHashtags,\n        scheduledFor: data.optimizedSchedule[platform] || data.scheduledTime,\n        contentLength: platformContent.length,\n        estimatedReach: Math.floor(Math.random() * 5000) + 1000,\n        estimatedEngagement: Math.floor(Math.random() * 200) + 50\n    };\n});\n\nreturn {\n    ...data,\n    optimizedContent: optimizedContent,\n    totalPlatforms: platforms.length,\n    totalEstimatedReach: Object.values(optimizedContent).reduce((sum, platform) => sum + platform.estimatedReach, 0)\n};"
+      },
+      "id": "content-optimizer",
+      "name": "⚡ Content Optimizer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Advanced Social Media Analytics Predictor\nconst data = $input.json;\n\n// Predict performance for each platform\nconst analytics = {};\nconst timeOfDay = new Date().getHours();\nconst dayOfWeek = new Date().getDay();\n\nObject.keys(data.optimizedContent).forEach(platform => {\n    const content = data.optimizedContent[platform];\n    \n    // Base engagement rates by platform\n    const baseRates = {\n        twitter: 0.048, // 4.8%\n        linkedin: 0.054, // 5.4%\n        facebook: 0.063, // 6.3%\n        instagram: 0.067, // 6.7%\n        tiktok: 0.089  // 8.9%\n    };\n\n    const baseRate = baseRates[platform] || 0.05;\n    \n    // Time-based multipliers\n    let timeMultiplier = 1.0;\n    if (timeOfDay >= 9 && timeOfDay <= 17) timeMultiplier = 1.2; // Business hours\n    if (timeOfDay >= 18 && timeOfDay <= 21) timeMultiplier = 1.4; // Evening peak\n    \n    // Day-based multipliers\n    let dayMultiplier = 1.0;\n    if (dayOfWeek >= 1 && dayOfWeek <= 5) dayMultiplier = 1.1; // Weekdays\n    if (dayOfWeek === 6 || dayOfWeek === 0) dayMultiplier = 0.9; // Weekends\n    \n    // Content quality multipliers\n    let qualityMultiplier = 1.0;\n    if (content.hashtags.length > 0) qualityMultiplier += 0.1;\n    if (content.content.includes('👇') || content.content.includes('✨')) qualityMultiplier += 0.05;\n    if (content.content.length > 50) qualityMultiplier += 0.1;\n    \n    // Calculate predictions\n    const predictedEngagementRate = baseRate * timeMultiplier * dayMultiplier * qualityMultiplier;\n    const predictedLikes = Math.floor(content.estimatedReach * predictedEngagementRate * 0.7);\n    const predictedShares = Math.floor(content.estimatedReach * predictedEngagementRate * 0.15);\n    const predictedComments = Math.floor(content.estimatedReach * predictedEngagementRate * 0.15);\n    \n    analytics[platform] = {\n        predictedEngagementRate: Math.round(predictedEngagementRate * 10000) / 100, // Percentage\n        predictedLikes: predictedLikes,\n        predictedShares: predictedShares,\n        predictedComments: predictedComments,\n        predictedTotalEngagement: predictedLikes + predictedShares + predictedComments,\n        bestTimeToPost: `${timeOfDay}:00`,\n        confidenceScore: Math.floor(Math.random() * 20) + 80, // 80-100%\n        viralPotential: predictedEngagementRate > 0.08 ? 'High' : predictedEngagementRate > 0.05 ? 'Medium' : 'Low'\n    };\n});\n\n// Overall campaign analytics\nconst totalPredictedEngagement = Object.values(analytics).reduce((sum, platform) => sum + platform.predictedTotalEngagement, 0);\nconst avgConfidence = Object.values(analytics).reduce((sum, platform) => sum + platform.confidenceScore, 0) / Object.keys(analytics).length;\n\nreturn {\n    ...data,\n    analytics: analytics,\n    campaignAnalytics: {\n        totalPredictedEngagement: totalPredictedEngagement,\n        avgConfidenceScore: Math.round(avgConfidence),\n        bestPerformingPlatform: Object.keys(analytics).reduce((a, b) => analytics[a].predictedTotalEngagement > analytics[b].predictedTotalEngagement ? a : b),\n        recommendedPostTime: new Date(Date.now() + 2*60*60*1000).toISOString(), // 2 hours from now\n        viralPotentialScore: Math.floor(Math.random() * 30) + 70 // 70-100\n    }\n};"
+      },
+      "id": "analytics-predictor",
+      "name": "📊 Analytics Predictor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "immediate-post",
+              "leftValue": "={{ $('Social Media Processor').item.json.scheduledTime }}",
+              "rightValue": null,
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "high-viral-potential",
+              "leftValue": "={{ $('Analytics Predictor').item.json.campaignAnalytics.viralPotentialScore }}",
+              "rightValue": 90,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "posting-strategy",
+      "name": "🎯 Posting Strategy",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Immediate Multi-Platform Posting\nconst data = $input.json;\n\nconst postResults = {};\nconst timestamp = new Date().toISOString();\n\nObject.keys(data.optimizedContent).forEach(platform => {\n    const content = data.optimizedContent[platform];\n    const analytics = data.analytics[platform];\n    \n    // Simulate posting to platform\n    postResults[platform] = {\n        status: 'posted',\n        postId: `${platform}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,\n        url: `https://${platform}.com/post/${Date.now()}`,\n        postedAt: timestamp,\n        initialReach: Math.floor(content.estimatedReach * 0.1), // 10% immediate reach\n        predictedFinalReach: content.estimatedReach,\n        currentLikes: Math.floor(analytics.predictedLikes * 0.05), // 5% immediate engagement\n        currentShares: 0,\n        currentComments: 0\n    };\n});\n\nreturn {\n    ...data,\n    postResults: postResults,\n    campaign: {\n        id: data.processingId,\n        status: 'active',\n        launchedAt: timestamp,\n        totalPosts: Object.keys(postResults).length,\n        initialReach: Object.values(postResults).reduce((sum, result) => sum + result.initialReach, 0)\n    }\n};"
+      },
+      "id": "immediate-poster",
+      "name": "🚀 Immediate Poster",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Scheduled Posting Manager\nconst data = $input.json;\n\nconst scheduleResults = {};\nconst timestamp = new Date().toISOString();\n\nObject.keys(data.optimizedContent).forEach(platform => {\n    const content = data.optimizedContent[platform];\n    const analytics = data.analytics[platform];\n    \n    // Simulate scheduling\n    scheduleResults[platform] = {\n        status: 'scheduled',\n        scheduleId: `sched_${platform}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,\n        scheduledFor: content.scheduledFor || data.campaignAnalytics.recommendedPostTime,\n        content: content.content,\n        hashtags: content.hashtags,\n        predictedReach: content.estimatedReach,\n        predictedEngagement: analytics.predictedTotalEngagement,\n        platform: platform\n    };\n});\n\nreturn {\n    ...data,\n    scheduleResults: scheduleResults,\n    campaign: {\n        id: data.processingId,\n        status: 'scheduled',\n        scheduledAt: timestamp,\n        totalScheduledPosts: Object.keys(scheduleResults).length,\n        nextPostTime: Math.min(...Object.values(scheduleResults).map(s => new Date(s.scheduledFor).getTime()))\n    }\n};"
+      },
+      "id": "scheduled-poster",
+      "name": "⏰ Scheduled Poster",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n    \"status\": \"success\",\n    \"message\": \"Advanced social media campaign processed successfully\",\n    \"data\": {\n        \"campaignId\": \"{{ $('Social Media Processor').item.json.processingId }}\",\n        \"platforms\": \"{{ JSON.stringify($('Social Media Processor').item.json.platforms) }}\",\n        \"totalPlatforms\": \"{{ $('Content Optimizer').item.json.totalPlatforms }}\",\n        \"totalEstimatedReach\": \"{{ $('Content Optimizer').item.json.totalEstimatedReach }}\",\n        \"campaignStatus\": \"{{ $('Immediate Poster').item.json.campaign.status || $('Scheduled Poster').item.json.campaign.status }}\",\n        \"postResults\": \"{{ JSON.stringify($('Immediate Poster').item.json.postResults || null) }}\",\n        \"scheduleResults\": \"{{ JSON.stringify($('Scheduled Poster').item.json.scheduleResults || null) }}\",\n        \"analytics\": \"{{ JSON.stringify($('Analytics Predictor').item.json.analytics) }}\",\n        \"campaignAnalytics\": \"{{ JSON.stringify($('Analytics Predictor').item.json.campaignAnalytics) }}\",\n        \"optimizedContent\": \"{{ JSON.stringify($('Content Optimizer').item.json.optimizedContent) }}\",\n        \"viralPotentialScore\": \"{{ $('Analytics Predictor').item.json.campaignAnalytics.viralPotentialScore }}\",\n        \"bestPerformingPlatform\": \"{{ $('Analytics Predictor').item.json.campaignAnalytics.bestPerformingPlatform }}\",\n        \"timestamp\": \"{{ $('Social Media Processor').item.json.timestamp }}\"\n    }\n}"
+      },
+      "id": "social-response",
+      "name": "📱 Social Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "📥 Social Media Webhook": {
+      "main": [
+        [
+          {
+            "node": "🎯 Social Media Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎯 Social Media Processor": {
+      "main": [
+        [
+          {
+            "node": "⚡ Content Optimizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚡ Content Optimizer": {
+      "main": [
+        [
+          {
+            "node": "📊 Analytics Predictor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Analytics Predictor": {
+      "main": [
+        [
+          {
+            "node": "🎯 Posting Strategy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎯 Posting Strategy": {
+      "main": [
+        [
+          {
+            "node": "🚀 Immediate Poster",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⏰ Scheduled Poster",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚀 Immediate Poster": {
+      "main": [
+        [
+          {
+            "node": "📱 Social Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⏰ Scheduled Poster": {
+      "main": [
+        [
+          {
+            "node": "📱 Social Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

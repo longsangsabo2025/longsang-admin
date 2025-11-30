@@ -1,0 +1,186 @@
+{
+  "name": "AI Workspace - Weekly Financial Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 18 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger (Sunday 6PM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": "transactions",
+        "filters": {
+          "created_at": {
+            "gte": "={{ $now.minus({days: 7}).toISO() }}"
+          }
+        }
+      },
+      "id": "get-transactions",
+      "name": "Get Transactions",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=http://localhost:3001/api/assistants/financial",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "=Phân tích chi tiêu tuần này, so sánh với tuần trước, đề xuất cải thiện. Dữ liệu: {{ JSON.stringify($json) }}"
+            },
+            {
+              "name": "userId",
+              "value": "={{ $env.USER_ID }}"
+            },
+            {
+              "name": "stream",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "call-financial-assistant",
+      "name": "Call Financial Assistant",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "financial_summaries",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "content": "={{ $json.response }}",
+            "period_start": "={{ $now.minus({days: 7}).toISO() }}",
+            "period_end": "={{ $now.toISO() }}",
+            "created_at": "={{ $now }}",
+            "user_id": "={{ $env.USER_ID }}"
+          }
+        }
+      },
+      "id": "save-summary",
+      "name": "Save Summary",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "to": "={{ $env.USER_EMAIL }}",
+        "subject": "📊 Báo cáo tài chính tuần",
+        "emailType": "html",
+        "message": "={{ $json.response }}",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (Sunday 6PM)": {
+      "main": [
+        [
+          {
+            "node": "Get Transactions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Transactions": {
+      "main": [
+        [
+          {
+            "node": "Call Financial Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Financial Assistant": {
+      "main": [
+        [
+          {
+            "node": "Save Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-01-28T00:00:00.000Z",
+      "updatedAt": "2025-01-28T00:00:00.000Z",
+      "id": "ai-workspace",
+      "name": "AI Workspace"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-28T00:00:00.000Z",
+  "versionId": "1"
+}
+

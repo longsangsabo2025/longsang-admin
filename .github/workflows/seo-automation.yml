@@ -1,0 +1,98 @@
+name: SEO Automation Daily Tasks
+
+on:
+  schedule:
+    # Run every day at 2 AM UTC (9 AM Vietnam time)
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  seo-daily-tasks:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup environment variables
+        run: |
+          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> $GITHUB_ENV
+          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> $GITHUB_ENV
+          echo "GOOGLE_SERVICE_ACCOUNT=${{ secrets.GOOGLE_SERVICE_ACCOUNT }}" >> $GITHUB_ENV
+
+      - name: Generate Sitemap
+        run: npm run seo:generate-sitemap
+        continue-on-error: true
+
+      - name: Run SEO Analysis
+        run: npm run seo:analyze
+        continue-on-error: true
+
+      - name: Monitor SEO Performance
+        run: npm run seo:monitor
+        continue-on-error: true
+
+      - name: Sync Google Search Console
+        run: npm run seo:sync-gsc
+        continue-on-error: true
+
+      - name: Commit updated sitemap
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '🤖 Auto-update sitemap and SEO data'
+          file_pattern: 'public/sitemap*.xml'
+        continue-on-error: true
+
+      - name: Send notification on failure
+        if: failure()
+        run: |
+          echo "⚠️ SEO automation tasks failed"
+          # Add notification logic here (e.g., Slack, Discord, Email)
+
+  seo-weekly-audit:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 2 * * 0' # Run only on Sundays
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup environment variables
+        run: |
+          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> $GITHUB_ENV
+          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> $GITHUB_ENV
+
+      - name: Run Full SEO Audit
+        run: npm run seo:audit
+        continue-on-error: true
+
+      - name: Generate SEO Report
+        run: npm run seo:full-report
+        continue-on-error: true
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-audit-${{ github.run_number }}
+          path: |
+            reports/seo-*.json
+            reports/seo-*.html
+        continue-on-error: true

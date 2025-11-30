@@ -1,0 +1,13 @@
+{
+  "n8n": {
+    "autoStart": true,
+    "lastStatus": "running"
+  },
+  "api": {
+    "autoStart": true,
+    "lastStatus": null
+  },
+  "vite": {
+    "lastStatus": "running"
+  }
+}

@@ -1,0 +1,242 @@
+# 🚀 GitHub Actions CI/CD Pipeline
+# 
+# Triggers:
+# - Push to main/master
+# - Pull requests
+# - Sentry webhook (via repository_dispatch)
+#
+# Jobs:
+# 1. Test - Run tests
+# 2. Build - Build production
+# 3. Deploy - Deploy to Vercel
+# 4. Auto-fix - Attempt to fix failing tests
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  repository_dispatch:
+    types: [sentry-error]
+  workflow_dispatch:
+    inputs:
+      auto_fix:
+        description: 'Attempt auto-fix for failing tests'
+        required: false
+        default: 'false'
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+jobs:
+  # ========================================
+  # 🧪 TEST JOB
+  # ========================================
+  test:
+    name: 🧪 Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: 🔍 Lint
+        run: pnpm lint
+        continue-on-error: true
+      
+      - name: 📘 Type check
+        run: pnpm type-check
+        continue-on-error: true
+      
+      - name: 🧪 Run tests
+        run: pnpm test:ci
+        env:
+          CI: true
+      
+      - name: 📊 Upload coverage
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          file: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  # ========================================
+  # 🏗️ BUILD JOB
+  # ========================================
+  build:
+    name: 🏗️ Build
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: 🏗️ Build
+        run: pnpm build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      
+      - name: 📤 Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  # ========================================
+  # 🚀 DEPLOY JOB
+  # ========================================
+  deploy:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 📥 Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      
+      - name: 🚀 Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+      
+      - name: 📢 Notify success
+        if: success()
+        run: |
+          echo "✅ Deployment successful!"
+          # Add Slack/Discord notification here
+
+  # ========================================
+  # 🔧 AUTO-FIX JOB (Triggered by Sentry)
+  # ========================================
+  auto-fix:
+    name: 🔧 Auto-Fix
+    runs-on: ubuntu-latest
+    if: github.event_name == 'repository_dispatch' && github.event.action == 'sentry-error'
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: 📝 Get error details
+        id: error
+        run: |
+          echo "Error: ${{ github.event.client_payload.error_message }}"
+          echo "File: ${{ github.event.client_payload.error_file }}"
+          echo "Line: ${{ github.event.client_payload.error_line }}"
+      
+      - name: 🔍 Analyze error
+        run: |
+          echo "🔍 Analyzing error..."
+          # This would call Claude API to analyze and suggest fix
+          # For now, just run auto-fix tools
+          pnpm lint:fix || true
+          pnpm prettier:fix || true
+      
+      - name: 🔧 Create fix branch
+        run: |
+          BRANCH_NAME="auto-fix/sentry-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b $BRANCH_NAME
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+      
+      - name: 📝 Commit changes
+        run: |
+          git config --global user.name 'Auto-Fix Bot'
+          git config --global user.email 'bot@longsang.org'
+          git add -A
+          git diff --staged --quiet || git commit -m "fix: auto-fix from Sentry error
+
+          Error: ${{ github.event.client_payload.error_message }}
+          Sentry Issue: ${{ github.event.client_payload.sentry_url }}"
+      
+      - name: 📤 Push changes
+        run: |
+          git push origin ${{ env.BRANCH_NAME }}
+      
+      - name: 🔃 Create PR
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.BRANCH_NAME }}
+          title: "🔧 Auto-fix: Sentry Error"
+          body: |
+            ## 🚨 Sentry Error Detected
+            
+            **Error:** ${{ github.event.client_payload.error_message }}
+            **File:** ${{ github.event.client_payload.error_file }}
+            **Line:** ${{ github.event.client_payload.error_line }}
+            
+            ## 🔧 Auto-Fix Applied
+            
+            This PR was automatically generated to address a production error detected by Sentry.
+            
+            ### Review Checklist
+            - [ ] Verify the fix is correct
+            - [ ] Run tests locally
+            - [ ] Check for side effects
+            
+            ---
+            *Generated by Auto-Fix Bot 🤖*
+          labels: auto-fix,sentry,urgent

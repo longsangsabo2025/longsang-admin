@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+build
+out
+.next
+.nuxt
+.output
+.vercel
+.netlify
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+.DS_Store
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# IDEs
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Generated files
+*.min.js
+*.min.css

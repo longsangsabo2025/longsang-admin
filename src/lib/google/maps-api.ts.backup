@@ -1,0 +1,612 @@
+/**
+ * Google Maps API & My Business Integration
+ * Tạo/update địa chỉ business, optimize local SEO
+ */
+
+import { google } from 'googleapis';
+import { supabase } from '@/integrations/supabase/client';
+
+const SCOPES = [
+  'https://www.googleapis.com/auth/business.manage',
+];
+
+/**
+ * Get authenticated My Business client
+ */
+function getMyBusinessClient(userEmail: string) {
+  const credentials = JSON.parse(import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
+  
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: SCOPES,
+    clientOptions: {
+      subject: userEmail,
+    },
+  });
+
+  return google.mybusinessbusinessinformation({ version: 'v1', auth });
+}
+
+export interface BusinessLocation {
+  name: string;
+  languageCode?: string;
+  storeCode?: string;
+  regularHours?: {
+    periods: Array<{
+      openDay: string;
+      openTime: string;
+      closeDay: string;
+      closeTime: string;
+    }>;
+  };
+  storefrontAddress?: {
+    regionCode: string;
+    languageCode?: string;
+    postalCode: string;
+    administrativeArea?: string;
+    locality: string;
+    addressLines: string[];
+  };
+  websiteUri?: string;
+  phoneNumbers?: {
+    primaryPhone?: string;
+    additionalPhones?: string[];
+  };
+  categories?: {
+    primaryCategory: {
+      displayName: string;
+      categoryId: string;
+    };
+    additionalCategories?: Array<{
+      displayName: string;
+      categoryId: string;
+    }>;
+  };
+  labels?: string[];
+  latlng?: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
+export interface LocationResult {
+  status: 'success' | 'error';
+  locationId?: string;
+  message: string;
+  timestamp: string;
+}
+
+// ============================================================
+// GOOGLE MY BUSINESS - CREATE/UPDATE LOCATIONS
+// ============================================================
+
+/**
+ * 🗺️ Create new business location on Google Maps
+ * ACTION: Tạo địa chỉ business trên Google Maps thật
+ */
+export async function createBusinessLocation(
+  businessEmail: string,
+  accountId: string,
+  location: BusinessLocation
+): Promise<LocationResult> {
+  try {
+    const mybusiness = getMyBusinessClient(businessEmail);
+
+    const response = await mybusiness.locations.create({
+      parent: `accounts/${accountId}`,
+      requestBody: location,
+      validateOnly: false,
+    });
+
+    const result: LocationResult = {
+      status: 'success',
+      locationId: response.data.name,
+      message: 'Business location created on Google Maps',
+      timestamp: new Date().toISOString(),
+    };
+
+    await logMapsAction(result, location);
+
+    return result;
+  } catch (error) {
+    const result: LocationResult = {
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    };
+
+    await logMapsAction(result, location);
+    throw error;
+  }
+}
+
+/**
+ * 🗺️ Update existing business location
+ */
+export async function updateBusinessLocation(
+  businessEmail: string,
+  locationId: string,
+  updates: Partial<BusinessLocation>
+): Promise<LocationResult> {
+  try {
+    const mybusiness = getMyBusinessClient(businessEmail);
+
+    await mybusiness.locations.patch({
+      name: locationId,
+      requestBody: updates,
+      updateMask: Object.keys(updates).join(','),
+    });
+
+    return {
+      status: 'success',
+      locationId,
+      message: 'Business location updated',
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    throw new Error(`Failed to update location: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Get business location details
+ */
+export async function getBusinessLocation(
+  businessEmail: string,
+  locationId: string
+) {
+  try {
+    const mybusiness = getMyBusinessClient(businessEmail);
+
+    const response = await mybusiness.locations.get({
+      name: locationId,
+      readMask: 'name,title,storefrontAddress,websiteUri,phoneNumbers,categories,latlng,regularHours',
+    });
+
+    return response.data;
+  } catch (error) {
+    throw new Error(`Failed to get location: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * List all business locations
+ */
+export async function listBusinessLocations(
+  businessEmail: string,
+  accountId: string
+) {
+  try {
+    const mybusiness = getMyBusinessClient(businessEmail);
+
+    const response = await mybusiness.locations.list({
+      parent: `accounts/${accountId}`,
+      pageSize: 100,
+      readMask: 'name,title,storefrontAddress,websiteUri,phoneNumbers',
+    });
+
+    return response.data.locations || [];
+  } catch (error) {
+    throw new Error(`Failed to list locations: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Delete business location
+ */
+export async function deleteBusinessLocation(
+  businessEmail: string,
+  locationId: string
+): Promise<LocationResult> {
+  try {
+    const mybusiness = getMyBusinessClient(businessEmail);
+
+    await mybusiness.locations.delete({
+      name: locationId,
+    });
+
+    return {
+      status: 'success',
+      locationId,
+      message: 'Business location deleted',
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    throw new Error(`Failed to delete location: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// GOOGLE MAPS GEOCODING & PLACES
+// ============================================================
+
+export interface GeocodingResult {
+  latitude: number;
+  longitude: number;
+  formattedAddress: string;
+  placeId?: string;
+}
+
+/**
+ * 📍 Geocode address to coordinates
+ * Convert địa chỉ text → lat/lng coordinates
+ */
+export async function geocodeAddress(address: string): Promise<GeocodingResult> {
+  try {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`
+    );
+
+    const data = await response.json();
+
+    if (data.status !== 'OK' || !data.results[0]) {
+      throw new Error(`Geocoding failed: ${data.status}`);
+    }
+
+    const result = data.results[0];
+
+    return {
+      latitude: result.geometry.location.lat,
+      longitude: result.geometry.location.lng,
+      formattedAddress: result.formatted_address,
+      placeId: result.place_id,
+    };
+  } catch (error) {
+    throw new Error(`Geocoding failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * 📍 Reverse geocoding - coordinates to address
+ */
+export async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  try {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+    );
+
+    const data = await response.json();
+
+    if (data.status !== 'OK' || !data.results[0]) {
+      throw new Error(`Reverse geocoding failed: ${data.status}`);
+    }
+
+    return data.results[0].formatted_address;
+  } catch (error) {
+    throw new Error(`Reverse geocoding failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * 🔍 Search places nearby
+ */
+export async function searchNearbyPlaces(
+  lat: number,
+  lng: number,
+  radius: number = 1000,
+  type?: string
+) {
+  try {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    
+    let url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&key=${apiKey}`;
+    
+    if (type) {
+      url += `&type=${type}`;
+    }
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.status !== 'OK') {
+      throw new Error(`Search failed: ${data.status}`);
+    }
+
+    return data.results;
+  } catch (error) {
+    throw new Error(`Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * 📍 Get place details
+ */
+export async function getPlaceDetails(placeId: string) {
+  try {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${apiKey}`
+    );
+
+    const data = await response.json();
+
+    if (data.status !== 'OK') {
+      throw new Error(`Place details failed: ${data.status}`);
+    }
+
+    return data.result;
+  } catch (error) {
+    throw new Error(`Place details failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// LOCAL SEO OPTIMIZATION
+// ============================================================
+
+export interface LocalSEOData {
+  businessName: string;
+  address: string;
+  phone: string;
+  website: string;
+  categories: string[];
+  description: string;
+  photos?: string[];
+  hours?: Record<string, { open: string; close: string }>;
+}
+
+/**
+ * 🎯 Optimize location for local SEO
+ * Tự động điền đầy đủ thông tin cho local search optimization
+ */
+export async function optimizeLocationForSEO(
+  businessEmail: string,
+  locationId: string,
+  seoData: LocalSEOData
+): Promise<LocationResult> {
+  try {
+    // Geocode address
+    const geocoding = await geocodeAddress(seoData.address);
+
+    // Prepare complete location data
+    const locationData: Partial<BusinessLocation> = {
+      name: seoData.businessName,
+      websiteUri: seoData.website,
+      phoneNumbers: {
+        primaryPhone: seoData.phone,
+      },
+      latlng: {
+        latitude: geocoding.latitude,
+        longitude: geocoding.longitude,
+      },
+    };
+
+    // Update location with SEO data
+    const result = await updateBusinessLocation(
+      businessEmail,
+      locationId,
+      locationData
+    );
+
+    return {
+      ...result,
+      message: 'Location optimized for local SEO',
+    };
+  } catch (error) {
+    throw new Error(`SEO optimization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * 🔥 Auto-sync consultations to Maps locations
+ * Tạo địa chỉ cho consultation locations tự động
+ */
+export async function autoSyncConsultationLocations(
+  businessEmail: string,
+  accountId: string
+) {
+  try {
+    // Get consultations with addresses
+    const { data: consultations, error } = await supabase
+      .from('consultations')
+      .select('*')
+      .not('client_address', 'is', null)
+      .is('maps_location_synced', null)
+      .limit(50);
+
+    if (error) throw error;
+
+    if (!consultations || consultations.length === 0) {
+      return {
+        status: 'success',
+        message: 'No locations to sync',
+        synced: 0,
+      };
+    }
+
+    const results: LocationResult[] = [];
+
+    for (const consultation of consultations) {
+      try {
+        // Geocode address
+        const geocoding = await geocodeAddress(consultation.client_address || '');
+
+        // Create location marker
+        const location: BusinessLocation = {
+          name: `Consultation: ${consultation.client_name}`,
+          storefrontAddress: {
+            regionCode: 'VN',
+            languageCode: 'vi',
+            postalCode: '',
+            locality: 'Ho Chi Minh',
+            addressLines: [consultation.client_address || ''],
+          },
+          latlng: {
+            latitude: geocoding.latitude,
+            longitude: geocoding.longitude,
+          },
+          labels: ['consultation', consultation.consultation_type],
+        };
+
+        const result = await createBusinessLocation(
+          businessEmail,
+          accountId,
+          location
+        );
+
+        results.push(result);
+
+        // Update consultation
+        if (result.status === 'success') {
+          await supabase
+            .from('consultations')
+            .update({
+              maps_location_synced: true,
+              maps_location_id: result.locationId,
+            })
+            .eq('id', consultation.id);
+        }
+      } catch (error) {
+        console.error(`Failed to sync location for consultation ${consultation.id}:`, error);
+      }
+    }
+
+    const successful = results.filter(r => r.status === 'success').length;
+
+    return {
+      status: 'success',
+      message: `Synced ${successful} out of ${consultations.length} locations`,
+      synced: successful,
+      failed: consultations.length - successful,
+      results,
+    };
+  } catch (error) {
+    throw new Error(`Auto-sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// DISTANCE & ROUTING
+// ============================================================
+
+/**
+ * 📏 Calculate distance between two addresses
+ */
+export async function calculateDistance(
+  origin: string,
+  destination: string
+): Promise<{ distance: string; duration: string }> {
+  try {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&key=${apiKey}`
+    );
+
+    const data = await response.json();
+
+    if (data.status !== 'OK' || !data.rows[0]?.elements[0]) {
+      throw new Error(`Distance calculation failed: ${data.status}`);
+    }
+
+    const element = data.rows[0].elements[0];
+
+    return {
+      distance: element.distance.text,
+      duration: element.duration.text,
+    };
+  } catch (error) {
+    throw new Error(`Distance calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * 🗺️ Get directions between locations
+ */
+export async function getDirections(
+  origin: string,
+  destination: string,
+  mode: 'driving' | 'walking' | 'bicycling' | 'transit' = 'driving'
+) {
+  try {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&mode=${mode}&key=${apiKey}`
+    );
+
+    const data = await response.json();
+
+    if (data.status !== 'OK') {
+      throw new Error(`Directions failed: ${data.status}`);
+    }
+
+    return data.routes[0];
+  } catch (error) {
+    throw new Error(`Directions failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// LOGGING
+// ============================================================
+
+async function logMapsAction(result: LocationResult, location: BusinessLocation) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    await supabase.from('google_sync_logs').insert({
+      user_id: user?.id,
+      service: 'maps',
+      status: result.status,
+      records_synced: 1,
+      error_message: result.message,
+      started_at: result.timestamp,
+    });
+  } catch (error) {
+    console.error('Failed to log maps action:', error);
+  }
+}
+
+/**
+ * Get Maps action history
+ */
+export async function getMapsHistory(limit: number = 50) {
+  try {
+    const { data, error } = await supabase
+      .from('google_sync_logs')
+      .select('*')
+      .eq('service', 'maps')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error) {
+    throw new Error(`Failed to get maps history: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Get Maps stats
+ */
+export async function getMapsStats(days: number = 7) {
+  try {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await supabase
+      .from('google_sync_logs')
+      .select('status, records_synced')
+      .eq('service', 'maps')
+      .gte('created_at', since);
+
+    if (error) throw error;
+
+    const stats = {
+      total: data?.length || 0,
+      successful: data?.filter(d => d.status === 'success').length || 0,
+      failed: data?.filter(d => d.status === 'error').length || 0,
+      locations: data?.reduce((sum, d) => sum + (d.records_synced || 0), 0) || 0,
+    };
+
+    return stats;
+  } catch (error) {
+    throw new Error(`Failed to get stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}

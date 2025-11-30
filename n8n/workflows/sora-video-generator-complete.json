@@ -1,0 +1,585 @@
+{
+  "name": "🎬 Sora Video Generator (Complete Pipeline)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sora-generate-video",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "🎯 Webhook: Video Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "sora-generate-video"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "validate-prompt",
+              "leftValue": "={{ $json.body.prompt }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "validate-input",
+      "name": "✅ Validate Input",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, error: 'Prompt is required', message: 'Vui lòng nhập prompt để tạo video' }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "error-no-prompt",
+      "name": "❌ Error: No Prompt",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [660, 480]
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o-mini",
+        "options": {
+          "temperature": 0.8,
+          "maxTokens": 500
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a video prompt enhancement expert specializing in Sora 2 AI video generation. Your task is to transform simple user prompts into highly detailed, cinematic video descriptions.\n\nRULES:\n1. Keep the core concept from the user's original prompt\n2. Add cinematic details: camera angles, lighting, atmosphere\n3. Specify visual style and quality keywords\n4. Include motion and action descriptions\n5. Response in English only\n6. Maximum 200 words\n7. Do NOT add any prefixes like \"Enhanced prompt:\" - just output the enhanced prompt directly\n\nExamples:\n- Input: \"a flying pig\"\n- Output: \"A whimsical pink pig gracefully soaring through cotton-candy clouds at golden hour, wings made of shimmering translucent feathers catching the warm sunlight, shot from a low angle tracking upward, dreamlike atmosphere with soft lens flare, Studio Ghibli-inspired aesthetic, cinematic 4K quality\"\n\n- Input: \"robot dancing\"\n- Output: \"A sleek humanoid robot with chrome and blue LED accents performing fluid hip-hop dance moves in a neon-lit cyberpunk club, reflective floor creating mirror effects, dynamic camera following the motion, volumetric fog with pink and cyan lighting, high-energy atmosphere, professional cinematography\"",
+              "role": "system"
+            },
+            {
+              "content": "Enhance this video prompt:\n{{ $json.body.prompt }}",
+              "role": "user"
+            }
+          ]
+        }
+      },
+      "id": "ai-enhance-prompt",
+      "name": "🤖 AI Enhance Prompt",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [660, 300],
+      "credentials": {
+        "openRouterApi": {
+          "id": "td3utRybtI5wRRtH",
+          "name": "OpenRouter account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare Sora API request\nconst originalPrompt = $('🎯 Webhook: Video Request').item.json.body.prompt;\nconst enhancedPrompt = $input.item.json.text || $input.item.json.message?.content || originalPrompt;\nconst useEnhanced = $('🎯 Webhook: Video Request').item.json.body.use_ai_enhance !== false;\nconst finalPrompt = useEnhanced ? enhancedPrompt : originalPrompt;\n\n// Get optional parameters from request\nconst requestBody = $('🎯 Webhook: Video Request').item.json.body;\n\nreturn {\n  json: {\n    original_prompt: originalPrompt,\n    enhanced_prompt: enhancedPrompt,\n    final_prompt: finalPrompt.replace(/[\\n\\r]/g, ' ').trim(),\n    use_ai_enhance: useEnhanced,\n    model: requestBody.model || 'sora-2-text-to-video',\n    aspect_ratio: requestBody.aspect_ratio || '16:9',\n    duration: requestBody.duration || 5,\n    callback_url: requestBody.callback_url || null,\n    folder_id: requestBody.folder_id || 'root',\n    video_name: requestBody.video_name || `sora_video_${Date.now()}`\n  }\n};"
+      },
+      "id": "prepare-sora-request",
+      "name": "📝 Prepare Sora Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/jobs/createTask",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"type\": \"{{ $json.model }}\",\n  \"args\": {\n    \"prompt\": {{ JSON.stringify($json.final_prompt) }},\n    \"aspect_ratio\": \"{{ $json.aspect_ratio }}\",\n    \"duration\": {{ $json.duration }}\n  }\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "create-sora-task",
+      "name": "🚀 Create Sora Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "bLqwqOamT6YeUyUY",
+          "name": "Kie"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract task ID from Sora response\nconst response = $input.item.json;\nconst prevData = $('📝 Prepare Sora Request').item.json;\n\nif (response.code !== 0 || !response.data?.task_id) {\n  throw new Error(`Sora API Error: ${response.message || 'Unknown error'}`);\n}\n\nreturn {\n  json: {\n    task_id: response.data.task_id,\n    status: 'processing',\n    poll_count: 0,\n    max_polls: 60,\n    poll_interval: 5,\n    original_prompt: prevData.original_prompt,\n    enhanced_prompt: prevData.enhanced_prompt,\n    final_prompt: prevData.final_prompt,\n    model: prevData.model,\n    aspect_ratio: prevData.aspect_ratio,\n    duration: prevData.duration,\n    callback_url: prevData.callback_url,\n    folder_id: prevData.folder_id,\n    video_name: prevData.video_name\n  }\n};"
+      },
+      "id": "extract-task-id",
+      "name": "🔑 Extract Task ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 300]
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      },
+      "id": "wait-poll",
+      "name": "⏳ Wait 5s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1540, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/jobs/getTaskStatus",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"task_id\": \"{{ $json.task_id }}\"\n}",
+        "options": {}
+      },
+      "id": "check-task-status",
+      "name": "🔍 Check Task Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1760, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "bLqwqOamT6YeUyUY",
+          "name": "Kie"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Evaluate task status\nconst statusResponse = $input.item.json;\nconst prevData = $('⏳ Wait 5s').item.json;\n\nconst pollCount = (prevData.poll_count || 0) + 1;\nconst status = statusResponse.data?.status || 'unknown';\nconst videoUrl = statusResponse.data?.result_url || statusResponse.data?.video_url || null;\n\n// Check if completed\nconst isCompleted = status === 'completed' || status === 'success' || videoUrl;\nconst isFailed = status === 'failed' || status === 'error';\nconst isTimeout = pollCount >= prevData.max_polls;\n\nreturn {\n  json: {\n    ...prevData,\n    poll_count: pollCount,\n    current_status: status,\n    video_url: videoUrl,\n    is_completed: isCompleted,\n    is_failed: isFailed,\n    is_timeout: isTimeout,\n    should_continue: !isCompleted && !isFailed && !isTimeout,\n    raw_response: statusResponse\n  }\n};"
+      },
+      "id": "evaluate-status",
+      "name": "📊 Evaluate Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-continue",
+              "leftValue": "={{ $json.should_continue }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "should-continue-polling",
+      "name": "🔄 Continue Polling?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-completed",
+              "leftValue": "={{ $json.is_completed }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-success",
+      "name": "✅ Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2420, 480]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.video_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "download-video",
+      "name": "📥 Download Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2640, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/api/drive/upload/{{ $('📊 Evaluate Status').item.json.folder_id }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "upload-to-drive",
+      "name": "☁️ Upload to Google Drive",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2860, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare final success response\nconst uploadResult = $input.item.json;\nconst statusData = $('📊 Evaluate Status').item.json;\n\nconst driveFileId = uploadResult.id;\nconst driveViewLink = `https://drive.google.com/file/d/${driveFileId}/view`;\nconst driveDownloadLink = `https://drive.google.com/uc?export=download&id=${driveFileId}`;\n\nreturn {\n  json: {\n    success: true,\n    message: 'Video đã được tạo và upload thành công!',\n    data: {\n      task_id: statusData.task_id,\n      video_url: statusData.video_url,\n      google_drive: {\n        file_id: driveFileId,\n        file_name: uploadResult.name,\n        view_link: driveViewLink,\n        download_link: driveDownloadLink\n      },\n      prompt: {\n        original: statusData.original_prompt,\n        enhanced: statusData.enhanced_prompt,\n        used: statusData.final_prompt\n      },\n      settings: {\n        model: statusData.model,\n        aspect_ratio: statusData.aspect_ratio,\n        duration: statusData.duration\n      },\n      processing: {\n        poll_count: statusData.poll_count,\n        total_time_seconds: statusData.poll_count * 5\n      }\n    },\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "prepare-success-response",
+      "name": "🎉 Prepare Success Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3080, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-success",
+      "name": "✅ Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [3300, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare failure response\nconst statusData = $input.item.json;\n\nlet errorMessage = 'Video generation failed';\nif (statusData.is_timeout) {\n  errorMessage = `Timeout sau ${statusData.poll_count * 5} giây. Video có thể vẫn đang xử lý.`;\n} else if (statusData.is_failed) {\n  errorMessage = 'Sora API trả về lỗi khi tạo video';\n}\n\nreturn {\n  json: {\n    success: false,\n    error: errorMessage,\n    data: {\n      task_id: statusData.task_id,\n      status: statusData.current_status,\n      poll_count: statusData.poll_count,\n      prompt: statusData.original_prompt\n    },\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "prepare-failure-response",
+      "name": "❌ Prepare Failure Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, 660]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "respond-failure",
+      "name": "❌ Respond Failure",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2860, 660]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop back to wait node with current state\nconst currentData = $input.item.json;\n\nreturn {\n  json: {\n    task_id: currentData.task_id,\n    status: currentData.current_status,\n    poll_count: currentData.poll_count,\n    max_polls: currentData.max_polls,\n    poll_interval: currentData.poll_interval,\n    original_prompt: currentData.original_prompt,\n    enhanced_prompt: currentData.enhanced_prompt,\n    final_prompt: currentData.final_prompt,\n    model: currentData.model,\n    aspect_ratio: currentData.aspect_ratio,\n    duration: currentData.duration,\n    callback_url: currentData.callback_url,\n    folder_id: currentData.folder_id,\n    video_name: currentData.video_name\n  }\n};"
+      },
+      "id": "loop-back",
+      "name": "🔁 Loop Back",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2420, 120]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'Video đang được tạo', task_id: $('🔑 Extract Task ID').item.json.task_id, prompt: { original: $('🔑 Extract Task ID').item.json.original_prompt, enhanced: $('🔑 Extract Task ID').item.json.enhanced_prompt } }) }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "respond-accepted",
+      "name": "📤 Respond Accepted",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1540, 520]
+    }
+  ],
+  "connections": {
+    "🎯 Webhook: Video Request": {
+      "main": [
+        [
+          {
+            "node": "✅ Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✅ Validate Input": {
+      "main": [
+        [
+          {
+            "node": "🤖 AI Enhance Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "❌ Error: No Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 AI Enhance Prompt": {
+      "main": [
+        [
+          {
+            "node": "📝 Prepare Sora Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Prepare Sora Request": {
+      "main": [
+        [
+          {
+            "node": "🚀 Create Sora Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚀 Create Sora Task": {
+      "main": [
+        [
+          {
+            "node": "🔑 Extract Task ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔑 Extract Task ID": {
+      "main": [
+        [
+          {
+            "node": "⏳ Wait 5s",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📤 Respond Accepted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⏳ Wait 5s": {
+      "main": [
+        [
+          {
+            "node": "🔍 Check Task Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Check Task Status": {
+      "main": [
+        [
+          {
+            "node": "📊 Evaluate Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Evaluate Status": {
+      "main": [
+        [
+          {
+            "node": "🔄 Continue Polling?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Continue Polling?": {
+      "main": [
+        [
+          {
+            "node": "🔁 Loop Back",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "✅ Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔁 Loop Back": {
+      "main": [
+        [
+          {
+            "node": "⏳ Wait 5s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✅ Success?": {
+      "main": [
+        [
+          {
+            "node": "📥 Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "❌ Prepare Failure Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📥 Download Video": {
+      "main": [
+        [
+          {
+            "node": "☁️ Upload to Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "☁️ Upload to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "🎉 Prepare Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎉 Prepare Success Response": {
+      "main": [
+        [
+          {
+            "node": "✅ Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "❌ Prepare Failure Response": {
+      "main": [
+        [
+          {
+            "node": "❌ Respond Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateId": "sora-video-generator-complete",
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    {
+      "id": "sora",
+      "name": "sora"
+    },
+    {
+      "id": "video",
+      "name": "video"
+    },
+    {
+      "id": "google-drive",
+      "name": "google-drive"
+    }
+  ]
+}

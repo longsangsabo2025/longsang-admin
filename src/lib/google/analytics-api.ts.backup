@@ -1,0 +1,352 @@
+/**
+ * Google Analytics Data API v4 Integration
+ * Tự động lấy metrics, reports từ Google Analytics
+ */
+
+import { BetaAnalyticsDataClient } from '@google-analytics/data';
+
+// Khởi tạo Google Analytics client
+const getAnalyticsClient = () => {
+  const credentials = JSON.parse(import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_JSON || '{}');
+  
+  return new BetaAnalyticsDataClient({
+    credentials: {
+      client_email: credentials.client_email,
+      private_key: credentials.private_key,
+    },
+  });
+};
+
+export interface AnalyticsMetrics {
+  sessions: number;
+  users: number;
+  pageViews: number;
+  bounceRate: number;
+  avgSessionDuration: number;
+  conversions: number;
+  date: string;
+}
+
+export interface TrafficSource {
+  source: string;
+  medium: string;
+  sessions: number;
+  users: number;
+  conversionRate: number;
+}
+
+export interface TopPage {
+  pagePath: string;
+  pageTitle: string;
+  pageViews: number;
+  avgTimeOnPage: number;
+  bounceRate: number;
+}
+
+/**
+ * Lấy metrics tổng quan theo khoảng thời gian
+ */
+export async function getAnalyticsOverview(
+  propertyId: string,
+  startDate: string = '7daysAgo',
+  endDate: string = 'today'
+): Promise<AnalyticsMetrics[]> {
+  const analyticsDataClient = getAnalyticsClient();
+
+  const [response] = await analyticsDataClient.runReport({
+    property: `properties/${propertyId}`,
+    dateRanges: [
+      {
+        startDate,
+        endDate,
+      },
+    ],
+    dimensions: [
+      {
+        name: 'date',
+      },
+    ],
+    metrics: [
+      { name: 'sessions' },
+      { name: 'totalUsers' },
+      { name: 'screenPageViews' },
+      { name: 'bounceRate' },
+      { name: 'averageSessionDuration' },
+      { name: 'conversions' },
+    ],
+  });
+
+  if (!response.rows) return [];
+
+  return response.rows.map((row) => ({
+    date: row.dimensionValues?.[0]?.value || '',
+    sessions: parseInt(row.metricValues?.[0]?.value || '0'),
+    users: parseInt(row.metricValues?.[1]?.value || '0'),
+    pageViews: parseInt(row.metricValues?.[2]?.value || '0'),
+    bounceRate: parseFloat(row.metricValues?.[3]?.value || '0'),
+    avgSessionDuration: parseFloat(row.metricValues?.[4]?.value || '0'),
+    conversions: parseInt(row.metricValues?.[5]?.value || '0'),
+  }));
+}
+
+/**
+ * Lấy traffic sources (Organic, Paid, Social, etc.)
+ */
+export async function getTrafficSources(
+  propertyId: string,
+  startDate: string = '30daysAgo',
+  endDate: string = 'today'
+): Promise<TrafficSource[]> {
+  const analyticsDataClient = getAnalyticsClient();
+
+  const [response] = await analyticsDataClient.runReport({
+    property: `properties/${propertyId}`,
+    dateRanges: [
+      {
+        startDate,
+        endDate,
+      },
+    ],
+    dimensions: [
+      { name: 'sessionSource' },
+      { name: 'sessionMedium' },
+    ],
+    metrics: [
+      { name: 'sessions' },
+      { name: 'totalUsers' },
+      { name: 'conversions' },
+    ],
+    orderBys: [
+      {
+        metric: {
+          metricName: 'sessions',
+        },
+        desc: true,
+      },
+    ],
+    limit: 20,
+  });
+
+  if (!response.rows) return [];
+
+  return response.rows.map((row) => {
+    const sessions = parseInt(row.metricValues?.[0]?.value || '0');
+    const conversions = parseInt(row.metricValues?.[2]?.value || '0');
+    
+    return {
+      source: row.dimensionValues?.[0]?.value || 'unknown',
+      medium: row.dimensionValues?.[1]?.value || 'unknown',
+      sessions,
+      users: parseInt(row.metricValues?.[1]?.value || '0'),
+      conversionRate: sessions > 0 ? (conversions / sessions) * 100 : 0,
+    };
+  });
+}
+
+/**
+ * Lấy top pages theo pageviews
+ */
+export async function getTopPages(
+  propertyId: string,
+  startDate: string = '30daysAgo',
+  endDate: string = 'today',
+  limit: number = 20
+): Promise<TopPage[]> {
+  const analyticsDataClient = getAnalyticsClient();
+
+  const [response] = await analyticsDataClient.runReport({
+    property: `properties/${propertyId}`,
+    dateRanges: [
+      {
+        startDate,
+        endDate,
+      },
+    ],
+    dimensions: [
+      { name: 'pagePath' },
+      { name: 'pageTitle' },
+    ],
+    metrics: [
+      { name: 'screenPageViews' },
+      { name: 'averageSessionDuration' },
+      { name: 'bounceRate' },
+    ],
+    orderBys: [
+      {
+        metric: {
+          metricName: 'screenPageViews',
+        },
+        desc: true,
+      },
+    ],
+    limit,
+  });
+
+  if (!response.rows) return [];
+
+  return response.rows.map((row) => ({
+    pagePath: row.dimensionValues?.[0]?.value || '',
+    pageTitle: row.dimensionValues?.[1]?.value || 'Unknown',
+    pageViews: parseInt(row.metricValues?.[0]?.value || '0'),
+    avgTimeOnPage: parseFloat(row.metricValues?.[1]?.value || '0'),
+    bounceRate: parseFloat(row.metricValues?.[2]?.value || '0'),
+  }));
+}
+
+/**
+ * Lấy real-time active users
+ */
+export async function getRealtimeUsers(propertyId: string): Promise<number> {
+  const analyticsDataClient = getAnalyticsClient();
+
+  const [response] = await analyticsDataClient.runRealtimeReport({
+    property: `properties/${propertyId}`,
+    metrics: [
+      {
+        name: 'activeUsers',
+      },
+    ],
+  });
+
+  return parseInt(response.rows?.[0]?.metricValues?.[0]?.value || '0');
+}
+
+/**
+ * So sánh performance giữa 2 khoảng thời gian
+ */
+export async function comparePerformance(
+  propertyId: string,
+  currentStart: string = '7daysAgo',
+  currentEnd: string = 'today',
+  previousStart: string = '14daysAgo',
+  previousEnd: string = '8daysAgo'
+) {
+  const analyticsDataClient = getAnalyticsClient();
+
+  const [response] = await analyticsDataClient.runReport({
+    property: `properties/${propertyId}`,
+    dateRanges: [
+      { startDate: currentStart, endDate: currentEnd },
+      { startDate: previousStart, endDate: previousEnd },
+    ],
+    metrics: [
+      { name: 'sessions' },
+      { name: 'totalUsers' },
+      { name: 'screenPageViews' },
+      { name: 'conversions' },
+      { name: 'bounceRate' },
+    ],
+  });
+
+  if (!response.rows?.[0]) return null;
+
+  const current = {
+    sessions: parseInt(response.rows[0].metricValues?.[0]?.value || '0'),
+    users: parseInt(response.rows[0].metricValues?.[1]?.value || '0'),
+    pageViews: parseInt(response.rows[0].metricValues?.[2]?.value || '0'),
+    conversions: parseInt(response.rows[0].metricValues?.[3]?.value || '0'),
+    bounceRate: parseFloat(response.rows[0].metricValues?.[4]?.value || '0'),
+  };
+
+  const previous = {
+    sessions: parseInt(response.rows[0].metricValues?.[5]?.value || '0'),
+    users: parseInt(response.rows[0].metricValues?.[6]?.value || '0'),
+    pageViews: parseInt(response.rows[0].metricValues?.[7]?.value || '0'),
+    conversions: parseInt(response.rows[0].metricValues?.[8]?.value || '0'),
+    bounceRate: parseFloat(response.rows[0].metricValues?.[9]?.value || '0'),
+  };
+
+  const calculateChange = (curr: number, prev: number) => {
+    if (prev === 0) return 0;
+    return ((curr - prev) / prev) * 100;
+  };
+
+  return {
+    current,
+    previous,
+    changes: {
+      sessions: calculateChange(current.sessions, previous.sessions),
+      users: calculateChange(current.users, previous.users),
+      pageViews: calculateChange(current.pageViews, previous.pageViews),
+      conversions: calculateChange(current.conversions, previous.conversions),
+      bounceRate: calculateChange(current.bounceRate, previous.bounceRate),
+    },
+  };
+}
+
+/**
+ * Lấy conversion paths (user journey)
+ */
+export async function getConversionPaths(
+  propertyId: string,
+  startDate: string = '30daysAgo',
+  endDate: string = 'today'
+) {
+  const analyticsDataClient = getAnalyticsClient();
+
+  const [response] = await analyticsDataClient.runReport({
+    property: `properties/${propertyId}`,
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [
+      { name: 'sessionSource' },
+      { name: 'sessionMedium' },
+      { name: 'landingPage' },
+    ],
+    metrics: [
+      { name: 'conversions' },
+      { name: 'sessions' },
+    ],
+    orderBys: [
+      {
+        metric: { metricName: 'conversions' },
+        desc: true,
+      },
+    ],
+    limit: 50,
+  });
+
+  if (!response.rows) return [];
+
+  return response.rows.map((row) => ({
+    source: row.dimensionValues?.[0]?.value || 'unknown',
+    medium: row.dimensionValues?.[1]?.value || 'unknown',
+    landingPage: row.dimensionValues?.[2]?.value || '/',
+    conversions: parseInt(row.metricValues?.[0]?.value || '0'),
+    sessions: parseInt(row.metricValues?.[1]?.value || '0'),
+  }));
+}
+
+/**
+ * Lấy device breakdown (Mobile, Desktop, Tablet)
+ */
+export async function getDeviceBreakdown(
+  propertyId: string,
+  startDate: string = '30daysAgo',
+  endDate: string = 'today'
+) {
+  const analyticsDataClient = getAnalyticsClient();
+
+  const [response] = await analyticsDataClient.runReport({
+    property: `properties/${propertyId}`,
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [
+      { name: 'deviceCategory' },
+    ],
+    metrics: [
+      { name: 'sessions' },
+      { name: 'totalUsers' },
+      { name: 'bounceRate' },
+      { name: 'conversions' },
+    ],
+  });
+
+  if (!response.rows) return [];
+
+  return response.rows.map((row) => ({
+    device: row.dimensionValues?.[0]?.value || 'unknown',
+    sessions: parseInt(row.metricValues?.[0]?.value || '0'),
+    users: parseInt(row.metricValues?.[1]?.value || '0'),
+    bounceRate: parseFloat(row.metricValues?.[2]?.value || '0'),
+    conversions: parseInt(row.metricValues?.[3]?.value || '0'),
+  }));
+}

@@ -1,0 +1,195 @@
+{
+  "name": "🤖 AI-Powered Customer Support System",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "customer-support",
+        "options": {},
+        "httpMethod": "POST"
+      },
+      "id": "support-webhook",
+      "name": "📞 Support Request Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Advanced Support Request Analysis\nconst request = $input.json;\n\n// Extract support request data\nconst customerName = request.customerName || 'Anonymous';\nconst customerEmail = request.customerEmail || '';\nconst customerId = request.customerId || '';\nconst subject = request.subject || 'Support Request';\nconst message = request.message || '';\nconst priority = request.priority || 'medium';\nconst category = request.category || 'general';\nconst channel = request.channel || 'email';\nconst attachments = request.attachments || [];\n\n// AI-powered sentiment analysis\nfunction analyzeSentiment(text) {\n    const positiveWords = ['thank', 'please', 'appreciate', 'help', 'support', 'good', 'great', 'excellent'];\n    const negativeWords = ['urgent', 'frustrated', 'angry', 'broken', 'failed', 'error', 'problem', 'issue', 'bug'];\n    const neutralWords = ['question', 'inquiry', 'request', 'information', 'how', 'what', 'when'];\n    \n    const lowerText = text.toLowerCase();\n    let score = 0;\n    \n    positiveWords.forEach(word => {\n        if (lowerText.includes(word)) score += 1;\n    });\n    \n    negativeWords.forEach(word => {\n        if (lowerText.includes(word)) score -= 2;\n    });\n    \n    neutralWords.forEach(word => {\n        if (lowerText.includes(word)) score += 0.5;\n    });\n    \n    if (score > 2) return { sentiment: 'positive', confidence: 0.8, score: score };\n    if (score < -1) return { sentiment: 'negative', confidence: 0.9, score: score };\n    return { sentiment: 'neutral', confidence: 0.7, score: score };\n}\n\n// Urgency detection\nfunction detectUrgency(text, priority) {\n    const urgentWords = ['urgent', 'asap', 'immediately', 'critical', 'emergency', 'down', 'broken', 'not working'];\n    const lowerText = text.toLowerCase();\n    \n    let urgencyScore = 0;\n    urgentWords.forEach(word => {\n        if (lowerText.includes(word)) urgencyScore += 1;\n    });\n    \n    if (priority === 'high' || priority === 'urgent') urgencyScore += 2;\n    if (urgencyScore >= 3) return 'urgent';\n    if (urgencyScore >= 1) return 'high';\n    return 'normal';\n}\n\n// Category classification\nfunction classifyCategory(text, category) {\n    const categories = {\n        technical: ['error', 'bug', 'crash', 'performance', 'slow', 'login', 'password', 'api'],\n        billing: ['payment', 'invoice', 'charge', 'refund', 'subscription', 'billing', 'price'],\n        feature: ['feature', 'request', 'enhancement', 'suggestion', 'improve'],\n        account: ['account', 'profile', 'settings', 'access', 'permission'],\n        general: ['question', 'help', 'how', 'what', 'information']\n    };\n    \n    const lowerText = text.toLowerCase();\n    let maxScore = 0;\n    let detectedCategory = category;\n    \n    Object.keys(categories).forEach(cat => {\n        let score = 0;\n        categories[cat].forEach(keyword => {\n            if (lowerText.includes(keyword)) score += 1;\n        });\n        if (score > maxScore) {\n            maxScore = score;\n            detectedCategory = cat;\n        }\n    });\n    \n    return detectedCategory;\n}\n\n// Perform analysis\nconst sentimentAnalysis = analyzeSentiment(subject + ' ' + message);\nconst detectedUrgency = detectUrgency(subject + ' ' + message, priority);\nconst detectedCategory = classifyCategory(subject + ' ' + message, category);\n\n// Estimate response time\nconst responseTimeEstimates = {\n    urgent: 15, // minutes\n    high: 60,\n    normal: 240\n};\n\n// Generate ticket data\nconst ticketData = {\n    ticketId: 'TKT_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6).toUpperCase(),\n    customerInfo: {\n        name: customerName,\n        email: customerEmail,\n        customerId: customerId,\n        tier: customerId ? 'premium' : 'standard'\n    },\n    requestDetails: {\n        subject: subject,\n        message: message,\n        category: detectedCategory,\n        priority: priority,\n        urgency: detectedUrgency,\n        channel: channel,\n        attachments: attachments\n    },\n    analysis: {\n        sentiment: sentimentAnalysis,\n        estimatedResponseTime: responseTimeEstimates[detectedUrgency],\n        complexity: message.length > 500 ? 'complex' : 'simple',\n        requiresEscalation: detectedUrgency === 'urgent' || sentimentAnalysis.sentiment === 'negative'\n    },\n    timestamps: {\n        created: new Date().toISOString(),\n        lastUpdated: new Date().toISOString()\n    }\n};\n\nreturn {\n    originalRequest: request,\n    ticketData: ticketData,\n    processingComplete: true\n};"
+      },
+      "id": "support-analyzer",
+      "name": "🧠 AI Support Analyzer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "urgent-escalation",
+              "leftValue": "={{ $('🧠 AI Support Analyzer').item.json.ticketData.analysis.requiresEscalation }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "escalation-router",
+      "name": "🚨 Escalation Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Priority Escalation Handler\nconst data = $input.json;\nconst ticket = data.ticketData;\n\n// Escalation actions\nconst escalationActions = {\n    immediateNotification: {\n        triggered: true,\n        method: ['slack', 'email', 'sms'],\n        recipients: ['support_manager', 'on_call_engineer'],\n        message: 'URGENT SUPPORT ESCALATION: Ticket ' + ticket.ticketId + ' - ' + ticket.requestDetails.subject,\n        urgency: ticket.analysis.urgency,\n        sentiment: ticket.analysis.sentiment.sentiment\n    },\n    autoAssignment: {\n        triggered: true,\n        assignedTo: ticket.requestDetails.category === 'technical' ? 'senior_tech_support' : 'senior_support_agent',\n        sla: ticket.analysis.urgency === 'urgent' ? 15 : 60, // minutes\n        escalationLevel: 2\n    },\n    customerNotification: {\n        triggered: true,\n        template: 'priority_acknowledgment',\n        message: 'We have received your urgent request and assigned it to our priority queue. A senior agent will contact you within ' + ticket.analysis.estimatedResponseTime + ' minutes.',\n        scheduledFor: new Date(Date.now() + 2*60*1000).toISOString() // 2 minutes\n    }\n};\n\n// Generate response strategy\nconst responseStrategy = {\n    approach: 'immediate_personal_contact',\n    phoneCallRequired: ticket.analysis.urgency === 'urgent',\n    managerInvolvement: ticket.analysis.sentiment.sentiment === 'negative',\n    compensationConsidered: ticket.analysis.sentiment.score < -3,\n    followUpRequired: true\n};\n\nreturn {\n    ...data,\n    escalationActions: escalationActions,\n    responseStrategy: responseStrategy,\n    escalated: true,\n    priorityHandling: true\n};"
+      },
+      "id": "priority-escalation",
+      "name": "⚡ Priority Escalation Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Standard Support Processing\nconst data = $input.json;\nconst ticket = data.ticketData;\n\n// AI-generated response suggestions\nfunction generateResponseSuggestions(category, urgency, sentiment) {\n    const responses = {\n        technical: {\n            normal: 'Thank you for reporting this technical issue. Our team will investigate and provide a solution within 4 hours.',\n            high: 'We understand the urgency of this technical issue. Our engineers are prioritizing your case.'\n        },\n        billing: {\n            normal: 'We have received your billing inquiry and will review your account details within 2 hours.',\n            high: 'Your billing concern is important to us. A billing specialist will contact you within 1 hour.'\n        },\n        general: {\n            normal: 'Thank you for your inquiry. We will provide you with the requested information shortly.',\n            high: 'We appreciate your patience and will prioritize your request.'\n        }\n    };\n    \n    return responses[category] && responses[category][urgency] ? \n           responses[category][urgency] : \n           'Thank you for contacting us. We will address your request promptly.';\n}\n\n// Knowledge base search simulation\nconst knowledgeBaseResults = {\n    searchQuery: ticket.requestDetails.subject,\n    relevantArticles: [\n        {\n            title: 'Common ' + ticket.requestDetails.category + ' Issues',\n            url: '/kb/common-' + ticket.requestDetails.category + '-issues',\n            relevance: 85\n        },\n        {\n            title: 'Troubleshooting Guide',\n            url: '/kb/troubleshooting-guide',\n            relevance: 70\n        }\n    ],\n    suggestedResponse: generateResponseSuggestions(\n        ticket.requestDetails.category,\n        ticket.analysis.urgency,\n        ticket.analysis.sentiment.sentiment\n    )\n};\n\n// Standard processing workflow\nconst standardProcessing = {\n    autoResponse: {\n        triggered: true,\n        template: 'standard_acknowledgment',\n        subject: 'Re: ' + ticket.requestDetails.subject + ' [Ticket #' + ticket.ticketId + ']',\n        message: knowledgeBaseResults.suggestedResponse,\n        scheduledFor: new Date(Date.now() + 5*60*1000).toISOString() // 5 minutes\n    },\n    assignment: {\n        assignedTo: ticket.requestDetails.category + '_support_team',\n        queue: ticket.analysis.urgency + '_priority',\n        sla: ticket.analysis.estimatedResponseTime,\n        escalationLevel: 1\n    },\n    tracking: {\n        status: 'open',\n        stage: 'initial_response',\n        nextFollowUp: new Date(Date.now() + ticket.analysis.estimatedResponseTime*60*1000).toISOString()\n    }\n};\n\nreturn {\n    ...data,\n    knowledgeBaseResults: knowledgeBaseResults,\n    standardProcessing: standardProcessing,\n    escalated: false,\n    standardHandling: true\n};"
+      },
+      "id": "standard-processing",
+      "name": "📋 Standard Support Processing",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Support Analytics Engine\nconst data = $input.json;\nconst ticket = data.ticketData;\n\n// Calculate support metrics\nconst supportMetrics = {\n    ticketVolume: {\n        currentHour: Math.floor(Math.random() * 50) + 10,\n        dailyAverage: Math.floor(Math.random() * 500) + 200,\n        weeklyTrend: Math.random() > 0.5 ? 'increasing' : 'decreasing'\n    },\n    responseTime: {\n        averageFirstResponse: ticket.analysis.estimatedResponseTime,\n        targetSLA: ticket.analysis.urgency === 'urgent' ? 15 : 240,\n        slaCompliance: Math.floor(Math.random() * 20) + 80 // 80-100%\n    },\n    customerSatisfaction: {\n        predictedScore: ticket.analysis.sentiment.sentiment === 'positive' ? \n                       Math.floor(Math.random() * 2) + 8 : // 8-10\n                       ticket.analysis.sentiment.sentiment === 'negative' ?\n                       Math.floor(Math.random() * 3) + 3 : // 3-6\n                       Math.floor(Math.random() * 3) + 6, // 6-9\n        factors: [\n            'Response time: ' + ticket.analysis.estimatedResponseTime + ' min',\n            'Sentiment: ' + ticket.analysis.sentiment.sentiment,\n            'Category: ' + ticket.requestDetails.category\n        ]\n    },\n    resolutionProbability: {\n        firstContact: ticket.requestDetails.category === 'general' ? 85 : \n                     ticket.requestDetails.category === 'billing' ? 75 : 60,\n        escalationLikelihood: data.escalated ? 95 : \n                             ticket.analysis.urgency === 'urgent' ? 60 : 20\n    }\n};\n\n// Performance insights\nconst performanceInsights = {\n    categoryDistribution: {\n        technical: 35,\n        billing: 25,\n        general: 20,\n        account: 15,\n        feature: 5\n    },\n    peakHours: ['09:00-11:00', '14:00-16:00', '19:00-21:00'],\n    commonIssues: [\n        'Login problems',\n        'Payment processing',\n        'Feature requests',\n        'Account settings'\n    ],\n    agentUtilization: Math.floor(Math.random() * 30) + 70 // 70-100%\n};\n\nreturn {\n    ...data,\n    supportMetrics: supportMetrics,\n    performanceInsights: performanceInsights,\n    analyticsComplete: true\n};"
+      },
+      "id": "support-analytics",
+      "name": "📊 Support Analytics Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n    \"status\": \"success\",\n    \"message\": \"Support request processed successfully\",\n    \"data\": {\n        \"ticketId\": \"{{ $('🧠 AI Support Analyzer').item.json.ticketData.ticketId }}\",\n        \"priority\": \"{{ $('🧠 AI Support Analyzer').item.json.ticketData.analysis.urgency }}\",\n        \"category\": \"{{ $('🧠 AI Support Analyzer').item.json.ticketData.requestDetails.category }}\",\n        \"sentiment\": \"{{ $('🧠 AI Support Analyzer').item.json.ticketData.analysis.sentiment.sentiment }}\",\n        \"estimatedResponseTime\": \"{{ $('🧠 AI Support Analyzer').item.json.ticketData.analysis.estimatedResponseTime }}\",\n        \"escalated\": \"{{ $('⚡ Priority Escalation Handler').item.json.escalated || $('📋 Standard Support Processing').item.json.escalated }}\",\n        \"ticketData\": {{ JSON.stringify($('🧠 AI Support Analyzer').item.json.ticketData) }},\n        \"supportMetrics\": {{ JSON.stringify($('📊 Support Analytics Engine').item.json.supportMetrics) }},\n        \"performanceInsights\": {{ JSON.stringify($('📊 Support Analytics Engine').item.json.performanceInsights) }},\n        \"processingActions\": {{ JSON.stringify($('⚡ Priority Escalation Handler').item.json.escalationActions || $('📋 Standard Support Processing').item.json.standardProcessing) }},\n        \"created\": \"{{ $('🧠 AI Support Analyzer').item.json.ticketData.timestamps.created }}\"\n    }\n}"
+      },
+      "id": "support-response",
+      "name": "🎫 Support Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "📞 Support Request Webhook": {
+      "main": [
+        [
+          {
+            "node": "🧠 AI Support Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧠 AI Support Analyzer": {
+      "main": [
+        [
+          {
+            "node": "🚨 Escalation Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚨 Escalation Router": {
+      "main": [
+        [
+          {
+            "node": "⚡ Priority Escalation Handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📋 Standard Support Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚡ Priority Escalation Handler": {
+      "main": [
+        [
+          {
+            "node": "📊 Support Analytics Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📋 Standard Support Processing": {
+      "main": [
+        [
+          {
+            "node": "📊 Support Analytics Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Support Analytics Engine": {
+      "main": [
+        [
+          {
+            "node": "🎫 Support Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

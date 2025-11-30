@@ -1,0 +1,254 @@
+{
+  "name": "📧 Portfolio - Contact Form Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "portfolio-contact",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-contact",
+      "name": "Receive Contact Form",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "portfolio-contact"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "name",
+              "name": "name",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "email", 
+              "name": "email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "service",
+              "name": "service",
+              "value": "={{ $json.body.service }}",
+              "type": "string"
+            },
+            {
+              "id": "budget",
+              "name": "budget",
+              "value": "={{ $json.body.budget }}",
+              "type": "string"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "submitted_at",
+              "name": "submitted_at",
+              "value": "={{ $now }}",
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "name": "source",
+              "value": "portfolio_website",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "extract-data",
+      "name": "Extract Form Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "serviceAccountEmail": "automation-bot-102@long-sang-automation.iam.gserviceaccount.com",
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_GOOGLE_SHEET_ID",
+        "sheetName": "Portfolio Contacts",
+        "columns": {
+          "mappings": [
+            {
+              "column": "Name",
+              "value": "={{ $json.name }}"
+            },
+            {
+              "column": "Email",
+              "value": "={{ $json.email }}"
+            },
+            {
+              "column": "Service",
+              "value": "={{ $json.service }}"
+            },
+            {
+              "column": "Budget",
+              "value": "={{ $json.budget }}"
+            },
+            {
+              "column": "Message",
+              "value": "={{ $json.message }}"
+            },
+            {
+              "column": "Submitted At",
+              "value": "={{ $json.submitted_at }}"
+            },
+            {
+              "column": "Status",
+              "value": "New"
+            }
+          ]
+        }
+      },
+      "id": "save-to-sheets",
+      "name": "Save to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "fromEmail": "longsang.automation@gmail.com",
+        "toEmail": "longsangsabo2025@gmail.com",
+        "subject": "🚀 New Contact: {{ $json.name }} - {{ $json.service }}",
+        "emailType": "html",
+        "message": "=<h2>New Contact Form Submission</h2>\n\n<p><strong>Name:</strong> {{ $json.name }}</p>\n<p><strong>Email:</strong> {{ $json.email }}</p>\n<p><strong>Service:</strong> {{ $json.service }}</p>\n<p><strong>Budget:</strong> {{ $json.budget }}</p>\n\n<h3>Message:</h3>\n<p>{{ $json.message }}</p>\n\n<hr>\n<p><small>Submitted at: {{ $json.submitted_at }}</small></p>"
+      },
+      "id": "notify-admin",
+      "name": "Notify Admin (You)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "fromEmail": "longsang.automation@gmail.com",
+        "toEmail": "={{ $json.email }}",
+        "subject": "Thanks for reaching out! 🙌",
+        "emailType": "html",
+        "message": "=<h2>Hi {{ $json.name }}! 👋</h2>\n\n<p>Thank you for your interest in my <strong>{{ $json.service }}</strong> services!</p>\n\n<p>I've received your message and will get back to you within <strong>24 hours</strong>.</p>\n\n<h3>What's Next?</h3>\n<ul>\n<li>📧 I'll review your requirements carefully</li>\n<li>💬 We'll schedule a discovery call</li>\n<li>📊 I'll prepare a custom proposal</li>\n</ul>\n\n<p>In the meantime, feel free to check out my latest projects at <a href=\"https://longsang.dev\">longsang.dev</a></p>\n\n<p>Best regards,<br><strong>Long Sang</strong><br>Full-Stack Developer & AI Specialist</p>\n\n<hr>\n<p><small>This is an automated response. For urgent inquiries, WhatsApp me at +84 XXX XXX XXX</small></p>"
+      },
+      "id": "auto-reply",
+      "name": "Auto-Reply to Client",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "message",
+              "value": "Thank you! I'll get back to you within 24 hours."
+            },
+            {
+              "name": "contact_id",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        }
+      },
+      "id": "response-success",
+      "name": "Format Success Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "send-response",
+      "name": "Send Response to Website",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Receive Contact Form": {
+      "main": [
+        [
+          {
+            "node": "Extract Form Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Form Data": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify Admin (You)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Auto-Reply to Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Admin (You)": {
+      "main": [
+        [
+          {
+            "node": "Format Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Success Response": {
+      "main": [
+        [
+          {
+            "node": "Send Response to Website",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "timezone": "Asia/Ho_Chi_Minh",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true
+  },
+  "versionId": "1",
+  "id": "portfolio-contact-handler",
+  "meta": {
+    "instanceId": "longsang-portfolio"
+  },
+  "tags": ["portfolio", "contact", "automation", "gmail"]
+}

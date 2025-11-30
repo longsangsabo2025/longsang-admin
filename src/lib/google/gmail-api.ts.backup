@@ -1,0 +1,465 @@
+/**
+ * Gmail API - Email Automation
+ * Gửi emails thật qua Gmail với Service Account
+ */
+
+import { google } from 'googleapis';
+import { supabase } from '@/integrations/supabase/client';
+
+const SCOPES = ['https://www.googleapis.com/auth/gmail.send'];
+
+/**
+ * Get authenticated Gmail client
+ */
+function getGmailClient(userEmail: string) {
+  const credentials = JSON.parse(import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
+  
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: SCOPES,
+    // Subject: Email account to impersonate (cần domain-wide delegation)
+    clientOptions: {
+      subject: userEmail,
+    },
+  });
+
+  return google.gmail({ version: 'v1', auth });
+}
+
+export interface EmailOptions {
+  to: string | string[];
+  subject: string;
+  body: string;
+  html?: string;
+  cc?: string[];
+  bcc?: string[];
+  replyTo?: string;
+  attachments?: Array<{
+    filename: string;
+    content: string; // base64
+    mimeType: string;
+  }>;
+}
+
+export interface EmailResult {
+  status: 'success' | 'error';
+  messageId?: string;
+  message: string;
+  timestamp: string;
+}
+
+// ============================================================
+// SEND EMAILS
+// ============================================================
+
+/**
+ * 📧 Send email via Gmail
+ * ACTION: Gửi email thật đến inbox người nhận
+ */
+export async function sendEmail(
+  fromEmail: string,
+  options: EmailOptions
+): Promise<EmailResult> {
+  try {
+    const gmail = getGmailClient(fromEmail);
+
+    // Build email message
+    const message = createEmailMessage(fromEmail, options);
+    const encodedMessage = Buffer.from(message)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    // Send email
+    const response = await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodedMessage,
+      },
+    });
+
+    const result: EmailResult = {
+      status: 'success',
+      messageId: response.data.id,
+      message: 'Email sent successfully',
+      timestamp: new Date().toISOString(),
+    };
+
+    // Log to database
+    await logEmailAction(result, options);
+
+    return result;
+  } catch (error) {
+    const result: EmailResult = {
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    };
+
+    await logEmailAction(result, options);
+    throw error;
+  }
+}
+
+/**
+ * Create RFC 2822 formatted email message
+ */
+function createEmailMessage(from: string, options: EmailOptions): string {
+  const to = Array.isArray(options.to) ? options.to.join(', ') : options.to;
+  const cc = options.cc?.join(', ') || '';
+  const bcc = options.bcc?.join(', ') || '';
+  
+  const boundary = '----=_Part_0_' + Date.now();
+  
+  let message = [
+    `From: ${from}`,
+    `To: ${to}`,
+    cc ? `Cc: ${cc}` : '',
+    bcc ? `Bcc: ${bcc}` : '',
+    options.replyTo ? `Reply-To: ${options.replyTo}` : '',
+    `Subject: ${options.subject}`,
+    'MIME-Version: 1.0',
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/plain; charset=UTF-8',
+    '',
+    options.body,
+    '',
+  ];
+
+  if (options.html) {
+    message = message.concat([
+      `--${boundary}`,
+      'Content-Type: text/html; charset=UTF-8',
+      '',
+      options.html,
+      '',
+    ]);
+  }
+
+  if (options.attachments) {
+    for (const attachment of options.attachments) {
+      message = message.concat([
+        `--${boundary}`,
+        `Content-Type: ${attachment.mimeType}`,
+        'Content-Transfer-Encoding: base64',
+        `Content-Disposition: attachment; filename="${attachment.filename}"`,
+        '',
+        attachment.content,
+        '',
+      ]);
+    }
+  }
+
+  message.push(`--${boundary}--`);
+
+  return message.filter(line => line !== null).join('\r\n');
+}
+
+// ============================================================
+// EMAIL TEMPLATES
+// ============================================================
+
+/**
+ * 📧 Send consultation confirmation email
+ */
+export async function sendConsultationConfirmation(
+  fromEmail: string,
+  consultation: {
+    customerEmail: string;
+    customerName: string;
+    date: string;
+    time: string;
+    service: string;
+  }
+): Promise<EmailResult> {
+  const subject = `Xác nhận lịch tư vấn - ${consultation.service}`;
+  
+  const body = `
+Xin chào ${consultation.customerName},
+
+Cảm ơn bạn đã đặt lịch tư vấn với chúng tôi.
+
+THÔNG TIN LỊCH HẸN:
+- Dịch vụ: ${consultation.service}
+- Ngày: ${consultation.date}
+- Giờ: ${consultation.time}
+
+Chúng tôi sẽ liên hệ với bạn trước giờ hẹn 15 phút.
+
+Trân trọng,
+Long Sang Team
+  `.trim();
+
+  const html = `
+    <html>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2 style="color: #2563eb;">Xác nhận lịch tư vấn</h2>
+        <p>Xin chào <strong>${consultation.customerName}</strong>,</p>
+        <p>Cảm ơn bạn đã đặt lịch tư vấn với chúng tôi.</p>
+        
+        <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="margin-top: 0;">THÔNG TIN LỊCH HẸN</h3>
+          <p><strong>Dịch vụ:</strong> ${consultation.service}</p>
+          <p><strong>Ngày:</strong> ${consultation.date}</p>
+          <p><strong>Giờ:</strong> ${consultation.time}</p>
+        </div>
+        
+        <p>Chúng tôi sẽ liên hệ với bạn trước giờ hẹn 15 phút.</p>
+        
+        <p style="margin-top: 30px;">
+          Trân trọng,<br>
+          <strong>Long Sang Team</strong>
+        </p>
+      </body>
+    </html>
+  `;
+
+  return sendEmail(fromEmail, {
+    to: consultation.customerEmail,
+    subject,
+    body,
+    html,
+  });
+}
+
+/**
+ * 📧 Send newsletter email
+ */
+export async function sendNewsletter(
+  fromEmail: string,
+  subscribers: string[],
+  newsletter: {
+    subject: string;
+    content: string;
+    htmlContent?: string;
+  }
+): Promise<EmailResult[]> {
+  const results: EmailResult[] = [];
+
+  for (const subscriber of subscribers) {
+    try {
+      const result = await sendEmail(fromEmail, {
+        to: subscriber,
+        subject: newsletter.subject,
+        body: newsletter.content,
+        html: newsletter.htmlContent,
+      });
+      results.push(result);
+    } catch (error) {
+      results.push({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  return results;
+}
+
+/**
+ * 📧 Send welcome email for new users
+ */
+export async function sendWelcomeEmail(
+  fromEmail: string,
+  userEmail: string,
+  userName: string
+): Promise<EmailResult> {
+  const subject = 'Chào mừng đến với Long Sang!';
+  
+  const body = `
+Xin chào ${userName},
+
+Chào mừng bạn đến với Long Sang!
+
+Chúng tôi rất vui khi bạn tham gia cộng đồng của chúng tôi.
+
+BƯỚC TIẾP THEO:
+1. Hoàn thiện hồ sơ cá nhân
+2. Khám phá các dịch vụ của chúng tôi
+3. Đặt lịch tư vấn miễn phí
+
+Nếu bạn có bất kỳ câu hỏi nào, đừng ngại liên hệ với chúng tôi.
+
+Trân trọng,
+Long Sang Team
+  `.trim();
+
+  const html = `
+    <html>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #2563eb; text-align: center;">Chào mừng đến với Long Sang!</h1>
+          
+          <p>Xin chào <strong>${userName}</strong>,</p>
+          <p>Chúng tôi rất vui khi bạn tham gia cộng đồng của chúng tôi.</p>
+          
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">BƯỚC TIẾP THEO</h3>
+            <ol>
+              <li>Hoàn thiện hồ sơ cá nhân</li>
+              <li>Khám phá các dịch vụ của chúng tôi</li>
+              <li>Đặt lịch tư vấn miễn phí</li>
+            </ol>
+          </div>
+          
+          <p>Nếu bạn có bất kỳ câu hỏi nào, đừng ngại liên hệ với chúng tôi.</p>
+          
+          <p style="margin-top: 30px; text-align: center;">
+            Trân trọng,<br>
+            <strong>Long Sang Team</strong>
+          </p>
+        </div>
+      </body>
+    </html>
+  `;
+
+  return sendEmail(fromEmail, {
+    to: userEmail,
+    subject,
+    body,
+    html,
+  });
+}
+
+// ============================================================
+// AUTO-SEND WORKFLOWS
+// ============================================================
+
+/**
+ * 🔥 Auto-send emails for new consultations
+ */
+export async function autoSendConsultationEmails(fromEmail: string) {
+  try {
+    // Get consultations without confirmation email
+    const { data: consultations, error } = await supabase
+      .from('consultations')
+      .select('*')
+      .eq('confirmation_sent', false)
+      .limit(50);
+
+    if (error) throw error;
+
+    if (!consultations || consultations.length === 0) {
+      return {
+        status: 'success',
+        message: 'No pending consultations',
+        sent: 0,
+      };
+    }
+
+    const results: EmailResult[] = [];
+
+    for (const consultation of consultations) {
+      try {
+        const result = await sendConsultationConfirmation(fromEmail, {
+          customerEmail: consultation.email,
+          customerName: consultation.name,
+          date: new Date(consultation.consultation_date).toLocaleDateString('vi-VN'),
+          time: consultation.consultation_time,
+          service: consultation.service_type,
+        });
+
+        results.push(result);
+
+        // Update confirmation_sent
+        if (result.status === 'success') {
+          await supabase
+            .from('consultations')
+            .update({ confirmation_sent: true })
+            .eq('id', consultation.id);
+        }
+      } catch (error) {
+        console.error(`Failed to send email for consultation ${consultation.id}:`, error);
+      }
+    }
+
+    const successful = results.filter(r => r.status === 'success').length;
+
+    return {
+      status: 'success',
+      message: `Sent ${successful} out of ${consultations.length} confirmation emails`,
+      sent: successful,
+      failed: consultations.length - successful,
+      results,
+    };
+  } catch (error) {
+    throw new Error(`Auto-send failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// LOGGING
+// ============================================================
+
+async function logEmailAction(result: EmailResult, options: EmailOptions) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    await supabase.from('google_sync_logs').insert({
+      user_id: user?.id,
+      service: 'gmail',
+      operation: 'send_email',
+      status: result.status,
+      records_synced: 1,
+      error_message: result.message,
+      metadata: {
+        to: options.to,
+        subject: options.subject,
+        messageId: result.messageId,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to log email action:', error);
+  }
+}
+
+/**
+ * Get email sending history
+ */
+export async function getEmailHistory(limit: number = 50) {
+  try {
+    const { data, error } = await supabase
+      .from('google_sync_logs')
+      .select('*')
+      .eq('service', 'gmail')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error) {
+    throw new Error(`Failed to get email history: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Get email stats
+ */
+export async function getEmailStats(days: number = 7) {
+  try {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await supabase
+      .from('google_sync_logs')
+      .select('status, records_synced')
+      .eq('service', 'gmail')
+      .gte('created_at', since);
+
+    if (error) throw error;
+
+    const stats = {
+      total: data?.length || 0,
+      successful: data?.filter(d => d.status === 'success').length || 0,
+      failed: data?.filter(d => d.status === 'error').length || 0,
+    };
+
+    return stats;
+  } catch (error) {
+    throw new Error(`Failed to get stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}

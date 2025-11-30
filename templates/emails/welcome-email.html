@@ -1,0 +1,97 @@
+<!-- 
+============================================
+WELCOME EMAIL TEMPLATE
+Use case: New user registration, onboarding
+============================================
+-->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chào mừng đến với {{company_name}}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <!-- Main Container -->
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
+                                🎉 Chào mừng bạn!
+                            </h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="margin: 0 0 20px; color: #333333; font-size: 16px; line-height: 1.6;">
+                                Xin chào <strong>{{user_name}}</strong>,
+                            </p>
+                            
+                            <p style="margin: 0 0 20px; color: #666666; font-size: 15px; line-height: 1.6;">
+                                Cảm ơn bạn đã đăng ký tài khoản tại <strong>{{company_name}}</strong>! 
+                                Chúng tôi rất vui mừng được đồng hành cùng bạn.
+                            </p>
+                            
+                            <!-- CTA Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{activation_link}}" style="display: inline-block; padding: 14px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                                            Kích hoạt tài khoản
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Features -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                <tr>
+                                    <td style="padding: 20px; background-color: #f8f9fa; border-radius: 6px;">
+                                        <h3 style="margin: 0 0 15px; color: #333333; font-size: 18px;">
+                                            Bắt đầu với {{company_name}}:
+                                        </h3>
+                                        <ul style="margin: 0; padding-left: 20px; color: #666666; font-size: 14px; line-height: 1.8;">
+                                            <li>✨ {{feature_1}}</li>
+                                            <li>🚀 {{feature_2}}</li>
+                                            <li>💡 {{feature_3}}</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="margin: 20px 0 0; color: #666666; font-size: 14px; line-height: 1.6;">
+                                Nếu cần hỗ trợ, vui lòng liên hệ team của chúng tôi tại 
+                                <a href="mailto:{{support_email}}" style="color: #667eea; text-decoration: none;">{{support_email}}</a>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px; text-align: center;">
+                            <p style="margin: 0 0 10px; color: #999999; font-size: 13px;">
+                                © 2025 {{company_name}}. All rights reserved.
+                            </p>
+                            <p style="margin: 0; color: #999999; font-size: 12px;">
+                                {{company_address}}
+                            </p>
+                            <div style="margin-top: 15px;">
+                                <a href="{{website_url}}" style="color: #667eea; text-decoration: none; font-size: 12px; margin: 0 10px;">Website</a>
+                                <a href="{{unsubscribe_link}}" style="color: #999999; text-decoration: none; font-size: 12px; margin: 0 10px;">Unsubscribe</a>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

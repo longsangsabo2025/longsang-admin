@@ -1,0 +1,405 @@
+/**
+ * Google Indexing API - Auto Submit URLs to Google Search
+ * Tác động trực tiếp lên Internet: Request Google index/crawl URLs
+ */
+
+import { google } from 'googleapis';
+import { supabase } from '@/integrations/supabase/client';
+
+const SCOPES = [
+  'https://www.googleapis.com/auth/indexing',
+  'https://www.googleapis.com/auth/webmasters',
+];
+
+/**
+ * Get authenticated client for Indexing API
+ */
+function getIndexingClient() {
+  const credentials = JSON.parse(import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
+  
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: SCOPES,
+  });
+
+  return google.indexing({ version: 'v3', auth });
+}
+
+/**
+ * Get authenticated client for Search Console API
+ */
+function getSearchConsoleClient() {
+  const credentials = JSON.parse(import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
+  
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: SCOPES,
+  });
+
+  return google.searchconsole({ version: 'v1', auth });
+}
+
+// ============================================================
+// INDEXING API - SUBMIT URLs TO GOOGLE (TÁC ĐỘNG THẬT)
+// ============================================================
+
+export type IndexingAction = 'URL_UPDATED' | 'URL_DELETED';
+
+export interface IndexingResult {
+  url: string;
+  action: IndexingAction;
+  status: 'success' | 'error';
+  message?: string;
+  timestamp: string;
+}
+
+/**
+ * 🚀 Submit URL to Google for indexing
+ * ACTION: Yêu cầu Google crawl và index URL ngay lập tức
+ */
+export async function submitUrlToGoogle(
+  url: string,
+  action: IndexingAction = 'URL_UPDATED'
+): Promise<IndexingResult> {
+  try {
+    const indexing = getIndexingClient();
+    
+    const response = await indexing.urlNotifications.publish({
+      requestBody: {
+        url,
+        type: action,
+      },
+    });
+
+    const result: IndexingResult = {
+      url,
+      action,
+      status: 'success',
+      message: 'URL submitted to Google successfully',
+      timestamp: new Date().toISOString(),
+    };
+
+    // Log to database
+    await logIndexingAction(result);
+
+    return result;
+  } catch (error: any) {
+    const result: IndexingResult = {
+      url,
+      action,
+      status: 'error',
+      message: error.message,
+      timestamp: new Date().toISOString(),
+    };
+
+    await logIndexingAction(result);
+    throw error;
+  }
+}
+
+/**
+ * 🚀 Batch submit multiple URLs to Google
+ * ACTION: Submit nhiều URLs cùng lúc
+ */
+export async function batchSubmitUrls(
+  urls: string[],
+  action: IndexingAction = 'URL_UPDATED'
+): Promise<IndexingResult[]> {
+  const results: IndexingResult[] = [];
+
+  for (const url of urls) {
+    try {
+      const result = await submitUrlToGoogle(url, action);
+      results.push(result);
+    } catch (error: any) {
+      results.push({
+        url,
+        action,
+        status: 'error',
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  return results;
+}
+
+/**
+ * 🚀 Remove URL from Google Search
+ * ACTION: Yêu cầu Google xóa URL khỏi kết quả tìm kiếm
+ */
+export async function removeUrlFromGoogle(url: string): Promise<IndexingResult> {
+  return submitUrlToGoogle(url, 'URL_DELETED');
+}
+
+/**
+ * Get indexing status của URL
+ */
+export async function getIndexingStatus(url: string) {
+  try {
+    const indexing = getIndexingClient();
+    
+    const response = await indexing.urlNotifications.getMetadata({
+      url,
+    });
+
+    return {
+      url,
+      latestUpdate: response.data.latestUpdate,
+      latestRemove: response.data.latestRemove,
+    };
+  } catch (error: any) {
+    throw new Error(`Failed to get indexing status: ${error.message}`);
+  }
+}
+
+// ============================================================
+// SEARCH CONSOLE API - SITEMAP & CRAWL MANAGEMENT
+// ============================================================
+
+/**
+ * 🚀 Submit Sitemap to Google Search Console
+ * ACTION: Báo Google về sitemap mới để crawl
+ */
+export async function submitSitemap(siteUrl: string, sitemapUrl: string) {
+  try {
+    const searchconsole = getSearchConsoleClient();
+    
+    await searchconsole.sitemaps.submit({
+      siteUrl,
+      feedpath: sitemapUrl,
+    });
+
+    return {
+      status: 'success',
+      message: `Sitemap ${sitemapUrl} submitted to Google Search Console`,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error: any) {
+    throw new Error(`Failed to submit sitemap: ${error.message}`);
+  }
+}
+
+/**
+ * List all sitemaps for a site
+ */
+export async function listSitemaps(siteUrl: string) {
+  try {
+    const searchconsole = getSearchConsoleClient();
+    
+    const response = await searchconsole.sitemaps.list({
+      siteUrl,
+    });
+
+    return response.data.sitemap || [];
+  } catch (error: any) {
+    throw new Error(`Failed to list sitemaps: ${error.message}`);
+  }
+}
+
+/**
+ * Delete sitemap from Search Console
+ */
+export async function deleteSitemap(siteUrl: string, sitemapUrl: string) {
+  try {
+    const searchconsole = getSearchConsoleClient();
+    
+    await searchconsole.sitemaps.delete({
+      siteUrl,
+      feedpath: sitemapUrl,
+    });
+
+    return {
+      status: 'success',
+      message: `Sitemap ${sitemapUrl} deleted`,
+    };
+  } catch (error: any) {
+    throw new Error(`Failed to delete sitemap: ${error.message}`);
+  }
+}
+
+/**
+ * Get Search Console sites
+ */
+export async function getSearchConsoleSites() {
+  try {
+    const searchconsole = getSearchConsoleClient();
+    
+    const response = await searchconsole.sites.list();
+
+    return response.data.siteEntry || [];
+  } catch (error: any) {
+    throw new Error(`Failed to get sites: ${error.message}`);
+  }
+}
+
+// ============================================================
+// AUTO-INDEXING WORKFLOWS
+// ============================================================
+
+/**
+ * 🔥 Auto-index new blog posts
+ * Workflow: Lấy posts chưa được index → Submit to Google
+ */
+export async function autoIndexNewPosts(siteUrl: string) {
+  try {
+    // Get unindexed posts from database
+    const { data: posts, error } = await supabase
+      .from('ai_generated_news')
+      .select('id, slug')
+      .eq('indexed_at', null)
+      .limit(50);
+
+    if (error) throw error;
+
+    if (!posts || posts.length === 0) {
+      return {
+        status: 'success',
+        message: 'No new posts to index',
+        indexed: 0,
+      };
+    }
+
+    // Submit URLs to Google
+    const urls = posts.map(post => `${siteUrl}/news/${post.slug}`);
+    const results = await batchSubmitUrls(urls);
+
+    // Update indexed_at for successful submissions
+    const successfulIds = posts
+      .filter((_, index) => results[index].status === 'success')
+      .map(post => post.id);
+
+    if (successfulIds.length > 0) {
+      await supabase
+        .from('ai_generated_news')
+        .update({ indexed_at: new Date().toISOString() })
+        .in('id', successfulIds);
+    }
+
+    return {
+      status: 'success',
+      message: `Indexed ${successfulIds.length} out of ${posts.length} posts`,
+      indexed: successfulIds.length,
+      failed: posts.length - successfulIds.length,
+      results,
+    };
+  } catch (error: any) {
+    throw new Error(`Auto-indexing failed: ${error.message}`);
+  }
+}
+
+/**
+ * 🔥 Request re-crawl for updated pages
+ */
+export async function requestRecrawlForUpdates(siteUrl: string, hours: number = 24) {
+  try {
+    const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+
+    // Get recently updated posts
+    const { data: posts, error } = await supabase
+      .from('ai_generated_news')
+      .select('slug, updated_at')
+      .gte('updated_at', since)
+      .limit(50);
+
+    if (error) throw error;
+
+    if (!posts || posts.length === 0) {
+      return {
+        status: 'success',
+        message: 'No updated posts found',
+        recrawled: 0,
+      };
+    }
+
+    // Submit updated URLs
+    const urls = posts.map(post => `${siteUrl}/news/${post.slug}`);
+    const results = await batchSubmitUrls(urls);
+
+    const successful = results.filter(r => r.status === 'success').length;
+
+    return {
+      status: 'success',
+      message: `Re-crawl requested for ${successful} out of ${posts.length} updated posts`,
+      recrawled: successful,
+      failed: posts.length - successful,
+      results,
+    };
+  } catch (error: any) {
+    throw new Error(`Re-crawl request failed: ${error.message}`);
+  }
+}
+
+// ============================================================
+// LOGGING & TRACKING
+// ============================================================
+
+/**
+ * Log indexing action to database
+ */
+async function logIndexingAction(result: IndexingResult) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    await supabase.from('google_sync_logs').insert({
+      user_id: user?.id,
+      service: 'indexing',
+      operation: result.action,
+      status: result.status,
+      records_synced: 1,
+      error_message: result.message,
+      metadata: { url: result.url },
+    });
+  } catch (error) {
+    console.error('Failed to log indexing action:', error);
+  }
+}
+
+/**
+ * Get indexing history
+ */
+export async function getIndexingHistory(limit: number = 50) {
+  try {
+    const { data, error } = await supabase
+      .from('google_sync_logs')
+      .select('*')
+      .eq('service', 'indexing')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error: any) {
+    throw new Error(`Failed to get indexing history: ${error.message}`);
+  }
+}
+
+/**
+ * Get indexing stats
+ */
+export async function getIndexingStats(days: number = 7) {
+  try {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await supabase
+      .from('google_sync_logs')
+      .select('status, records_synced')
+      .eq('service', 'indexing')
+      .gte('created_at', since);
+
+    if (error) throw error;
+
+    const stats = {
+      total: data?.length || 0,
+      successful: data?.filter(d => d.status === 'success').length || 0,
+      failed: data?.filter(d => d.status === 'error').length || 0,
+      urls: data?.reduce((sum, d) => sum + (d.records_synced || 0), 0) || 0,
+    };
+
+    return stats;
+  } catch (error: any) {
+    throw new Error(`Failed to get stats: ${error.message}`);
+  }
+}

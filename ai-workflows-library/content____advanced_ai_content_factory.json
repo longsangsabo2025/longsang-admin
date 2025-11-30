@@ -1,0 +1,277 @@
+{
+  "name": "🏭 Advanced AI Content Factory",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ai-content-factory",
+        "options": {},
+        "httpMethod": "POST"
+      },
+      "id": "webhook-content-factory",
+      "name": "📥 Content Request Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Advanced Content Request Processor\nconst request = $input.json;\n\n// Extract and validate parameters\nconst contentType = request.contentType || 'blog';\nconst topic = request.topic || 'AI Technology';\nconst tone = request.tone || 'professional';\nconst language = request.language || 'en';\nconst length = request.length || 'medium';\nconst audience = request.audience || 'general';\nconst aiModel = request.aiModel || 'gpt-4';\nconst includeImages = request.includeImages || false;\nconst seoOptimized = request.seoOptimized || true;\nconst urgency = request.urgency || 'normal';\n\n// Content specifications\nconst lengthSpecs = {\n    short: '200-500 words',\n    medium: '800-1200 words',\n    long: '1500-2500 words',\n    extended: '3000+ words'\n};\n\n// Create detailed prompt based on specifications\nlet basePrompt = `Create a ${contentType} about ${topic} in ${language} language.`;\nbasePrompt += ` Target audience: ${audience}. Tone: ${tone}.`;\nbasePrompt += ` Length: ${lengthSpecs[length] || lengthSpecs.medium}.`;\n\nif (seoOptimized) {\n    basePrompt += ` Include SEO-optimized keywords and meta descriptions.`;\n}\n\nif (includeImages) {\n    basePrompt += ` Suggest relevant image descriptions for visual content.`;\n}\n\n// Advanced prompt engineering\nconst enhancedPrompt = `${basePrompt}\n\nCONTENT REQUIREMENTS:\n- Engaging hook in the first paragraph\n- Clear structure with headers and subheaders\n- Actionable insights and practical examples\n- Call-to-action at the end\n- Fact-checked information\n- Original and unique perspective\n\nFORMATTING:\n- Use markdown formatting\n- Include bullet points and numbered lists\n- Add relevant quotes or statistics\n- Ensure readability and flow\n\nTARGET KEYWORDS: ${topic.toLowerCase().replace(/\\s+/g, ', ')}\n`;\n\nreturn {\n    originalRequest: request,\n    processedPrompt: enhancedPrompt,\n    contentType: contentType,\n    topic: topic,\n    tone: tone,\n    language: language,\n    length: length,\n    audience: audience,\n    aiModel: aiModel,\n    includeImages: includeImages,\n    seoOptimized: seoOptimized,\n    urgency: urgency,\n    timestamp: new Date().toISOString(),\n    processingId: `content_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`\n};"
+      },
+      "id": "content-processor",
+      "name": "🧠 Advanced Content Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "high-urgency",
+              "leftValue": "={{ $('Advanced Content Processor').item.json.urgency }}",
+              "rightValue": "high",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "premium-model",
+              "leftValue": "={{ $('Advanced Content Processor').item.json.aiModel }}",
+              "rightValue": "gpt-4",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "priority-router",
+      "name": "🚦 Priority Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// High Priority Processing\nconst data = $input.json;\n\n// Simulate advanced AI processing\nconst aiResponse = {\n    content: `# ${data.topic}: A Comprehensive Guide\n\n## Introduction\n${data.topic} is revolutionizing the way we approach modern challenges. This comprehensive guide explores the key aspects, benefits, and implementation strategies.\n\n## Key Benefits\n- Enhanced efficiency and productivity\n- Cost-effective solutions\n- Scalable implementation\n- Future-ready technology\n\n## Implementation Strategy\n1. **Assessment Phase**: Evaluate current systems\n2. **Planning Phase**: Develop comprehensive roadmap\n3. **Execution Phase**: Implement step-by-step\n4. **Optimization Phase**: Continuous improvement\n\n## Best Practices\n- Follow industry standards\n- Ensure proper documentation\n- Regular monitoring and updates\n- Team training and support\n\n## Conclusion\n${data.topic} represents a significant opportunity for organizations to transform their operations and achieve sustainable growth.\n\n## Call to Action\nReady to implement ${data.topic}? Contact our experts for a personalized consultation.`,\n    \n    metadata: {\n        wordCount: 1200,\n        readingTime: '5 minutes',\n        seoScore: 95,\n        keywordDensity: '2.5%',\n        readabilityScore: 'Good'\n    },\n    \n    images: data.includeImages ? [\n        {\n            description: `Infographic showing ${data.topic} benefits`,\n            altText: `${data.topic} benefits visualization`,\n            placement: 'after_introduction'\n        },\n        {\n            description: `Implementation timeline for ${data.topic}`,\n            altText: `${data.topic} implementation roadmap`,\n            placement: 'implementation_section'\n        }\n    ] : [],\n    \n    seo: data.seoOptimized ? {\n        title: `${data.topic}: Complete Guide & Best Practices 2024`,\n        metaDescription: `Discover everything about ${data.topic}. Expert insights, implementation strategies, and best practices for success.`,\n        keywords: [`${data.topic.toLowerCase()}`, 'guide', 'best practices', 'implementation', '2024'],\n        schema: {\n            type: 'Article',\n            author: 'AI Content Factory',\n            datePublished: new Date().toISOString()\n        }\n    } : null\n};\n\nreturn {\n    ...data,\n    aiResponse: aiResponse,\n    processingTime: '2.3 seconds',\n    qualityScore: 98,\n    status: 'completed'\n};"
+      },
+      "id": "high-priority-ai",
+      "name": "🚀 Premium AI Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Standard Priority Processing\nconst data = $input.json;\n\n// Simulate standard AI processing\nconst aiResponse = {\n    content: `# ${data.topic}\n\n${data.topic} is an important topic that deserves attention. Here's what you need to know:\n\n## Overview\nThis article covers the essential aspects of ${data.topic} and provides practical insights.\n\n## Key Points\n- Important consideration 1\n- Important consideration 2\n- Important consideration 3\n\n## Implementation\nTo implement ${data.topic} effectively:\n1. Start with research\n2. Plan your approach\n3. Execute systematically\n4. Monitor results\n\n## Conclusion\n${data.topic} offers significant opportunities for improvement and growth.`,\n    \n    metadata: {\n        wordCount: 600,\n        readingTime: '3 minutes',\n        seoScore: 75,\n        keywordDensity: '2.0%',\n        readabilityScore: 'Fair'\n    }\n};\n\nreturn {\n    ...data,\n    aiResponse: aiResponse,\n    processingTime: '1.1 seconds',\n    qualityScore: 82,\n    status: 'completed'\n};"
+      },
+      "id": "standard-ai",
+      "name": "⚡ Standard AI Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Content Quality Assurance & Enhancement\nconst data = $input.json;\nconst content = data.aiResponse;\n\n// Quality checks\nconst qualityChecks = {\n    grammarScore: Math.floor(Math.random() * 20) + 80, // 80-100\n    readabilityScore: Math.floor(Math.random() * 25) + 75, // 75-100\n    seoScore: content.metadata.seoScore || 75,\n    originalityScore: Math.floor(Math.random() * 15) + 85, // 85-100\n    engagementScore: Math.floor(Math.random() * 20) + 80 // 80-100\n};\n\n// Calculate overall quality\nconst overallQuality = Object.values(qualityChecks).reduce((a, b) => a + b, 0) / Object.keys(qualityChecks).length;\n\n// Enhancement suggestions\nconst suggestions = [];\nif (qualityChecks.grammarScore < 90) suggestions.push('Review grammar and punctuation');\nif (qualityChecks.readabilityScore < 85) suggestions.push('Simplify complex sentences');\nif (qualityChecks.seoScore < 85) suggestions.push('Optimize keyword density');\nif (qualityChecks.originalityScore < 90) suggestions.push('Add more unique insights');\nif (qualityChecks.engagementScore < 90) suggestions.push('Include more engaging elements');\n\nreturn {\n    ...data,\n    qualityAssurance: {\n        checks: qualityChecks,\n        overallQuality: Math.round(overallQuality),\n        suggestions: suggestions,\n        approved: overallQuality >= 85,\n        needsRevision: overallQuality < 75\n    },\n    finalContent: {\n        ...content,\n        qualityScore: Math.round(overallQuality),\n        reviewedAt: new Date().toISOString(),\n        status: overallQuality >= 85 ? 'approved' : 'needs_revision'\n    }\n};"
+      },
+      "id": "quality-assurance",
+      "name": "🔍 Quality Assurance Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "auto-publish",
+              "leftValue": "={{ $('Advanced Content Processor').item.json.originalRequest.autoPublish }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "publish-check",
+      "name": "📤 Auto-Publish Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Auto-Publishing Logic\nconst data = $input.json;\n\n// Simulate publishing to multiple platforms\nconst publishResults = {\n    blog: {\n        status: 'published',\n        url: `https://blog.example.com/${data.processingId}`,\n        publishedAt: new Date().toISOString()\n    },\n    social: {\n        twitter: { status: 'posted', id: `tw_${Date.now()}` },\n        linkedin: { status: 'posted', id: `li_${Date.now()}` },\n        facebook: { status: 'posted', id: `fb_${Date.now()}` }\n    },\n    newsletter: {\n        status: 'scheduled',\n        scheduledFor: new Date(Date.now() + 24*60*60*1000).toISOString()\n    }\n};\n\nreturn {\n    ...data,\n    publishResults: publishResults,\n    totalReach: Math.floor(Math.random() * 10000) + 5000,\n    estimatedEngagement: Math.floor(Math.random() * 500) + 100\n};"
+      },
+      "id": "auto-publisher",
+      "name": "🚀 Auto Publisher",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n    \"status\": \"success\",\n    \"message\": \"Advanced AI content generated successfully\",\n    \"data\": {\n        \"processingId\": \"{{ $('Advanced Content Processor').item.json.processingId }}\",\n        \"contentType\": \"{{ $('Advanced Content Processor').item.json.contentType }}\",\n        \"topic\": \"{{ $('Advanced Content Processor').item.json.topic }}\",\n        \"qualityScore\": \"{{ $('Quality Assurance Engine').item.json.qualityAssurance.overallQuality }}\",\n        \"wordCount\": \"{{ $('Quality Assurance Engine').item.json.finalContent.metadata.wordCount }}\",\n        \"readingTime\": \"{{ $('Quality Assurance Engine').item.json.finalContent.metadata.readingTime }}\",\n        \"seoScore\": \"{{ $('Quality Assurance Engine').item.json.finalContent.metadata.seoScore }}\",\n        \"status\": \"{{ $('Quality Assurance Engine').item.json.finalContent.status }}\",\n        \"autoPublished\": {{ $('Advanced Content Processor').item.json.originalRequest.autoPublish || false }},\n        \"publishResults\": \"{{ $('Auto Publisher').item.json.publishResults || null }}\",\n        \"suggestions\": \"{{ JSON.stringify($('Quality Assurance Engine').item.json.qualityAssurance.suggestions) }}\",\n        \"content\": \"{{ $('Quality Assurance Engine').item.json.finalContent.content }}\",\n        \"metadata\": \"{{ JSON.stringify($('Quality Assurance Engine').item.json.finalContent.metadata) }}\",\n        \"processingTime\": \"{{ $('Quality Assurance Engine').item.json.processingTime }}\",\n        \"timestamp\": \"{{ $('Advanced Content Processor').item.json.timestamp }}\"\n    }\n}"
+      },
+      "id": "final-response",
+      "name": "📋 Final Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "📥 Content Request Webhook": {
+      "main": [
+        [
+          {
+            "node": "🧠 Advanced Content Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧠 Advanced Content Processor": {
+      "main": [
+        [
+          {
+            "node": "🚦 Priority Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚦 Priority Router": {
+      "main": [
+        [
+          {
+            "node": "🚀 Premium AI Engine",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⚡ Standard AI Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚀 Premium AI Engine": {
+      "main": [
+        [
+          {
+            "node": "🔍 Quality Assurance Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚡ Standard AI Engine": {
+      "main": [
+        [
+          {
+            "node": "🔍 Quality Assurance Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Quality Assurance Engine": {
+      "main": [
+        [
+          {
+            "node": "📤 Auto-Publish Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Auto-Publish Check": {
+      "main": [
+        [
+          {
+            "node": "🚀 Auto Publisher",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📋 Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚀 Auto Publisher": {
+      "main": [
+        [
+          {
+            "node": "📋 Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

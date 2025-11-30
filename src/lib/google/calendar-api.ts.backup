@@ -1,0 +1,483 @@
+/**
+ * Google Calendar API - Booking & Event Automation
+ * Tạo events, send invites tự động
+ */
+
+import { google } from 'googleapis';
+import { supabase } from '@/integrations/supabase/client';
+
+const SCOPES = ['https://www.googleapis.com/auth/calendar'];
+
+/**
+ * Get authenticated Calendar client
+ */
+function getCalendarClient(userEmail: string) {
+  const credentials = JSON.parse(import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
+  
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: SCOPES,
+    clientOptions: {
+      subject: userEmail,
+    },
+  });
+
+  return google.calendar({ version: 'v3', auth });
+}
+
+export interface CalendarEvent {
+  summary: string;
+  description?: string;
+  location?: string;
+  start: {
+    dateTime: string;
+    timeZone?: string;
+  };
+  end: {
+    dateTime: string;
+    timeZone?: string;
+  };
+  attendees?: Array<{
+    email: string;
+    displayName?: string;
+  }>;
+  reminders?: {
+    useDefault: boolean;
+    overrides?: Array<{
+      method: 'email' | 'popup';
+      minutes: number;
+    }>;
+  };
+}
+
+export interface EventResult {
+  status: 'success' | 'error';
+  eventId?: string;
+  eventLink?: string;
+  message: string;
+  timestamp: string;
+}
+
+// ============================================================
+// CREATE & MANAGE EVENTS
+// ============================================================
+
+/**
+ * 📅 Create calendar event
+ * ACTION: Tạo event trên Google Calendar, gửi invite đến attendees
+ */
+export async function createCalendarEvent(
+  calendarEmail: string,
+  event: CalendarEvent
+): Promise<EventResult> {
+  try {
+    const calendar = getCalendarClient(calendarEmail);
+
+    const response = await calendar.events.insert({
+      calendarId: 'primary',
+      requestBody: {
+        summary: event.summary,
+        description: event.description,
+        location: event.location,
+        start: event.start,
+        end: event.end,
+        attendees: event.attendees,
+        reminders: event.reminders,
+        sendUpdates: 'all', // Send email notifications to attendees
+      },
+    });
+
+    const result: EventResult = {
+      status: 'success',
+      eventId: response.data.id,
+      eventLink: response.data.htmlLink,
+      message: 'Event created and invites sent',
+      timestamp: new Date().toISOString(),
+    };
+
+    await logCalendarAction(result, event);
+
+    return result;
+  } catch (error) {
+    const result: EventResult = {
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    };
+
+    await logCalendarAction(result, event);
+    throw error;
+  }
+}
+
+/**
+ * 📅 Update calendar event
+ */
+export async function updateCalendarEvent(
+  calendarEmail: string,
+  eventId: string,
+  updates: Partial<CalendarEvent>
+): Promise<EventResult> {
+  try {
+    const calendar = getCalendarClient(calendarEmail);
+
+    const response = await calendar.events.patch({
+      calendarId: 'primary',
+      eventId,
+      requestBody: updates,
+      sendUpdates: 'all',
+    });
+
+    return {
+      status: 'success',
+      eventId: response.data.id,
+      eventLink: response.data.htmlLink,
+      message: 'Event updated successfully',
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    throw new Error(`Failed to update event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * 📅 Cancel calendar event
+ */
+export async function cancelCalendarEvent(
+  calendarEmail: string,
+  eventId: string
+): Promise<EventResult> {
+  try {
+    const calendar = getCalendarClient(calendarEmail);
+
+    await calendar.events.delete({
+      calendarId: 'primary',
+      eventId,
+      sendUpdates: 'all', // Notify attendees
+    });
+
+    return {
+      status: 'success',
+      eventId,
+      message: 'Event cancelled and attendees notified',
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    throw new Error(`Failed to cancel event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Get calendar events
+ */
+export async function getCalendarEvents(
+  calendarEmail: string,
+  timeMin?: string,
+  timeMax?: string,
+  maxResults: number = 50
+) {
+  try {
+    const calendar = getCalendarClient(calendarEmail);
+
+    const response = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: timeMin || new Date().toISOString(),
+      timeMax,
+      maxResults,
+      singleEvents: true,
+      orderBy: 'startTime',
+    });
+
+    return response.data.items || [];
+  } catch (error) {
+    throw new Error(`Failed to get events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// CONSULTATION BOOKING AUTOMATION
+// ============================================================
+
+/**
+ * 🔥 Auto-create calendar events for new consultations
+ */
+export async function autoCreateConsultationEvents(calendarEmail: string) {
+  try {
+    // Get consultations without calendar events
+    const { data: consultations, error } = await supabase
+      .from('consultations')
+      .select('*')
+      .eq('status', 'pending')
+      .is('calendar_event_id', null)
+      .limit(50);
+
+    if (error) throw error;
+
+    if (!consultations || consultations.length === 0) {
+      return {
+        status: 'success',
+        message: 'No pending consultations',
+        created: 0,
+      };
+    }
+
+    const results: EventResult[] = [];
+
+    for (const consultation of consultations) {
+      try {
+        // Parse date and time
+        const startDateTime = new Date(`${consultation.consultation_date}T${consultation.time_slot || '10:00'}:00`);
+        const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000); // +1 hour
+
+        const event: CalendarEvent = {
+          summary: `Tư vấn: ${consultation.consultation_type}`,
+          description: `
+Khách hàng: ${consultation.client_name}
+Email: ${consultation.client_email}
+Số điện thoại: ${consultation.client_phone}
+Loại dịch vụ: ${consultation.consultation_type}
+
+Ghi chú: ${consultation.notes || 'Không có'}
+          `.trim(),
+          location: 'Online/Office',
+          start: {
+            dateTime: startDateTime.toISOString(),
+            timeZone: 'Asia/Ho_Chi_Minh',
+          },
+          end: {
+            dateTime: endDateTime.toISOString(),
+            timeZone: 'Asia/Ho_Chi_Minh',
+          },
+          attendees: [
+            {
+              email: consultation.client_email,
+              displayName: consultation.client_name,
+            },
+          ],
+          reminders: {
+            useDefault: false,
+            overrides: [
+              { method: 'email', minutes: 60 },
+              { method: 'popup', minutes: 15 },
+            ],
+          },
+        };
+
+        const result = await createCalendarEvent(calendarEmail, event);
+        results.push(result);
+
+        // Update consultation with event ID
+        if (result.status === 'success') {
+          await supabase
+            .from('consultations')
+            .update({
+              calendar_event_id: result.eventId,
+              calendar_event_link: result.eventLink,
+            })
+            .eq('id', consultation.id);
+        }
+      } catch (error) {
+        console.error(`Failed to create event for consultation ${consultation.id}:`, error);
+      }
+    }
+
+    const successful = results.filter(r => r.status === 'success').length;
+
+    return {
+      status: 'success',
+      message: `Created ${successful} out of ${consultations.length} calendar events`,
+      created: successful,
+      failed: consultations.length - successful,
+      results,
+    };
+  } catch (error) {
+    throw new Error(`Auto-create events failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * 🔥 Sync consultation updates to calendar
+ */
+export async function syncConsultationToCalendar(
+  calendarEmail: string,
+  consultationId: string
+) {
+  try {
+    const { data: consultation, error } = await supabase
+      .from('consultations')
+      .select('*')
+      .eq('id', consultationId)
+      .single();
+
+    if (error) throw error;
+
+    // If cancelled, delete calendar event
+    if (consultation.status === 'cancelled' && consultation.calendar_event_id) {
+      await cancelCalendarEvent(calendarEmail, consultation.calendar_event_id);
+      
+      await supabase
+        .from('consultations')
+        .update({ calendar_event_id: null, calendar_event_link: null })
+        .eq('id', consultationId);
+
+      return {
+        status: 'success',
+        message: 'Calendar event cancelled',
+      };
+    }
+
+    // If rescheduled, update calendar event
+    if (consultation.calendar_event_id) {
+      const startDateTime = new Date(`${consultation.consultation_date}T${consultation.time_slot || '10:00'}:00`);
+      const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
+
+      await updateCalendarEvent(calendarEmail, consultation.calendar_event_id, {
+        start: {
+          dateTime: startDateTime.toISOString(),
+          timeZone: 'Asia/Ho_Chi_Minh',
+        },
+        end: {
+          dateTime: endDateTime.toISOString(),
+          timeZone: 'Asia/Ho_Chi_Minh',
+        },
+      });
+
+      return {
+        status: 'success',
+        message: 'Calendar event updated',
+      };
+    }
+
+    return {
+      status: 'success',
+      message: 'No action needed',
+    };
+  } catch (error) {
+    throw new Error(`Sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// AVAILABILITY MANAGEMENT
+// ============================================================
+
+/**
+ * Get available time slots
+ */
+export async function getAvailableTimeSlots(
+  calendarEmail: string,
+  date: string,
+  workingHours: { start: string; end: string } = { start: '09:00', end: '18:00' }
+) {
+  try {
+    const dayStart = new Date(`${date}T${workingHours.start}:00`);
+    const dayEnd = new Date(`${date}T${workingHours.end}:00`);
+
+    // Get existing events
+    const events = await getCalendarEvents(
+      calendarEmail,
+      dayStart.toISOString(),
+      dayEnd.toISOString()
+    );
+
+    // Generate 1-hour slots
+    const slots: Array<{ start: string; end: string; available: boolean }> = [];
+    let currentTime = dayStart.getTime();
+
+    while (currentTime < dayEnd.getTime()) {
+      const slotStart = new Date(currentTime);
+      const slotEnd = new Date(currentTime + 60 * 60 * 1000);
+
+      // Check if slot conflicts with existing events
+      const isAvailable = !events.some(event => {
+        const eventStart = new Date(event.start?.dateTime || '').getTime();
+        const eventEnd = new Date(event.end?.dateTime || '').getTime();
+        return (
+          (currentTime >= eventStart && currentTime < eventEnd) ||
+          (slotEnd.getTime() > eventStart && slotEnd.getTime() <= eventEnd)
+        );
+      });
+
+      slots.push({
+        start: slotStart.toISOString(),
+        end: slotEnd.toISOString(),
+        available: isAvailable,
+      });
+
+      currentTime += 60 * 60 * 1000; // +1 hour
+    }
+
+    return slots;
+  } catch (error) {
+    throw new Error(`Failed to get availability: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ============================================================
+// LOGGING
+// ============================================================
+
+async function logCalendarAction(result: EventResult, event: CalendarEvent) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    await supabase.from('google_sync_logs').insert({
+      user_id: user?.id,
+      service: 'calendar',
+      status: result.status,
+      records_synced: 1,
+      error_message: result.message,
+      started_at: result.timestamp,
+    });
+  } catch (error) {
+    console.error('Failed to log calendar action:', error);
+  }
+}
+
+/**
+ * Get calendar action history
+ */
+export async function getCalendarHistory(limit: number = 50) {
+  try {
+    const { data, error } = await supabase
+      .from('google_sync_logs')
+      .select('*')
+      .eq('service', 'calendar')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error) {
+    throw new Error(`Failed to get calendar history: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Get calendar stats
+ */
+export async function getCalendarStats(days: number = 7) {
+  try {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await supabase
+      .from('google_sync_logs')
+      .select('status, records_synced')
+      .eq('service', 'calendar')
+      .gte('created_at', since);
+
+    if (error) throw error;
+
+    const stats = {
+      total: data?.length || 0,
+      successful: data?.filter(d => d.status === 'success').length || 0,
+      failed: data?.filter(d => d.status === 'error').length || 0,
+      events: data?.reduce((sum, d) => sum + (d.records_synced || 0), 0) || 0,
+    };
+
+    return stats;
+  } catch (error) {
+    throw new Error(`Failed to get stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}

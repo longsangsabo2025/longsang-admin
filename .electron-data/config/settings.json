@@ -1,0 +1,9 @@
+{
+  "theme": "dark",
+  "language": "vi",
+  "notifications": true,
+  "startMinimized": false,
+  "closeToTray": true,
+  "autoStart": false,
+  "devTools": true
+}

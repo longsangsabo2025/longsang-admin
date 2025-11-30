@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+out
+.next
+.nuxt
+coverage
+*.config.js
+*.config.ts
+vite.config.*
+*.min.js
+public

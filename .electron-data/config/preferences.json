@@ -1,0 +1,15 @@
+{
+  "dashboard": {
+    "widgets": [
+      "stats",
+      "projects",
+      "workflows",
+      "agents"
+    ],
+    "layout": "grid"
+  },
+  "sidebar": {
+    "collapsed": false,
+    "width": 240
+  }
+}

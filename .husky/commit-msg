@@ -1,0 +1,57 @@
+#!/bin/sh
+# 📝 COMMIT-MSG HOOK - Validate commit message
+#
+# Enforces conventional commit format:
+# type(scope): description
+#
+# Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert
+#
+# Install: cp commit-msg .git/hooks/commit-msg && chmod +x .git/hooks/commit-msg
+
+echo "📝 Validating commit message..."
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Conventional commit regex
+PATTERN="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\([a-zA-Z0-9_-]+\))?: .{1,100}$"
+
+# Also allow merge commits and version tags
+MERGE_PATTERN="^Merge "
+VERSION_PATTERN="^v[0-9]+"
+WIP_PATTERN="^WIP"
+
+if echo "$COMMIT_MSG" | grep -qE "$PATTERN"; then
+  echo "✅ Commit message is valid"
+  exit 0
+fi
+
+if echo "$COMMIT_MSG" | grep -qE "$MERGE_PATTERN"; then
+  echo "✅ Merge commit detected"
+  exit 0
+fi
+
+if echo "$COMMIT_MSG" | grep -qE "$VERSION_PATTERN"; then
+  echo "✅ Version tag commit detected"
+  exit 0
+fi
+
+if echo "$COMMIT_MSG" | grep -qE "$WIP_PATTERN"; then
+  echo "⚠️ WIP commit - remember to squash later"
+  exit 0
+fi
+
+echo "❌ Invalid commit message format!"
+echo ""
+echo "Expected format: type(scope): description"
+echo ""
+echo "Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert"
+echo ""
+echo "Examples:"
+echo "  feat(auth): add login functionality"
+echo "  fix(api): resolve null pointer exception"
+echo "  docs: update README"
+echo "  chore: update dependencies"
+echo ""
+echo "Your message: $COMMIT_MSG"
+exit 1

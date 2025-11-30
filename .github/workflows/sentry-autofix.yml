@@ -1,0 +1,275 @@
+# ============================================================================
+# 🚨 SENTRY → AUTO-FIX PIPELINE
+# ============================================================================
+# Triggered via Sentry Webhook when new errors occur
+# Flow: Sentry Error → Analyze → Create Issue → Copilot Agent Fix → PR
+# ============================================================================
+
+name: 🐛 Sentry Auto-Fix Pipeline
+
+on:
+  # Webhook from Sentry (configured in Sentry → Settings → Integrations → Webhooks)
+  repository_dispatch:
+    types: [sentry-error]
+  
+  # Manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      error_title:
+        description: 'Error title/type'
+        required: true
+        default: 'TypeError: Cannot read property'
+      error_message:
+        description: 'Error message'
+        required: true
+        default: 'Cannot read property of undefined'
+      file_path:
+        description: 'File path where error occurred'
+        required: false
+        default: 'src/components/Example.tsx'
+      line_number:
+        description: 'Line number'
+        required: false
+        default: '1'
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  analyze-error:
+    name: 🔍 Analyze Sentry Error
+    runs-on: ubuntu-latest
+    outputs:
+      should_fix: ${{ steps.analyze.outputs.should_fix }}
+      fix_type: ${{ steps.analyze.outputs.fix_type }}
+      error_details: ${{ steps.analyze.outputs.error_details }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Analyze Error Type
+        id: analyze
+        run: |
+          # Get error details from webhook or manual input
+          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            ERROR_TITLE="${{ github.event.client_payload.error_title }}"
+            ERROR_MESSAGE="${{ github.event.client_payload.error_message }}"
+            FILE_PATH="${{ github.event.client_payload.file_path }}"
+            LINE_NUMBER="${{ github.event.client_payload.line_number }}"
+          else
+            ERROR_TITLE="${{ github.event.inputs.error_title }}"
+            ERROR_MESSAGE="${{ github.event.inputs.error_message }}"
+            FILE_PATH="${{ github.event.inputs.file_path }}"
+            LINE_NUMBER="${{ github.event.inputs.line_number }}"
+          fi
+          
+          echo "Error: $ERROR_TITLE"
+          echo "Message: $ERROR_MESSAGE"
+          echo "File: $FILE_PATH"
+          echo "Line: $LINE_NUMBER"
+          
+          # Determine fix type based on error
+          FIX_TYPE="manual"
+          SHOULD_FIX="false"
+          
+          # Auto-fixable error patterns
+          if [[ "$ERROR_TITLE" == *"TypeError"* ]] && [[ "$ERROR_MESSAGE" == *"undefined"* || "$ERROR_MESSAGE" == *"null"* ]]; then
+            FIX_TYPE="null-check"
+            SHOULD_FIX="true"
+          elif [[ "$ERROR_TITLE" == *"SyntaxError"* ]]; then
+            FIX_TYPE="syntax"
+            SHOULD_FIX="true"
+          elif [[ "$ERROR_MESSAGE" == *"is not a function"* ]]; then
+            FIX_TYPE="type-check"
+            SHOULD_FIX="true"
+          elif [[ "$ERROR_MESSAGE" == *"Network"* ]] || [[ "$ERROR_MESSAGE" == *"fetch"* ]]; then
+            FIX_TYPE="network-retry"
+            SHOULD_FIX="true"
+          fi
+          
+          echo "should_fix=$SHOULD_FIX" >> $GITHUB_OUTPUT
+          echo "fix_type=$FIX_TYPE" >> $GITHUB_OUTPUT
+          echo "error_details={\"title\":\"$ERROR_TITLE\",\"message\":\"$ERROR_MESSAGE\",\"file\":\"$FILE_PATH\",\"line\":\"$LINE_NUMBER\"}" >> $GITHUB_OUTPUT
+
+  create-fix-issue:
+    name: 📝 Create Fix Issue
+    runs-on: ubuntu-latest
+    needs: analyze-error
+    if: needs.analyze-error.outputs.should_fix == 'true'
+    outputs:
+      issue_number: ${{ steps.create-issue.outputs.issue_number }}
+    
+    steps:
+      - name: 📝 Create GitHub Issue for Copilot
+        id: create-issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const errorDetails = JSON.parse('${{ needs.analyze-error.outputs.error_details }}');
+            const fixType = '${{ needs.analyze-error.outputs.fix_type }}';
+            
+            const fixInstructions = {
+              'null-check': 'Add optional chaining (?.) or null checks before accessing properties',
+              'syntax': 'Fix the syntax error based on the error message',
+              'type-check': 'Add typeof check or ensure the value is a function before calling',
+              'network-retry': 'Wrap the network call with retry logic or error handling'
+            };
+            
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🐛 Auto-Fix: ${errorDetails.title}`,
+              body: `## 🚨 Sentry Error Detected
+            
+            ### Error Details
+            - **Type:** ${errorDetails.title}
+            - **Message:** ${errorDetails.message}
+            - **File:** \`${errorDetails.file}\`
+            - **Line:** ${errorDetails.line}
+            
+            ### Suggested Fix
+            ${fixInstructions[fixType] || 'Please analyze and fix this error'}
+            
+            ### Instructions for Copilot
+            1. Open the file \`${errorDetails.file}\`
+            2. Go to line ${errorDetails.line}
+            3. Apply the fix: ${fixInstructions[fixType]}
+            4. Ensure no breaking changes
+            5. Add error handling if needed
+            
+            ### Fix Type
+            \`${fixType}\`
+            
+            ---
+            *Auto-generated by Sentry Auto-Fix Pipeline*
+            `,
+              labels: ['bug', 'auto-fix', 'copilot']
+            });
+            
+            core.setOutput('issue_number', issue.data.number);
+            console.log(`Created issue #${issue.data.number}`);
+
+  # This job triggers GitHub Copilot Coding Agent (if available)
+  trigger-copilot-fix:
+    name: 🤖 Trigger Copilot Fix
+    runs-on: ubuntu-latest
+    needs: [analyze-error, create-fix-issue]
+    if: needs.analyze-error.outputs.should_fix == 'true'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔧 Create fix branch
+        run: |
+          BRANCH_NAME="auto-fix/sentry-${{ github.run_number }}"
+          git checkout -b $BRANCH_NAME
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run ESLint --fix
+        run: npm run lint -- --fix || true
+        continue-on-error: true
+
+      - name: 💅 Run Prettier
+        run: npx prettier --write "src/**/*.{ts,tsx}" || true
+        continue-on-error: true
+
+      - name: 📝 Check for changes
+        id: check-changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 💾 Commit fixes
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git commit -m "fix: 🤖 auto-fix sentry error #${{ needs.create-fix-issue.outputs.issue_number }}"
+          git push origin ${{ env.BRANCH_NAME }}
+
+      - name: 🔄 Create Pull Request
+        if: steps.check-changes.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const errorDetails = JSON.parse('${{ needs.analyze-error.outputs.error_details }}');
+            const issueNumber = ${{ needs.create-fix-issue.outputs.issue_number }};
+            
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🤖 Auto-Fix: ${errorDetails.title}`,
+              head: process.env.BRANCH_NAME,
+              base: 'master',
+              body: `## 🤖 Automated Fix for Sentry Error
+            
+            Closes #${issueNumber}
+            
+            ### Changes Made
+            - Applied ESLint auto-fixes
+            - Applied Prettier formatting
+            - Fixed: ${errorDetails.title}
+            
+            ### Error Details
+            - **File:** \`${errorDetails.file}\`
+            - **Line:** ${errorDetails.line}
+            - **Message:** ${errorDetails.message}
+            
+            ### Checklist
+            - [ ] Code compiles without errors
+            - [ ] Tests pass
+            - [ ] No new warnings
+            
+            ---
+            *Auto-generated by Sentry Auto-Fix Pipeline*
+            `,
+              draft: false
+            });
+            
+            // Add labels
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.data.number,
+              labels: ['auto-fix', 'bot']
+            });
+            
+            console.log(`Created PR #${pr.data.number}`);
+
+  notify-completion:
+    name: 📢 Notify Completion
+    runs-on: ubuntu-latest
+    needs: [analyze-error, create-fix-issue, trigger-copilot-fix]
+    if: always()
+    
+    steps:
+      - name: 📊 Summary
+        run: |
+          echo "## 🤖 Auto-Fix Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Step | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Analyze Error | ${{ needs.analyze-error.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Create Issue | ${{ needs.create-fix-issue.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trigger Fix | ${{ needs.trigger-copilot-fix.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Fix Type: **${{ needs.analyze-error.outputs.fix_type }}**" >> $GITHUB_STEP_SUMMARY

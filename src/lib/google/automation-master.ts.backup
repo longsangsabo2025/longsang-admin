@@ -1,0 +1,578 @@
+/**
+ * Google Automation Master Controller
+ * Điều phối tất cả automation workflows: SEO, Email, Calendar, Drive
+ * Note: Node.js-only functions should be called via API endpoints
+ */
+
+// Note: These imports are Node.js only - comment out for browser compatibility
+// import {
+//   submitUrlToGoogle,
+//   batchSubmitUrls,
+//   autoIndexNewPosts,
+//   requestRecrawlForUpdates,
+//   getIndexingStats,
+//   submitSitemap,
+// } from './indexing-api';
+
+// import {
+//   sendEmail,
+//   sendConsultationConfirmation,
+//   sendWelcomeEmail,
+//   autoSendConsultationEmails,
+//   getEmailStats,
+// } from './gmail-api';
+
+// import {
+//   createCalendarEvent,
+//   autoCreateConsultationEvents,
+//   syncConsultationToCalendar,
+//   getAvailableTimeSlots,
+//   getCalendarStats,
+// } from './calendar-api';
+
+import {
+  uploadFile,
+  createFolder,
+  shareFile,
+  autoUploadContracts,
+  autoOrganizeFilesByDate,
+  getDriveStats,
+} from './drive-api';
+
+import { supabase } from '@/integrations/supabase/client';
+
+export interface AutomationConfig {
+  siteUrl: string;
+  fromEmail: string;
+  calendarEmail: string;
+  driveEmail: string;
+  contractsFolderId?: string;
+  enableAutoIndexing: boolean;
+  enableAutoEmails: boolean;
+  enableAutoCalendar: boolean;
+  enableAutoDrive: boolean;
+}
+
+export interface AutomationResult {
+  service: string;
+  status: 'success' | 'error' | 'skipped';
+  message: string;
+  details?: Record<string, unknown>;
+  timestamp: string;
+}
+
+// ============================================================
+// MASTER AUTOMATION WORKFLOW
+// ============================================================
+
+/**
+ * 🚀 RUN ALL AUTOMATIONS
+ * Chạy tất cả automation workflows cùng lúc
+ * Note: This function requires server-side execution through API endpoint
+ */
+export async function runAllAutomations(_config: AutomationConfig): Promise<AutomationResult[]> {
+  // This function should be called via API server endpoint
+  // Use: POST /api/google/run-automations
+  throw new Error('runAllAutomations must be called through API server endpoint: POST /api/google/run-automations');
+}
+        status: 'success',
+        message: indexingResult.message,
+        details: indexingResult,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      results.push({
+        service: 'SEO Indexing',
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  // 2. Email Automation
+  if (config.enableAutoEmails) {
+    try {
+      const emailResult = await autoSendConsultationEmails(config.fromEmail);
+      results.push({
+        service: 'Email Automation',
+        status: 'success',
+        message: emailResult.message,
+        details: emailResult,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      results.push({
+        service: 'Email Automation',
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  // 3. Calendar Automation
+  if (config.enableAutoCalendar) {
+    try {
+      const calendarResult = await autoCreateConsultationEvents(config.calendarEmail);
+      results.push({
+        service: 'Calendar Automation',
+        status: 'success',
+        message: calendarResult.message,
+        details: calendarResult,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      results.push({
+        service: 'Calendar Automation',
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  // 4. Drive Automation
+  if (config.enableAutoDrive && config.contractsFolderId) {
+    try {
+      const driveResult = await autoUploadContracts(
+        config.driveEmail,
+        config.contractsFolderId
+      );
+      results.push({
+        service: 'Drive Automation',
+        status: 'success',
+        message: driveResult.message,
+        details: driveResult,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      results.push({
+        service: 'Drive Automation',
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  // Log master run
+  await logMasterAutomation(results);
+
+  return results;
+}
+
+/**
+ * 🚀 DAILY AUTOMATION
+ * Workflow chạy hàng ngày tự động
+ */
+export async function runDailyAutomation(config: AutomationConfig) {
+  const results: AutomationResult[] = [];
+
+  try {
+    // Morning: Index new posts
+    const indexing = await autoIndexNewPosts(config.siteUrl);
+    results.push({
+      service: 'Daily Indexing',
+      status: 'success',
+      message: `Indexed ${indexing.indexed} posts`,
+      details: indexing,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Re-crawl updated content
+    const recrawl = await requestRecrawlForUpdates(config.siteUrl, 24);
+    results.push({
+      service: 'Re-crawl Updates',
+      status: 'success',
+      message: `Re-crawled ${recrawl.recrawled} pages`,
+      details: recrawl,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Send pending emails
+    const emails = await autoSendConsultationEmails(config.fromEmail);
+    results.push({
+      service: 'Daily Emails',
+      status: 'success',
+      message: `Sent ${emails.sent} emails`,
+      details: emails,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Create calendar events
+    const calendar = await autoCreateConsultationEvents(config.calendarEmail);
+    results.push({
+      service: 'Daily Calendar',
+      status: 'success',
+      message: `Created ${calendar.created} events`,
+      details: calendar,
+      timestamp: new Date().toISOString(),
+    });
+
+    return {
+      status: 'success',
+      message: 'Daily automation completed',
+      results,
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      results,
+    };
+  }
+}
+
+// ============================================================
+// WORKFLOW ORCHESTRATION
+// ============================================================
+
+/**
+ * 🔥 New Consultation Workflow
+ * Khi có consultation mới: Email → Calendar → Drive
+ */
+export async function handleNewConsultation(
+  consultationId: string,
+  config: AutomationConfig
+) {
+  const results: AutomationResult[] = [];
+
+  try {
+    // Get consultation details
+    const { data: consultation, error } = await supabase
+      .from('consultations')
+      .select('*')
+      .eq('id', consultationId)
+      .single();
+
+    if (error) throw error;
+
+    // 1. Send confirmation email
+    try {
+      await sendConsultationConfirmation(config.fromEmail, {
+        customerEmail: consultation.client_email,
+        customerName: consultation.client_name,
+        date: new Date(consultation.consultation_date).toLocaleDateString('vi-VN'),
+        time: '10:00', // Default time
+        service: consultation.consultation_type,
+      });
+
+      results.push({
+        service: 'Confirmation Email',
+        status: 'success',
+        message: 'Email sent',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      results.push({
+        service: 'Confirmation Email',
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // 2. Create calendar event
+    try {
+      const startDateTime = new Date(`${consultation.consultation_date}T10:00:00`);
+      const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
+
+      await createCalendarEvent(config.calendarEmail, {
+        summary: `Tư vấn: ${consultation.consultation_type}`,
+        description: `Khách hàng: ${consultation.client_name}`,
+        start: {
+          dateTime: startDateTime.toISOString(),
+          timeZone: 'Asia/Ho_Chi_Minh',
+        },
+        end: {
+          dateTime: endDateTime.toISOString(),
+          timeZone: 'Asia/Ho_Chi_Minh',
+        },
+        attendees: [{
+          email: consultation.client_email,
+          displayName: consultation.client_name,
+        }],
+      });
+
+      results.push({
+        service: 'Calendar Event',
+        status: 'success',
+        message: 'Event created',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      results.push({
+        service: 'Calendar Event',
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return {
+      status: 'success',
+      message: 'Consultation workflow completed',
+      results,
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      results,
+    };
+  }
+}
+
+/**
+ * 🔥 New Blog Post Workflow
+ * Khi có blog post mới: Index → Social Share
+ */
+export async function handleNewBlogPost(
+  postSlug: string,
+  config: AutomationConfig
+) {
+  const results: AutomationResult[] = [];
+
+  try {
+    const postUrl = `${config.siteUrl}/news/${postSlug}`;
+
+    // 1. Submit to Google for indexing
+    try {
+      await submitUrlToGoogle(postUrl);
+      results.push({
+        service: 'Google Indexing',
+        status: 'success',
+        message: 'URL submitted to Google',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      results.push({
+        service: 'Google Indexing',
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // 2. Update sitemap
+    try {
+      await submitSitemap(config.siteUrl, `${config.siteUrl}/sitemap.xml`);
+      results.push({
+        service: 'Sitemap Update',
+        status: 'success',
+        message: 'Sitemap submitted',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      results.push({
+        service: 'Sitemap Update',
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return {
+      status: 'success',
+      message: 'Blog post workflow completed',
+      results,
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      results,
+    };
+  }
+}
+
+// ============================================================
+// STATS & DASHBOARD
+// ============================================================
+
+/**
+ * Get comprehensive automation stats
+ */
+export async function getAutomationStats(days: number = 7) {
+  try {
+    const [indexing, email, calendar, drive] = await Promise.all([
+      getIndexingStats(days),
+      getEmailStats(days),
+      getCalendarStats(days),
+      getDriveStats(days),
+    ]);
+
+    return {
+      indexing: {
+        label: 'SEO Indexing',
+        total: indexing.total,
+        successful: indexing.successful,
+        failed: indexing.failed,
+        urls: indexing.urls,
+      },
+      email: {
+        label: 'Email Automation',
+        total: email.total,
+        successful: email.successful,
+        failed: email.failed,
+      },
+      calendar: {
+        label: 'Calendar Events',
+        total: calendar.total,
+        successful: calendar.successful,
+        failed: calendar.failed,
+        events: calendar.events,
+      },
+      drive: {
+        label: 'Drive Files',
+        total: drive.total,
+        successful: drive.successful,
+        failed: drive.failed,
+        files: drive.files,
+      },
+      summary: {
+        totalOperations: indexing.total + email.total + calendar.total + drive.total,
+        successRate: Math.round(
+          ((indexing.successful + email.successful + calendar.successful + drive.successful) /
+            (indexing.total + email.total + calendar.total + drive.total || 1)) *
+            100
+        ),
+      },
+    };
+  } catch (error) {
+    throw new Error(`Failed to get stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Test all connections
+ */
+export async function testAllConnections(config: AutomationConfig) {
+  const results: AutomationResult[] = [];
+
+  // Test Indexing API
+  try {
+    await submitUrlToGoogle(`${config.siteUrl}/test`, 'URL_UPDATED');
+    results.push({
+      service: 'Indexing API',
+      status: 'success',
+      message: 'Connection OK',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    results.push({
+      service: 'Indexing API',
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Test Gmail API
+  try {
+    await sendEmail(config.fromEmail, {
+      to: config.fromEmail,
+      subject: 'Test Email',
+      body: 'This is a test email from automation system.',
+    });
+    results.push({
+      service: 'Gmail API',
+      status: 'success',
+      message: 'Connection OK',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    results.push({
+      service: 'Gmail API',
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Test Calendar API
+  try {
+    await getAvailableTimeSlots(config.calendarEmail, new Date().toISOString().split('T')[0]);
+    results.push({
+      service: 'Calendar API',
+      status: 'success',
+      message: 'Connection OK',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    results.push({
+      service: 'Calendar API',
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Test Drive API
+  try {
+    if (config.contractsFolderId) {
+      await createFolder(config.driveEmail, '_test_folder', config.contractsFolderId);
+    }
+    results.push({
+      service: 'Drive API',
+      status: 'success',
+      message: 'Connection OK',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    results.push({
+      service: 'Drive API',
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  return results;
+}
+
+// ============================================================
+// LOGGING
+// ============================================================
+
+async function logMasterAutomation(results: AutomationResult[]) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const successful = results.filter(r => r.status === 'success').length;
+    
+    await supabase.from('google_sync_logs').insert({
+      user_id: user?.id,
+      service: 'master_automation',
+      status: successful === results.length ? 'success' : 'partial',
+      records_synced: successful,
+      error_message: `Completed ${successful}/${results.length} automations`,
+      started_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Failed to log master automation:', error);
+  }
+}
+
+// Export individual services for direct use
+export {
+  // Indexing
+  submitUrlToGoogle,
+  batchSubmitUrls,
+  autoIndexNewPosts,
+  
+  // Email
+  sendEmail,
+  sendConsultationConfirmation,
+  sendWelcomeEmail,
+  
+  // Calendar
+  createCalendarEvent,
+  getAvailableTimeSlots,
+  
+  // Drive
+  uploadFile,
+  createFolder,
+  shareFile,
+};

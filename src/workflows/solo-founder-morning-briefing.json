@@ -1,0 +1,354 @@
+{
+  "name": "Solo Founder - Morning Briefing Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Daily 7 AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.RESEND_API_KEY}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "filter",
+              "value": "unread:true after:yesterday"
+            }
+          ]
+        }
+      },
+      "id": "fetch-emails",
+      "name": "Fetch Unread Emails",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "url": "{{$env.SUPABASE_URL}}/rest/v1/tasks?status=eq.pending&order=priority.desc&limit=10",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "{{$env.SUPABASE_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.SUPABASE_KEY}}"
+            }
+          ]
+        }
+      },
+      "id": "fetch-tasks",
+      "name": "Fetch Pending Tasks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "{{$env.SUPABASE_URL}}/rest/v1/analytics_daily?date=eq.{{$today.format('YYYY-MM-DD')}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "{{$env.SUPABASE_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.SUPABASE_KEY}}"
+            }
+          ]
+        }
+      },
+      "id": "fetch-metrics",
+      "name": "Fetch Daily Metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "url": "{{$env.SUPABASE_URL}}/rest/v1/content_queue?status=eq.draft&limit=5",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "{{$env.SUPABASE_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.SUPABASE_KEY}}"
+            }
+          ]
+        }
+      },
+      "id": "fetch-content",
+      "name": "Fetch Content Drafts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 500]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "options": {}
+      },
+      "id": "merge-data",
+      "name": "Merge All Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [700, 350]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an AI assistant helping a solo founder. Create a concise morning briefing based on the following data:\n\nEmails: {{$json.emails}}\nTasks: {{$json.tasks}}\nMetrics: {{$json.metrics}}\nContent: {{$json.content}}\n\nProvide:\n1. Top 3 priorities for today\n2. Key metrics summary (emoji + number)\n3. Emails that need response (mark urgency)\n4. Content ready for review\n5. One motivational insight\n\nFormat as JSON with these keys: priorities, metrics, emails, content, insight",
+              "role": "user"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "openai-briefing",
+      "name": "Generate Briefing with GPT",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [900, 350],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "{{$env.SUPABASE_URL}}/rest/v1/morning_briefings",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "{{$env.SUPABASE_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.SUPABASE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{$json.text}}"
+            },
+            {
+              "name": "date",
+              "value": "={{$today.format('YYYY-MM-DD')}}"
+            }
+          ]
+        }
+      },
+      "id": "save-briefing",
+      "name": "Save to Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1100, 350]
+    },
+    {
+      "parameters": {
+        "channel": "#daily-briefing",
+        "text": "=🌅 *Morning Briefing - {{$today.format('MMM D, YYYY')}}*\n\n{{$json.content}}",
+        "otherOptions": {}
+      },
+      "id": "slack-notify",
+      "name": "Send to Slack (Optional)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [1300, 250],
+      "credentials": {
+        "slackApi": {
+          "id": "slack",
+          "name": "Slack API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 7 AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Unread Emails",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Pending Tasks",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Daily Metrics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Content Drafts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Unread Emails": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Pending Tasks": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Fetch Daily Metrics": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Fetch Content Drafts": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Merge All Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Briefing with GPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Briefing with GPT": {
+      "main": [
+        [
+          {
+            "node": "Save to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Send to Slack (Optional)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "solo-founder"
+    },
+    {
+      "name": "automation"
+    },
+    {
+      "name": "morning-briefing"
+    }
+  ]
+}

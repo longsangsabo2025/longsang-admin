@@ -1,0 +1,145 @@
+version: '3.8'
+
+services:
+  # Frontend - React Application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: longsang-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_AI_BACKEND_URL=http://ai-backend:8000
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+    depends_on:
+      - ai-backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # AI Backend - Python Personal AI System
+  ai-backend:
+    build:
+      context: ./personal-ai-system
+      dockerfile: Dockerfile
+      target: development
+    container_name: longsang-ai-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # LLM APIs
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      
+      # Supabase (for data sync)
+      - SUPABASE_URL=${VITE_SUPABASE_URL}
+      - SUPABASE_KEY=${VITE_SUPABASE_ANON_KEY}
+      
+      # Memory System
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      
+      # System Config
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=development
+    volumes:
+      - ./personal-ai-system:/app
+      - ./personal-ai-system/logs:/app/logs
+      - ./personal-ai-system/memory_data:/app/memory_data
+    depends_on:
+      - qdrant
+      - redis
+    networks:
+      - app-network
+    restart: unless-stopped
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Vector Database - Qdrant
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: longsang-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Cache & Message Queue - Redis
+  redis:
+    image: redis:7-alpine
+    container_name: longsang-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # Optional: Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: longsang-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./personal-ai-system/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - app-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Optional: Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: longsang-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - app-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+volumes:
+  qdrant_storage:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,170 @@
+{
+  "name": "Welcome Email Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "user-registration",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "user-registration-webhook",
+      "name": "User Registration Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "user-registration"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate activation token (simple example)\nconst crypto = require('crypto');\nconst token = crypto.randomBytes(32).toString('hex');\n\n// Prepare user data\nconst userData = {\n  name: $input.item.json.name,\n  email: $input.item.json.email,\n  activation_token: token,\n  created_at: new Date().toISOString()\n};\n\n// Build activation link\nconst activationLink = `https://longsang.org/activate?token=${token}`;\n\n// Prepare email variables\nconst emailVars = {\n  user_name: userData.name,\n  company_name: \"Long Sang Portfolio\",\n  activation_link: activationLink,\n  feature_1: \"Truy cập dashboard cá nhân\",\n  feature_2: \"Kết nối với cộng đồng\",\n  feature_3: \"Nhận ưu đãi độc quyền\",\n  support_email: \"support@longsang.org\",\n  company_address: \"Ho Chi Minh City, Vietnam\",\n  website_url: \"https://longsang.org\",\n  unsubscribe_link: `https://longsang.org/unsubscribe?email=${userData.email}`\n};\n\nreturn {\n  json: {\n    user_data: userData,\n    email_vars: emailVars\n  }\n};"
+      },
+      "id": "prepare-user-data",
+      "name": "Prepare User Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Load welcome email template\nconst fs = require('fs');\nconst templatePath = 'D:/0.PROJECTS/00-MASTER-ADMIN/longsang-admin/templates/emails/welcome-email.html';\nlet template = fs.readFileSync(templatePath, 'utf8');\n\n// Get variables\nconst vars = $input.item.json.email_vars;\n\n// Replace variables\nObject.keys(vars).forEach(key => {\n  const regex = new RegExp(`{{${key}}}`, 'g');\n  template = template.replace(regex, vars[key]);\n});\n\nreturn {\n  json: {\n    html: template,\n    to: $input.item.json.user_data.email,\n    subject: `Chào mừng đến với Long Sang, ${$input.item.json.user_data.name}!`,\n    user_data: $input.item.json.user_data\n  }\n};"
+      },
+      "id": "load-welcome-template",
+      "name": "Load Welcome Template",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "OAuth2",
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {
+          "senderName": "Long Sang Team",
+          "appendAttribution": false
+        }
+      },
+      "id": "send-welcome-email",
+      "name": "Send Welcome Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [850, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2-credential",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "1ZDrD-z7l4rnu5WCdEJ4tvg_oigeoaUHTjdbDGnEPMtk",
+        "sheetName": "User Registrations",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $('Prepare User Data').item.json.user_data.created_at }}",
+            "name": "={{ $('Prepare User Data').item.json.user_data.name }}",
+            "email": "={{ $('Prepare User Data').item.json.user_data.email }}",
+            "activation_token": "={{ $('Prepare User Data').item.json.user_data.activation_token }}",
+            "email_sent": "yes",
+            "message_id": "={{ $json.id }}"
+          }
+        }
+      },
+      "id": "save-to-sheet",
+      "name": "Save to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [1050, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S9FM5C1u4OUgOU86",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"User registered and welcome email sent\", \"user_id\": $('Prepare User Data').item.json.user_data.email } }}"
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "User Registration Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare User Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare User Data": {
+      "main": [
+        [
+          {
+            "node": "Load Welcome Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Welcome Template": {
+      "main": [
+        [
+          {
+            "node": "Send Welcome Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Welcome Email": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "longsang-admin-welcome-email"
+  },
+  "tags": []
+}
