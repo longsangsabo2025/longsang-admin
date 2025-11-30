@@ -3,7 +3,6 @@
  * Drag & drop component library for visual workspace
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ComponentDefinition } from '@/hooks/useVisualWorkspace';
 import { Box, Database, FormInput, Globe, Layout, MousePointerClick, Package } from 'lucide-react';
@@ -166,47 +165,45 @@ export function ComponentLibrary({ onComponentSelect, className = '' }: Componen
   };
 
   return (
-    <Card className={className}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Package className="h-5 w-5" />
+    <div className={`flex flex-col h-full bg-[#0f0f0f] ${className}`}>
+      <div className="shrink-0 px-4 py-3 border-b border-[#2a2a2a]">
+        <h3 className="text-sm font-medium flex items-center gap-2 text-white">
+          <Package className="h-4 w-4" />
           Component Library
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <ScrollArea className="h-full">
-          <div className="p-4 space-y-2">
-            {COMPONENT_TEMPLATES.map((template) => {
-              const Icon = template.icon;
-              return (
-                <div
-                  key={template.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, template)}
-                  onClick={() => {
-                    const newComponent = {
-                      ...template.template,
-                      id: `${template.id}-${Date.now()}`,
-                    };
-                    onComponentSelect(newComponent);
-                  }}
-                  className="flex items-center gap-3 p-3 rounded-lg border cursor-move hover:bg-muted transition-colors"
-                >
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm">{template.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {template.description}
-                    </div>
+        </h3>
+      </div>
+      <ScrollArea className="flex-1">
+        <div className="p-3 space-y-2">
+          {COMPONENT_TEMPLATES.map((template) => {
+            const Icon = template.icon;
+            return (
+              <div
+                key={template.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, template)}
+                onClick={() => {
+                  const newComponent = {
+                    ...template.template,
+                    id: `${template.id}-${Date.now()}`,
+                  };
+                  onComponentSelect(newComponent);
+                }}
+                className="flex items-center gap-3 p-3 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] cursor-move hover:bg-[#2a2a2a] hover:border-purple-500/50 transition-colors"
+              >
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <Icon className="h-4 w-4 text-purple-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm text-white">{template.name}</div>
+                  <div className="text-xs text-gray-500 truncate">
+                    {template.description}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+              </div>
+            );
+          })}
+        </div>
+      </ScrollArea>
+    </div>
   );
 }

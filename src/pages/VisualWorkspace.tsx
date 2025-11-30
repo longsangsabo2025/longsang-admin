@@ -18,8 +18,8 @@ import { useExecutionHistory } from '@/hooks/useExecutionHistory';
 import { ExecutionEvent, useExecutionSteps } from '@/hooks/useExecutionSteps';
 import { ComponentDefinition, useVisualWorkspace } from '@/hooks/useVisualWorkspace';
 import { parseAICommand } from '@/lib/visual-workspace/aiParser';
-import { XCircle } from 'lucide-react';
-import { useCallback, useMemo, useRef } from 'react';
+import { Maximize2, Minimize2, XCircle } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Connection, Node } from 'reactflow';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -58,6 +58,24 @@ export default function VisualWorkspace() {
 
   const { toast } = useToast();
   const startTimeRef = useRef<number>(0);
+
+  // Full view mode state
+  const [isFullView, setIsFullView] = useState(false);
+
+  // Keyboard shortcut: Escape to exit full view, F11 to toggle
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullView) {
+        setIsFullView(false);
+      }
+      if (e.key === 'F11') {
+        e.preventDefault();
+        setIsFullView(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullView]);
 
   // Merge execution nodes with regular nodes
   const allNodes = useMemo(() => {
@@ -319,82 +337,121 @@ export default function VisualWorkspace() {
     [nodes.length, addNode, toast]
   );
 
-  return (
-    <Layout>
-      <div className="h-[calc(100vh-4rem)] flex flex-col">
-        {/* Header */}
-        <div className="shrink-0 p-4 border-b flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Visual Workspace Builder</h1>
-            <p className="text-sm text-muted-foreground">
-              Build applications visually with AI assistance
-            </p>
-          </div>
-          <div className="flex gap-2">
-            {isExecuting && (
-              <Button variant="destructive" size="sm" onClick={handleCancelExecution}>
-                <XCircle className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-            )}
-            <ExecutionReportDialog />
-          </div>
+  // Full View Content - extracted for reuse
+  const workspaceContent = (
+    <div className={isFullView ? "h-screen w-screen bg-[#0a0a0a] flex flex-col" : "h-[calc(100vh-4rem)] flex flex-col"}>
+      {/* Header */}
+      <div className="shrink-0 px-4 py-3 border-b border-[#2a2a2a] bg-[#0a0a0a] flex items-center justify-between">
+        <div>
+          <h1 className={`font-bold ${isFullView ? 'text-xl text-white' : 'text-2xl'}`}>
+            Visual Workspace Builder
+          </h1>
+          <p className="text-sm text-gray-500">
+            Build applications visually with AI assistance
+          </p>
         </div>
-
-        {/* Main workspace area with 3 panels */}
-        <div className="flex-1 min-h-0">
-          <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Chat Panel with Component Library */}
-            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-              <div className="flex flex-col h-full">
-                <div className="flex-1 min-h-0">
-                  <ChatPanel
-                    onSendMessage={handleSendMessage}
-                    isGenerating={isGenerating}
-                    className="h-full"
-                  />
-                </div>
-                <div className="border-t h-48 shrink-0">
-                  <ComponentLibrary onComponentSelect={handleComponentSelect} className="h-full" />
-                </div>
-              </div>
-            </ResizablePanel>
-
-            <ResizableHandle withHandle />
-
-            {/* Canvas Panel */}
-            <ResizablePanel defaultSize={50} minSize={30}>
-              <VisualCanvas
-                nodes={allNodes}
-                edges={allEdges}
-                onNodesChange={(changes) => {
-                  if (!isExecuting) {
-                    handleNodesChange(changes);
-                  }
-                }}
-                onEdgesChange={(changes) => {
-                  if (!isExecuting) {
-                    handleEdgesChange(changes);
-                  }
-                }}
-                onConnect={handleConnect}
-                onNodeClick={(event, node) => {
-                  handleNodeClick(event, node);
-                  setSelectedNode(node);
-                }}
-                className="h-full"
-              />
-            </ResizablePanel>
-
-            <ResizableHandle withHandle />
-
-            {/* Preview Panel */}
-            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-              <PreviewPanel selectedNode={selectedNode} className="h-full" />
-            </ResizablePanel>
-          </ResizablePanelGroup>
+        <div className="flex gap-2 items-center">
+          {isExecuting && (
+            <Button variant="destructive" size="sm" onClick={handleCancelExecution}>
+              <XCircle className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+          )}
+          <ExecutionReportDialog />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsFullView(!isFullView)}
+            className="bg-[#1a1a1a] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white"
+          >
+            {isFullView ? (
+              <>
+                <Minimize2 className="h-4 w-4 mr-2" />
+                Exit Full View
+              </>
+            ) : (
+              <>
+                <Maximize2 className="h-4 w-4 mr-2" />
+                Full View
+              </>
+            )}
+          </Button>
         </div>
       </div>
+
+      {/* Main workspace area with 3 panels */}
+      <div className="flex-1 min-h-0 bg-[#0a0a0a]">
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          {/* Chat Panel with Component Library */}
+          <ResizablePanel defaultSize={25} minSize={15} maxSize={40}>
+            <ResizablePanelGroup direction="vertical" className="h-full">
+              {/* Chat Panel */}
+              <ResizablePanel defaultSize={60} minSize={30}>
+                <ChatPanel
+                  onSendMessage={handleSendMessage}
+                  isGenerating={isGenerating}
+                  className="h-full bg-[#0f0f0f]"
+                />
+              </ResizablePanel>
+              
+              <ResizableHandle withHandle className="bg-[#2a2a2a] hover:bg-purple-600 transition-colors" />
+              
+              {/* Component Library - Now resizable! */}
+              <ResizablePanel defaultSize={40} minSize={20}>
+                <ComponentLibrary onComponentSelect={handleComponentSelect} className="h-full" />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+
+          <ResizableHandle withHandle className="bg-[#2a2a2a] hover:bg-purple-600 transition-colors" />
+
+          {/* Canvas Panel */}
+          <ResizablePanel defaultSize={50} minSize={30}>
+            <VisualCanvas
+              nodes={allNodes}
+              edges={allEdges}
+              onNodesChange={(changes) => {
+                if (!isExecuting) {
+                  handleNodesChange(changes);
+                }
+              }}
+              onEdgesChange={(changes) => {
+                if (!isExecuting) {
+                  handleEdgesChange(changes);
+                }
+              }}
+              onConnect={handleConnect}
+              onNodeClick={(event, node) => {
+                handleNodeClick(event, node);
+                setSelectedNode(node);
+              }}
+              className="h-full"
+            />
+          </ResizablePanel>
+
+          <ResizableHandle withHandle className="bg-[#2a2a2a] hover:bg-purple-600 transition-colors" />
+
+          {/* Preview Panel */}
+          <ResizablePanel defaultSize={25} minSize={15} maxSize={40}>
+            <PreviewPanel selectedNode={selectedNode} className="h-full bg-[#0f0f0f]" />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+    </div>
+  );
+
+  // Full view mode - render without Layout wrapper
+  if (isFullView) {
+    return (
+      <div className="fixed inset-0 z-50">
+        {workspaceContent}
+      </div>
+    );
+  }
+
+  return (
+    <Layout>
+      {workspaceContent}
     </Layout>
   );
 }
