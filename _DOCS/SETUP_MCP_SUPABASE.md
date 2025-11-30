@@ -71,7 +71,7 @@ Tạo file cấu hình MCP với nội dung:
 }
 ```
 
-**Lưu ý:** 
+**Lưu ý:**
 - Thay `YOUR_SUPABASE_ACCESS_TOKEN` bằng Personal Access Token từ Supabase
 - Thay `YOUR_SERVICE_ROLE_KEY` bằng Service Role Key (⚠️ Bảo mật cao!)
 
@@ -220,6 +220,6 @@ Nếu bạn chỉ muốn cho phép truy cập 1 project cụ thể:
 
 ---
 
-**Ngày tạo:** 2025-01-29  
-**Phiên bản:** 1.0.0  
+**Ngày tạo:** 2025-01-29
+**Phiên bản:** 1.0.0
 **Tác giả:** LongSang Team

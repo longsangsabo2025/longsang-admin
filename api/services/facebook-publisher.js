@@ -227,6 +227,20 @@ class FacebookPublisher {
       hasInstagram: !!page.instagram_id,
     }));
   }
+
+  /**
+   * Create post (alias for postToPage with options object)
+   */
+  async createPost(pageKey, options = {}) {
+    // Convert pageKey with underscore to dash format
+    const normalizedKey = pageKey.replace(/_/g, '-');
+    
+    return await this.postToPage(normalizedKey, options.message, {
+      link: options.link,
+      scheduledTime: options.scheduledTime,
+      imageUrl: options.imageUrl,
+    });
+  }
 }
 
 module.exports = new FacebookPublisher();

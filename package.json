@@ -81,6 +81,7 @@
     "seo:sync-gsc": "supabase functions invoke search-console-sync --method POST",
     "seo:full-report": "npm run seo:analyze && npm run seo:monitor && echo 'SEO Analysis Complete!'",
     "admin:set-role": "tsx scripts/set-admin.ts",
+    "test:mcp-supabase": "node scripts/test-mcp-supabase.js",
     "prepare": "husky"
   },
   "dependencies": {

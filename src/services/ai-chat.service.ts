@@ -30,6 +30,9 @@ export interface AgentChatRequest {
 export interface AgentChatResponse {
   success: boolean;
   message: string;
+  type?: 'chat' | 'action_executed' | 'clarification_needed';
+  action?: string;
+  actionResult?: unknown;
   usage?: {
     promptTokens: number;
     completionTokens: number;
@@ -43,11 +46,16 @@ export interface AgentChatResponse {
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
- * Chat with an AI Agent via backend API
+ * Chat with an AI Agent via backend API (with action execution)
  */
 export async function chatWithAgent(request: AgentChatRequest): Promise<AgentChatResponse> {
   try {
-    const response = await fetch(`${API_BASE}/api/solo-hub/chat`, {
+    // Use chat-with-actions for marketing/content agents
+    const endpoint = ['marketing', 'content', 'sales'].includes(request.agentRole)
+      ? '/api/solo-hub/chat-with-actions'
+      : '/api/solo-hub/chat';
+      
+    const response = await fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

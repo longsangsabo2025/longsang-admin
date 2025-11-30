@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 const OpenAI = require('openai');
 const Anthropic = require('@anthropic-ai/sdk').default;
+const aiActionExecutor = require('../services/ai-action-executor');
 
 // Agent System Prompts
 const AGENT_SYSTEM_PROMPTS = {
@@ -307,6 +308,154 @@ router.get('/agents', (req, res) => {
   }));
   
   res.json({ agents });
+});
+
+/**
+ * POST /api/solo-hub/chat-with-actions
+ * Chat with AI and execute actions if detected
+ */
+router.post('/chat-with-actions', async (req, res) => {
+  try {
+    const { agentRole, message, context, options } = req.body;
+
+    if (!agentRole || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'agentRole and message are required',
+      });
+    }
+
+    // Step 1: Detect if message contains actionable intent
+    const actionResult = await aiActionExecutor.processWithActions(message, agentRole);
+
+    // Step 2: If action was executed, return result with AI summary
+    if (actionResult.type === 'action_executed') {
+      // Generate AI response about what was done
+      const client = getOpenAIClient();
+      const summaryResponse = await client.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `Bạn là AI assistant của SABO. Tóm tắt kết quả thực thi action cho user.
+Trả lời bằng tiếng Việt, ngắn gọn, có emoji phù hợp.`,
+          },
+          {
+            role: 'user',
+            content: `Action: ${actionResult.action}
+Params: ${JSON.stringify(actionResult.params)}
+Result: ${JSON.stringify(actionResult.result)}
+
+Hãy tóm tắt kết quả này cho user.`,
+          },
+        ],
+        max_tokens: 500,
+      });
+
+      return res.json({
+        success: true,
+        type: 'action_executed',
+        action: actionResult.action,
+        message: summaryResponse.choices[0].message.content,
+        actionResult: actionResult.result,
+      });
+    }
+
+    // Step 3: If clarification needed
+    if (actionResult.type === 'clarification') {
+      return res.json({
+        success: true,
+        type: 'clarification_needed',
+        message: actionResult.message,
+        detectedAction: actionResult.detectedAction,
+      });
+    }
+
+    // Step 4: Normal chat (no action detected)
+    // Forward to regular chat endpoint logic
+    const systemPrompt = AGENT_SYSTEM_PROMPTS[agentRole] || AGENT_SYSTEM_PROMPTS.advisor;
+    
+    // Add available actions to context for marketing agent
+    let fullSystemPrompt = systemPrompt;
+    if (agentRole === 'marketing' || agentRole === 'content') {
+      const actions = aiActionExecutor.getAvailableActionsDescription();
+      fullSystemPrompt += `\n\n--- AVAILABLE ACTIONS ---
+Bạn có thể thực hiện các actions sau khi user yêu cầu:
+${actions.map(a => `- ${a.name}: ${a.description}`).join('\n')}
+
+Khi user yêu cầu thực hiện một action, hãy xác nhận và hỏi thêm thông tin nếu cần.
+--- END ACTIONS ---`;
+    }
+
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
+      model: options?.model || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: fullSystemPrompt },
+        ...(context?.previousMessages || []).map(m => ({
+          role: m.role,
+          content: m.content,
+        })),
+        { role: 'user', content: message },
+      ],
+      temperature: options?.temperature ?? 0.7,
+      max_tokens: options?.maxTokens || 2000,
+    });
+
+    res.json({
+      success: true,
+      type: 'chat',
+      message: response.choices[0].message.content,
+      usage: response.usage ? {
+        promptTokens: response.usage.prompt_tokens,
+        completionTokens: response.usage.completion_tokens,
+        totalTokens: response.usage.total_tokens,
+      } : undefined,
+      model: 'gpt-4o-mini',
+    });
+  } catch (error) {
+    console.error('❌ Chat with actions error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Unknown error',
+    });
+  }
+});
+
+/**
+ * GET /api/solo-hub/available-actions
+ * List all available actions AI can execute
+ */
+router.get('/available-actions', (req, res) => {
+  const actions = aiActionExecutor.getAvailableActionsDescription();
+  res.json({ actions });
+});
+
+/**
+ * POST /api/solo-hub/execute-action
+ * Manually execute a specific action
+ */
+router.post('/execute-action', async (req, res) => {
+  try {
+    const { action, params } = req.body;
+
+    if (!action) {
+      return res.status(400).json({
+        success: false,
+        error: 'action is required',
+      });
+    }
+
+    const result = await aiActionExecutor.executeAction(action, params || {});
+    res.json(result);
+  } catch (error) {
+    console.error('❌ Execute action error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Unknown error',
+    });
+  }
+});
 });
 
 module.exports = router;
