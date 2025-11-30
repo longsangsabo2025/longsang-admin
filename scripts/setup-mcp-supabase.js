@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Script tự động cấu hình MCP Supabase cho Cursor
- * 
+ *
  * Script này sẽ tạo file cấu hình MCP với token đã được cung cấp
  * và hướng dẫn bạn copy vào đúng vị trí trong Cursor settings
  */
@@ -53,7 +53,7 @@ const mcpConfig = {
 function getCursorConfigPath() {
   const platform = os.platform();
   const homeDir = os.homedir();
-  
+
   if (platform === 'win32') {
     return join(
       process.env.APPDATA || join(homeDir, 'AppData', 'Roaming'),
@@ -109,18 +109,18 @@ function main() {
   // Create local config file in project
   const localConfigPath = join(__dirname, '..', '.vscode', 'mcp-supabase.config.local.json');
   const localConfigDir = join(__dirname, '..', '.vscode');
-  
+
   try {
     if (!existsSync(localConfigDir)) {
       mkdirSync(localConfigDir, { recursive: true });
     }
-    
+
     writeFileSync(
       localConfigPath,
       JSON.stringify(mcpConfig, null, 2),
       'utf8'
     );
-    
+
     log('\n✅ Đã tạo file config local:', 'green');
     log(`   ${localConfigPath}`, 'cyan');
   } catch (error) {
@@ -129,7 +129,7 @@ function main() {
 
   // Try to write to Cursor config location
   log('\n📝 Đang tạo file cấu hình cho Cursor...', 'blue');
-  
+
   try {
     // Create directory if it doesn't exist
     if (!existsSync(cursorConfigDir)) {
@@ -152,7 +152,7 @@ function main() {
         JSON.stringify(mcpConfig, null, 2),
         'utf8'
       );
-      
+
       log(`\n✅ Đã tạo file cấu hình MCP tại:`, 'green');
       log(`   ${cursorConfigPath}`, 'cyan');
     }

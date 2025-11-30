@@ -124,6 +124,6 @@ Nếu MCP đã cấu hình đúng, AI sẽ tự động query và trả về dan
 
 ---
 
-**Ngày cấu hình:** 2025-01-29  
-**Trạng thái:** ✅ Token đã sẵn sàng  
+**Ngày cấu hình:** 2025-01-29
+**Trạng thái:** ✅ Token đã sẵn sàng
 **Bước tiếp theo:** Copy config vào Cursor settings và restart

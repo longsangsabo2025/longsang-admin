@@ -84,5 +84,5 @@ Xem thêm:
 
 ---
 
-**Token:** `sbp_8826363ab90440922fff6ad37577dc186d6b0796` ✅  
+**Token:** `sbp_8826363ab90440922fff6ad37577dc186d6b0796` ✅
 **Status:** Sẵn sàng cài đặt
