@@ -7,23 +7,23 @@
 import {
   ExecutionStepData,
   ExecutionStepStatus,
-} from "@/components/visual-workspace/ExecutionStepNodes";
-import { useCallback, useRef, useState } from "react";
-import { Edge, Node } from "reactflow";
+} from '@/components/visual-workspace/ExecutionStepNodes';
+import { useCallback, useRef, useState } from 'react';
+import { Edge, Node } from 'reactflow';
 
 export interface ExecutionEvent {
   type:
-    | "plan"
-    | "step_start"
-    | "step_progress"
-    | "step_complete"
-    | "step_error"
-    | "complete"
-    | "error";
+    | 'plan'
+    | 'step_start'
+    | 'step_progress'
+    | 'step_complete'
+    | 'step_error'
+    | 'complete'
+    | 'error';
   stepId?: string;
   stepName?: string;
   description?: string;
-  stepType?: "planning" | "generation" | "review" | "execution" | "completed";
+  stepType?: 'planning' | 'generation' | 'review' | 'execution' | 'completed';
   progress?: number;
   error?: string;
   duration?: number;
@@ -42,7 +42,7 @@ export interface ExecutionStep {
   name: string;
   description?: string;
   status: ExecutionStepStatus;
-  stepType: "planning" | "generation" | "review" | "execution" | "completed";
+  stepType: 'planning' | 'generation' | 'review' | 'execution' | 'completed';
   progress?: number;
   duration?: number;
   error?: string;
@@ -63,7 +63,7 @@ export function useExecutionSteps() {
   const stepToNode = useCallback((step: ExecutionStep, index: number): Node<ExecutionStepData> => {
     return {
       id: step.id,
-      type: "executionStep",
+      type: 'executionStep',
       position: {
         x: 100,
         y: index * 120 + 50,
@@ -99,15 +99,15 @@ export function useExecutionSteps() {
             id: `${prevStepId}-${stepId}`,
             source: prevStepId,
             target: stepId,
-            type: "smoothstep",
-            animated: step.status === "running",
+            type: 'smoothstep',
+            animated: step.status === 'running',
             style: {
               stroke:
-                step.status === "completed"
-                  ? "#10b981"
-                  : step.status === "failed"
-                  ? "#ef4444"
-                  : "#6b7280",
+                step.status === 'completed'
+                  ? '#10b981'
+                  : step.status === 'failed'
+                    ? '#ef4444'
+                    : '#6b7280',
             },
           });
         }
@@ -118,7 +118,7 @@ export function useExecutionSteps() {
   }, [steps, stepOrder, stepToNode]);
 
   // Handle execution plan
-  const handlePlan = useCallback((plan: ExecutionEvent["plan"]) => {
+  const handlePlan = useCallback((plan: ExecutionEvent['plan']) => {
     if (!plan) return;
 
     // Create new AbortController for this execution
@@ -131,14 +131,14 @@ export function useExecutionSteps() {
 
     plan.steps.forEach((step, index) => {
       const stepId = step.id || `step-${index}`;
-      const stepType = (step.type || "execution") as ExecutionStep["stepType"];
+      const stepType = (step.type || 'execution') as ExecutionStep['stepType'];
       const parallelGroup = (step as any).parallelGroup; // Group ID for parallel execution
 
       newSteps.set(stepId, {
         id: stepId,
         name: step.name,
         description: step.description,
-        status: "pending",
+        status: 'pending',
         stepType,
         progress: 0,
       });
@@ -172,7 +172,7 @@ export function useExecutionSteps() {
 
         updated.set(event.stepId!, {
           ...step,
-          status: "running",
+          status: 'running',
           startTime,
           progress: 0,
         });
@@ -214,7 +214,7 @@ export function useExecutionSteps() {
 
         updated.set(event.stepId!, {
           ...step,
-          status: "completed",
+          status: 'completed',
           progress: 100,
           endTime,
           duration,
@@ -239,8 +239,8 @@ export function useExecutionSteps() {
 
         updated.set(event.stepId!, {
           ...step,
-          status: "failed",
-          error: event.error || "Unknown error",
+          status: 'failed',
+          error: event.error || 'Unknown error',
           endTime,
           duration,
         });
@@ -261,10 +261,10 @@ export function useExecutionSteps() {
     setSteps((prev) => {
       const updated = new Map(prev);
       prev.forEach((step, stepId) => {
-        if (step.status === "running") {
+        if (step.status === 'running') {
           updated.set(stepId, {
             ...step,
-            status: "failed",
+            status: 'failed',
             error,
           });
         }
@@ -277,26 +277,26 @@ export function useExecutionSteps() {
   const processEvent = useCallback(
     (event: ExecutionEvent) => {
       switch (event.type) {
-        case "plan":
+        case 'plan':
           handlePlan(event.plan);
           break;
-        case "step_start":
+        case 'step_start':
           handleStepStart(event);
           break;
-        case "step_progress":
+        case 'step_progress':
           handleStepProgress(event);
           break;
-        case "step_complete":
+        case 'step_complete':
           handleStepComplete(event);
           break;
-        case "step_error":
+        case 'step_error':
           handleStepError(event);
           break;
-        case "complete":
+        case 'complete':
           handleComplete();
           break;
-        case "error":
-          handleError(event.error || "Execution failed");
+        case 'error':
+          handleError(event.error || 'Execution failed');
           break;
       }
     },
@@ -326,37 +326,37 @@ export function useExecutionSteps() {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
+
     setIsCancelled(true);
-    
+
     // Mark current running step as cancelled
     setSteps((prev) => {
       const updated = new Map(prev);
       prev.forEach((step, stepId) => {
-        if (step.status === "running") {
+        if (step.status === 'running') {
           const endTime = Date.now();
           const startTime = stepTimers.current.get(stepId) || endTime;
           const duration = endTime - startTime;
           stepTimers.current.delete(stepId);
-          
+
           updated.set(stepId, {
             ...step,
-            status: "failed",
-            error: "Cancelled by user",
+            status: 'failed',
+            error: 'Cancelled by user',
             endTime,
             duration,
           });
-        } else if (step.status === "pending") {
+        } else if (step.status === 'pending') {
           updated.set(stepId, {
             ...step,
-            status: "failed",
-            error: "Cancelled",
+            status: 'failed',
+            error: 'Cancelled',
           });
         }
       });
       return updated;
     });
-    
+
     setIsExecuting(false);
   }, []);
 

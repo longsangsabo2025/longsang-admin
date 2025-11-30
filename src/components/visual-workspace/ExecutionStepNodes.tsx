@@ -80,18 +80,14 @@ export function ExecutionStepNode({ data, selected }: NodeProps<ExecutionStepDat
       <Handle type="target" position={Position.Top} className="!bg-white/30" />
 
       <div className="flex items-start gap-2">
-        <div className="flex-shrink-0 mt-0.5">
-          {statusIconMap[status]}
-        </div>
+        <div className="flex-shrink-0 mt-0.5">{statusIconMap[status]}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <Icon className="h-4 w-4" />
             <div className="font-bold text-sm truncate">{label}</div>
           </div>
 
-          {description && (
-            <div className="text-xs opacity-80 line-clamp-2 mb-2">{description}</div>
-          )}
+          {description && <div className="text-xs opacity-80 line-clamp-2 mb-2">{description}</div>}
 
           {progress !== undefined && status === 'running' && (
             <div className="mt-2">
@@ -124,4 +120,3 @@ export function ExecutionStepNode({ data, selected }: NodeProps<ExecutionStepDat
     </div>
   );
 }
-

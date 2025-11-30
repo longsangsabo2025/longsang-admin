@@ -5,16 +5,18 @@
  * NOW CONNECTED TO REAL SOLO HUB 4-LAYER API
  */
 
+import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { ChatPanel } from '@/components/visual-workspace/ChatPanel';
+import { ComponentLibrary } from '@/components/visual-workspace/ComponentLibrary';
 import { ExecutionReportDialog } from '@/components/visual-workspace/ExecutionReportDialog';
 import { PreviewPanel } from '@/components/visual-workspace/PreviewPanel';
 import { VisualCanvas } from '@/components/visual-workspace/VisualCanvas';
 import { useToast } from '@/hooks/use-toast';
 import { useExecutionHistory } from '@/hooks/useExecutionHistory';
 import { ExecutionEvent, useExecutionSteps } from '@/hooks/useExecutionSteps';
-import { useVisualWorkspace } from '@/hooks/useVisualWorkspace';
+import { ComponentDefinition, useVisualWorkspace } from '@/hooks/useVisualWorkspace';
 import { parseAICommand } from '@/lib/visual-workspace/aiParser';
 import { XCircle } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
@@ -73,7 +75,7 @@ export default function VisualWorkspace() {
     return edges;
   }, [edges, executionEdges, isExecuting]);
 
-  // Handle AI command from chat - CONNECTED TO REAL SOLO HUB API WITH SSE STREAMING
+  // Handle AI command from chat - CONNECTED TO REAL SOLO HUB API
   const handleSendMessage = useCallback(
     async (message: string) => {
       setIsGenerating(true);
@@ -94,7 +96,7 @@ export default function VisualWorkspace() {
           lowerMessage.includes('schedule');
 
         if (isExecutionCommand) {
-          // Create initial execution plan matching 4-layer architecture
+          // Create execution plan matching 4-layer architecture
           const plan: ExecutionEvent = {
             type: 'plan',
             plan: {
@@ -128,11 +130,10 @@ export default function VisualWorkspace() {
           };
 
           processEvent(plan);
+          processEvent({ type: 'step_start', stepId: 'layer-1' });
 
-          // USE SSE STREAMING FOR REAL-TIME UPDATES
-          const abortController = new AbortController();
-          
-          const response = await fetch(`${API_BASE}/api/solo-hub/chat-smart/stream`, {
+          // CALL REAL SOLO HUB API
+          const response = await fetch(`${API_BASE}/api/solo-hub/chat-smart`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -140,98 +141,72 @@ export default function VisualWorkspace() {
               agentRole: 'content',
               conversationHistory: [],
             }),
-            signal: abortController.signal,
+            signal: getAbortSignal(),
           });
 
           if (!response.ok) {
             throw new Error(`API Error: ${response.status}`);
           }
 
-          // Read SSE stream
-          const reader = response.body?.getReader();
-          const decoder = new TextDecoder();
-          let buffer = '';
-          let finalResult: any = null;
+          const result = await response.json();
 
-          if (reader) {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
+          // Update execution steps based on actual API response
+          if (result.success) {
+            // Layer 1 complete
+            processEvent({ type: 'step_complete', stepId: 'layer-1' });
+            processEvent({ type: 'step_start', stepId: 'layer-2' });
 
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split('\n');
-              buffer = lines.pop() || '';
+            // Check which layers were used
+            const layersUsed = result.metadata?.layersUsed || [];
 
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  try {
-                    const eventData = JSON.parse(line.slice(6));
-                    
-                    // Process SSE events in real-time
-                    switch (eventData.type) {
-                      case 'step_start':
-                        processEvent({ type: 'step_start', stepId: eventData.stepId });
-                        break;
-                      case 'step_progress':
-                        // Update step description in real-time
-                        processEvent({ 
-                          type: 'step_progress', 
-                          stepId: eventData.stepId,
-                          progress: eventData.progress,
-                          description: eventData.description
-                        });
-                        break;
-                      case 'step_complete':
-                        processEvent({ type: 'step_complete', stepId: eventData.stepId });
-                        break;
-                      case 'complete':
-                        finalResult = eventData.result;
-                        processEvent({ type: 'complete' });
-                        break;
-                      case 'error':
-                        throw new Error(eventData.error);
-                    }
-                  } catch (parseError) {
-                    // Skip malformed events
-                    console.warn('SSE parse error:', parseError);
-                  }
-                }
-              }
+            // Simulate layer progression based on actual response
+            await new Promise((r) => setTimeout(r, 300));
+            processEvent({ type: 'step_complete', stepId: 'layer-2' });
+            processEvent({ type: 'step_start', stepId: 'layer-3' });
+
+            await new Promise((r) => setTimeout(r, 300));
+            processEvent({ type: 'step_complete', stepId: 'layer-3' });
+            processEvent({ type: 'step_start', stepId: 'layer-4' });
+
+            await new Promise((r) => setTimeout(r, 200));
+            processEvent({ type: 'step_complete', stepId: 'layer-4' });
+
+            // Parse for visual components if applicable
+            const parsed = await parseAICommand(message);
+            const newNodes: Node[] = [];
+            for (const component of parsed.components) {
+              const x = newNodes.length * 250 + 50;
+              const y = Math.floor(newNodes.length / 3) * 200 + 50;
+              const node = addNode(component, { x, y });
+              newNodes.push(node);
             }
+
+            const totalDuration = Date.now() - startTimeRef.current;
+
+            // Save to execution history (now goes to Supabase!)
+            addExecution({
+              command: message,
+              steps: steps,
+              duration: totalDuration,
+              status: 'completed',
+              layers_used: layersUsed,
+              metadata: {
+                apiResponse: result.type,
+                agents: result.orchestration?.agents,
+                totalTime: result.metadata?.totalTime,
+              },
+            });
+
+            processEvent({ type: 'complete' });
+
+            toast({
+              title: '✅ Hoàn thành',
+              description:
+                result.message?.substring(0, 100) || `Đã xử lý với ${layersUsed.length} layers`,
+            });
+          } else {
+            throw new Error(result.error || 'Unknown error');
           }
-
-          // Parse for visual components if applicable
-          const parsed = await parseAICommand(message);
-          const newNodes: Node[] = [];
-          for (const component of parsed.components) {
-            const x = newNodes.length * 250 + 50;
-            const y = Math.floor(newNodes.length / 3) * 200 + 50;
-            const node = addNode(component, { x, y });
-            newNodes.push(node);
-          }
-
-          const totalDuration = Date.now() - startTimeRef.current;
-          const layersUsed = finalResult?.metadata?.layersUsed || ['planning', 'orchestration', 'execution', 'learning'];
-
-          // Save to execution history (now goes to Supabase!)
-          addExecution({
-            command: message,
-            steps: steps,
-            duration: totalDuration,
-            status: 'completed',
-            layers_used: layersUsed,
-            metadata: {
-              apiResponse: finalResult?.type,
-              agents: finalResult?.orchestration?.agents,
-              totalTime: finalResult?.metadata?.totalTime,
-              streaming: true,
-            },
-          });
-
-          toast({
-            title: '✅ Hoàn thành',
-            description: finalResult?.message?.substring(0, 100) || `Đã xử lý với ${layersUsed.length} layers (SSE)`,
-          });
 
           setIsGenerating(false);
         } else {
@@ -254,7 +229,7 @@ export default function VisualWorkspace() {
         }
       } catch (error: any) {
         console.error('Error:', error);
-        
+
         // Check if cancelled by user
         if (error.name === 'AbortError') {
           processEvent({ type: 'error', error: 'Cancelled by user' });
@@ -270,7 +245,7 @@ export default function VisualWorkspace() {
             variant: 'destructive',
           });
         }
-        
+
         // Save failed execution
         addExecution({
           command: message,
@@ -279,7 +254,7 @@ export default function VisualWorkspace() {
           status: error.name === 'AbortError' ? 'cancelled' : 'failed',
           error: error.message,
         });
-        
+
         setIsGenerating(false);
       }
     },
@@ -307,176 +282,96 @@ export default function VisualWorkspace() {
     [toast]
   );
 
+  // Handle component selection from library
+  const handleComponentSelect = useCallback(
+    (component: ComponentDefinition) => {
+      const x = nodes.length * 250 + 50;
+      const y = Math.floor(nodes.length / 3) * 200 + 50;
+      addNode(component, { x, y });
+      toast({
+        title: 'Component added',
+        description: `Added ${component.label} to canvas`,
+      });
+    },
+    [nodes.length, addNode, toast]
+  );
+
   return (
-    <div className="h-screen w-screen bg-[#1a1a1a] text-white flex flex-col overflow-hidden">
-      {/* Top Toolbar - Lovable Style */}
-      <div className="h-14 bg-[#1a1a1a] border-b border-[#333] flex items-center justify-between px-4 shrink-0">
-        {/* Left - Project Name */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">LS</span>
+    <Layout>
+      <div className="h-[calc(100vh-4rem)] flex flex-col">
+        {/* Header */}
+        <div className="shrink-0 p-4 border-b flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Visual Workspace Builder</h1>
+            <p className="text-sm text-muted-foreground">
+              Build applications visually with AI assistance
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">Solo Hub Workspace</span>
-            <span className="text-xs text-gray-400">•</span>
-            <span className="text-xs text-gray-400">{isGenerating ? 'Thinking...' : 'Ready'}</span>
+          <div className="flex gap-2">
+            {isExecuting && (
+              <Button variant="destructive" size="sm" onClick={handleCancelExecution}>
+                <XCircle className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            )}
+            <ExecutionReportDialog />
           </div>
         </div>
 
-        {/* Center - Action Buttons */}
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-            <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 6v6l4 2"/>
-            </svg>
-            History
-          </Button>
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="bg-white text-black hover:bg-gray-200 rounded-full px-4"
-          >
-            <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-            Preview
-          </Button>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-            </svg>
-          </Button>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M7 17L17 7M17 7H7M17 7V17"/>
-            </svg>
-          </Button>
-        </div>
+        {/* Main workspace area with 3 panels */}
+        <div className="flex-1 min-h-0">
+          <ResizablePanelGroup direction="horizontal" className="h-full">
+            {/* Chat Panel with Component Library */}
+            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
+              <div className="flex flex-col h-full">
+                <div className="flex-1 min-h-0">
+                  <ChatPanel
+                    onSendMessage={handleSendMessage}
+                    isGenerating={isGenerating}
+                    className="h-full"
+                  />
+                </div>
+                <div className="border-t h-48 shrink-0">
+                  <ComponentLibrary onComponentSelect={handleComponentSelect} className="h-full" />
+                </div>
+              </div>
+            </ResizablePanel>
 
-        {/* Right - Share & Publish */}
-        <div className="flex items-center gap-2">
-          {isExecuting && (
-            <Button 
-              variant="destructive" 
-              size="sm"
-              onClick={handleCancelExecution}
-              className="rounded-full"
-            >
-              <XCircle className="h-4 w-4 mr-1" />
-              Cancel
-            </Button>
-          )}
-          <Button variant="ghost" size="sm" className="text-green-400 hover:text-green-300">
-            <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
-            Share
-          </Button>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-          </Button>
-          <Button className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-4">
-            Publish
-          </Button>
-        </div>
-      </div>
+            <ResizableHandle withHandle />
 
-      {/* Main Content - Full Height */}
-      <div className="flex-1 min-h-0">
-        <ResizablePanelGroup direction="horizontal" className="h-full">
-          {/* Left Panel - Chat */}
-          <ResizablePanel defaultSize={28} minSize={20} maxSize={45}>
-            <div className="h-full bg-[#1a1a1a] flex flex-col">
-              <ChatPanel
-                onSendMessage={handleSendMessage}
-                isGenerating={isGenerating}
+            {/* Canvas Panel */}
+            <ResizablePanel defaultSize={50} minSize={30}>
+              <VisualCanvas
+                nodes={allNodes}
+                edges={allEdges}
+                onNodesChange={(changes) => {
+                  if (!isExecuting) {
+                    handleNodesChange(changes);
+                  }
+                }}
+                onEdgesChange={(changes) => {
+                  if (!isExecuting) {
+                    handleEdgesChange(changes);
+                  }
+                }}
+                onConnect={handleConnect}
+                onNodeClick={(event, node) => {
+                  handleNodeClick(event, node);
+                  setSelectedNode(node);
+                }}
                 className="h-full"
               />
-            </div>
-          </ResizablePanel>
+            </ResizablePanel>
 
-          <ResizableHandle className="w-[1px] bg-[#333] hover:bg-purple-500 transition-colors" />
+            <ResizableHandle withHandle />
 
-          {/* Center - Preview/Canvas */}
-          <ResizablePanel defaultSize={44} minSize={30}>
-            <div className="h-full bg-[#0d0d0d] flex flex-col">
-              {/* Preview Header */}
-              <div className="h-10 bg-[#1a1a1a] border-b border-[#333] flex items-center justify-center gap-2 shrink-0">
-                <span className="text-gray-400 text-sm flex items-center gap-2">
-                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    <path d="M9 12l2 2 4-4"/>
-                  </svg>
-                  {isGenerating ? 'Getting ready...' : 'Live Preview'}
-                </span>
-              </div>
-              {/* Canvas/Preview Area */}
-              <div className="flex-1 min-h-0 relative">
-                <VisualCanvas
-                  nodes={allNodes}
-                  edges={allEdges}
-                  onNodesChange={(changes) => {
-                    if (!isExecuting) {
-                      handleNodesChange(changes);
-                    }
-                  }}
-                  onEdgesChange={(changes) => {
-                    if (!isExecuting) {
-                      handleEdgesChange(changes);
-                    }
-                  }}
-                  onConnect={handleConnect}
-                  onNodeClick={(event, node) => {
-                    handleNodeClick(event, node);
-                    setSelectedNode(node);
-                  }}
-                  className="h-full"
-                />
-              </div>
-            </div>
-          </ResizablePanel>
-
-          <ResizableHandle className="w-[1px] bg-[#333] hover:bg-purple-500 transition-colors" />
-
-          {/* Right Panel - Cloud/Preview */}
-          <ResizablePanel defaultSize={28} minSize={20} maxSize={40}>
-            <div className="h-full bg-[#1a1a1a] flex flex-col">
-              {/* Cloud Panel Header */}
-              <div className="h-10 border-b border-[#333] flex items-center px-4 shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 bg-[#2a2a2a] rounded px-2 py-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-xs text-gray-300">Cloud</span>
-                  </div>
-                  <span className="text-gray-500 text-sm">Solo Hub Cloud</span>
-                </div>
-                <Button variant="ghost" size="sm" className="ml-auto text-gray-400 text-xs">
-                  Close
-                </Button>
-              </div>
-              {/* Cloud Content */}
-              <PreviewPanel selectedNode={selectedNode} className="flex-1 min-h-0" />
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </div>
-
-      {/* Bottom Status Bar */}
-      <div className="h-6 bg-[#1a1a1a] border-t border-[#333] flex items-center justify-between px-4 text-xs text-gray-500 shrink-0">
-        <div className="flex items-center gap-4">
-          <span>🟢 API Connected</span>
-          <span>27 Actions Available</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <ExecutionReportDialog />
-          <span>v2.0 Solo Hub</span>
+            {/* Preview Panel */}
+            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
+              <PreviewPanel selectedNode={selectedNode} className="h-full" />
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
