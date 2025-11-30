@@ -3,21 +3,20 @@
  * Custom React Flow nodes for UI components, APIs, and data flows
  */
 
-import { Handle, Position, NodeProps } from 'reactflow';
+import { cn } from '@/lib/utils';
 import {
   Box,
-  FileText,
-  Database,
-  Zap,
-  Globe,
-  Layers,
   Code,
-  Image,
+  Database,
+  FileText,
   FormInput,
-  Button as ButtonIcon,
+  Globe,
+  Image,
   Layout,
+  MousePointerClick,
+  Zap,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Handle, NodeProps, Position } from 'reactflow';
 
 // Base node style
 const baseNodeStyle = 'px-4 py-3 rounded-xl text-white shadow-lg border-2 min-w-[140px]';
@@ -25,7 +24,7 @@ const baseNodeStyle = 'px-4 py-3 rounded-xl text-white shadow-lg border-2 min-w-
 // UI Component Node
 export function UIComponentNode({ data, selected }: NodeProps) {
   const iconMap: Record<string, typeof Box> = {
-    button: ButtonIcon,
+    button: MousePointerClick,
     form: FormInput,
     card: Layout,
     image: Image,
@@ -166,4 +165,3 @@ export const nodeTypes = {
   database: DatabaseNode,
   customComponent: CustomComponentNode,
 };
-

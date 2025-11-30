@@ -26,13 +26,17 @@ router.post('/create', async (req, res) => {
       });
     }
 
-    const carousel = await carouselCreator.createCarousel({
+    const result = await carouselCreator.createCarousel({
       pageId: pageId || 'sabo_arena',
       topic,
       slideCount: slideCount || 5,
       theme: theme || 'story',
       style: style || 'modern',
+      generateImages: false, // Skip image generation for speed (can regenerate later)
     });
+
+    // createCarousel returns { success, carousel, metadata }
+    const carousel = result.carousel;
 
     res.json({
       success: true,
@@ -40,15 +44,18 @@ router.post('/create', async (req, res) => {
         id: carousel.id,
         topic: carousel.topic,
         theme: carousel.theme,
+        caption: carousel.caption,
         slideCount: carousel.slides?.length || 0,
         slides: carousel.slides?.map((s, i) => ({
           index: i + 1,
-          headline: s.headline,
+          title: s.title,
+          headline: s.title,
           description: s.description?.substring(0, 100) + '...',
           hasImage: !!s.imageUrl,
           imageUrl: s.imageUrl,
         })),
-        status: carousel.status,
+        hashtags: carousel.hashtags,
+        status: carousel.status || 'draft',
       },
     });
   } catch (error) {

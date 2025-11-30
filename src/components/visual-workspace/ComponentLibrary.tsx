@@ -5,21 +5,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Box,
-  FileText,
-  Database,
-  Zap,
-  Globe,
-  Layers,
-  Code,
-  Image,
-  FormInput,
-  Button as ButtonIcon,
-  Layout,
-  Package,
-} from 'lucide-react';
 import { ComponentDefinition } from '@/hooks/useVisualWorkspace';
+import { Box, Database, FormInput, Globe, Layout, MousePointerClick, Package } from 'lucide-react';
 
 interface ComponentTemplate {
   id: string;
@@ -35,7 +22,7 @@ const COMPONENT_TEMPLATES: ComponentTemplate[] = [
   {
     id: 'button',
     name: 'Button',
-    icon: ButtonIcon,
+    icon: MousePointerClick,
     type: 'uiComponent',
     componentType: 'button',
     description: 'Interactive button component',
@@ -223,4 +210,3 @@ export function ComponentLibrary({ onComponentSelect, className = '' }: Componen
     </Card>
   );
 }
-

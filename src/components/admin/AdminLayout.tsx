@@ -16,17 +16,17 @@ import {
   FolderOpen,
   GraduationCap,
   HardDrive,
+  HelpCircle,
   Home,
   LayoutDashboard,
   Menu,
-  Network,
+  Palette,
   Settings,
   TrendingUp,
   Users,
   Workflow,
   X,
   Zap,
-  HelpCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -69,6 +69,13 @@ const adminNavGroups = [
         href: '/admin/ai-workspace',
         badge: '⭐ NEW',
         description: '6 Trợ lý AI chuyên biệt',
+      },
+      {
+        title: '🎨 Visual Workspace',
+        icon: Palette,
+        href: '/admin/visual-workspace',
+        badge: '🔥 NEW',
+        description: 'Build apps trực quan với AI',
       },
       {
         title: '🎯 AI Command Center',
@@ -258,9 +265,9 @@ export const AdminLayout = () => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => navigate('/admin/docs/viewer')}
               title="Tài liệu hướng dẫn"
             >

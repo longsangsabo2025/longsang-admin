@@ -138,6 +138,9 @@ const copilotBridgeRoutes = require('./routes/copilot-bridge');
 // Sentry Webhook API (Production error tracking)
 const sentryRoutes = require('./routes/sentry');
 
+// Error Collector API (Multi-project errors → GitHub Auto-Fix)
+const errorsRoutes = require('./routes/errors');
+
 // Solo Hub AI Chat (Backend proxy for OpenAI/Anthropic)
 const soloHubChatRoutes = require('./routes/solo-hub-chat');
 
@@ -261,6 +264,9 @@ app.use('/api/copilot-bridge', copilotBridgeRoutes);
 
 // Sentry Webhook API (Production error tracking → WebSocket → VS Code)
 app.use('/api/sentry', sentryRoutes);
+
+// Error Collector API (Multi-project errors → GitHub Auto-Fix)
+app.use('/api/errors', errorsRoutes);
 
 // Solo Hub AI Chat API (Backend proxy for OpenAI/Anthropic)
 app.use('/api/solo-hub', aiLimiter, soloHubChatRoutes);
