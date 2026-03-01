@@ -1,0 +1,225 @@
+{
+  "hero": {
+    "greeting": "Xin chào, tôi là Long Sang",
+    "headline1": "Xây Dựng",
+    "headline2": "Giải Pháp AI",
+    "headline3": "Tự Động Hóa Doanh Nghiệp",
+    "subheadline": "Full-stack Developer chuyên phát triển AI Agent, ứng dụng Mobile và hệ thống tự động hóa quy trình",
+    "tagline": "Vũng Tàu, Việt Nam 🇻🇳",
+    "latestBadge": "✨ Dự Án Mới Nhất: SABO ARENA",
+    "cta1": "Xem Dự Án",
+    "cta2": "Liên Hệ Tư Vấn",
+    "scrollText": "Cuộn xuống để khám phá"
+  },
+  "stats": {
+    "experience": "Năm Kinh Nghiệm",
+    "years": "năm",
+    "projects": "Dự Án Hoàn Thành",
+    "clients": "Khách Hàng Hài Lòng",
+    "satisfaction": "Tỷ Lệ Hài Lòng"
+  },
+  "services": {
+    "header": "Dịch Vụ",
+    "subtitle": "Những Gì Tôi Làm",
+    "learnMore": "Tìm Hiểu Thêm",
+    "mobile": {
+      "title": "Phát Triển Ứng Dụng Mobile",
+      "description": "Xây dựng ứng dụng mobile hiện đại với Flutter và React Native, tối ưu cho iOS và Android với hiệu suất cao và UX mượt mà."
+    },
+    "web": {
+      "title": "Phát Triển Web Full-Stack",
+      "description": "Tạo các ứng dụng web quy mô lớn với React, Next.js và TypeScript. Từ landing page đến nền tảng SaaS phức tạp với kiến trúc hiện đại."
+    },
+    "automation": {
+      "title": "Tự Động Hóa Quy Trình",
+      "description": "Tối ưu hóa quy trình kinh doanh với Zapier, Make, n8n và các giải pháp tự động hóa tùy chỉnh. Tiết kiệm thời gian và chi phí vận hành."
+    },
+    "ai": {
+      "title": "Giải Pháp AI & Chatbot",
+      "description": "Tích hợp AI vào ứng dụng với OpenAI, Claude, Gemini. Xây dựng chatbot thông minh, tự động hóa nội dung và phân tích dữ liệu bằng AI."
+    }
+  },
+  "projects": {
+    "header": "Dự Án",
+    "subtitle": "Công Việc Của Tôi",
+    "viewDetails": "Xem Chi Tiết"
+  },
+  "techStack": {
+    "header": "Công Nghệ",
+    "subtitle": "Các Công Nghệ Tôi Sử Dụng"
+  },
+  "featured": {
+    "badge": "Dự Án Nổi Bật",
+    "title": "SABO ARENA",
+    "tagline": "Nền Tảng Gaming & Thể Thao AI",
+    "challengeTitle": "Thách Thức",
+    "challengeText": "Xây dựng nền tảng gaming toàn diện với tính năng real-time, AI tự động và trải nghiệm người dùng liền mạch",
+    "solutionTitle": "Giải Pháp",
+    "solutionIntro": "Ứng dụng Flutter full-stack với AI, cập nhật real-time và kiến trúc hiện đại",
+    "features": [
+      "Theo dõi sự kiện gaming real-time",
+      "Gợi ý thông minh bằng AI",
+      "Tích hợp thanh toán liền mạch",
+      "Chat trực tiếp & thông báo"
+    ],
+    "techStackTitle": "Công Nghệ",
+    "resultsTitle": "Kết Quả & Tác Động",
+    "results": [
+      "50,000+ người dùng hoạt động tại 15 quốc gia",
+      "500+ giải đấu được tổ chức hàng tháng",
+      "4.8/5.0 đánh giá trung bình",
+      "Nổi bật trên App Store & Play Store"
+    ],
+    "cta": "Xem Dự Án"
+  },
+  "process": {
+    "header": "Quy Trình",
+    "subtitle": "Từ Ý Tưởng Đến Ra Mắt",
+    "timeline": "Quy trình 4 bước đã được chứng minh để xây dựng sản phẩm xuất sắc",
+    "step1": {
+      "number": "01",
+      "title": "Khám Phá",
+      "activities": [
+        "Tư vấn khách hàng",
+        "Thu thập yêu cầu",
+        "Nghiên cứu khả thi"
+      ]
+    },
+    "step2": {
+      "number": "02",
+      "title": "Thiết Kế",
+      "activities": ["Wireframe UI/UX", "Kiến trúc database", "Thiết kế API"]
+    },
+    "step3": {
+      "number": "03",
+      "title": "Phát Triển",
+      "activities": [
+        "Phát triển frontend",
+        "Tích hợp API backend",
+        "Testing & QA"
+      ]
+    },
+    "step4": {
+      "number": "04",
+      "title": "Triển Khai",
+      "activities": [
+        "Deploy production",
+        "Giám sát hiệu suất",
+        "Hỗ trợ liên tục"
+      ]
+    }
+  },
+  "learning": {
+    "header": "Trung Tâm Học Tập",
+    "subtitle": "Nâng Cao Kỹ Năng",
+    "courses": {
+      "badge": "Khóa Học Phổ Biến",
+      "items": [
+        "Phát Triển AI Agent",
+        "Full-Stack Web Development",
+        "Phát Triển Ứng Dụng Di Động",
+        "Kiến Trúc Cloud"
+      ],
+      "cta": "Khám Phá Khóa Học"
+    },
+    "resources": {
+      "badge": "Tài Nguyên Miễn Phí",
+      "items": [
+        "Video Hướng Dẫn & Tài Liệu",
+        "Mẫu Mã Nguồn Mở",
+        "Hỗ Trợ Cộng Đồng",
+        "Live Coding Sessions"
+      ],
+      "cta": "Truy Cập Tài Nguyên"
+    }
+  },
+  "contact": {
+    "header": "Liên Hệ",
+    "subtitle": "Cùng Xây Dựng Điều Tuyệt Vời",
+    "form": {
+      "name": "Tên",
+      "namePlaceholder": "Tên của bạn",
+      "email": "Email",
+      "emailPlaceholder": "email.cua.ban@example.com",
+      "service": "Dịch Vụ",
+      "servicePlaceholder": "Chọn dịch vụ",
+      "serviceOptions": {
+        "mobile": "Phát Triển Ứng Dụng Di Động",
+        "web": "Phát Triển Web",
+        "automation": "Tự Động Hóa AI",
+        "ai": "Phát Triển AI Agent",
+        "notSure": "Chưa chắc chắn"
+      },
+      "budget": "Ngân Sách",
+      "budgetPlaceholder": "Chọn ngân sách",
+      "budgetOptions": {
+        "under5k": "Dưới $5,000",
+        "5k15k": "$5,000 - $15,000",
+        "15k50k": "$15,000 - $50,000",
+        "50kPlus": "Trên $50,000",
+        "notSure": "Chưa chắc chắn"
+      },
+      "message": "Tin Nhắn",
+      "messagePlaceholder": "Nói cho tôi biết về dự án của bạn...",
+      "newsletter": "Đăng ký nhận tin",
+      "submit": "Gửi Tin Nhắn",
+      "submitting": "Đang gửi..."
+    },
+    "validation": {
+      "nameRequired": "Vui lòng nhập tên",
+      "nameMax": "Tên phải ít hơn 100 ký tự",
+      "emailInvalid": "Vui lòng nhập email hợp lệ",
+      "emailMax": "Email phải ít hơn 255 ký tự",
+      "serviceRequired": "Vui lòng chọn dịch vụ",
+      "messageMin": "Tin nhắn phải có ít nhất 20 ký tự",
+      "messageMax": "Tin nhắn phải ít hơn 1000 ký tự"
+    },
+    "success": {
+      "title": "Gửi tin nhắn thành công!",
+      "message": "Tôi sẽ phản hồi trong vòng 24 giờ."
+    },
+    "error": {
+      "message": "Gửi tin nhắn thất bại. Vui lòng thử lại."
+    },
+    "info": {
+      "email": "Email Cho Tôi",
+      "bookCall": "Đặt Lịch Gọi",
+      "bookCallText": "Đặt lịch tư vấn miễn phí",
+      "connect": "Kết Nối",
+      "location": "Địa Điểm",
+      "locationText": "Vũng Tàu, Việt Nam",
+      "timezone": "GMT+7 (ICT)"
+    },
+    "consultations": {
+      "free": {
+        "badge": "MIỄN PHÍ",
+        "title": "Cuộc Gọi Tìm Hiểu",
+        "duration": "30 phút",
+        "description": "Cùng thảo luận về dự án và cách tôi có thể giúp bạn",
+        "cta": "Đặt Lịch Miễn Phí"
+      },
+      "paid": {
+        "badge": "TRẢ PHÍ",
+        "title": "Phiên Tư Vấn Chuyên Sâu",
+        "duration": "60 phút",
+        "description": "Tư vấn kỹ thuật chi tiết với khuyến nghị khả thi",
+        "price": "$100",
+        "cta": "Đặt Phiên Tư Vấn"
+      }
+    }
+  },
+  "nav": {
+    "home": "Trang Chủ",
+    "about": "Giới Thiệu",
+    "services": "Dịch Vụ",
+    "projects": "Dự Án",
+    "academy": "Học Viện",
+    "contact": "Liên Hệ"
+  },
+  "footer": {
+    "copyright": "© 2025 Long Sang. Bảo lưu mọi quyền.",
+    "quickLinks": "Liên Kết",
+    "followMe": "Theo Dõi",
+    "builtWith": "Xây dựng với React & Supabase"
+  }
+}

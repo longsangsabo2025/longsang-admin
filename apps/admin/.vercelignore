@@ -1,0 +1,78 @@
+# =============================================
+# VERCEL BUILD EXCLUSIONS
+# Only include: src/, public/, package.json, configs
+# =============================================
+
+# Large folders - NOT needed for frontend build
+mcp-server/
+docs/
+_DOCS/
+long-sang-forge/
+temp/
+tmp/
+.venv/
+.electron-data/
+
+# API folder - Deploy separately
+api/
+
+# Desktop/Extension - Deploy separately  
+electron/
+browser-extension/
+
+# Dev tools
+ai-agent-starter-kit/
+ai-workflows-library/
+n8n/
+n8n-workflows/
+
+# Tests
+tests/
+*.test.ts
+*.test.tsx
+vitest.config.ts
+
+# Database
+database/
+/supabase/
+
+# Archive
+_archive/
+
+# Scripts (keep only essential)
+scripts/
+
+# Git/Editor
+.git/
+.github/
+.vscode/
+.husky/
+
+# Env files
+.env*
+*.local
+
+# Logs
+logs/
+*.log
+server.log
+
+# Data files
+data/
+templates/
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.*.json
+!components.json
+!vercel.json
+!src/i18n/locales/*.json
+
+# Images (except public)
+*.jpg
+*.png
+
+# Markdown docs
+*.md
+!README.md

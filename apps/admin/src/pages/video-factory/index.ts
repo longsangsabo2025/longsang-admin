@@ -1,0 +1,16 @@
+// Barrel export for video-factory components
+export { StatusBadge } from './components/StatusBadge';
+export { StatsCards } from './components/StatsCards';
+export { QuickAddPanel } from './components/QuickAddPanel';
+export { AIBatchPanel } from './components/AIBatchPanel';
+export { VideoAnalyzerPanel } from './components/VideoAnalyzerPanel';
+export { AddJobDialog } from './components/AddJobDialog';
+export { QueueTable } from './components/QueueTable';
+export { PreviewDialog } from './components/PreviewDialog';
+export { GalleryTab } from './components/GalleryTab';
+export { CompositionsTab } from './components/CompositionsTab';
+export { CreateChannelDialog } from './components/CreateChannelDialog';
+export { ModelIntelligenceTab } from './components/ModelIntelligenceTab';
+export { ChannelsTab } from './components/ChannelsTab';
+export { StrategiesTab } from './components/StrategiesTab';
+export { AICommandCenterTab } from './components/AICommandCenterTab';

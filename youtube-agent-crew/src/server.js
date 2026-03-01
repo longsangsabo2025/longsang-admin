@@ -408,35 +408,109 @@ app.get('/api/admin/outputs', (_req, res) => {
     const outputDir = join(__dirname, '..', 'output');
     if (!existsSync(outputDir)) return res.json({ outputs: [], total: 0 });
     
-    const dirs = readdirSync(outputDir).filter(f => {
-      const fp = join(outputDir, f);
-      return statSync(fp).isDirectory();
-    }).sort().reverse(); // newest first
+    // Internal/system directories to exclude from output listing
+    const INTERNAL_DIRS = new Set(['.checkpoints', '_stage_tests', '_pre_generated', '_batch', '_video-factory']);
     
-    const outputs = dirs.map(dir => {
+    const outputs = [];
+    
+    // 1) Main pipeline outputs (youtube-podcast_*, standalone_*)
+    const topDirs = readdirSync(outputDir).filter(f => {
+      const fp = join(outputDir, f);
+      return statSync(fp).isDirectory() && !INTERNAL_DIRS.has(f);
+    });
+    
+    for (const dir of topDirs) {
       const dirPath = join(outputDir, dir);
-      const files = readdirSync(dirPath);
+      const files = readdirSync(dirPath).filter(f => !statSync(join(dirPath, f)).isDirectory());
       const hasVideo = files.some(f => f.endsWith('.mp4'));
-      const hasScript = files.some(f => f.includes('script'));
-      const hasThumbnail = files.some(f => f.endsWith('.png') || f.endsWith('.jpg'));
+      const hasScript = files.some(f => f === 'script.txt' || f === 'script.json');
+      const hasAudio = readdirSync(dirPath).some(f => f === 'audio');
       
-      // Try to read metadata
+      // Extract title from metadata or script
+      let title = dir;
       let metadata = null;
-      const metaFile = files.find(f => f.includes('metadata') || f.includes('meta'));
+      const metaFile = files.find(f => f === 'metadata.json');
       if (metaFile) {
-        try { metadata = JSON.parse(readFileSync(join(dirPath, metaFile), 'utf-8')); } catch {}
+        try {
+          metadata = JSON.parse(readFileSync(join(dirPath, metaFile), 'utf-8'));
+          // Handle nested metadata structure: metadata.metadata.youtube.title
+          title = metadata?.metadata?.youtube?.title || metadata?.title || dir;
+        } catch {}
+      }
+      if (title === dir) {
+        const scriptMeta = files.find(f => f === 'script.json');
+        if (scriptMeta) {
+          try { title = JSON.parse(readFileSync(join(dirPath, scriptMeta), 'utf-8'))?.title || dir; } catch {}
+        }
       }
       
-      return {
+      outputs.push({
         id: dir,
-        files: files,
+        type: dir.startsWith('youtube-podcast') ? 'pipeline' : 'standalone',
+        title,
+        files,
         hasVideo,
         hasScript,
-        hasThumbnail,
+        hasAudio,
         metadata,
         createdAt: statSync(dirPath).mtime.toISOString(),
-      };
-    });
+      });
+    }
+    
+    // 2) Video Factory scripts (from ✍️ Tạo Script & tools/video-factory)
+    const vfDir = join(outputDir, '_video-factory');
+    if (existsSync(vfDir)) {
+      const vfDirs = readdirSync(vfDir).filter(f => statSync(join(vfDir, f)).isDirectory());
+      for (const dir of vfDirs) {
+        const dirPath = join(vfDir, dir);
+        const files = readdirSync(dirPath).filter(f => !statSync(join(dirPath, f)).isDirectory());
+        let title = dir.replace(/_\d+$/, '').replace(/-/g, ' ');
+        const scriptMeta = files.find(f => f === 'script.json');
+        if (scriptMeta) {
+          try { title = JSON.parse(readFileSync(join(dirPath, scriptMeta), 'utf-8'))?.title || title; } catch {}
+        }
+        outputs.push({
+          id: `_video-factory/${dir}`,
+          type: 'script',
+          title,
+          files,
+          hasVideo: false,
+          hasScript: files.some(f => f === 'script.txt'),
+          hasAudio: false,
+          metadata: null,
+          createdAt: statSync(dirPath).mtime.toISOString(),
+        });
+      }
+    }
+    
+    // 3) Batch results
+    const batchDir = join(outputDir, '_batch');
+    if (existsSync(batchDir)) {
+      const batchDirs = readdirSync(batchDir).filter(f => statSync(join(batchDir, f)).isDirectory());
+      for (const dir of batchDirs) {
+        const dirPath = join(batchDir, dir);
+        const files = readdirSync(dirPath).filter(f => !statSync(join(dirPath, f)).isDirectory());
+        const scriptFiles = files.filter(f => f.endsWith('.txt'));
+        let report = null;
+        if (files.includes('_report.json')) {
+          try { report = JSON.parse(readFileSync(join(dirPath, '_report.json'), 'utf-8')); } catch {}
+        }
+        outputs.push({
+          id: `_batch/${dir}`,
+          type: 'batch',
+          title: `Batch: ${scriptFiles.length} scripts`,
+          files,
+          hasVideo: false,
+          hasScript: scriptFiles.length > 0,
+          hasAudio: false,
+          metadata: report,
+          createdAt: statSync(dirPath).mtime.toISOString(),
+        });
+      }
+    }
+    
+    // Sort newest first
+    outputs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
     res.json({ outputs, total: outputs.length });
   } catch (err) {
@@ -765,26 +839,70 @@ app.get('/api/admin/batches', (_req, res) => {
 
 /**
  * GET /api/admin/script/:outputId — Read a generated script
+ * Supports outputId like: youtube-podcast_xxx, _video-factory/dir, _batch/dir
  */
-app.get('/api/admin/script/:outputId', (req, res) => {
+app.get('/api/admin/script/:outputId(*)', (req, res) => {
   try {
     const outputId = req.params.outputId;
-    // Search in _video-factory and _batch dirs
-    const dirs = [
-      join(__dirname, '..', 'output', '_video-factory', outputId),
-      join(__dirname, '..', 'output', '_batch', outputId),
+    const outputBase = join(__dirname, '..', 'output');
+    
+    // Search in multiple locations
+    const candidates = [
+      join(outputBase, outputId),                          // direct (youtube-podcast_*, standalone_*)
+      join(outputBase, '_video-factory', outputId),        // legacy single-segment lookup
+      join(outputBase, '_batch', outputId),                // legacy single-segment lookup
     ];
     
-    for (const dir of dirs) {
-      const scriptFile = join(dir, 'script.txt');
-      if (existsSync(scriptFile)) {
-        const script = readFileSync(scriptFile, 'utf-8');
+    for (const dir of candidates) {
+      if (!existsSync(dir)) continue;
+      
+      // For batch dirs, list all script files
+      const files = readdirSync(dir).filter(f => !statSync(join(dir, f)).isDirectory());
+      const scriptFile = files.find(f => f === 'script.txt');
+      const txtFiles = files.filter(f => f.endsWith('.txt') && f !== '_report.json');
+      
+      if (scriptFile) {
+        // Single script output
+        const script = readFileSync(join(dir, scriptFile), 'utf-8');
         let meta = null;
-        const metaFile = join(dir, 'script.json');
-        if (existsSync(metaFile)) {
-          try { meta = JSON.parse(readFileSync(metaFile, 'utf-8')); } catch {}
+        if (files.includes('script.json')) {
+          try { meta = JSON.parse(readFileSync(join(dir, 'script.json'), 'utf-8')); } catch {}
         }
-        return res.json({ script, metadata: meta, outputId });
+        let pipelineMeta = null;
+        if (files.includes('metadata.json')) {
+          try { pipelineMeta = JSON.parse(readFileSync(join(dir, 'metadata.json'), 'utf-8')); } catch {}
+        }
+        let results = null;
+        if (files.includes('results.json')) {
+          try { results = JSON.parse(readFileSync(join(dir, 'results.json'), 'utf-8')); } catch {}
+        }
+        return res.json({
+          script,
+          metadata: meta,
+          pipelineMeta,
+          results,
+          outputId,
+          files,
+          wordCount: script.split(/\s+/).filter(Boolean).length,
+        });
+      } else if (txtFiles.length > 0) {
+        // Batch dir with multiple scripts
+        const scripts = txtFiles.map(f => ({
+          filename: f,
+          content: readFileSync(join(dir, f), 'utf-8'),
+          wordCount: readFileSync(join(dir, f), 'utf-8').split(/\s+/).filter(Boolean).length,
+        }));
+        let report = null;
+        if (files.includes('_report.json')) {
+          try { report = JSON.parse(readFileSync(join(dir, '_report.json'), 'utf-8')); } catch {}
+        }
+        return res.json({
+          scripts,
+          report,
+          outputId,
+          files,
+          type: 'batch',
+        });
       }
     }
     

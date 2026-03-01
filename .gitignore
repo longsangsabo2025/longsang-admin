@@ -62,13 +62,12 @@ youtube-agent-crew/data/*.txt
 *.FLAC
 *.flac
 
-# ── Phase 1: ONLY youtube-agent-crew ──
-# Everything else excluded. Will add in Phase 2/3.
+# ── Phase 2: youtube-agent-crew + admin dashboard ──
 AI Influencer/
 longsang-admin-mobile/
 voxcpm-tts/
 Trợ lý đọc sách/
-apps/
+apps/manager/
 marketingskills/
 docs/
 n8n-workflows/
@@ -78,6 +77,16 @@ scripts/
 .dev-pids
 .copilot*
 *.bat
+
+# ── Admin: exclude heavy non-frontend dirs ──
+apps/admin/api/
+apps/admin/supabase/
+apps/admin/services/
+apps/admin/brain-upgrade/
+apps/admin/.github/
+apps/admin/.husky/
+apps/admin/templates/
+**/package-lock.json
 *.ps1
 
 # ── State files ──

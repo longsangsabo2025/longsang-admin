@@ -1,0 +1,66 @@
+{
+  "name": "LongSang Admin",
+  "short_name": "LS Admin",
+  "description": "Remote Admin Dashboard - Commit, Push, Deploy từ điện thoại",
+  "start_url": "/mobile",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "vi",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities", "developer tools"],
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "description": "Mobile Dashboard",
+      "url": "/mobile",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Git Operations",
+      "short_name": "Git",
+      "description": "Commit, Push, Pull",
+      "url": "/mobile/git",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Deploy",
+      "short_name": "Deploy",
+      "description": "Deploy to Vercel",
+      "url": "/mobile/deploy",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "AI Chat",
+      "short_name": "Chat",
+      "description": "Chat with AI Assistant",
+      "url": "/mobile/chat",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "display_override": ["standalone", "browser"],
+  "prefer_related_applications": false
+}

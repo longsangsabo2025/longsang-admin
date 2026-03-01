@@ -1,0 +1,413 @@
+{
+  "name": "Solo Founder - AI Agent Task Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-task",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - New Task",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "agent-task-router"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.body.taskType}}",
+              "operation": "equals",
+              "value2": "content"
+            }
+          ]
+        }
+      },
+      "id": "if-content",
+      "name": "Is Content Task?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.body.taskType}}",
+              "operation": "equals",
+              "value2": "dev"
+            }
+          ]
+        }
+      },
+      "id": "if-dev",
+      "name": "Is Dev Task?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 350]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.body.taskType}}",
+              "operation": "equals",
+              "value2": "marketing"
+            }
+          ]
+        }
+      },
+      "id": "if-marketing",
+      "name": "Is Marketing Task?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 500]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a Content Writer Agent for a solo founder business.\n\nTask: {{$json.body.task}}\nContext: {{$json.body.context}}\n\nCreate professional content based on the request. Consider:\n- Target audience: {{$json.body.audience || 'solo founders and indie hackers'}}\n- Tone: Professional but friendly\n- Include actionable insights\n- Keep it concise and valuable\n\nReturn your response as JSON with: { title, content, hashtags, platform_notes }",
+              "role": "user"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "content-agent",
+      "name": "Content Agent GPT",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [750, 150],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a Dev Agent for a solo founder tech business.\n\nTask: {{$json.body.task}}\nContext: {{$json.body.context}}\nCodebase: React + TypeScript + Supabase\n\nAnalyze the request and provide:\n1. Technical approach\n2. Files that need changes\n3. Code snippets if applicable\n4. Estimated complexity (low/medium/high)\n5. Potential risks\n\nReturn as JSON with: { approach, files, code_snippets, complexity, risks, next_steps }",
+              "role": "user"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "dev-agent",
+      "name": "Dev Agent GPT",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [750, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a Marketing Agent for a solo founder business.\n\nTask: {{$json.body.task}}\nContext: {{$json.body.context}}\nBudget: {{$json.body.budget || 'limited - prefer organic'}}\n\nProvide marketing strategy including:\n1. Campaign approach\n2. Channels to use\n3. Key messaging\n4. Timeline\n5. Expected results\n6. Required resources\n\nReturn as JSON with: { strategy, channels, messaging, timeline, expected_results, resources_needed }",
+              "role": "user"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.5
+        }
+      },
+      "id": "marketing-agent",
+      "name": "Marketing Agent GPT",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [750, 450],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/agent_responses",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"task_id\": \"{{$node['Webhook - New Task'].json.body.taskId}}\",\n  \"agent_type\": \"content\",\n  \"response\": {{JSON.stringify($json.text)}},\n  \"status\": \"completed\"\n}"
+      },
+      "id": "save-content-response",
+      "name": "Save Content Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 150]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/agent_responses",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"task_id\": \"{{$node['Webhook - New Task'].json.body.taskId}}\",\n  \"agent_type\": \"dev\",\n  \"response\": {{JSON.stringify($json.text)}},\n  \"status\": \"completed\"\n}"
+      },
+      "id": "save-dev-response",
+      "name": "Save Dev Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/agent_responses",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"task_id\": \"{{$node['Webhook - New Task'].json.body.taskId}}\",\n  \"agent_type\": \"marketing\",\n  \"response\": {{JSON.stringify($json.text)}},\n  \"status\": \"completed\"\n}"
+      },
+      "id": "save-marketing-response",
+      "name": "Save Marketing Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 450]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Task processed\",\n  \"taskId\": \"{{$node['Webhook - New Task'].json.body.taskId}}\"\n}"
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - New Task": {
+      "main": [
+        [
+          {
+            "node": "Is Content Task?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Dev Task?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Marketing Task?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Content Task?": {
+      "main": [
+        [
+          {
+            "node": "Content Agent GPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Dev Task?": {
+      "main": [
+        [
+          {
+            "node": "Dev Agent GPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Marketing Task?": {
+      "main": [
+        [
+          {
+            "node": "Marketing Agent GPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Agent GPT": {
+      "main": [
+        [
+          {
+            "node": "Save Content Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dev Agent GPT": {
+      "main": [
+        [
+          {
+            "node": "Save Dev Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing Agent GPT": {
+      "main": [
+        [
+          {
+            "node": "Save Marketing Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Content Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Dev Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Marketing Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "solo-founder"
+    },
+    {
+      "name": "agent-router"
+    },
+    {
+      "name": "automation"
+    }
+  ]
+}

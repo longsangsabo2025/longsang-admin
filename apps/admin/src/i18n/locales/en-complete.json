@@ -1,0 +1,209 @@
+{
+  "hero": {
+    "greeting": "Hi, I'm Long Sang",
+    "headline1": "I Build",
+    "headline2": "AI-Powered Solutions",
+    "headline3": "That Scale",
+    "subheadline": "Full-stack developer specializing in AI automation, web3, and enterprise applications",
+    "tagline": "Based in Vung Tau, Vietnam 🇻🇳",
+    "latestBadge": "✨ Latest Work: SABO ARENA",
+    "cta1": "View My Work",
+    "cta2": "Get In Touch",
+    "scrollText": "Scroll to explore"
+  },
+  "stats": {
+    "experience": "Years Experience",
+    "years": "years",
+    "projects": "Projects Completed",
+    "clients": "Happy Clients",
+    "satisfaction": "Satisfaction Rate"
+  },
+  "services": {
+    "header": "Services",
+    "subtitle": "What I Do",
+    "learnMore": "Learn More"
+  },
+  "projects": {
+    "header": "Projects",
+    "subtitle": "My Work",
+    "viewDetails": "View Details"
+  },
+  "techStack": {
+    "header": "Tech Stack",
+    "subtitle": "Technologies I Use"
+  },
+  "featured": {
+    "badge": "Featured Project",
+    "title": "SABO ARENA",
+    "tagline": "AI-Powered Gaming & Sports Platform",
+    "challengeTitle": "The Challenge",
+    "challengeText": "Build a comprehensive gaming platform with real-time features, AI automation, and seamless user experience",
+    "solutionTitle": "The Solution",
+    "solutionIntro": "A full-stack Flutter app with AI-powered features, real-time updates, and modern architecture",
+    "features": [
+      "Real-time gaming events tracking",
+      "AI-powered recommendations",
+      "Seamless payment integration",
+      "Live chat & notifications"
+    ],
+    "techStackTitle": "Tech Stack",
+    "resultsTitle": "Results & Impact",
+    "results": [
+      "50,000+ active users across 15 countries",
+      "500+ tournaments organized monthly",
+      "4.8/5.0 average user rating",
+      "Featured on App Store & Play Store"
+    ],
+    "cta": "View Live Project"
+  },
+  "process": {
+    "header": "Our Process",
+    "subtitle": "From Idea to Launch",
+    "timeline": "Our proven 4-step approach to building exceptional products",
+    "step1": {
+      "number": "01",
+      "title": "Discover",
+      "activities": [
+        "Client consultation",
+        "Requirements gathering",
+        "Technical feasibility study"
+      ]
+    },
+    "step2": {
+      "number": "02",
+      "title": "Design",
+      "activities": ["UI/UX wireframing", "Database architecture", "API design"]
+    },
+    "step3": {
+      "number": "03",
+      "title": "Develop",
+      "activities": [
+        "Frontend development",
+        "Backend API integration",
+        "Testing & QA"
+      ]
+    },
+    "step4": {
+      "number": "04",
+      "title": "Deliver",
+      "activities": [
+        "Production deployment",
+        "Performance monitoring",
+        "Ongoing support"
+      ]
+    }
+  },
+  "learning": {
+    "header": "Learning Center",
+    "subtitle": "Level Up Your Skills",
+    "courses": {
+      "badge": "Popular Courses",
+      "items": [
+        "AI Agent Development",
+        "Full-Stack Web Development",
+        "Mobile App Development",
+        "Cloud Architecture"
+      ],
+      "cta": "Explore Courses"
+    },
+    "resources": {
+      "badge": "Free Resources",
+      "items": [
+        "Video Tutorials & Guides",
+        "Open Source Templates",
+        "Community Support",
+        "Live Coding Sessions"
+      ],
+      "cta": "Access Resources"
+    }
+  },
+  "contact": {
+    "header": "Get In Touch",
+    "subtitle": "Let's Build Something Amazing",
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "your.email@example.com",
+      "service": "Service",
+      "servicePlaceholder": "Select a service",
+      "serviceOptions": {
+        "mobile": "Mobile App Development",
+        "web": "Web Development",
+        "automation": "AI Automation",
+        "ai": "AI Agent Development",
+        "notSure": "Not sure yet"
+      },
+      "budget": "Budget",
+      "budgetPlaceholder": "Select your budget",
+      "budgetOptions": {
+        "under5k": "Under $5,000",
+        "5k15k": "$5,000 - $15,000",
+        "15k50k": "$15,000 - $50,000",
+        "50kPlus": "$50,000+",
+        "notSure": "Not sure yet"
+      },
+      "message": "Message",
+      "messagePlaceholder": "Tell me about your project...",
+      "newsletter": "Subscribe to newsletter",
+      "submit": "Send Message",
+      "submitting": "Sending..."
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMax": "Name must be less than 100 characters",
+      "emailInvalid": "Please enter a valid email",
+      "emailMax": "Email must be less than 255 characters",
+      "serviceRequired": "Please select a service",
+      "messageMin": "Message must be at least 20 characters",
+      "messageMax": "Message must be less than 1000 characters"
+    },
+    "success": {
+      "title": "Message sent successfully!",
+      "message": "I'll get back to you within 24 hours."
+    },
+    "error": {
+      "message": "Failed to send message. Please try again."
+    },
+    "info": {
+      "email": "Email Me",
+      "bookCall": "Book a Call",
+      "bookCallText": "Schedule a free consultation",
+      "connect": "Connect",
+      "location": "Location",
+      "locationText": "Vung Tau, Vietnam",
+      "timezone": "GMT+7 (ICT)"
+    },
+    "consultations": {
+      "free": {
+        "badge": "FREE",
+        "title": "Discovery Call",
+        "duration": "30 minutes",
+        "description": "Let's discuss your project and see how I can help",
+        "cta": "Book Free Call"
+      },
+      "paid": {
+        "badge": "PAID",
+        "title": "Deep Dive Session",
+        "duration": "60 minutes",
+        "description": "In-depth technical consultation with actionable recommendations",
+        "price": "$100",
+        "cta": "Book Paid Session"
+      }
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "projects": "Projects",
+    "academy": "Academy",
+    "contact": "Contact"
+  },
+  "footer": {
+    "copyright": "© 2025 Long Sang. All rights reserved.",
+    "quickLinks": "Quick Links",
+    "followMe": "Follow Me",
+    "builtWith": "Built with React & Supabase"
+  }
+}

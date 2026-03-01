@@ -1,0 +1,156 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# =============================================
+# PRODUCTION EXCLUSIONS - Large/Dev-only folders
+# =============================================
+
+# MCP Server (644MB) - Not needed for frontend
+mcp-server/
+
+# Documentation (568MB) - Not needed for production
+docs/
+_DOCS/
+
+# Sub-projects - Separate repos
+long-sang-forge/
+chrono-desk-port/
+petrol-forge/
+quest-learn-forge-94455/
+sabohub-nexus/
+vungtau-dream-homes/
+vungtauland/
+
+# Temp/Cache folders
+temp/
+tmp/
+.venv/
+.electron-data/
+
+# Desktop app - Deploy separately
+electron/
+browser-extension/
+
+# AI/Dev tools - Not for production
+ai-agent-starter-kit/
+ai-workflows-library/
+
+# n8n workflows - Deploy separately
+n8n/
+n8n-workflows/
+
+# Test files
+tests/
+*.test.ts
+*.test.tsx
+*.spec.ts
+vitest.config.ts
+
+# Database migrations - Run separately
+database/
+
+# Archive
+_archive/
+
+# Build artifacts
+*.tsbuildinfo
+
+# =============================================
+# SECRETS & CREDENTIALS
+# =============================================
+
+# API keys and sensitive data
+api/keys/
+api/credentials/
+
+.vercel
+
+# Cloudflare credentials
+.env.cloudflare
+
+# Secrets and tokens - DO NOT COMMIT
+*.pickle
+*token*.json
+*_token.json
+*.credentials.json
+*client_secret*.json
+.google-business-tokens.json
+
+# MCP Supabase config with tokens
+.vscode/mcp-supabase.config.local.json
+*config.local.json
+*mcp*.local.json
+
+# Sensitive scripts
+scripts/*credentials*.cjs
+scripts/*token*.cjs
+scripts/*openai*.js
+scripts/*openai*.ps1
+scripts/get-linkedin-token.cjs
+scripts/get-youtube-token.cjs
+scripts/create-and-seed-credentials.cjs
+scripts/seed-real-credentials*.cjs
+
+# =============================================
+# MISC
+# =============================================
+
+# Temp files
+*.jpg
+*.png
+!public/**/*.jpg
+!public/**/*.png
+!src/**/*.jpg
+!src/**/*.png
+
+# Lock files - regenerate on install
+bun.lockb
+
+# Reports/logs
+*.txt
+!README.txt
+eslint-output.txt
+server.log
+
+# JSON data files (keep package.json, tsconfig, etc)
+jobs*.json
+runs*.json
+issues.json
+targeting.json
+workflow-runs.json
+drive-root.json
+n8n-import-data.json
+temp_request.json
+
+.vercel
+.env*.local
+node_modules

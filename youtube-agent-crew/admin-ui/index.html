@@ -520,9 +520,94 @@
 
     // ══════════════ OUTPUTS ══════════════
     async function renderOutputs(c) {
-      c.innerHTML = `<div class="page-header"><h2>📦 Videos Output</h2></div><div id="out-list"><div class="loading"><div class="spinner"></div>Đang tải...</div></div>`;
-      try { const d = await api('/api/admin/outputs'); const el = document.getElementById('out-list'); if (!d.outputs.length) { el.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>Chưa có output</p></div>'; return; } el.innerHTML = d.outputs.map(o=>`<div class="run-card"><div class="run-info"><div class="run-name">${esc(o.metadata?.title||o.id)}</div><div class="run-meta">${o.hasVideo?'🎬':''}${o.hasScript?'📝':''} · ${o.files.length} files · ${new Date(o.createdAt).toLocaleDateString('vi-VN')}</div></div>${o.hasVideo?'<span class="badge badge-success">Video</span>':'<span class="badge badge-warning">Script</span>'}</div>`).join(''); }
-      catch(e) { document.getElementById('out-list').innerHTML = `<p style="color:var(--danger)">${e.message}</p>`; }
+      c.innerHTML = `<div class="page-header"><h2>📦 Videos Output</h2><p>Tất cả scripts & videos đã tạo</p></div>
+        <div class="table-toolbar" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px">
+          <select class="filter-select" id="out-filter"><option value="">Tất cả</option><option value="pipeline">⚡ Pipeline</option><option value="script">✍️ Script</option><option value="batch">🚀 Batch</option><option value="standalone">🎤 Standalone</option></select>
+          <span id="out-count" style="font-size:13px;color:var(--text-dim);margin-left:auto"></span>
+        </div>
+        <div id="out-list"><div class="loading"><div class="spinner"></div>Đang tải...</div></div>`;
+      document.getElementById('out-filter').addEventListener('change', () => renderOutputList());
+      await loadOutputs();
+    }
+    let _allOutputs = [];
+    async function loadOutputs() {
+      try { const d = await api('/api/admin/outputs'); _allOutputs = d.outputs || []; renderOutputList(); }
+      catch(e) { document.getElementById('out-list').innerHTML = `<p style="color:var(--danger);padding:20px">${e.message}</p>`; }
+    }
+    function renderOutputList() {
+      const filter = document.getElementById('out-filter')?.value || '';
+      const items = filter ? _allOutputs.filter(o => o.type === filter) : _allOutputs;
+      document.getElementById('out-count').textContent = `${items.length} kết quả`;
+      const el = document.getElementById('out-list');
+      if (!items.length) { el.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>Chưa có output</p></div>'; return; }
+      const typeIcon = { pipeline: '⚡', script: '✍️', batch: '🚀', standalone: '🎤' };
+      const typeBadge = { pipeline: 'badge-success', script: 'badge-cat', batch: 'badge-warning', standalone: 'badge-source' };
+      el.innerHTML = items.map(o => {
+        const icon = typeIcon[o.type] || '📄';
+        const badge = typeBadge[o.type] || 'badge-cat';
+        const date = new Date(o.createdAt).toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        const tags = [o.hasScript?'📝 Script':'', o.hasAudio?'🎵 Audio':'', o.hasVideo?'🎬 Video':''].filter(Boolean).join(' · ');
+        return `<div class="run-card" style="cursor:pointer" onclick="showOutput('${esc(o.id)}')">
+          <div style="font-size:24px;width:40px;text-align:center">${icon}</div>
+          <div class="run-info">
+            <div class="run-name">${esc(o.title)}</div>
+            <div class="run-meta">${tags} · ${o.files.length} files · ${date}</div>
+          </div>
+          <span class="badge ${badge}">${o.type}</span>
+        </div>`;
+      }).join('');
+    }
+    async function showOutput(id) {
+      openModal('Đang tải...');
+      try {
+        const d = await api(`/api/admin/script/${encodeURIComponent(id)}`);
+        const o = _allOutputs.find(x => x.id === id);
+        document.getElementById('modal-title').textContent = o?.title || id;
+        
+        if (d.type === 'batch') {
+          // Batch view
+          const scripts = d.scripts || [];
+          document.getElementById('modal-body').innerHTML = `
+            <div class="transcript-meta">
+              <div class="transcript-meta-item"><strong>Batch:</strong> ${scripts.length} scripts</div>
+              ${d.report ? `<div class="transcript-meta-item"><strong>Thành công:</strong> ${d.report.success}/${d.report.total}</div>` : ''}
+            </div>
+            ${scripts.map((s, i) => `
+              <div style="margin-bottom:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                  <h4 style="color:var(--text-bright);font-size:14px">${i+1}. ${esc(s.filename)}</h4>
+                  <span style="font-size:12px;color:var(--text-dim)">${s.wordCount} từ</span>
+                </div>
+                <div class="transcript-content" style="max-height:200px">${esc(s.content)}</div>
+              </div>`).join('')}`;
+        } else {
+          // Single script view
+          const script = d.script || '';
+          const wc = d.wordCount || script.split(/\\s+/).filter(Boolean).length;
+          const meta = d.metadata || {};
+          const pMeta = d.pipelineMeta?.metadata?.youtube || {};
+          const title = pMeta.title || meta.title || o?.title || id;
+          const desc = pMeta.description || '';
+          document.getElementById('modal-title').textContent = title;
+          document.getElementById('modal-body').innerHTML = `
+            <div class="transcript-meta">
+              <div class="transcript-meta-item"><strong>Từ:</strong> ${wc}</div>
+              <div class="transcript-meta-item"><strong>Thời lượng:</strong> ≈${Math.round(wc/150)} phút</div>
+              ${meta.model ? `<div class="transcript-meta-item"><strong>Model:</strong> ${meta.model}</div>` : ''}
+              ${meta.cost ? `<div class="transcript-meta-item"><strong>Chi phí:</strong> $${Number(meta.cost).toFixed(4)}</div>` : ''}
+              <div class="transcript-meta-item"><strong>Files:</strong> ${(d.files||[]).join(', ')}</div>
+            </div>
+            ${desc ? `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:var(--text-dim)">${esc(desc)}</div>` : ''}
+            <div style="margin-bottom:12px;display:flex;gap:8px">
+              <button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(window._oscript);toast('Copied!','info')">📋 Copy Script</button>
+              <button class="btn btn-outline btn-sm" onclick="goCalendar('${esc(title).replace(/'/g,"\\'")}')">📅 Thêm lịch</button>
+            </div>
+            <div class="content-viewer">${esc(script)}</div>`;
+          window._oscript = script;
+        }
+      } catch(e) {
+        document.getElementById('modal-body').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${e.message}</p><p style="margin-top:8px;font-size:12px;color:var(--text-dim)">Output này có thể không chứa script (chỉ có audio)</p></div>`;
+      }
     }
 
     // ══════════════ MODAL ══════════════

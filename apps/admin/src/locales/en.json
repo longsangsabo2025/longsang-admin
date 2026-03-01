@@ -1,0 +1,283 @@
+{
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "projects": "Projects",
+    "techStack": "Tech Stack",
+    "learning": "Learning",
+    "contact": "Contact",
+    "bookCall": "Book Call"
+  },
+  "hero": {
+    "greeting": "HI, I'M LONG SANG",
+    "headline1": "CRAFTING",
+    "headline2": "SMART SOLUTIONS",
+    "headline3": "THAT SCALE",
+    "subheadline": "Transform Ideas Into Products • Optimize Workflows • Drive Sustainable Growth",
+    "tagline": "Full-Stack Development • Consultation • Training",
+    "latestBadge": "✨ Latest: SABO Arena V3 - Tournament Management System",
+    "cta1": "Book Free Consultation",
+    "cta2": "View Case Studies",
+    "scrollText": "Discover What I Do"
+  },
+  "stats": {
+    "projects": "Projects",
+    "linesOfCode": "Lines of Code",
+    "technologies": "Technologies",
+    "experience": "Experience",
+    "reliability": "Reliability",
+    "support": "Support",
+    "years": "YEARS"
+  },
+  "services": {
+    "header": "WHAT I DO",
+    "subtitle": "Full-Stack Digital Solutions",
+    "mobile": {
+      "title": "Mobile App Development",
+      "description": "Build production-ready iOS and Android applications using Flutter. From concept to App Store deployment.",
+      "tech": "Flutter • Dart • iOS • Android"
+    },
+    "web": {
+      "title": "Web Development",
+      "description": "Custom web applications with React and Next.js. Fast, responsive, and scalable.",
+      "tech": "React • Next.js • TypeScript • Tailwind"
+    },
+    "automation": {
+      "title": "Business Automation",
+      "description": "Eliminate repetitive tasks. Custom workflows that save 60-80% of manual work.",
+      "tech": "Zapier • Make • n8n • APIs"
+    },
+    "ai": {
+      "title": "AI Solutions & Consulting",
+      "description": "Integrate AI into your business. Chatbots, document processing, and more.",
+      "tech": "OpenAI • Claude • Gemini • LangChain"
+    },
+    "learnMore": "Learn More →"
+  },
+  "featured": {
+    "badge": "⭐ FEATURED PROJECT",
+    "title": "SABO Arena V3",
+    "tagline": "Professional Tournament Management System",
+    "challengeTitle": "THE CHALLENGE",
+    "challengeText": "Billiards clubs needed a comprehensive system to manage complex tournaments with multiple bracket formats, real-time ELO calculations, and automatic player progression - all while maintaining 99.9% accuracy.",
+    "solutionTitle": "THE SOLUTION",
+    "solutionIntro": "Built a production-ready Flutter mobile application with:",
+    "features": [
+      "8 tournament bracket formats (Single/Double Elimination, Round Robin, Swiss, etc.)",
+      "Factory Pattern architecture for scalability",
+      "Real-time Supabase backend with PostgreSQL",
+      "Automatic match progression with mathematical formulas",
+      "ELO rating system with position-based rewards",
+      "Professional documentation and comprehensive testing"
+    ],
+    "techStackTitle": "TECH STACK",
+    "techStack": "Flutter • Dart • Supabase • PostgreSQL • Real-time",
+    "resultsTitle": "RESULTS & IMPACT",
+    "results": [
+      "80% reduction in manual tournament management time",
+      "Support for 100+ concurrent tournaments",
+      "99.9% reliability with zero data loss",
+      "Production deployment to real billiards clubs",
+      "Positive user feedback and rapid adoption"
+    ],
+    "cta": "View Full Case Study →"
+  },
+  "projects": {
+    "header": "OTHER PROJECTS",
+    "subtitle": "Selected Work",
+    "ecommerce": {
+      "title": "E-Commerce Automation System",
+      "description": "Automated order processing and inventory management system that reduced order processing time by 70% using Python, Zapier, and Shopify API.",
+      "tech": "Python • Zapier • Shopify • PostgreSQL"
+    },
+    "analytics": {
+      "title": "Business Analytics Dashboard",
+      "description": "Real-time analytics and reporting platform consolidating data from 5+ sources. Built with React, Node.js, and PostgreSQL.",
+      "tech": "React • Node.js • PostgreSQL • Chart.js"
+    },
+    "aiDoc": {
+      "title": "AI Document Processor",
+      "description": "Automated document extraction and categorization system using OpenAI API. Saved 20+ hours per week in manual data entry.",
+      "tech": "OpenAI • Python • Firebase • Cloud Functions"
+    },
+    "viewDetails": "View Details →"
+  },
+  "techStack": {
+    "header": "TECHNOLOGIES & TOOLS",
+    "subtitle": "My Tech Arsenal",
+    "mobile": "MOBILE DEVELOPMENT",
+    "web": "WEB DEVELOPMENT",
+    "backend": "BACKEND & DATABASE",
+    "ai": "AI & AUTOMATION",
+    "devops": "DEVOPS & TOOLS"
+  },
+  "process": {
+    "header": "HOW I WORK",
+    "subtitle": "From Idea to Launch",
+    "step1": {
+      "number": "01",
+      "title": "DISCOVER",
+      "activities": [
+        "Free 30-minute consultation",
+        "Understand your goals and challenges",
+        "Define project scope and requirements",
+        "Provide initial timeline and budget estimate"
+      ]
+    },
+    "step2": {
+      "number": "02",
+      "title": "DESIGN",
+      "activities": [
+        "Create wireframes and prototypes",
+        "Plan system architecture",
+        "Design user experience (UX)",
+        "Get your feedback and iterate"
+      ]
+    },
+    "step3": {
+      "number": "03",
+      "title": "BUILD",
+      "activities": [
+        "Agile development sprints (2-week cycles)",
+        "Regular progress updates",
+        "Testing throughout development",
+        "Code reviews and quality assurance"
+      ]
+    },
+    "step4": {
+      "number": "04",
+      "title": "LAUNCH",
+      "activities": [
+        "Deployment to production",
+        "User training and documentation",
+        "Post-launch support (30 days)",
+        "Ongoing maintenance available"
+      ]
+    },
+    "timeline": "Average Project Timeline: 4-12 weeks depending on complexity"
+  },
+  "learning": {
+    "header": "LEARN & GROW",
+    "subtitle": "Courses and Resources",
+    "courses": {
+      "badge": "📚 ONLINE COURSES",
+      "items": [
+        "Flutter Mastery",
+        "Business Automation Fundamentals",
+        "AI Integration",
+        "Advanced Web Development"
+      ],
+      "cta": "Browse Courses →"
+    },
+    "resources": {
+      "badge": "🆓 FREE RESOURCES",
+      "items": [
+        "Technical Blog Posts",
+        "Code Snippets & Templates",
+        "Digital Transformation Guides",
+        "Industry Case Studies"
+      ],
+      "cta": "Access Resources →"
+    }
+  },
+  "contact": {
+    "header": "LET'S BUILD SOMETHING AMAZING",
+    "subtitle": "Ready to Start Your Project?",
+    "form": {
+      "name": "Your Name *",
+      "namePlaceholder": "Enter your full name",
+      "email": "Email Address *",
+      "emailPlaceholder": "your.email@example.com",
+      "service": "Service Interested In *",
+      "servicePlaceholder": "Select a service",
+      "serviceOptions": {
+        "mobile": "Mobile App Development",
+        "web": "Web Development",
+        "automation": "Business Automation",
+        "ai": "AI Solutions & Consulting",
+        "notSure": "Not sure yet"
+      },
+      "budget": "Project Budget (Optional)",
+      "budgetPlaceholder": "Select budget range",
+      "budgetOptions": {
+        "under5k": "Under $5,000",
+        "5k15k": "$5,000 - $15,000",
+        "15k50k": "$15,000 - $50,000",
+        "50kPlus": "$50,000+",
+        "notSure": "Not sure yet"
+      },
+      "message": "Tell me about your project *",
+      "messagePlaceholder": "Describe your project, goals, and timeline...",
+      "newsletter": "Subscribe to newsletter for tips and updates",
+      "submit": "Send Message →",
+      "submitting": "Sending..."
+    },
+    "validation": {
+      "nameRequired": "Please enter your name",
+      "nameMax": "Name must be less than 100 characters",
+      "emailRequired": "Please enter your email",
+      "emailInvalid": "Please enter a valid email address",
+      "emailMax": "Email must be less than 255 characters",
+      "serviceRequired": "Please select a service",
+      "messageRequired": "Please tell me about your project",
+      "messageMin": "Message must be at least 20 characters",
+      "messageMax": "Message must be less than 1000 characters"
+    },
+    "success": {
+      "title": "Thank you! Your message has been sent successfully.",
+      "message": "I'll get back to you within 24 hours."
+    },
+    "error": {
+      "message": "Something went wrong. Please try again or email me directly at contact@longsang.org"
+    },
+    "info": {
+      "email": "📧 EMAIL",
+      "bookCall": "💬 BOOK A CALL",
+      "bookCallText": "Schedule a free 30-minute consultation",
+      "connect": "🔗 CONNECT",
+      "location": "📍 LOCATION",
+      "locationText": "Vũng Tàu, Vietnam",
+      "timezone": "Timezone: ICT (UTC+7)"
+    },
+    "consultations": {
+      "free": {
+        "badge": "🆓 FREE",
+        "title": "Quick Review",
+        "duration": "(30 minutes)",
+        "description": "Perfect for initial project discussion and feasibility assessment.",
+        "cta": "Book Now"
+      },
+      "paid": {
+        "badge": "💎 PAID",
+        "title": "Technical Audit",
+        "duration": "(2 hours)",
+        "description": "Detailed analysis with architecture planning and accurate timeline.",
+        "price": "Starting at 2,000,000 VNĐ",
+        "cta": "Learn More"
+      }
+    }
+  },
+  "footer": {
+    "brand": "LONG SANG",
+    "tagline": "Digital Product Developer & Consultant",
+    "description": "Build production-ready applications with Flutter, React, and modern tech. Based in Vũng Tàu, Vietnam.",
+    "quickLinks": "QUICK LINKS",
+    "links": {
+      "home": "Home",
+      "about": "About",
+      "projects": "Projects",
+      "contact": "Contact",
+      "blog": "Blog (coming soon)"
+    },
+    "services": "SERVICES",
+    "servicesList": {
+      "mobile": "Mobile App Development",
+      "web": "Web Development",
+      "automation": "Business Automation",
+      "ai": "AI Solutions & Consulting"
+    },
+    "copyright": "© 2025 Long Sang. Built with ❤️ using React + Lovable",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  }
+}
