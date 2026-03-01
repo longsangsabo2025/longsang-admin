@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: youtube-pipeline
+    runtime: docker
+    plan: starter  # $7/mo, always on
+    healthCheckPath: /health
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      # All other env vars (API keys, etc.) set in Render dashboard
+    autoDeploy: false

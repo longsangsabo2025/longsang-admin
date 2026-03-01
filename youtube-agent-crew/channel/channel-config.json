@@ -1,0 +1,205 @@
+{
+  "channel": {
+    "name": "ĐỨNG DẬY ĐI",
+    "handle": "@dungdaydi",
+    "tagline": "Podcast truyền cảm hứng cho người Việt — Mỗi ngày mạnh hơn hôm qua",
+    "language": "vi",
+    "country": "VN",
+    "created": "2026-02-25"
+  },
+
+  "description": "ĐỨNG DẬY ĐI — Podcast phát triển bản thân dành cho người Việt trẻ.\n\nBạn đang mệt mỏi? Bạn đang mất phương hướng? Bạn muốn thay đổi cuộc đời nhưng không biết bắt đầu từ đâu?\n\nĐỨNG DẬY ĐI là kênh podcast giúp bạn xây dựng tư duy mạnh mẽ, phát triển sự nghiệp, quản lý tài chính cá nhân, và sống có mục đích. Mỗi tập podcast là một bài học thực chiến được đúc kết từ sách hay, nghiên cứu tâm lý học, và kinh nghiệm thực tế.\n\nChủ đề chính:\n• Phát triển bản thân & tư duy tích cực\n• Xây dựng thói quen thành công\n• Tâm lý học ứng dụng & sức khỏe tinh thần\n• Quản lý tài chính cá nhân & đầu tư\n• Kinh doanh & khởi nghiệp cho người trẻ\n• Tóm tắt sách hay & bài học cuộc sống\n• Kỹ năng giao tiếp & lãnh đạo\n\nMỗi ngày một tập mới — Hãy biến thời gian rảnh thành thời gian phát triển.\n\nĐăng ký kênh ngay hôm nay để không bỏ lỡ bất kỳ bài học nào. Mỗi ngày bạn nghe là mỗi ngày bạn mạnh hơn.\n\n#PodcastTiengViet #PhatTrienBanThan #DungDayDi #TuDuyThanhCong #MotivationVietnam",
+
+  "keywords": [
+    "podcast tiếng việt",
+    "phát triển bản thân",
+    "đứng dậy đi",
+    "tư duy tích cực",
+    "truyền cảm hứng",
+    "thói quen thành công",
+    "sách hay",
+    "tóm tắt sách",
+    "tâm lý học",
+    "sức khỏe tinh thần",
+    "quản lý tài chính",
+    "tài chính cá nhân",
+    "đầu tư cho người mới",
+    "kinh doanh",
+    "khởi nghiệp",
+    "kỹ năng giao tiếp",
+    "lãnh đạo",
+    "self improvement",
+    "motivation vietnam",
+    "vietnamese podcast",
+    "personal development",
+    "mindset",
+    "success habits",
+    "mental health",
+    "financial literacy",
+    "self help tiếng việt",
+    "cuộc sống có mục đích",
+    "thay đổi bản thân",
+    "chinh phục mục tiêu",
+    "podcast động lực",
+    "kỷ luật bản thân",
+    "thành công",
+    "tự do tài chính",
+    "book summary vietnamese",
+    "stoicism tiếng việt"
+  ],
+
+  "branding": {
+    "colors": {
+      "background": "#0a0a0f",
+      "text": "#e8e8e8",
+      "accent": "#c0c0c0"
+    },
+    "template": "Podcast Classic",
+    "font_primary": "Inter",
+    "font_accent": "Playfair Display",
+    "visual_style": "dark, minimal, cinematic typography"
+  },
+
+  "social_links": {
+    "website": "",
+    "tiktok": "",
+    "facebook": "",
+    "instagram": "",
+    "telegram": "",
+    "email": ""
+  },
+
+  "upload_defaults": {
+    "category_id": 22,
+    "category_name": "People & Blogs",
+    "language": "vi",
+    "default_language": "vi",
+    "privacy": "public",
+    "license": "youtube",
+    "embeddable": true,
+    "notify_subscribers": true,
+    "made_for_kids": false,
+    "tags_limit": 500,
+    "description_limit": 5000
+  },
+
+  "default_video_description": "{{title}}\n\n{{hook}}\n\n⏱️ MỤC LỤC:\n{{chapters}}\n\n📖 SÁCH ĐƯỢC NHẮC ĐẾN:\n{{books}}\n\n—————————————————————\n\n🎙️ ĐỨNG DẬY ĐI — Podcast phát triển bản thân mỗi ngày\nMỗi tập là một bài học giúp bạn mạnh hơn hôm qua.\n\n🔔 ĐĂNG KÝ KÊNH để không bỏ lỡ video mới mỗi ngày:\n{{channel_url}}\n\n📱 THEO DÕI:\n• TikTok: {{tiktok}}\n• Facebook: {{facebook}}\n• Instagram: {{instagram}}\n• Telegram: {{telegram}}\n\n—————————————————————\n\n💬 Bạn nghĩ gì về chủ đề hôm nay? Comment bên dưới!\nNếu video hữu ích, hãy LIKE & CHIA SẺ cho bạn bè nhé.\n\n—————————————————————\n\n#DungDayDi #PhatTrienBanThan #PodcastTiengViet #TuDuyThanhCong #ThayDoiBanThan #SachHay #MotivationVietnam #{{topic_hashtag}}",
+
+  "channel_sections": [
+    {
+      "type": "recentActivity",
+      "title": "Video mới nhất",
+      "position": 0
+    },
+    {
+      "type": "popularUploads",
+      "title": "Video phổ biến nhất",
+      "position": 1
+    },
+    {
+      "type": "singlePlaylist",
+      "title": "Phát triển bản thân",
+      "playlist_id": "{{pl_self_improvement}}",
+      "position": 2
+    },
+    {
+      "type": "singlePlaylist",
+      "title": "Tóm tắt sách hay",
+      "playlist_id": "{{pl_book_summaries}}",
+      "position": 3
+    },
+    {
+      "type": "singlePlaylist",
+      "title": "Kinh doanh & Khởi nghiệp",
+      "playlist_id": "{{pl_business}}",
+      "position": 4
+    },
+    {
+      "type": "singlePlaylist",
+      "title": "Tâm lý học & Sức khỏe tinh thần",
+      "playlist_id": "{{pl_psychology}}",
+      "position": 5
+    },
+    {
+      "type": "singlePlaylist",
+      "title": "Tài chính cá nhân",
+      "playlist_id": "{{pl_finance}}",
+      "position": 6
+    }
+  ],
+
+  "playlists": [
+    {
+      "id_key": "pl_self_improvement",
+      "title": "🔥 Phát triển bản thân",
+      "description": "Tư duy tích cực, thói quen thành công, kỷ luật bản thân — tất cả những gì bạn cần để trở thành phiên bản tốt nhất.",
+      "tags": ["phát triển bản thân", "tư duy tích cực", "thói quen thành công", "kỷ luật"]
+    },
+    {
+      "id_key": "pl_book_summaries",
+      "title": "📚 Tóm tắt sách hay",
+      "description": "Tiết kiệm thời gian đọc sách. Mỗi tập tóm tắt tinh hoa của một cuốn sách thay đổi cuộc đời.",
+      "tags": ["tóm tắt sách", "sách hay", "book summary", "đọc sách"]
+    },
+    {
+      "id_key": "pl_business",
+      "title": "💼 Kinh doanh & Khởi nghiệp",
+      "description": "Bài học kinh doanh, chiến lược khởi nghiệp, và tư duy doanh nhân cho người trẻ Việt.",
+      "tags": ["kinh doanh", "khởi nghiệp", "startup", "doanh nhân"]
+    },
+    {
+      "id_key": "pl_psychology",
+      "title": "🧠 Tâm lý học & Sức khỏe tinh thần",
+      "description": "Hiểu tâm lý con người, vượt qua lo âu, xây dựng tinh thần vững vàng mỗi ngày.",
+      "tags": ["tâm lý học", "sức khỏe tinh thần", "mental health", "lo âu", "stress"]
+    },
+    {
+      "id_key": "pl_finance",
+      "title": "💰 Tài chính cá nhân & Đầu tư",
+      "description": "Quản lý tiền, tiết kiệm thông minh, đầu tư cho người mới — con đường đến tự do tài chính.",
+      "tags": ["tài chính cá nhân", "đầu tư", "tiết kiệm", "tự do tài chính"]
+    },
+    {
+      "id_key": "pl_health",
+      "title": "💪 Sức khỏe & Năng lượng",
+      "description": "Thể dục, dinh dưỡng, giấc ngủ, năng lượng — nền tảng cho mọi thành công.",
+      "tags": ["sức khỏe", "thể dục", "dinh dưỡng", "năng lượng", "giấc ngủ"]
+    },
+    {
+      "id_key": "pl_communication",
+      "title": "🗣️ Giao tiếp & Lãnh đạo",
+      "description": "Kỹ năng giao tiếp, thuyết phục, lãnh đạo — vũ khí quan trọng nhất trong sự nghiệp.",
+      "tags": ["giao tiếp", "lãnh đạo", "thuyết phục", "kỹ năng mềm"]
+    },
+    {
+      "id_key": "pl_stoicism",
+      "title": "🏛️ Chủ nghĩa khắc kỷ & Triết học sống",
+      "description": "Triết học Stoicism, Marcus Aurelius, Seneca — bài học vượt thời gian cho cuộc sống hiện đại.",
+      "tags": ["stoicism", "triết học", "khắc kỷ", "Marcus Aurelius", "Seneca"]
+    },
+    {
+      "id_key": "pl_shorts",
+      "title": "⚡ Shorts — 60 giây thay đổi tư duy",
+      "description": "Bài học ngắn gọn, đúng trọng tâm — dành cho người bận rộn.",
+      "tags": ["shorts", "motivation shorts", "bài học ngắn", "tư duy"]
+    }
+  ],
+
+  "seo": {
+    "default_tags_prefix": ["ĐỨNG DẬY ĐI", "podcast tiếng việt", "phát triển bản thân"],
+    "default_tags_suffix": ["motivation vietnam", "vietnamese podcast", "self improvement"],
+    "hashtag_always": ["#DungDayDi", "#PhatTrienBanThan", "#PodcastTiengViet"],
+    "max_title_length": 70,
+    "max_description_length": 5000,
+    "max_tags_chars": 500
+  },
+
+  "automation": {
+    "publish_schedule": "daily 08:00 UTC+7",
+    "pipeline": "youtube-agent-crew",
+    "n8n_trigger": "daily 08:00",
+    "auto_thumbnail": true,
+    "auto_subtitles": true,
+    "default_template": "Podcast Classic"
+  }
+}

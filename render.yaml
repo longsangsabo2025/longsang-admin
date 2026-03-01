@@ -1,0 +1,26 @@
+# ═══════════════════════════════════════════════
+# RENDER BLUEPRINT — LongSang Phase 1
+# 1 service only: YouTube Video Factory
+# Cost: $7/month — always on
+# ═══════════════════════════════════════════════
+
+services:
+  # ── YouTube Video Factory ─────────────────────
+  # Input: topic/transcript → Output: script + storyboard
+  - type: web
+    name: youtube-pipeline
+    runtime: docker
+    plan: starter  # $7/mo — 512MB RAM, always on
+    region: singapore
+    healthCheckPath: /health
+    dockerfilePath: ./youtube-agent-crew/Dockerfile
+    dockerContext: ./youtube-agent-crew
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      # Secrets → set in Render Dashboard:
+      # GEMINI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+      # TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+    autoDeploy: false

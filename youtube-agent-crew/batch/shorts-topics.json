@@ -1,0 +1,89 @@
+{
+  "batch_name": "Shorts Batch 1 — 10 Shorts from Week 1 Long-Form",
+  "created_at": "2026-02-25",
+  "channel": "ĐỨNG DẬY ĐI",
+  "source": "Extracted 2 shorts per long-form video from week1-topics.json",
+  "pipeline": "youtube-shorts",
+  "topics": [
+    {
+      "id": 1,
+      "topic": "Ngủ 8 tiếng mà vẫn kiệt sức? Não bạn đang bị 'hack' mỗi đêm",
+      "source_video": 1,
+      "category": "sleep/health",
+      "hook_style": "shocking_stat",
+      "notes": "Focus: 90-minute sleep cycle — most people wake mid-cycle. One data point from Matthew Walker."
+    },
+    {
+      "id": 2,
+      "topic": "Nợ giấc ngủ KHÔNG trả được — và bạn đang nợ bao nhiêu?",
+      "source_video": 1,
+      "category": "sleep/health",
+      "hook_style": "provocative_question",
+      "notes": "Focus: sleep debt is cumulative and can't be repaid with one long weekend. Quantify the debt."
+    },
+    {
+      "id": 3,
+      "topic": "Xe ôm công nghệ kiếm 15 triệu/tháng. Chủ app kiếm 15 tỷ. Cùng 1 ngành.",
+      "source_video": 2,
+      "category": "business/money",
+      "hook_style": "contrast",
+      "notes": "Focus: earned income vs leveraged income. The driver trades time, the owner trades systems."
+    },
+    {
+      "id": 4,
+      "topic": "97% người đi làm sẽ KHÔNG BAO GIỜ giàu. Đây là lý do.",
+      "source_video": 2,
+      "category": "business/money",
+      "hook_style": "shocking_stat",
+      "notes": "Focus: the salary trap — linear income can never compound. Introduce the 3 levels of money."
+    },
+    {
+      "id": 5,
+      "topic": "Bạn không lười. Não bạn đang tự vệ — và đây là bằng chứng",
+      "source_video": 3,
+      "category": "psychology",
+      "hook_style": "reframe",
+      "notes": "Focus: decision fatigue makes procrastination feel like laziness. Reframe guilt into understanding."
+    },
+    {
+      "id": 6,
+      "topic": "2 phút. Đó là tất cả những gì bạn cần để phá vỡ trì hoãn.",
+      "source_video": 3,
+      "category": "psychology",
+      "hook_style": "actionable_promise",
+      "notes": "Focus: 2-minute rule from Atomic Habits. Start any task for just 2 minutes — momentum does the rest."
+    },
+    {
+      "id": 7,
+      "topic": "Nobel Prize nói bạn đang ra quyết định bằng bản năng — không phải logic",
+      "source_video": 4,
+      "category": "book_summary",
+      "hook_style": "authority",
+      "notes": "Focus: System 1 vs System 2 from Kahneman. Quick example: anchoring bias in salary negotiation."
+    },
+    {
+      "id": 8,
+      "topic": "Bạn nghĩ mình lý trí? Thử trả lời 1 câu hỏi này.",
+      "source_video": 4,
+      "category": "book_summary",
+      "hook_style": "challenge",
+      "notes": "Focus: the bat-and-ball problem ($1.10 total, bat costs $1 more than ball). Most people get it wrong."
+    },
+    {
+      "id": 9,
+      "topic": "Colonel Sanders 62 tuổi mới tạo KFC. Bạn 30 tuổi kêu muộn?",
+      "source_video": 5,
+      "category": "motivation",
+      "hook_style": "contrast",
+      "notes": "Focus: survivorship bias on social media — you only see 22-year-old millionaires, not the average path."
+    },
+    {
+      "id": 10,
+      "topic": "Không ai nợ bạn giấc mơ. Đứng dậy đi.",
+      "source_video": 5,
+      "category": "motivation",
+      "hook_style": "tough_love",
+      "notes": "Focus: channel signature CTA as a Short. Tough love manifesto — stop waiting for permission."
+    }
+  ]
+}

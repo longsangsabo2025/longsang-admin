@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ĐỨNG DẬY ĐI — Admin Dashboard</title>
+  <style>
+    /* ─── CSS Reset & Variables ──────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0f;
+      --bg-card: #12121a;
+      --bg-card-hover: #1a1a2e;
+      --bg-input: #16161f;
+      --border: #2a2a3a;
+      --text: #e0e0e8;
+      --text-dim: #8888a0;
+      --text-bright: #ffffff;
+      --accent: #ff6b35;
+      --accent-glow: rgba(255, 107, 53, 0.15);
+      --accent2: #00d4aa;
+      --accent3: #6366f1;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ─── Layout ─────────────────────────────────── */
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 260px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    .main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    /* ─── Sidebar ─────────────────────────────────── */
+    .sidebar-brand {
+      padding: 0 24px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .sidebar-brand h1 {
+      font-size: 18px;
+      color: var(--accent);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .sidebar-brand p {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .nav-section {
+      padding: 8px 16px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+      margin-top: 12px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 24px;
+      cursor: pointer;
+      color: var(--text-dim);
+      transition: all 0.2s;
+      font-size: 14px;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover { background: var(--bg-card-hover); color: var(--text); }
+    .nav-item.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      font-weight: 600;
+    }
+    .nav-icon { font-size: 18px; width: 24px; text-align: center; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    /* ─── Stats Cards ─────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: all 0.2s;
+    }
+    .stat-card:hover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow);
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text-bright);
+      line-height: 1;
+    }
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 6px;
+    }
+    .stat-card.accent .stat-value { color: var(--accent); }
+    .stat-card.green .stat-value { color: var(--accent2); }
+    .stat-card.purple .stat-value { color: var(--accent3); }
+
+    /* ─── Page Header ─────────────────────────────── */
+    .page-header {
+      margin-bottom: 24px;
+    }
+    .page-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-bright);
+    }
+    .page-header p {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    /* ─── Table ───────────────────────────────────── */
+    .table-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .search-input::placeholder { color: var(--text-dim); }
+    
+    select.filter-select {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+    select.filter-select:focus { border-color: var(--accent); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      vertical-align: middle;
+    }
+    tbody tr { transition: background 0.15s; }
+    tbody tr:hover { background: var(--bg-card-hover); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .video-title {
+      max-width: 400px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      color: var(--text-bright);
+    }
+    .video-title:hover { color: var(--accent); }
+
+    /* ─── Badges ──────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-cat { background: rgba(99,102,241,0.15); color: #818cf8; }
+    .badge-source { background: rgba(0,212,170,0.12); color: var(--accent2); }
+    .badge-success { background: rgba(16,185,129,0.15); color: var(--success); }
+    .badge-warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .badge-danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+    .badge-running { background: rgba(99,102,241,0.15); color: var(--accent3); animation: pulse 2s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ─── Pagination ──────────────────────────────── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+    }
+    .pagination-info { font-size: 13px; color: var(--text-dim); }
+    .pagination-btns { display: flex; gap: 6px; }
+    .page-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .page-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ─── Modal ───────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h3 {
+      font-size: 18px;
+      color: var(--text-bright);
+      font-weight: 700;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-body {
+      padding: 24px;
+    }
+    .transcript-content {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 14px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      max-height: 500px;
+      overflow-y: auto;
+      color: var(--text);
+    }
+    .transcript-meta {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .transcript-meta-item {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .transcript-meta-item strong { color: var(--text); }
+
+    /* ─── Source Chart ─────────────────────────────── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .chart-card h4 {
+      font-size: 14px;
+      color: var(--text-bright);
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+    .bar-chart { display: flex; flex-direction: column; gap: 8px; }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .bar-label {
+      width: 100px;
+      font-size: 12px;
+      color: var(--text-dim);
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .bar-track {
+      flex: 1;
+      height: 22px;
+      background: var(--bg);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      min-width: 30px;
+    }
+
+    /* ─── Brain / Voice viewer ────────────────────── */
+    .content-viewer {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 14px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      max-height: 600px;
+      overflow-y: auto;
+      color: var(--text);
+    }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      padding: 8px 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* ─── Btn ─────────────────────────────────────── */
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #e55a2a; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ─── Pipeline Card ───────────────────────────── */
+    .pipeline-form {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .form-row {
+      display: flex;
+      gap: 12px;
+      align-items: end;
+      flex-wrap: wrap;
+    }
+    .form-group { flex: 1; min-width: 200px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+
+    /* ─── Run cards ───────────────────────────────── */
+    .run-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .run-info { flex: 1; }
+    .run-id { font-size: 13px; color: var(--text-dim); font-family: monospace; }
+    .run-name { font-size: 15px; color: var(--text-bright); font-weight: 600; }
+    .run-meta { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+    /* ─── Loading shimmer ─────────────────────────── */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+    .spinner {
+      width: 24px; height: 24px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Empty state ─────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-dim);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ─── Toast notification ──────────────────────── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 14px;
+      box-shadow: var(--shadow);
+      animation: slideIn 0.3s ease;
+      max-width: 360px;
+    }
+    .toast.success { border-left: 3px solid var(--success); }
+    .toast.error { border-left: 3px solid var(--danger); }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 16px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-brand">
+        <h1>🔥 ĐỨNG DẬY ĐI</h1>
+        <p>Video Factory Admin</p>
+      </div>
+      
+      <div class="nav-section">Dashboard</div>
+      <div class="nav-item active" data-page="dashboard">
+        <span class="nav-icon">📊</span>
+        <span>Tổng quan</span>
+      </div>
+      
+      <div class="nav-section">Knowledge Base</div>
+      <div class="nav-item" data-page="videos">
+        <span class="nav-icon">🎬</span>
+        <span>Video Transcripts</span>
+        <span class="nav-badge" id="nav-video-count">—</span>
+      </div>
+      <div class="nav-item" data-page="brain">
+        <span class="nav-icon">🧠</span>
+        <span>Brain & Voice</span>
+      </div>
+      <div class="nav-item" data-page="search">
+        <span class="nav-icon">🔍</span>
+        <span>Tìm kiếm</span>
+      </div>
+      
+      <div class="nav-section">Production</div>
+      <div class="nav-item" data-page="pipeline">
+        <span class="nav-icon">🚀</span>
+        <span>Pipeline</span>
+      </div>
+      <div class="nav-item" data-page="outputs">
+        <span class="nav-icon">📦</span>
+        <span>Videos Output</span>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Pages rendered by JS -->
+      <div id="page-content"></div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">—</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    // ─── API Base ────────────────────────────────────
+    const API = '';  // same origin
+    let currentPage = 'dashboard';
+    let statsCache = null;
+
+    // ─── Navigation ──────────────────────────────────
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const page = item.dataset.page;
+        if (page === currentPage) return;
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        currentPage = page;
+        renderPage(page);
+      });
+    });
+
+    // ─── Page Router ─────────────────────────────────
+    async function renderPage(page) {
+      const container = document.getElementById('page-content');
+      container.innerHTML = '<div class="loading"><div class="spinner"></div>Đang tải...</div>';
+      
+      switch(page) {
+        case 'dashboard': await renderDashboard(container); break;
+        case 'videos':    await renderVideos(container); break;
+        case 'brain':     await renderBrain(container); break;
+        case 'search':    await renderSearch(container); break;
+        case 'pipeline':  await renderPipeline(container); break;
+        case 'outputs':   await renderOutputs(container); break;
+      }
+    }
+
+    // ─── API Helpers ─────────────────────────────────
+    async function api(path) {
+      const res = await fetch(API + path);
+      if (!res.ok) throw new Error(`API Error: ${res.status}`);
+      return res.json();
+    }
+    async function apiPost(path, body) {
+      const res = await fetch(API + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      return res.json();
+    }
+
+    function toast(msg, type = 'success') {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.textContent = msg;
+      document.getElementById('toast-container').appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }
+
+    function formatNumber(n) {
+      if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+      if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+      return String(n);
+    }
+
+    const CATEGORY_LABELS = {
+      'tam-ly': '🧠 Tâm lý',
+      'tai-chinh': '💰 Tài chính',
+      'phat-trien': '📈 Phát triển',
+      'kinh-doanh': '🏢 Kinh doanh',
+      'dia-chinh-tri': '🌍 Địa chính trị',
+      'xa-hoi': '👥 Xã hội',
+      'van-hoa': '🎭 Văn hóa',
+      'suc-khoe': '💪 Sức khỏe',
+      'triet-hoc': '📚 Triết học',
+    };
+    const SOURCE_COLORS = {
+      'hiddenself': '#6366f1',
+      'thuattaivan': '#f59e0b',
+      'hormozi': '#ef4444',
+      'akbimatluatngam': '#10b981',
+    };
+
+    // ─── Dashboard Page ──────────────────────────────
+    async function renderDashboard(container) {
+      try {
+        const stats = await api('/api/admin/stats');
+        statsCache = stats;
+        document.getElementById('nav-video-count').textContent = stats.totalVideos;
+        
+        const catEntries = Object.entries(stats.categories || {}).sort((a,b) => b[1]-a[1]);
+        const maxCat = catEntries[0]?.[1] || 1;
+
+        container.innerHTML = `
+          <div class="page-header">
+            <h2>📊 Tổng quan hệ thống</h2>
+            <p>ĐỨNG DẬY ĐI — Video Knowledge Factory</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card accent">
+              <div class="stat-label">Tổng Video Transcripts</div>
+              <div class="stat-value">${stats.totalVideos}</div>
+              <div class="stat-sub">${stats.sources?.length || 0} nguồn dữ liệu</div>
+            </div>
+            <div class="stat-card green">
+              <div class="stat-label">Sách (Books)</div>
+              <div class="stat-value">${stats.totalBooks}</div>
+              <div class="stat-sub">BRAIN.md: ${formatNumber(stats.brainSize)} chars</div>
+            </div>
+            <div class="stat-card purple">
+              <div class="stat-label">Danh mục</div>
+              <div class="stat-value">${catEntries.length}</div>
+              <div class="stat-sub">Phân loại AI tự động</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Videos Output</div>
+              <div class="stat-value">${stats.videosGenerated}</div>
+              <div class="stat-sub">Pipeline runs: ${stats.pipeline?.activeRuns || 0} active</div>
+            </div>
+          </div>
+
+          <div class="chart-grid">
+            <div class="chart-card">
+              <h4>📡 Nguồn dữ liệu</h4>
+              <div class="bar-chart">
+                ${(stats.sources || []).map(s => {
+                  const pct = Math.round(s.totalVideos / stats.totalVideos * 100);
+                  const color = SOURCE_COLORS[s.id] || '#6366f1';
+                  return `<div class="bar-row">
+                    <div class="bar-label">${s.label}</div>
+                    <div class="bar-track">
+                      <div class="bar-fill" style="width:${pct}%;background:${color}">${s.totalVideos}</div>
+                    </div>
+                  </div>`;
+                }).join('')}
+              </div>
+            </div>
+            <div class="chart-card">
+              <h4>📂 Phân bố danh mục</h4>
+              <div class="bar-chart">
+                ${catEntries.slice(0, 8).map(([cat, count]) => {
+                  const pct = Math.round(count / maxCat * 100);
+                  return `<div class="bar-row">
+                    <div class="bar-label">${CATEGORY_LABELS[cat] || cat}</div>
+                    <div class="bar-track">
+                      <div class="bar-fill" style="width:${pct}%;background:var(--accent3)">${count}</div>
+                    </div>
+                  </div>`;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <h4>⚙️ Trạng thái hệ thống</h4>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:16px; margin-top:12px">
+              <div><span style="color:var(--text-dim)">Server Uptime:</span> <strong>${Math.floor(stats.uptime/3600)}h ${Math.floor(stats.uptime%3600/60)}m</strong></div>
+              <div><span style="color:var(--text-dim)">Version:</span> <strong>${stats.version}</strong></div>
+              <div><span style="color:var(--text-dim)">Brain:</span> <strong>${stats.brainExists ? '✅ Loaded' : '❌ Missing'}</strong></div>
+              <div><span style="color:var(--text-dim)">Active Runs:</span> <strong>${stats.pipeline?.activeRuns || 0}</strong></div>
+            </div>
+          </div>
+        `;
+      } catch(err) {
+        container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Không thể kết nối server: ${err.message}</p><p style="margin-top:8px;font-size:12px">Đảm bảo server đang chạy: <code>npm run server</code></p></div>`;
+      }
+    }
+
+    // ─── Videos Page ─────────────────────────────────
+    let videosPage = 1;
+    let videosSource = '';
+    let videosCategory = '';
+    let videosQuery = '';
+
+    async function renderVideos(container) {
+      container.innerHTML = `
+        <div class="page-header">
+          <h2>🎬 Video Transcripts</h2>
+          <p>Toàn bộ 815 transcripts từ 4 nguồn</p>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input class="search-input" type="text" placeholder="Tìm kiếm video..." id="video-search" value="${videosQuery}">
+            <select class="filter-select" id="filter-source">
+              <option value="">Tất cả nguồn</option>
+              <option value="hiddenself" ${videosSource==='hiddenself'?'selected':''}>THE HIDDEN SELF</option>
+              <option value="thuattaivan" ${videosSource==='thuattaivan'?'selected':''}>THUẬT TÀI VẬN</option>
+              <option value="hormozi" ${videosSource==='hormozi'?'selected':''}>Alex Hormozi</option>
+              <option value="akbimatluatngam" ${videosSource==='akbimatluatngam'?'selected':''}>Ẩn Bí Mật Luật Ngầm</option>
+            </select>
+            <select class="filter-select" id="filter-category">
+              <option value="">Tất cả danh mục</option>
+              ${Object.entries(CATEGORY_LABELS).map(([k,v]) => `<option value="${k}" ${videosCategory===k?'selected':''}>${v}</option>`).join('')}
+            </select>
+          </div>
+          <div id="videos-table-body"><div class="loading"><div class="spinner"></div>Đang tải...</div></div>
+          <div class="pagination" id="videos-pagination"></div>
+        </div>
+      `;
+
+      // Event listeners
+      let searchTimeout;
+      document.getElementById('video-search').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => { videosQuery = e.target.value; videosPage = 1; loadVideos(); }, 400);
+      });
+      document.getElementById('filter-source').addEventListener('change', (e) => { videosSource = e.target.value; videosPage = 1; loadVideos(); });
+      document.getElementById('filter-category').addEventListener('change', (e) => { videosCategory = e.target.value; videosPage = 1; loadVideos(); });
+      
+      loadVideos();
+    }
+
+    async function loadVideos() {
+      const tbody = document.getElementById('videos-table-body');
+      tbody.innerHTML = '<div class="loading"><div class="spinner"></div>Đang tải...</div>';
+      
+      try {
+        const params = new URLSearchParams();
+        if (videosSource) params.set('source', videosSource);
+        if (videosCategory) params.set('category', videosCategory);
+        if (videosQuery) params.set('q', videosQuery);
+        params.set('page', videosPage);
+        params.set('limit', 30);
+        
+        const data = await api(`/api/admin/knowledge/videos?${params}`);
+        
+        if (!data.videos.length) {
+          tbody.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Không tìm thấy video nào</p></div>';
+          document.getElementById('videos-pagination').innerHTML = '';
+          return;
+        }
+
+        tbody.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px">#</th>
+                <th>Tiêu đề</th>
+                <th>Nguồn</th>
+                <th>Danh mục</th>
+                <th style="text-align:right">Views</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.videos.map((v, i) => `
+                <tr>
+                  <td style="color:var(--text-dim)">${(videosPage-1)*30 + i + 1}</td>
+                  <td><div class="video-title" onclick="showTranscript('${v.videoId}')" title="${(v.title||'').replace(/"/g,'&quot;')}">${v.title || v.videoId}</div></td>
+                  <td><span class="badge badge-source">${v.sourceLabel || v.source}</span></td>
+                  <td><span class="badge badge-cat">${CATEGORY_LABELS[v.category] || v.category}</span></td>
+                  <td style="text-align:right;font-weight:600">${formatNumber(v.viewCount || 0)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+        // Pagination
+        const pag = document.getElementById('videos-pagination');
+        pag.innerHTML = `
+          <div class="pagination-info">Trang ${data.page}/${data.totalPages || 1} · ${data.total} videos</div>
+          <div class="pagination-btns">
+            <button class="page-btn" onclick="videosPage--;loadVideos()" ${data.page <= 1 ? 'disabled' : ''}>← Trước</button>
+            <button class="page-btn" onclick="videosPage++;loadVideos()" ${data.page >= (data.totalPages||1) ? 'disabled' : ''}>Sau →</button>
+          </div>
+        `;
+      } catch(err) {
+        tbody.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Lỗi: ${err.message}</p></div>`;
+      }
+    }
+
+    async function showTranscript(videoId) {
+      openModal('Đang tải...');
+      try {
+        const data = await api(`/api/admin/knowledge/video/${videoId}`);
+        document.getElementById('modal-title').textContent = data.title || videoId;
+        document.getElementById('modal-body').innerHTML = `
+          <div class="transcript-meta">
+            <div class="transcript-meta-item"><strong>Nguồn:</strong> ${data.sourceLabel || data.source}</div>
+            <div class="transcript-meta-item"><strong>Danh mục:</strong> ${CATEGORY_LABELS[data.category] || data.category}</div>
+            <div class="transcript-meta-item"><strong>Views:</strong> ${formatNumber(data.viewCount || 0)}</div>
+            <div class="transcript-meta-item"><strong>ID:</strong> ${data.videoId}</div>
+          </div>
+          <div class="transcript-content">${escapeHtml(data.content || 'Không có nội dung')}</div>
+        `;
+      } catch(err) {
+        document.getElementById('modal-body').innerHTML = `<p style="color:var(--danger)">Lỗi: ${err.message}</p>`;
+      }
+    }
+
+    // ─── Brain & Voice Page ──────────────────────────
+    async function renderBrain(container) {
+      container.innerHTML = `
+        <div class="page-header">
+          <h2>🧠 Brain & Voice DNA</h2>
+          <p>Kiến thức nền tảng và giọng nói thương hiệu</p>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchBrainTab('brain', this)">🧠 BRAIN.md</button>
+          <button class="tab-btn" onclick="switchBrainTab('voice', this)">🎤 VOICE.md</button>
+        </div>
+        <div id="brain-content"><div class="loading"><div class="spinner"></div>Đang tải...</div></div>
+      `;
+      
+      try {
+        const data = await api('/api/admin/knowledge/brain');
+        window._brainData = data;
+        document.getElementById('brain-content').innerHTML = `
+          <div style="margin-bottom:12px;font-size:13px;color:var(--text-dim)">
+            📄 ${formatNumber(data.brainSize)} characters
+          </div>
+          <div class="content-viewer" id="brain-viewer">${escapeHtml(data.brain || 'BRAIN.md chưa được tạo')}</div>
+        `;
+      } catch(err) {
+        document.getElementById('brain-content').innerHTML = `<div class="empty-state"><p>Lỗi: ${err.message}</p></div>`;
+      }
+    }
+
+    function switchBrainTab(tab, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const data = window._brainData;
+      if (!data) return;
+      const content = tab === 'brain' ? data.brain : data.voice;
+      const size = tab === 'brain' ? data.brainSize : data.voiceSize;
+      document.getElementById('brain-content').innerHTML = `
+        <div style="margin-bottom:12px;font-size:13px;color:var(--text-dim)">
+          📄 ${formatNumber(size)} characters
+        </div>
+        <div class="content-viewer" id="brain-viewer">${escapeHtml(content || 'Không có dữ liệu')}</div>
+      `;
+    }
+
+    // ─── Search Page ─────────────────────────────────
+    async function renderSearch(container) {
+      container.innerHTML = `
+        <div class="page-header">
+          <h2>🔍 Tìm kiếm Knowledge Base</h2>
+          <p>Tìm kiếm xuyên suốt 815 videos, 28 sách, và BRAIN.md</p>
+        </div>
+        <div class="pipeline-form">
+          <div class="form-row">
+            <div class="form-group" style="flex:3">
+              <label>Từ khóa tìm kiếm</label>
+              <input type="text" id="search-query" placeholder="VD: tâm lý đám đông, đầu tư, kỷ luật...">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>Nguồn</label>
+              <select id="search-source">
+                <option value="">Tất cả</option>
+                <option value="hiddenself">THE HIDDEN SELF</option>
+                <option value="thuattaivan">THUẬT TÀI VẬN</option>
+                <option value="hormozi">Alex Hormozi</option>
+                <option value="akbimatluatngam">Ẩn Bí Mật</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="doSearch()">🔍 Tìm</button>
+          </div>
+        </div>
+        <div id="search-results"></div>
+      `;
+      
+      document.getElementById('search-query').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') doSearch();
+      });
+    }
+
+    async function doSearch() {
+      const q = document.getElementById('search-query').value.trim();
+      if (!q) return;
+      const source = document.getElementById('search-source').value;
+      const resultsDiv = document.getElementById('search-results');
+      resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Đang tìm kiếm...</div>';
+      
+      try {
+        const params = new URLSearchParams({ q, maxResults: 15 });
+        if (source) params.set('source', source);
+        const data = await api(`/api/admin/knowledge/search?${params}`);
+        
+        let html = '';
+        
+        // Transcripts results
+        if (data.transcripts?.length) {
+          html += `<h3 style="margin:20px 0 12px;color:var(--text-bright)">🎬 Videos (${data.transcripts.length} results)</h3>`;
+          html += data.transcripts.map(t => `
+            <div class="run-card" style="cursor:pointer" onclick="showTranscript('${t.videoId}')">
+              <div class="run-info">
+                <div class="run-name">${escapeHtml(t.title)}</div>
+                <div class="run-meta">
+                  <span class="badge badge-source">${t.sourceLabel}</span>
+                  <span class="badge badge-cat">${CATEGORY_LABELS[t.category] || t.category}</span>
+                  · ${formatNumber(t.viewCount)} views · Score: ${t.score}
+                </div>
+                <div style="margin-top:8px;font-size:13px;color:var(--text-dim);line-height:1.6">"${escapeHtml((t.excerpt||'').substring(0,200))}..."</div>
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        // Book results
+        if (data.books?.length) {
+          html += `<h3 style="margin:20px 0 12px;color:var(--text-bright)">📚 Sách (${data.books.length} results)</h3>`;
+          html += data.books.map(b => `
+            <div class="run-card">
+              <div class="run-info">
+                <div class="run-name">${escapeHtml(b.title)}</div>
+                <div class="run-meta">${b.category} · Score: ${b.score}</div>
+                <div style="margin-top:8px;font-size:13px;color:var(--text-dim);line-height:1.6">"${escapeHtml((b.excerpt||'').substring(0,200))}..."</div>
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        // Brain excerpt
+        if (data.brainExcerpt) {
+          html += `<h3 style="margin:20px 0 12px;color:var(--text-bright)">🧠 BRAIN.md</h3>`;
+          html += `<div class="content-viewer" style="max-height:300px">${escapeHtml(data.brainExcerpt.substring(0,1500))}</div>`;
+        }
+        
+        if (!html) {
+          html = '<div class="empty-state"><div class="icon">🔍</div><p>Không tìm thấy kết quả nào cho "' + escapeHtml(q) + '"</p></div>';
+        }
+        
+        resultsDiv.innerHTML = html;
+      } catch(err) {
+        resultsDiv.innerHTML = `<div class="empty-state"><p style="color:var(--danger)">Lỗi: ${err.message}</p></div>`;
+      }
+    }
+
+    // ─── Pipeline Page ───────────────────────────────
+    async function renderPipeline(container) {
+      container.innerHTML = `
+        <div class="page-header">
+          <h2>🚀 Pipeline Control</h2>
+          <p>Chạy pipeline tạo video podcast tự động</p>
+        </div>
+        
+        <div class="pipeline-form">
+          <h4 style="margin-bottom:16px;color:var(--text-bright)">Tạo Video Mới</h4>
+          <div class="form-row">
+            <div class="form-group" style="flex:2">
+              <label>Chủ đề / Topic</label>
+              <input type="text" id="pipeline-topic" placeholder="VD: Tại sao người giỏi lại nghèo?">
+            </div>
+            <div class="form-group">
+              <label>Video URL (tùy chọn)</label>
+              <input type="text" id="pipeline-url" placeholder="https://youtube.com/watch?v=...">
+            </div>
+            <button class="btn btn-primary" onclick="triggerPipeline()" style="height:42px">🚀 Chạy Pipeline</button>
+          </div>
+        </div>
+        
+        <h4 style="margin-bottom:12px;color:var(--text-bright)">Pipeline Runs</h4>
+        <div id="pipeline-runs"><div class="loading"><div class="spinner"></div>Đang tải...</div></div>
+      `;
+      
+      loadPipelineRuns();
+    }
+
+    async function loadPipelineRuns() {
+      try {
+        const data = await api('/api/admin/pipeline/runs');
+        const container = document.getElementById('pipeline-runs');
+        
+        if (!data.runs.length) {
+          container.innerHTML = '<div class="empty-state"><div class="icon">🚀</div><p>Chưa có pipeline run nào</p></div>';
+          return;
+        }
+        
+        container.innerHTML = data.runs.map(r => {
+          const statusBadge = r.status === 'completed' ? 'badge-success' :
+                              r.status === 'failed' ? 'badge-danger' :
+                              r.status === 'running' ? 'badge-running' : 'badge-warning';
+          return `
+            <div class="run-card">
+              <div class="run-info">
+                <div class="run-name">${r.pipelineName || r.pipelineId}</div>
+                <div class="run-id">${r.runId}</div>
+                <div class="run-meta">
+                  Duration: ${(r.durationMs/1000).toFixed(1)}s
+                  ${r.totalCost !== null ? ` · Cost: $${r.totalCost.toFixed(4)}` : ''}
+                  ${r.stageResults?.length ? ` · Stages: ${r.stageResults.join(', ')}` : ''}
+                </div>
+              </div>
+              <span class="badge ${statusBadge}">${r.status}</span>
+            </div>
+          `;
+        }).join('');
+      } catch(err) {
+        document.getElementById('pipeline-runs').innerHTML = `<div class="empty-state"><p>Lỗi: ${err.message}</p></div>`;
+      }
+    }
+
+    async function triggerPipeline() {
+      const topic = document.getElementById('pipeline-topic').value.trim();
+      const videoUrl = document.getElementById('pipeline-url').value.trim();
+      
+      if (!topic && !videoUrl) {
+        toast('Nhập chủ đề hoặc video URL', 'error');
+        return;
+      }
+      
+      try {
+        const body = {};
+        if (topic) body.topic = topic;
+        if (videoUrl) body.videoUrl = videoUrl;
+        
+        const result = await apiPost('/api/youtube-crew/trigger', body);
+        toast(`Pipeline started! Run ID: ${result.runId}`, 'success');
+        
+        // Clear inputs
+        document.getElementById('pipeline-topic').value = '';
+        document.getElementById('pipeline-url').value = '';
+        
+        // Reload runs after a moment
+        setTimeout(loadPipelineRuns, 1000);
+      } catch(err) {
+        toast(`Lỗi: ${err.message}`, 'error');
+      }
+    }
+
+    // ─── Outputs Page ────────────────────────────────
+    async function renderOutputs(container) {
+      container.innerHTML = `
+        <div class="page-header">
+          <h2>📦 Videos Output</h2>
+          <p>Các video đã tạo bởi pipeline</p>
+        </div>
+        <div id="outputs-list"><div class="loading"><div class="spinner"></div>Đang tải...</div></div>
+      `;
+      
+      try {
+        const data = await api('/api/admin/outputs');
+        const el = document.getElementById('outputs-list');
+        
+        if (!data.outputs.length) {
+          el.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>Chưa có video output nào</p></div>';
+          return;
+        }
+        
+        el.innerHTML = data.outputs.map(o => {
+          const title = o.metadata?.title || o.id;
+          return `
+            <div class="run-card">
+              <div class="run-info">
+                <div class="run-name">${escapeHtml(title)}</div>
+                <div class="run-meta">
+                  ${o.hasVideo ? '🎬 Video' : ''} 
+                  ${o.hasScript ? '📝 Script' : ''} 
+                  ${o.hasThumbnail ? '🖼️ Thumbnail' : ''}
+                  · Files: ${o.files.length}
+                  · ${new Date(o.createdAt).toLocaleDateString('vi-VN')}
+                </div>
+              </div>
+              ${o.hasVideo ? '<span class="badge badge-success">Hoàn thành</span>' : '<span class="badge badge-warning">Đang xử lý</span>'}
+            </div>
+          `;
+        }).join('');
+      } catch(err) {
+        document.getElementById('outputs-list').innerHTML = `<div class="empty-state"><p>Lỗi: ${err.message}</p></div>`;
+      }
+    }
+
+    // ─── Modal ───────────────────────────────────────
+    function openModal(title) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-body').innerHTML = '<div class="loading"><div class="spinner"></div>Đang tải...</div>';
+      document.getElementById('modal-overlay').classList.add('active');
+    }
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.remove('active');
+    }
+    document.getElementById('modal-overlay').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    // ─── Utility ─────────────────────────────────────
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ─── Init ────────────────────────────────────────
+    renderPage('dashboard');
+  </script>
+</body>
+</html>

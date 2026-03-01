@@ -1,0 +1,85 @@
+# ═══════════════════════════════════════════
+# LONGSANG ADMIN — .gitignore
+# Phase 1: Only ship youtube-agent-crew
+# ═══════════════════════════════════════════
+
+# ── Dependencies ──
+node_modules/
+.venv/
+__pycache__/
+
+# ── Environment / Secrets ──
+.env
+.env.local
+.env.production
+*.env
+
+# ── Build outputs ──
+dist/
+build/
+.next/
+.output/
+*.tsbuildinfo
+
+# ── OS & Editor ──
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+*.code-workspace
+
+# ── Logs & Temp ──
+logs/
+*.log
+npm-debug.log*
+.tmp/
+temp/
+output/
+*.mp4
+*.mp3
+*.wav
+
+# ── Heavy assets (don't ship to GitHub) ──
+pretrained/
+*.pth
+*.onnx
+*.bin
+*.safetensors
+*.ckpt
+
+# ── Transcripts (1357 files, ~50MB) ──
+# Phase 1: exclude from git, serve from Supabase/local
+youtube-agent-crew/src/knowledge/transcripts*/
+youtube-agent-crew/src/knowledge/thuattaivan/
+youtube-agent-crew/src/knowledge/akbimatluatngam/
+youtube-agent-crew/src/knowledge/hormozi/
+youtube-agent-crew/data/*.json
+youtube-agent-crew/data/*.txt
+!youtube-agent-crew/data/calendar.json
+
+# ── Voice assets ──
+*.FLAC
+*.flac
+
+# ── Phase 1: ONLY youtube-agent-crew ──
+# Everything else excluded. Will add in Phase 2/3.
+AI Influencer/
+longsang-admin-mobile/
+voxcpm-tts/
+Trợ lý đọc sách/
+apps/
+marketingskills/
+docs/
+n8n-workflows/
+scripts/
+.windsurf/
+.vscode/
+.dev-pids
+.copilot*
+*.bat
+*.ps1
+
+# ── State files ──
+state/
+*.state.json

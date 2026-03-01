@@ -1,0 +1,47 @@
+{
+  "batch_name": "Week 1 — First 5 Videos",
+  "created_at": "2026-02-25",
+  "channel": "ĐỨNG DẬY ĐI",
+  "topics": [
+    {
+      "id": 1,
+      "topic": "Ngủ 8 Tiếng Mà Vẫn Mệt? Bạn Đang Ngủ SAI Cách — Khoa Học Về Giấc Ngủ Sâu",
+      "category": "sleep/health",
+      "target_audience": "Người trẻ Việt 18-35, hay thức khuya, mệt mỏi mãn tính, muốn tối ưu sức khỏe",
+      "estimated_viral_score": 9,
+      "notes": "Hook cực mạnh vì ai cũng ngủ 8 tiếng mà vẫn mệt. Cover: chu kỳ 90 phút, sleep debt, blue light, nợ giấc ngủ tích lũy. Dẫn data từ Matthew Walker 'Why We Sleep'. Kết bằng 3 thay đổi nhỏ áp dụng ngay đêm nay. Tone: khoa học + thực tế, không hù dọa."
+    },
+    {
+      "id": 2,
+      "topic": "97% Người Việt Không Biết Cách Tiền Sinh Ra Tiền — Bẫy Lương Tháng Và Lối Thoát Duy Nhất",
+      "category": "business/money",
+      "target_audience": "Nhân viên văn phòng, freelancer, người mới đi làm muốn thoát vòng xoáy lương tháng",
+      "estimated_viral_score": 9,
+      "notes": "Đánh thẳng vào nỗi đau lớn nhất: đi làm cả đời không giàu được. Cover: earned income vs leveraged income, compound interest, 3 cấp độ tiền (đổi thời gian, đổi kỹ năng, đổi hệ thống). Dẫn ví dụ thực tế Việt Nam — xe ôm công nghệ vs chủ app. Kết bằng framework 3 bước thoát bẫy lương."
+    },
+    {
+      "id": 3,
+      "topic": "Bạn Không Lười — Bộ Não Đang Lừa Bạn: 5 Bẫy Tâm Lý Khiến Bạn Mãi Tầm Thường",
+      "category": "psychology",
+      "target_audience": "Người hay trì hoãn, tự trách mình lười biếng, muốn hiểu bản thân sâu hơn",
+      "estimated_viral_score": 8,
+      "notes": "Reframe 'lười' thành vấn đề tâm lý — giải phóng cảm giác tội lỗi. Cover: Dunning-Kruger, decision fatigue, paradox of choice, instant gratification monkey, learned helplessness. Mỗi bẫy có ví dụ đời thực Việt Nam. Kết bằng phương pháp 2-minute rule và identity-based change."
+    },
+    {
+      "id": 4,
+      "topic": "'Tư Duy Nhanh Và Chậm' — Cuốn Sách Nobel Mà 90% Người Đọc Hiểu Sai Hoàn Toàn",
+      "category": "book_summary",
+      "target_audience": "Người thích đọc sách phát triển bản thân, quan tâm tâm lý học và ra quyết định",
+      "estimated_viral_score": 8,
+      "notes": "Tóm tắt 'Thinking, Fast and Slow' của Daniel Kahneman với góc nhìn contrarian. Không chỉ System 1 vs System 2 — mà là cách bias ẩn giấu trong mọi quyết định tiền bạc, tình cảm, sự nghiệp. Dẫn 3 thí nghiệm kinh điển. Kết bằng 3 câu hỏi tự kiểm tra bias hàng ngày. Tone: sắc bén, không sách giáo khoa."
+    },
+    {
+      "id": 5,
+      "topic": "30 Tuổi Vẫn Tay Trắng? Đây Là Sự Thật Tàn Nhẫn Không Ai Dám Nói Với Bạn",
+      "category": "motivation",
+      "target_audience": "Người 25-35 đang khủng hoảng tuổi, so sánh bản thân với người khác, mất phương hướng",
+      "estimated_viral_score": 9,
+      "notes": "Đánh vào nỗi sợ lớn nhất của thế hệ 9x-2000: 'mình đã quá muộn'. Phá vỡ myth thành công sớm — dẫn data: tuổi trung bình CEO Fortune 500 là 54, Colonel Sanders 62 tuổi mới có KFC. Cover: survivorship bias trên mạng xã hội, timeline thực tế của thành công, 'mất 10 năm để thành overnight success'. Kết bằng tough love: không ai nợ bạn giấc mơ — đứng dậy đi."
+    }
+  ]
+}

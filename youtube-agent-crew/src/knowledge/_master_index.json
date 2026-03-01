@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-03-01T05:48:18.452Z",
+  "totalSources": 3,
+  "totalVideos": 500,
+  "sources": [
+    {
+      "directory": "thuattaivan",
+      "channel": "THUẬT TÀI VẬN (YouTube)",
+      "totalVideos": 210,
+      "categories": {
+        "tai-chinh": 131,
+        "kinh-doanh": 39,
+        "dia-chinh-tri": 3,
+        "phat-trien": 14,
+        "tam-ly": 22,
+        "xa-hoi": 1
+      }
+    },
+    {
+      "directory": "hormozi",
+      "channel": "Alex Hormozi (YouTube)",
+      "totalVideos": 120,
+      "categories": {
+        "kinh-doanh": 76,
+        "phat-trien": 27,
+        "tai-chinh": 10,
+        "tam-ly": 2,
+        "suc-khoe": 4,
+        "xa-hoi": 1
+      }
+    },
+    {
+      "directory": "akbimatluatngam",
+      "channel": "Ẩn Bí Mật Luật Ngầm (TikTok)",
+      "totalVideos": 170,
+      "categories": {
+        "tam-ly": 111,
+        "phat-trien": 24,
+        "xa-hoi": 4,
+        "tai-chinh": 5,
+        "suc-khoe": 11,
+        "triet-hoc": 5,
+        "kinh-doanh": 10
+      }
+    }
+  ]
+}
