@@ -4,7 +4,7 @@
   "devCommand": "npm run dev:frontend",
   "installCommand": "npm install",
   "framework": "vite",
-  "alias": ["admin.longsang.org", "admin.sabo.com.vn"],
+  "alias": ["admin.longsang.org"],
   "rewrites": [
     {
       "source": "/api/:path*",
