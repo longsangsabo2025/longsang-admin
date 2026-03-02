@@ -4,7 +4,9 @@
 # =============================================
 
 # Large folders - NOT needed for frontend build
+/services/
 mcp-server/
+brain-upgrade/
 docs/
 _DOCS/
 long-sang-forge/
