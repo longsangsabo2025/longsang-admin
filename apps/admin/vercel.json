@@ -7,10 +7,6 @@
   "alias": ["admin.longsang.org"],
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://longsang-admin-api.onrender.com/api/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
