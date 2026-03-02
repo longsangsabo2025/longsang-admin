@@ -4,11 +4,11 @@
   "devCommand": "npm run dev:frontend",
   "installCommand": "npm install",
   "framework": "vite",
-  "alias": ["admin.longsang.org"],
+  "alias": ["admin.longsang.org", "admin.sabo.com.vn"],
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://youtube-pipeline-bgey.onrender.com/api/:path*"
+      "destination": "https://longsang-admin-api.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
