@@ -39,7 +39,7 @@ import {
 import { toast } from 'sonner';
 
 // Gemini API Key
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyBfLqZs_2OeJ8ZptYcaeTlB1HqMegtKSmA';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyAEh_hNcNbBHGxgenaNXA_YdF4_Z0w-rJw';
 
 // Aspect ratio options
 const ASPECT_RATIOS = [

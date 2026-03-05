@@ -22,12 +22,18 @@ export interface GenerateRequest {
   imageGenEnabled?: boolean;
   imageGenProvider?: string;
   imageGenQuality?: string;
+  voiceoverEnabled?: boolean;
+  voiceoverEngine?: string;
+  voiceoverVoice?: string;
+  voiceoverSpeed?: number;
 }
 
 export interface RunLog {
   t: number;
   level: string;
   msg: string;
+  /** Which pipeline step produced this log (for accurate UI classification) */
+  step?: string;
 }
 
 export interface GenerationRun {

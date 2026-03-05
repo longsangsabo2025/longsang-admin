@@ -10,6 +10,7 @@ import { persistUpdate } from './run-persistence';
 import { runScriptWriter } from './script-writer.agent';
 import { runStoryboard } from './storyboard.agent';
 import { runImageGen } from './image-gen.agent';
+import { runVoiceover } from './voiceover.agent';
 
 const STEP_LABELS: Record<string, string> = {
   scriptWriter: '✍️ Running Script Writer...',
@@ -25,6 +26,7 @@ function resolveSteps(req: GenerateRequest): string[] {
   if (!req.storyboardOnly) steps.push('scriptWriter');
   if (!req.scriptOnly) steps.push('storyboard');
   if (req.imageGenEnabled) steps.push('imageGen');
+  if (req.voiceoverEnabled) steps.push('voiceover');
   return steps;
 }
 
@@ -33,7 +35,7 @@ async function executeStep(step: string, runId: string, req: GenerateRequest): P
   const run = getRun(runId);
   if (!run) return false;
 
-  run.logs.push({ t: Date.now(), level: 'info', msg: STEP_LABELS[step] || `🔧 Running ${step}...` });
+  run.logs.push({ t: Date.now(), level: 'info', msg: STEP_LABELS[step] || `🔧 Running ${step}...`, step });
 
   switch (step) {
     case 'scriptWriter':
@@ -44,6 +46,9 @@ async function executeStep(step: string, runId: string, req: GenerateRequest): P
       break;
     case 'imageGen':
       await runImageGen(runId, req);
+      break;
+    case 'voiceover':
+      await runVoiceover(runId, req);
       break;
     default:
       failRun(run, `Step "${step}" chưa có API endpoint riêng. Cần deploy full pipeline.`);
@@ -128,7 +133,7 @@ export async function resumeRun(runId: string): Promise<{ success: boolean; runI
   // Reset run state for resumption
   run.status = 'running';
   run.error = undefined;
-  run.logs.push({ t: Date.now(), level: 'info', msg: `🔄 Resuming pipeline from ${STEP_LABELS[remaining[0]] || remaining[0]}... (${done.size}/${allSteps.length} steps done)` });
+  run.logs.push({ t: Date.now(), level: 'info', msg: `🔄 Resuming pipeline from ${STEP_LABELS[remaining[0]] || remaining[0]}... (${done.size}/${allSteps.length} steps done)`, step: remaining[0] });
   persistUpdate(run).catch(() => {});
 
   // Run remaining steps in background

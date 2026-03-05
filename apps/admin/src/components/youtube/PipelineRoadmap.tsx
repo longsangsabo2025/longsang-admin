@@ -292,7 +292,7 @@ const STEPS: StepDef[] = [
     subtitle: 'Tạo giọng đọc từ script',
     color: 'text-green-500 bg-green-500/10 border-green-500/30',
     estimate: '~1-3min',
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     key: 'assembly',
@@ -358,14 +358,19 @@ function deriveStepStatuses(
 
   if (!run) return result as Record<keyof PipelineConfig, { status: StepStatus; logs: RunLog[] }>;
 
-  // Classify each log to a step
+  // Classify each log to a step — prefer explicit tag, fallback to regex
   const unclassified: RunLog[] = [];
   for (const log of run.logs) {
-    const step = classifyLog(log.msg);
-    if (step && result[step]) {
-      result[step].logs.push(log);
+    const tagged = log.step as string | undefined;
+    if (tagged && result[tagged]) {
+      result[tagged].logs.push(log);
     } else {
-      unclassified.push(log);
+      const step = classifyLog(log.msg);
+      if (step && result[step]) {
+        result[step].logs.push(log);
+      } else {
+        unclassified.push(log);
+      }
     }
   }
 
@@ -501,6 +506,37 @@ function extractImageGenResult(run?: ActiveRunInfo & { result?: { files?: Record
     totalScenes: imagesJson.totalScenes || imagesJson.images.length,
     successCount: imagesJson.successCount || imagesJson.images.length,
     failCount: imagesJson.failCount || 0,
+  };
+}
+
+// Extract voiceover result from run for inline preview
+function extractVoiceoverResult(run?: ActiveRunInfo & { result?: { files?: Record<string, unknown> } }): {
+  clips: { scene: number; url: string; duration: number; charCount: number }[];
+  totalClips: number;
+  successCount: number;
+  failCount: number;
+  totalDuration: number;
+  engine: string;
+} | null {
+  if (!run) return null;
+  const result = (run as { result?: { files?: Record<string, unknown> } }).result;
+  if (!result?.files) return null;
+  const voJson = result.files['voiceover.json'] as {
+    clips?: { scene: number; url: string; duration: number; charCount: number }[];
+    totalClips?: number;
+    successCount?: number;
+    failCount?: number;
+    totalDuration?: number;
+    engine?: string;
+  } | undefined;
+  if (!voJson?.clips) return null;
+  return {
+    clips: voJson.clips,
+    totalClips: voJson.totalClips || voJson.clips.length,
+    successCount: voJson.successCount || voJson.clips.length,
+    failCount: voJson.failCount || 0,
+    totalDuration: voJson.totalDuration || 0,
+    engine: voJson.engine || 'unknown',
   };
 }
 

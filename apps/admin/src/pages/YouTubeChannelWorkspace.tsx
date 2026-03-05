@@ -182,6 +182,10 @@ export default function YouTubeChannelWorkspace() {
       imageGenEnabled: pipelineConfig.imageGen.enabled,
       imageGenProvider: pipelineConfig.imageGen.provider,
       imageGenQuality: pipelineConfig.imageGen.quality,
+      voiceoverEnabled: pipelineConfig.voiceover.enabled,
+      voiceoverEngine: pipelineConfig.voiceover.engine,
+      voiceoverVoice: pipelineConfig.voiceover.voice,
+      voiceoverSpeed: pipelineConfig.voiceover.speed,
     };
     if (mode === 'topic' && topic.trim()) {
       req.topic = topic.trim();
@@ -211,6 +215,10 @@ export default function YouTubeChannelWorkspace() {
       imageGenEnabled: pipelineConfig.imageGen.enabled,
       imageGenProvider: pipelineConfig.imageGen.provider,
       imageGenQuality: pipelineConfig.imageGen.quality,
+      voiceoverEnabled: pipelineConfig.voiceover.enabled,
+      voiceoverEngine: pipelineConfig.voiceover.engine,
+      voiceoverVoice: pipelineConfig.voiceover.voice,
+      voiceoverSpeed: pipelineConfig.voiceover.speed,
     };
     if (mode === 'topic' && topic.trim()) {
       req.topic = topic.trim();

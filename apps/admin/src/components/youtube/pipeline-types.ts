@@ -80,14 +80,14 @@ export const DEFAULT_PIPELINE: PipelineConfig = {
   },
   imageGen: {
     enabled: false,
-    provider: 'hailuo-2.3',
+    provider: 'gemini',
     quality: 'standard',
     negativePrompt: 'text, watermark, logo',
   },
   voiceover: {
     enabled: false,
-    engine: 'elevenlabs',
-    voice: 'default-vi',
+    engine: 'google-tts',
+    voice: 'vi-VN-Neural2-D',
     speed: 1.0,
   },
   assembly: {

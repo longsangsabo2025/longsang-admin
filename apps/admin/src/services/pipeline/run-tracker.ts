@@ -67,7 +67,7 @@ export function failRun(run: GenerationRun, error: string) {
 }
 
 /** Simulate progress phases while waiting for an API call */
-export function startProgressTracker(run: GenerationRun, phases: ProgressPhase[], estimatedMs: number): ReturnType<typeof setInterval> {
+export function startProgressTracker(run: GenerationRun, phases: ProgressPhase[], estimatedMs: number, step?: string): ReturnType<typeof setInterval> {
   let phaseIdx = 0;
   const interval = estimatedMs / phases.length;
   const startMs = Date.now();
@@ -79,7 +79,7 @@ export function startProgressTracker(run: GenerationRun, phases: ProgressPhase[]
     }
     const phase = phases[phaseIdx];
     const elapsed = ((Date.now() - startMs) / 1000).toFixed(0);
-    run.logs.push({ t: Date.now(), level: 'info', msg: `[${phase.pct}%] ${phase.msg} (${elapsed}s)` });
+    run.logs.push({ t: Date.now(), level: 'info', msg: `[${phase.pct}%] ${phase.msg} (${elapsed}s)`, step });
     phaseIdx++;
   }, interval);
 

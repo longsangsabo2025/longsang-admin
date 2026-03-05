@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/select';
 
 // Gemini API Configuration
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyBfLqZs_2OeJ8ZptYcaeTlB1HqMegtKSmA';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyAEh_hNcNbBHGxgenaNXA_YdF4_Z0w-rJw';
 
 const MODELS = {
   'gemini-2.0-flash': { 

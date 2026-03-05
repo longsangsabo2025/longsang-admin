@@ -28,10 +28,10 @@ export async function runScriptWriter(runId: string, req: GenerateRequest): Prom
   const run = getRun(runId);
   if (!run) return;
 
-  const tracker = startProgressTracker(run, SCRIPT_PHASES, 60000);
+  const tracker = startProgressTracker(run, SCRIPT_PHASES, 60000, 'scriptWriter');
 
   try {
-    run.logs.push({ t: Date.now(), level: 'info', msg: `[0%] 📡 POST ${PIPELINE_BASE}/api/admin/generate-script` });
+    run.logs.push({ t: Date.now(), level: 'info', msg: `[0%] 📡 POST ${PIPELINE_BASE}/api/admin/generate-script`, step: 'scriptWriter' });
 
     const res = await fetch(`${PIPELINE_BASE}/api/admin/generate-script`, {
       method: 'POST',
@@ -74,7 +74,7 @@ export async function runScriptWriter(runId: string, req: GenerateRequest): Prom
     // Save result but don't mark completed — orchestrator decides when the full pipeline is done
     saveStepResult(run, stepResult);
     const elapsed = ((Date.now() - new Date(run.startedAt).getTime()) / 1000).toFixed(1);
-    run.logs.push({ t: Date.now(), level: 'info', msg: `[100%] ✅ Script generated: ${data.wordCount || '?'} words, cost $${data.cost?.toFixed(4) || '?'} (${elapsed}s)` });
+    run.logs.push({ t: Date.now(), level: 'info', msg: `[100%] ✅ Script generated: ${data.wordCount || '?'} words, cost $${data.cost?.toFixed(4) || '?'} (${elapsed}s)`, step: 'scriptWriter' });
   } catch (err: unknown) {
     clearInterval(tracker);
     failRun(run, err instanceof Error ? err.message : String(err));

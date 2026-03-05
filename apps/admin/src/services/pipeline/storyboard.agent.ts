@@ -38,12 +38,12 @@ export async function runStoryboard(runId: string, req: GenerateRequest): Promis
     return;
   }
 
-  run.logs.push({ t: Date.now(), level: 'info', msg: `📄 Found script (${scriptText.length} chars) — sending to Visual Director...` });
+  run.logs.push({ t: Date.now(), level: 'info', msg: `📄 Found script (${scriptText.length} chars) — sending to Visual Director...`, step: 'storyboard' });
 
-  const tracker = startProgressTracker(run, STORYBOARD_PHASES, 45000);
+  const tracker = startProgressTracker(run, STORYBOARD_PHASES, 45000, 'storyboard');
 
   try {
-    run.logs.push({ t: Date.now(), level: 'info', msg: `[0%] 📡 POST ${PIPELINE_BASE}/api/admin/generate-storyboard` });
+    run.logs.push({ t: Date.now(), level: 'info', msg: `[0%] 📡 POST ${PIPELINE_BASE}/api/admin/generate-storyboard`, step: 'storyboard' });
 
     // Send style name + raw visualIdentity to server — server builds the full prompt
     const res = await fetch(`${PIPELINE_BASE}/api/admin/generate-storyboard`, {
@@ -91,7 +91,7 @@ export async function runStoryboard(runId: string, req: GenerateRequest): Promis
       },
     });
     const elapsed = ((Date.now() - new Date(run.startedAt).getTime()) / 1000).toFixed(1);
-    run.logs.push({ t: Date.now(), level: 'info', msg: `[100%] ✅ Storyboard generated: ${data.scenes || '?'} scenes, cost $${data.cost?.toFixed(4) || '?'} (${elapsed}s)` });
+    run.logs.push({ t: Date.now(), level: 'info', msg: `[100%] ✅ Storyboard generated: ${data.scenes || '?'} scenes, cost $${data.cost?.toFixed(4) || '?'} (${elapsed}s)`, step: 'storyboard' });
 
     // Also merge into the script run (for single-step storyboard viewing via script run)
     const scriptRun = findLatestRunWithFile('script.txt', req.channelId);
