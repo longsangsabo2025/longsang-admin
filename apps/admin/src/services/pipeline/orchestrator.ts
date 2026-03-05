@@ -37,10 +37,6 @@ export async function generate(req: GenerateRequest): Promise<{ success: boolean
           await runScriptWriter(runId, req);
           // Check if script step failed
           if (run.status === 'failed') return;
-          // If storyboard follows, reset status to running and merge will happen
-          if (steps.includes('storyboard')) {
-            run.status = 'running';
-          }
         } else if (step === 'storyboard') {
           await runStoryboard(runId, req);
           if (run.status === 'failed') return;
@@ -63,27 +59,31 @@ export async function generate(req: GenerateRequest): Promise<{ success: boolean
 export async function generateStep(step: string, req: GenerateRequest): Promise<{ success: boolean; runId: string; message: string }> {
   const runId = `step_${step}_${Date.now()}`;
   const label = STEP_LABELS[step] || `🔧 Running ${step}...`;
-  createRun(runId, req, label);
+  const run = createRun(runId, req, label);
 
-  switch (step) {
-    case 'scriptWriter':
-      runScriptWriter(runId, req);
-      break;
-    case 'storyboard':
-      runStoryboard(runId, req);
-      break;
-    default: {
-      // Other steps not yet available
-      const run = getRun(runId);
-      if (run) {
-        run.logs.push({ t: Date.now(), level: 'info', msg: `[10%] 📡 Checking ${step} API availability...` });
-        setTimeout(() => {
+  // Run in background, then finalize
+  (async () => {
+    try {
+      switch (step) {
+        case 'scriptWriter':
+          await runScriptWriter(runId, req);
+          break;
+        case 'storyboard':
+          await runStoryboard(runId, req);
+          break;
+        default:
+          run.logs.push({ t: Date.now(), level: 'info', msg: `[10%] 📡 Checking ${step} API availability...` });
           failRun(run, `Step "${step}" chưa có API endpoint riêng. Cần deploy full pipeline.`);
-        }, 1500);
+          return;
       }
-      break;
+      // Finalize: agents save result via saveStepResult, orchestrator marks complete
+      if (run.status === 'running') {
+        completeRun(run, run.result || { outputDir: 'remote', files: {} });
+      }
+    } catch (err: unknown) {
+      failRun(run, err instanceof Error ? err.message : String(err));
     }
-  }
+  })();
 
   return { success: true, runId, message: label };
 }

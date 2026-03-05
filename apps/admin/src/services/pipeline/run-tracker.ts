@@ -40,12 +40,19 @@ export function getAllRuns(): GenerationRun[] {
   return Array.from(clientRuns.values());
 }
 
+/** Save intermediate step result WITHOUT changing run status (avoids race with polling) */
+export function saveStepResult(run: GenerationRun, result: GenerationRun['result']) {
+  run.result = result;
+  run.hasResult = true;
+}
+
 /** Mark a run as completed */
 export function completeRun(run: GenerationRun, result: GenerationRun['result']) {
   run.status = 'completed';
   run.completedAt = new Date().toISOString();
   run.durationMs = Date.now() - new Date(run.startedAt).getTime();
   run.result = result;
+  run.hasResult = true;
   persistUpdate(run).catch(() => {});
 }
 
@@ -79,16 +86,29 @@ export function startProgressTracker(run: GenerationRun, phases: ProgressPhase[]
   return timer;
 }
 
-/** Find the latest completed run that has a specific file */
+/** Find the latest run that has a specific file (completed or in-progress with result) */
 export function findLatestRunWithFile(fileName: string, channelId?: string | null): GenerationRun | null {
   let latest: GenerationRun | null = null;
   for (const run of clientRuns.values()) {
-    if (run.status !== 'completed') continue;
+    if (run.status === 'failed') continue;
     if (channelId && run.channelId !== channelId) continue;
     if (!run.result?.files?.[fileName]) continue;
     if (!latest || run.startedAt > latest.startedAt) latest = run;
   }
   return latest;
+}
+
+/** Auto-fix orphaned runs that are stuck in 'running' (e.g. page closed mid-pipeline) */
+function fixOrphanedRun(run: GenerationRun): void {
+  if (run.status !== 'running') return;
+  const ageMs = Date.now() - new Date(run.startedAt).getTime();
+  if (ageMs > 5 * 60 * 1000) {
+    run.status = 'failed';
+    run.error = 'Pipeline bị gián đoạn (orphaned run). Vui lòng chạy lại.';
+    run.completedAt = run.completedAt || new Date().toISOString();
+    run.durationMs = run.durationMs || ageMs;
+    persistUpdate(run).catch(() => {});
+  }
 }
 
 /** Load saved runs from Supabase into the in-memory Map (call once per channel) */
@@ -98,6 +118,7 @@ export async function hydrateRunsForChannel(channelId: string): Promise<Generati
   const saved = await loadRunsByChannel(channelId);
   for (const run of saved) {
     if (!clientRuns.has(run.id)) {
+      fixOrphanedRun(run);
       clientRuns.set(run.id, run);
     }
   }

@@ -5,7 +5,7 @@
  */
 import type { GenerateRequest, ProgressPhase } from './types';
 import { PIPELINE_BASE } from './api-client';
-import { getRun, startProgressTracker, completeRun, failRun } from './run-tracker';
+import { getRun, startProgressTracker, saveStepResult, completeRun, failRun } from './run-tracker';
 
 const SCRIPT_PHASES: ProgressPhase[] = [
   { pct: 3,  msg: '🔌 Connecting to pipeline server...' },
@@ -58,7 +58,7 @@ export async function runScriptWriter(runId: string, req: GenerateRequest): Prom
       outputDir?: string;
     };
 
-    completeRun(run, {
+    const stepResult = {
       outputDir: data.outputDir || 'remote',
       files: {
         'script.txt': data.script,
@@ -70,8 +70,11 @@ export async function runScriptWriter(runId: string, req: GenerateRequest): Prom
           cost: data.cost,
         },
       },
-    });
-    run.logs.push({ t: Date.now(), level: 'info', msg: `[100%] ✅ Script generated: ${data.wordCount || '?'} words, cost $${data.cost?.toFixed(4) || '?'} (${(run.durationMs! / 1000).toFixed(1)}s)` });
+    };
+    // Save result but don't mark completed — orchestrator decides when the full pipeline is done
+    saveStepResult(run, stepResult);
+    const elapsed = ((Date.now() - new Date(run.startedAt).getTime()) / 1000).toFixed(1);
+    run.logs.push({ t: Date.now(), level: 'info', msg: `[100%] ✅ Script generated: ${data.wordCount || '?'} words, cost $${data.cost?.toFixed(4) || '?'} (${elapsed}s)` });
   } catch (err: unknown) {
     clearInterval(tracker);
     failRun(run, err instanceof Error ? err.message : String(err));
