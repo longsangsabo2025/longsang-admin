@@ -297,11 +297,16 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
   }
 
   // ── Full-script mode (no storyboard) ──────────────────────
-  const fullScript = cleanTextForTTS(scriptTxt!);
+  // Use cleanedScript (TTS-optimized) if available, otherwise fall back to raw script
+  const rawScript = req.voiceoverCleanedScript?.trim() || scriptTxt!;
+  const sourceLabel = req.voiceoverCleanedScript?.trim() ? 'TTS-optimized' : 'raw';
+  const fullScript = cleanTextForTTS(rawScript);
   if (!fullScript) {
     failRun(run, 'Script trống hoặc không có nội dung text hợp lệ.');
     return;
   }
+
+  run.logs.push({ t: Date.now(), level: 'info', msg: `📝 Using ${sourceLabel} script (${fullScript.length} chars)` });
 
   const chunks = splitIntoChunks(fullScript);
   const total = chunks.length;

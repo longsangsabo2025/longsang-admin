@@ -27,6 +27,7 @@ export interface GenerateRequest {
   voiceoverEngine?: string;
   voiceoverVoice?: string;
   voiceoverSpeed?: number;
+  voiceoverCleanedScript?: string;
 }
 
 export interface RunLog {

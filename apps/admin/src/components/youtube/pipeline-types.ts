@@ -41,6 +41,7 @@ export interface PipelineConfig {
     engine: string;
     voice: string;
     speed: number;
+    cleanedScript?: string;
   };
   assembly: {
     enabled: boolean;
@@ -91,6 +92,7 @@ export const DEFAULT_PIPELINE: PipelineConfig = {
     engine: 'gemini-tts',
     voice: 'Kore',
     speed: 1.0,
+    cleanedScript: '',
   },
   assembly: {
     enabled: false,

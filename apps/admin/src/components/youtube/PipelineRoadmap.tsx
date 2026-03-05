@@ -1926,50 +1926,43 @@ function VoiceoverConfig({
 
   const [showScriptPreview, setShowScriptPreview] = useState(false);
 
-  // AI Script Doctor
-  const [doctorLoading, setDoctorLoading] = useState(false);
-  const [doctorResult, setDoctorResult] = useState<{ issues: Array<{ type: string; original: string; suggest: string; reason: string }>; summary: string; score: number } | null>(null);
-  const [doctorError, setDoctorError] = useState<string | null>(null);
-  const [showDoctor, setShowDoctor] = useState(false);
+  // AI Script → TTS Optimizer
+  const [optimizerLoading, setOptimizerLoading] = useState(false);
+  const [optimizedScript, setOptimizedScript] = useState<string | null>(config.cleanedScript || null);
+  const [optimizerError, setOptimizerError] = useState<string | null>(null);
+  const [showOptimized, setShowOptimized] = useState(!!config.cleanedScript);
 
-  const handleScriptDoctor = async () => {
+  const handleOptimizeForTTS = async () => {
     if (!scriptSource?.text) return;
-    setDoctorLoading(true);
-    setDoctorError(null);
+    setOptimizerLoading(true);
+    setOptimizerError(null);
     try {
       const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
       if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
 
-      const scriptText = scriptSource.text.length > 6000
-        ? scriptSource.text.substring(0, 6000)
+      const scriptText = scriptSource.text.length > 8000
+        ? scriptSource.text.substring(0, 8000)
         : scriptSource.text;
 
-      const systemPrompt = `Bạn là AI Script Doctor chuyên rà soát script TRƯỚC KHI chuyển sang TTS (Text-to-Speech).
-Nhiệm vụ: Tìm mọi "sạn" khiến giọng đọc AI đọc sai hoặc nghe không tự nhiên.
+      const systemPrompt = `Bạn là chuyên gia biên tập script cho Text-to-Speech (TTS).
 
-Phân loại lỗi:
-- "tts-unfriendly": Số, ký hiệu, viết tắt mà TTS đọc sai (vd: "100k" → "một trăm nghìn", "AI" → "A.I.", "30/12" → "ba mươi tháng mười hai")
-- "awkward-phrasing": Câu dài/lủng củng khó đọc thành lời, thiếu ngắt hơi
-- "grammar": Lỗi chính tả, ngữ pháp, dấu câu
-- "rhythm": Nhịp câu không tự nhiên khi đọc thành tiếng (câu quá dài, thiếu dấu phẩy ngắt hơi)
-- "tone-break": Đoạn bị gãy tone, không nhất quán phong cách
-- "repetitive": Từ/cụm từ lặp lại quá nhiều lần gần nhau
+NHIỆM VỤ: Nhận script gốc → trả về bản script ĐÃ TỐI ƯU cho giọng đọc AI.
 
-Trả về JSON (KHÔNG markdown, KHÔNG code block):
-{
-  "score": <điểm 1-10, 10=hoàn hảo>,
-  "summary": "<tóm tắt 1-2 câu tình trạng script>",
-  "issues": [
-    {
-      "type": "<loại lỗi>",
-      "original": "<đoạn gốc có vấn đề - tối đa 80 ký tự>",
-      "suggest": "<gợi ý sửa>",
-      "reason": "<lý do ngắn gọn>"
-    }
-  ]
-}
+QUY TẮC BIÊN TẬP:
+1. SỐ & KÝ HIỆU → viết thành chữ (100k → một trăm nghìn, 30% → ba mươi phần trăm, $50 → năm mươi đô, AI → A.I., CEO → C.E.O., 2024 → hai nghìn không trăm hai mươi bốn)
+2. CÂU DÀI → tách thành câu ngắn 15-25 từ, thêm dấu phẩy ngắt hơi
+3. VIẾT TẮT → viết đầy đủ hoặc thêm dấu chấm giữa (VD: FOMO → F.O.M.O.)
+4. CẤU TRÚC → chia thành đoạn rõ ràng, mỗi đoạn 3-5 câu, cách nhau bằng dòng trống
+5. LOẠI BỎ → heading (#), markdown (**bold**, *italic*), links, code blocks
+6. GIỮ NGUYÊN → ý nghĩa, phong cách, tone giọng, ngôn ngữ gốc
+7. NHỊP THỞ → thêm "..." hoặc "—" ở chỗ cần dừng nhấn mạnh
+8. MỞ ĐẦU/KẾT → giữ nguyên hook mạnh, không làm nhạt
 
-Nếu script tốt, trả issues rỗng và score cao. Tập trung vào các lỗi THỰC SỰ ảnh hưởng chất lượng voice, KHÔNG nitpick.`;
+ĐỊNH DẠNG OUTPUT:
+- Chỉ trả text thuần (plain text), KHÔNG JSON, KHÔNG markdown
+- Mỗi đoạn cách nhau bằng 1 dòng trống
+- Mỗi câu nên nằm riêng 1 dòng hoặc cách bằng dấu phẩy/chấm phẩy
+- KHÔNG thêm ghi chú, KHÔNG giải thích — chỉ trả script đã tối ưu`;
 
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -1978,8 +1971,8 @@ Nếu script tốt, trả issues rỗng và score cao. Tập trung vào các l�
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ parts: [{ text: `Rà soát script sau cho TTS:\n\n${scriptText}` }] }],
-            generationConfig: { temperature: 0.3 },
+            contents: [{ parts: [{ text: `Tối ưu script sau cho TTS:\n\n${scriptText}` }] }],
+            generationConfig: { temperature: 0.2 },
           }),
         },
       );
@@ -1988,17 +1981,27 @@ Nếu script tốt, trả issues rỗng và score cao. Tập trung vào các l�
         throw new Error((err as { error?: { message?: string } })?.error?.message || `Gemini error ${res.status}`);
       }
       const data = await res.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      // Strip markdown code fences if present
-      const clean = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```$/m, '').trim();
-      const parsed = JSON.parse(clean);
-      setDoctorResult(parsed);
-      setShowDoctor(true);
+      const text = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+      if (!text) throw new Error('AI trả về rỗng');
+      setOptimizedScript(text);
+      setShowOptimized(true);
     } catch (err) {
-      setDoctorError(err instanceof Error ? err.message : String(err));
+      setOptimizerError(err instanceof Error ? err.message : String(err));
     } finally {
-      setDoctorLoading(false);
+      setOptimizerLoading(false);
     }
+  };
+
+  const handleApplyOptimized = () => {
+    if (optimizedScript) {
+      onUpdate({ cleanedScript: optimizedScript });
+    }
+  };
+
+  const handleClearOptimized = () => {
+    setOptimizedScript(null);
+    setShowOptimized(false);
+    onUpdate({ cleanedScript: '' });
   };
 
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -2298,144 +2301,127 @@ Nếu script tốt, trả issues rỗng và score cao. Tập trung vào các l�
         )}
       </div>
 
-      {/* Script / Dialogue Source Preview */}
+      {/* Script Source + TTS Optimizer */}
       {scriptSource ? (
-        <div className="rounded-md border border-blue-500/20 bg-blue-500/5 p-2 space-y-1.5">
-          <button
-            type="button"
-            className="flex items-center gap-1.5 w-full text-left"
-            onClick={() => setShowScriptPreview(v => !v)}
-          >
-            {showScriptPreview ? <ChevronDown className="h-3 w-3 text-blue-400 shrink-0" /> : <ChevronRight className="h-3 w-3 text-blue-400 shrink-0" />}
-            <span className="text-[10px] font-medium text-blue-400">
-              📝 Script từ Step 1 ({scriptSource.text.length.toLocaleString()} ký tự)
-              {' — '}
-              <span className="text-muted-foreground">{showScriptPreview ? 'ẩn' : 'xem nội dung'}</span>
-            </span>
-          </button>
+        <div className="space-y-2">
+          {/* Raw script preview */}
+          <div className="rounded-md border border-blue-500/20 bg-blue-500/5 p-2 space-y-1.5">
+            <button
+              type="button"
+              className="flex items-center gap-1.5 w-full text-left"
+              onClick={() => setShowScriptPreview(v => !v)}
+            >
+              {showScriptPreview ? <ChevronDown className="h-3 w-3 text-blue-400 shrink-0" /> : <ChevronRight className="h-3 w-3 text-blue-400 shrink-0" />}
+              <span className="text-[10px] font-medium text-blue-400">
+                📝 Script gốc từ Step 1 ({scriptSource.text.length.toLocaleString()} ký tự)
+                {config.cleanedScript ? ' — đã có bản TTS' : ''}
+                {' — '}
+                <span className="text-muted-foreground">{showScriptPreview ? 'ẩn' : 'xem'}</span>
+              </span>
+            </button>
 
-          {showScriptPreview && (
-            <ScrollArea className="max-h-48">
-              <p className="text-[10px] text-muted-foreground whitespace-pre-wrap leading-relaxed pr-2">
-                {scriptSource.text.length > 2000
-                  ? scriptSource.text.substring(0, 2000) + '...'
-                  : scriptSource.text
-                }
-              </p>
-            </ScrollArea>
-          )}
+            {showScriptPreview && (
+              <ScrollArea className="max-h-40">
+                <p className="text-[10px] text-muted-foreground whitespace-pre-wrap leading-relaxed pr-2">
+                  {scriptSource.text.length > 2000
+                    ? scriptSource.text.substring(0, 2000) + '...'
+                    : scriptSource.text
+                  }
+                </p>
+              </ScrollArea>
+            )}
+          </div>
 
-          {/* AI Script Doctor Button */}
+          {/* Optimize button */}
           <Button
             variant="outline"
             size="sm"
-            className="w-full h-7 text-[10px] gap-1.5 border-purple-500/30 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300 mt-1"
-            onClick={handleScriptDoctor}
-            disabled={doctorLoading}
+            className="w-full h-8 text-[11px] gap-2 border-purple-500/30 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
+            onClick={handleOptimizeForTTS}
+            disabled={optimizerLoading}
           >
-            {doctorLoading ? (
-              <><Loader2 className="h-3 w-3 animate-spin" /> Đang rà soát script...</>
+            {optimizerLoading ? (
+              <><Loader2 className="h-3 w-3 animate-spin" /> Đang tối ưu script cho TTS...</>
+            ) : optimizedScript ? (
+              <><Wand2 className="h-3 w-3" /> 🔄 Tối ưu lại script cho TTS</>
             ) : (
-              <><Wand2 className="h-3 w-3" /> 🩺 AI Script Doctor — Tìm sạn trước khi đọc</>
+              <><Wand2 className="h-3 w-3" /> ✨ Tối ưu script → bản sạch cho TTS</>
             )}
           </Button>
+
+          {optimizerError && (
+            <p className="text-[10px] text-red-400">⚠️ {optimizerError}</p>
+          )}
+
+          {/* Optimized script result */}
+          {optimizedScript && (
+            <div className="rounded-md border border-green-500/30 bg-green-500/5 overflow-hidden">
+              <button
+                type="button"
+                className="w-full flex items-center justify-between px-3 py-2 hover:bg-green-500/10 transition-colors"
+                onClick={() => setShowOptimized(v => !v)}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-green-400">
+                    ✅ Script TTS-Ready
+                  </span>
+                  <Badge variant="outline" className="text-[10px] border-green-500/50 text-green-400">
+                    {optimizedScript.length.toLocaleString()} ký tự
+                  </Badge>
+                  {config.cleanedScript ? (
+                    <Badge variant="outline" className="text-[9px] border-green-500/50 text-green-400">đã áp dụng</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[9px] border-yellow-500/50 text-yellow-400">chưa áp dụng</Badge>
+                  )}
+                </div>
+                {showOptimized ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+              </button>
+
+              {showOptimized && (
+                <div className="px-3 pb-3 space-y-2 border-t border-green-500/20 pt-2">
+                  <ScrollArea className="max-h-60">
+                    <p className="text-[10px] text-foreground/80 whitespace-pre-wrap leading-relaxed pr-2 font-mono">
+                      {optimizedScript}
+                    </p>
+                  </ScrollArea>
+
+                  <div className="flex gap-2">
+                    {!config.cleanedScript || config.cleanedScript !== optimizedScript ? (
+                      <Button
+                        size="sm"
+                        className="flex-1 h-7 text-[10px] gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+                        onClick={handleApplyOptimized}
+                      >
+                        <CheckCircle2 className="h-3 w-3" /> Áp dụng cho TTS
+                      </Button>
+                    ) : (
+                      <div className="flex-1 flex items-center justify-center h-7 text-[10px] text-green-400 gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Đang dùng bản này
+                      </div>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
+                      onClick={handleClearOptimized}
+                    >
+                      <X className="h-3 w-3" /> Xóa
+                    </Button>
+                  </div>
+
+                  <p className="text-[9px] text-muted-foreground">
+                    💡 Khi áp dụng, TTS sẽ đọc bản đã tối ưu thay vì script gốc. Xóa để dùng lại script gốc.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         <div className="rounded-md border border-yellow-500/20 bg-yellow-500/5 px-3 py-2">
           <p className="text-[10px] text-yellow-400">
             ⚠️ Chưa có Script. Chạy Step 1 (Script Writer) trước để tạo nội dung cho TTS.
           </p>
-        </div>
-      )}
-
-      {/* AI Script Doctor Results */}
-      {doctorError && (
-        <div className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2">
-          <p className="text-[10px] text-red-400">⚠️ {doctorError}</p>
-        </div>
-      )}
-
-      {doctorResult && (
-        <div className="rounded-md border border-purple-500/30 bg-purple-500/5 overflow-hidden">
-          <button
-            type="button"
-            className="w-full flex items-center justify-between px-3 py-2 hover:bg-purple-500/10 transition-colors"
-            onClick={() => setShowDoctor(v => !v)}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium">
-                🩺 Script Doctor
-              </span>
-              <Badge
-                variant="outline"
-                className={cn('text-[10px]',
-                  doctorResult.score >= 8 ? 'border-green-500/50 text-green-400' :
-                  doctorResult.score >= 5 ? 'border-yellow-500/50 text-yellow-400' :
-                  'border-red-500/50 text-red-400'
-                )}
-              >
-                {doctorResult.score}/10
-              </Badge>
-              {doctorResult.issues.length > 0 && (
-                <Badge variant="outline" className="text-[10px] border-orange-500/50 text-orange-400">
-                  {doctorResult.issues.length} sạn
-                </Badge>
-              )}
-            </div>
-            {showDoctor ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-          </button>
-
-          {showDoctor && (
-            <div className="px-3 pb-3 space-y-2 border-t border-purple-500/20 pt-2">
-              <p className="text-[10px] text-muted-foreground">{doctorResult.summary}</p>
-
-              {doctorResult.issues.length === 0 ? (
-                <div className="text-center py-3">
-                  <span className="text-2xl">✅</span>
-                  <p className="text-[10px] text-green-400 mt-1">Script sạch — sẵn sàng cho TTS!</p>
-                </div>
-              ) : (
-                <ScrollArea className="max-h-64">
-                  <div className="space-y-2 pr-2">
-                    {doctorResult.issues.map((issue, idx) => (
-                      <div key={idx} className="rounded border border-border/50 bg-background/50 p-2 space-y-1">
-                        <div className="flex items-center gap-1.5">
-                          <Badge variant="outline" className={cn('text-[9px] px-1.5 py-0',
-                            issue.type === 'tts-unfriendly' ? 'border-red-500/50 text-red-400' :
-                            issue.type === 'grammar' ? 'border-orange-500/50 text-orange-400' :
-                            issue.type === 'awkward-phrasing' ? 'border-yellow-500/50 text-yellow-400' :
-                            issue.type === 'rhythm' ? 'border-blue-500/50 text-blue-400' :
-                            issue.type === 'tone-break' ? 'border-purple-500/50 text-purple-400' :
-                            issue.type === 'repetitive' ? 'border-cyan-500/50 text-cyan-400' :
-                            'border-muted-foreground/50 text-muted-foreground'
-                          )}>
-                            {issue.type === 'tts-unfriendly' ? '🔊 TTS' :
-                             issue.type === 'grammar' ? '✏️ Ngữ pháp' :
-                             issue.type === 'awkward-phrasing' ? '💬 Lủng củng' :
-                             issue.type === 'rhythm' ? '🎵 Nhịp câu' :
-                             issue.type === 'tone-break' ? '🎭 Gãy tone' :
-                             issue.type === 'repetitive' ? '🔄 Lặp lại' :
-                             issue.type}
-                          </Badge>
-                          <span className="text-[9px] text-muted-foreground">{issue.reason}</span>
-                        </div>
-                        <div className="text-[10px] space-y-0.5">
-                          <div className="flex items-start gap-1">
-                            <span className="text-red-400 shrink-0">−</span>
-                            <span className="text-red-300/80 line-through">{issue.original}</span>
-                          </div>
-                          <div className="flex items-start gap-1">
-                            <span className="text-green-400 shrink-0">+</span>
-                            <span className="text-green-300/80">{issue.suggest}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              )}
-            </div>
-          )}
         </div>
       )}
 
