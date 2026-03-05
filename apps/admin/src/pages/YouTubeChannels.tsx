@@ -24,7 +24,7 @@ import {
 import { youtubeChannelsService } from '@/services/youtube-channels.service';
 import type { ChannelPlan } from '@/services/youtube-channels.service';
 import { getAllRuns } from '@/services/pipeline';
-import { getPool, addKey, removeKey, enableKey, disableKey, resetStats, onPoolChange, type PoolEntry } from '@/services/pipeline/api-key-pool';
+import { getPool, addKey, removeKey, enableKey, disableKey, resetStats, onPoolChange, hydrateFromDb as hydrateKeyPool, type PoolEntry } from '@/services/pipeline/api-key-pool';
 
 // ─── STATUS CONFIG ─────────────────────────────────────────
 
@@ -42,8 +42,11 @@ export default function YouTubeChannelsDashboard() {
   const [showKeyPoolDialog, setShowKeyPoolDialog] = useState(false);
   const [pool, setPool] = useState<PoolEntry[]>(getPool());
 
-  // Subscribe to key pool changes
-  useEffect(() => onPoolChange(() => setPool(getPool())), []);
+  // Hydrate key pool from Supabase, then subscribe to changes
+  useEffect(() => {
+    hydrateKeyPool().then(() => setPool(getPool()));
+    return onPoolChange(() => setPool(getPool()));
+  }, []);
 
   // ── Data Queries ──
   const { data: plansData, isLoading: plansLoading } = useQuery({

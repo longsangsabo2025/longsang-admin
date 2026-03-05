@@ -31,10 +31,21 @@ import {
 import { youtubeChannelsService } from '@/services/youtube-channels.service';
 import type { ChannelPlan, GenerateRequest, GenerationRun } from '@/services/youtube-channels.service';
 import PipelineRoadmap, { type PipelineConfig } from '@/components/youtube/PipelineRoadmap';
+import { DEFAULT_PIPELINE } from '@/components/youtube/pipeline-types';
 import SmartAudio from '@/components/youtube/SmartAudio';
-import { getPool, addKey, removeKey, enableKey, disableKey, resetStats, onPoolChange, type PoolEntry } from '@/services/pipeline/api-key-pool';
+import { getPool, addKey, removeKey, enableKey, disableKey, resetStats, onPoolChange, hydrateFromDb as hydrateKeyPool, type PoolEntry } from '@/services/pipeline/api-key-pool';
 import { getRunningIdsForChannel } from '@/services/pipeline';
 import { regenerateSingleClip } from '@/services/pipeline/voiceover.agent';
+
+// ─── Read Pipeline config from localStorage (synced with PipelineRoadmap) ──
+const PIPELINE_STORAGE_KEY = 'yt-pipeline-config';
+function getSavedPipelineConfig(): PipelineConfig {
+  try {
+    const raw = localStorage.getItem(PIPELINE_STORAGE_KEY);
+    if (raw) return { ...DEFAULT_PIPELINE, ...JSON.parse(raw) };
+  } catch { /* ignore corrupt data */ }
+  return DEFAULT_PIPELINE;
+}
 
 // ─── MAIN COMPONENT ────────────────────────────────────────
 
@@ -62,7 +73,21 @@ export default function YouTubeChannelWorkspace() {
   const [batchTopics, setBatchTopics] = useState('');
   const [batchLaunching, setBatchLaunching] = useState(false);
   const [activeTab, setActiveTab] = useState(s.activeTab || 'generate');
-  const [voiceConfig, setVoiceConfig] = useState<{ engine: string; voice: string; speed: number; cleanedScript?: string }>({ engine: 'gemini-tts', voice: 'Kore', speed: 1.0 });
+  const [voiceConfig, setVoiceConfig] = useState<{ engine: string; voice: string; speed: number; cleanedScript?: string }>(() => {
+    try {
+      const saved = localStorage.getItem('yt-voice-config');
+      if (saved) return { engine: 'gemini-tts', voice: 'Kore', speed: 1.0, ...JSON.parse(saved) };
+    } catch { /* ignore */ }
+    return { engine: 'gemini-tts', voice: 'Kore', speed: 1.0 };
+  });
+
+  // Persist voiceConfig to localStorage
+  useEffect(() => {
+    localStorage.setItem('yt-voice-config', JSON.stringify(voiceConfig));
+  }, [voiceConfig]);
+
+  // ── Hydrate Key Pool from Supabase on mount ──
+  useEffect(() => { hydrateKeyPool(); }, []);
 
   // ── Fetch channel data ──
   const { data: plansData, isLoading: plansLoading } = useQuery({
@@ -786,32 +811,32 @@ export default function YouTubeChannelWorkspace() {
               </Card>
             </TabsContent>
 
-            {/* ── Results Tab ── */}
+            {/* ── Results Tab — synced with Pipeline config ── */}
             <TabsContent value="results">
               {activeRun && activeRun.result ? (
                 <ResultsView run={activeRun} onRunImageGen={() => {
+                  const cfg = getSavedPipelineConfig();
                   handlePipelineStepRun('imageGen', {
-                    scriptWriter: { enabled: true, model: 'gemini-2.0-flash', tone: 'engaging', wordTarget: 600, customPrompt: '' },
-                    storyboard: { enabled: true, model: 'hailuo-2.3', style: 'dark-cinematic', scenes: 5, duration: 6, aspectRatio: '16:9', visualIdentity: {} as never, customPrompt: '' },
-                    imageGen: { enabled: true, provider: 'gemini', quality: 'standard', negativePrompt: 'text, watermark, logo' },
-                    voiceover: { enabled: false, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed },
-                    assembly: { enabled: false, format: 'mp4-1080p', transitions: 'crossfade', bgMusic: true },
+                    ...cfg,
+                    imageGen: { ...cfg.imageGen, enabled: true },
+                    voiceover: { ...cfg.voiceover, enabled: false, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed },
+                    assembly: { ...cfg.assembly, enabled: false },
                   });
                 }} onRunVoiceover={() => {
+                  const cfg = getSavedPipelineConfig();
                   handlePipelineStepRun('voiceover', {
-                    scriptWriter: { enabled: true, model: 'gemini-2.0-flash', tone: 'engaging', wordTarget: 600, customPrompt: '' },
-                    storyboard: { enabled: true, model: 'hailuo-2.3', style: 'dark-cinematic', scenes: 5, duration: 6, aspectRatio: '16:9', visualIdentity: {} as never, customPrompt: '' },
-                    imageGen: { enabled: false, provider: 'gemini', quality: 'standard', negativePrompt: 'text, watermark, logo' },
-                    voiceover: { enabled: true, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed, cleanedScript: voiceConfig.cleanedScript },
-                    assembly: { enabled: false, format: 'mp4-1080p', transitions: 'crossfade', bgMusic: true },
+                    ...cfg,
+                    imageGen: { ...cfg.imageGen, enabled: false },
+                    voiceover: { ...cfg.voiceover, enabled: true, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed, cleanedScript: voiceConfig.cleanedScript },
+                    assembly: { ...cfg.assembly, enabled: false },
                   });
                 }} onRunAssembly={() => {
+                  const cfg = getSavedPipelineConfig();
                   handlePipelineStepRun('assembly', {
-                    scriptWriter: { enabled: true, model: 'gemini-2.0-flash', tone: 'engaging', wordTarget: 600, customPrompt: '' },
-                    storyboard: { enabled: true, model: 'hailuo-2.3', style: 'dark-cinematic', scenes: 5, duration: 6, aspectRatio: '16:9', visualIdentity: {} as never, customPrompt: '' },
-                    imageGen: { enabled: false, provider: 'gemini', quality: 'standard', negativePrompt: 'text, watermark, logo' },
-                    voiceover: { enabled: false, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed },
-                    assembly: { enabled: true, format: 'mp4-1080p', transitions: 'crossfade', bgMusic: true },
+                    ...cfg,
+                    imageGen: { ...cfg.imageGen, enabled: false },
+                    voiceover: { ...cfg.voiceover, enabled: false, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed },
+                    assembly: { ...cfg.assembly, enabled: true },
                   });
                 }} isGenerating={stepMut.isPending}
                   voiceoverConfig={voiceConfig}
@@ -1029,8 +1054,8 @@ function VoiceTabContent({
   voiceoverJson?: VoiceoverData;
   storyboardJson?: StoryboardData;
   scriptTxt?: string;
-  voiceoverConfig?: { engine: string; voice: string; speed: number };
-  onVoiceoverConfigChange?: (u: Partial<{ engine: string; voice: string; speed: number }>) => void;
+  voiceoverConfig?: { engine: string; voice: string; speed: number; cleanedScript?: string };
+  onVoiceoverConfigChange?: (u: Partial<{ engine: string; voice: string; speed: number; cleanedScript?: string }>) => void;
   onRunVoiceover?: () => void;
   isGenerating?: boolean;
 }) {
@@ -1826,8 +1851,8 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGene
   onRunVoiceover?: () => void;
   onRunAssembly?: () => void;
   isGenerating?: boolean;
-  voiceoverConfig?: { engine: string; voice: string; speed: number };
-  onVoiceoverConfigChange?: (u: Partial<{ engine: string; voice: string; speed: number }>) => void;
+  voiceoverConfig?: { engine: string; voice: string; speed: number; cleanedScript?: string };
+  onVoiceoverConfigChange?: (u: Partial<{ engine: string; voice: string; speed: number; cleanedScript?: string }>) => void;
 }) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const result = run.result;

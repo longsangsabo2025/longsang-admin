@@ -14,6 +14,8 @@ export interface PoolEntry {
 }
 
 const STORAGE_KEY = 'pipeline-api-key-pool';
+const DB_KEY = 'pipeline-api-key-pool';      // key in app_settings table
+const DB_CATEGORY = 'pipeline';
 const AUTO_DISABLE_THRESHOLD = 3;
 const AUTO_RECOVER_MS = 60_000; // auto-re-enable disabled keys after 60s
 
@@ -25,6 +27,8 @@ const ENV_FALLBACKS: Record<EngineType, string> = {
 
 const _lastIndex = new Map<string, number>();
 const _listeners = new Set<() => void>();
+let _dbHydrated = false;
+let _savingToDb = false;
 
 function notify() {
   _listeners.forEach((cb) => cb());
@@ -40,6 +44,72 @@ function load(): PoolEntry[] {
 
 function save(pool: PoolEntry[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(pool));
+  notify();
+  // Fire-and-forget save to Supabase
+  saveToDb(pool);
+}
+
+// ── Supabase Persistence ──
+
+async function getSupabase() {
+  const { supabase } = await import('@/lib/supabase');
+  return supabase;
+}
+
+async function saveToDb(pool: PoolEntry[]) {
+  if (_savingToDb) return; // debounce
+  _savingToDb = true;
+  try {
+    const sb = await getSupabase();
+    const { error } = await sb.from('app_settings').upsert({
+      key: DB_KEY,
+      value: JSON.stringify(pool),
+      category: DB_CATEGORY,
+      is_secret: true,
+    }, { onConflict: 'key' });
+    if (error) console.warn('[api-key-pool] DB save failed:', error.message);
+  } catch (err) {
+    console.warn('[api-key-pool] DB save error:', err);
+  } finally {
+    _savingToDb = false;
+  }
+}
+
+async function loadFromDb(): Promise<PoolEntry[] | null> {
+  try {
+    const sb = await getSupabase();
+    const { data, error } = await sb
+      .from('app_settings')
+      .select('value')
+      .eq('key', DB_KEY)
+      .single();
+    if (error || !data?.value) return null;
+    return JSON.parse(data.value);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Hydrate pool from Supabase on first access.
+ * Merges DB keys into localStorage (DB is source of truth for keys).
+ */
+export async function hydrateFromDb(): Promise<void> {
+  if (_dbHydrated) return;
+  _dbHydrated = true;
+  const dbPool = await loadFromDb();
+  if (!dbPool || dbPool.length === 0) return;
+
+  const local = load();
+  // Merge: DB entries win, add any local-only entries
+  const dbKeySet = new Set(dbPool.map(e => `${e.engine}::${e.key}`));
+  const merged = [...dbPool];
+  for (const entry of local) {
+    if (!dbKeySet.has(`${entry.engine}::${entry.key}`)) {
+      merged.push(entry);
+    }
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
   notify();
 }
 
