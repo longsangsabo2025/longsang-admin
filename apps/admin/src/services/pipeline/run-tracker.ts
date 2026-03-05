@@ -8,7 +8,7 @@
  * and loads them back on page refresh.
  */
 import type { GenerationRun, GenerateRequest, ProgressPhase } from './types';
-import { persistCreate, persistUpdate, loadRunsByChannel, loadAllRuns } from './run-persistence';
+import { persistCreate, persistUpdate, persistDelete, loadRunsByChannel, loadAllRuns } from './run-persistence';
 
 const clientRuns = new Map<string, GenerationRun>();
 const hydratedChannels = new Set<string>();
@@ -139,6 +139,68 @@ function fixOrphanedRun(run: GenerationRun): void {
   }
 }
 
+/**
+ * Merge runs with the same topic within a time window.
+ * Keeps the earliest run as primary, merges files/steps from later runs into it,
+ * then deletes the duplicates from Supabase and clientRuns.
+ */
+function mergeRelatedRuns(runs: GenerationRun[]): void {
+  const MERGE_WINDOW = 2 * 60 * 60 * 1000; // 2 hours
+  // Group by channelId + topic
+  const groups = new Map<string, GenerationRun[]>();
+  for (const run of runs) {
+    const topic = run.input?.topic || run.input?.transcript;
+    if (!topic) continue;
+    const key = `${run.channelId}::${topic}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(run);
+  }
+
+  for (const [, group] of groups) {
+    if (group.length <= 1) continue;
+    // Sort oldest first
+    group.sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+    const primary = group[0];
+
+    for (let i = 1; i < group.length; i++) {
+      const other = group[i];
+      const gap = new Date(other.startedAt).getTime() - new Date(primary.startedAt).getTime();
+      if (gap > MERGE_WINDOW) continue;
+
+      // Merge files
+      if (other.result?.files) {
+        if (!primary.result) primary.result = { outputDir: 'remote', files: {} };
+        primary.result.files = { ...primary.result.files, ...other.result.files };
+        primary.hasResult = true;
+      }
+      // Merge steps
+      primary.pipelineSteps = [...new Set([...(primary.pipelineSteps || []), ...(other.pipelineSteps || [])])];
+      primary.completedSteps = [...new Set([...(primary.completedSteps || []), ...(other.completedSteps || [])])];
+      // Use latest completedAt
+      if (other.completedAt && (!primary.completedAt || other.completedAt > primary.completedAt)) {
+        primary.completedAt = other.completedAt;
+      }
+      // Accumulate duration
+      primary.durationMs = (primary.durationMs || 0) + (other.durationMs || 0);
+      // Merge logs (dedupe by timestamp)
+      const existingTs = new Set(primary.logs.map(l => l.t));
+      for (const log of other.logs) {
+        if (!existingTs.has(log.t)) primary.logs.push(log);
+      }
+      primary.logs.sort((a, b) => a.t - b.t);
+      // Best status
+      if (other.status === 'completed') primary.status = 'completed';
+
+      // Remove duplicate from memory + Supabase
+      clientRuns.delete(other.id);
+      persistDelete(other.id).catch(() => {});
+    }
+    // Update primary in memory + Supabase
+    clientRuns.set(primary.id, primary);
+    persistUpdate(primary).catch(() => {});
+  }
+}
+
 /** Load saved runs from Supabase into the in-memory Map (call once per channel) */
 export async function hydrateRunsForChannel(channelId: string): Promise<GenerationRun[]> {
   if (hydratedChannels.has(channelId)) return getAllRuns();
@@ -150,6 +212,8 @@ export async function hydrateRunsForChannel(channelId: string): Promise<Generati
       clientRuns.set(run.id, run);
     }
   }
+  // Merge old separate runs with the same topic into single entries
+  mergeRelatedRuns(saved);
   return getAllRuns();
 }
 

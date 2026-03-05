@@ -90,6 +90,12 @@ export async function persistUpdate(run: GenerationRun): Promise<void> {
   if (error) console.warn('[run-persistence] update failed:', error.message);
 }
 
+/** Delete a run by ID */
+export async function persistDelete(runId: string): Promise<void> {
+  const { error } = await supabase.from(TABLE).delete().eq('pipeline_id', runId);
+  if (error) console.warn('[run-persistence] delete failed:', error.message);
+}
+
 /** Load runs for a specific channel (most recent first, last 50) */
 export async function loadRunsByChannel(channelId: string): Promise<GenerationRun[]> {
   const { data, error } = await supabase
