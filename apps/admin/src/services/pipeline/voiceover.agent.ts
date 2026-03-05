@@ -331,6 +331,19 @@ async function mergeClipsToFullAudio(
 /** Track exhausted Gemini API keys this session → rotate to next key */
 const _exhaustedGeminiKeys = new Set<string>();
 
+/** Find a working Gemini key — skip exhausted ones, try pool then env fallback */
+function getWorkingGeminiKey(currentKey: string): string | null {
+  // If current key is still good, use it
+  if (!_exhaustedGeminiKeys.has(currentKey)) return currentKey;
+  // Try pool keys that aren't exhausted
+  const remaining = getPoolForEngine('gemini').filter(e => !_exhaustedGeminiKeys.has(e.key));
+  if (remaining.length > 0) return remaining[0].key;
+  // Try env fallback
+  const envKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
+  if (envKey && !_exhaustedGeminiKeys.has(envKey)) return envKey;
+  return null;
+}
+
 /** Generate a single TTS blob using the chosen engine, with retry on transient errors.
  *  On Gemini quota: tries other Gemini keys from pool → falls back to Google Cloud TTS → clear error. */
 async function synthesize(
@@ -339,39 +352,66 @@ async function synthesize(
 ): Promise<Blob> {
   const log = _logFn || ((m: string) => console.log('[TTS]', m));
 
+  // Early check: if this Gemini key is already exhausted, find a working one immediately
+  let activeKey = apiKey;
+  if (engine === 'gemini-tts' && _exhaustedGeminiKeys.has(apiKey)) {
+    const fresh = getWorkingGeminiKey(apiKey);
+    if (fresh) {
+      log(`⚡ Key exhausted — switching to next Gemini key`);
+      activeKey = fresh;
+    } else {
+      // No Gemini keys left → try Google Cloud TTS
+      const fbVoice = GEMINI_TO_GOOGLE_VOICE[voice] || 'vi-VN-Neural2-D';
+      log(`⚠️ All Gemini keys exhausted — trying Google Cloud TTS (${fbVoice})...`);
+      try {
+        return await googleTTS(text, fbVoice, speed, apiKey);
+      } catch (fbErr: unknown) {
+        const fbMsg = fbErr instanceof Error ? fbErr.message : String(fbErr);
+        if (fbMsg.includes('has not been used') || fbMsg.includes('disabled') || fbMsg.includes('PERMISSION_DENIED')) {
+          throw new Error(
+            `Gemini TTS đã hết quota (tất cả ${_exhaustedGeminiKeys.size} key). Google Cloud TTS chưa bật.\n` +
+            `→ Bật tại: https://console.developers.google.com/apis/api/texttospeech.googleapis.com/overview\n` +
+            `→ Hoặc thêm Gemini API key mới vào Key Pool, hoặc đợi reset quota (24h).`
+          );
+        }
+        throw fbErr;
+      }
+    }
+  }
+
   const maxRetries = 3;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      if (engine === 'elevenlabs') return await elevenLabsTTS(text, voice, speed, apiKey);
-      if (engine === 'google-tts') return await googleTTS(text, voice, speed, apiKey);
-      return await geminiTTS(text, voice, speed, apiKey);
+      if (engine === 'elevenlabs') return await elevenLabsTTS(text, voice, speed, activeKey);
+      if (engine === 'google-tts') return await googleTTS(text, voice, speed, activeKey);
+      return await geminiTTS(text, voice, speed, activeKey);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
 
       // ─── Gemini quota/rate-limit handling ───
       if (engine === 'gemini-tts' && isQuotaError(msg)) {
-        _exhaustedGeminiKeys.add(apiKey);
-        disableKey('gemini', apiKey, 'Quota exhausted');
-        reportError('gemini', apiKey, msg);
+        _exhaustedGeminiKeys.add(activeKey);
+        disableKey('gemini', activeKey, 'Quota exhausted');
+        reportError('gemini', activeKey, msg);
+        log(`⚠️ Gemini key quota exceeded (${_exhaustedGeminiKeys.size} key(s) exhausted)`);
 
-        // Try another Gemini API key from pool
-        const remaining = getPoolForEngine('gemini').filter(e => !_exhaustedGeminiKeys.has(e.key));
-        if (remaining.length > 0) {
-          const nextKey = remaining[0].key;
-          log(`⚠️ Gemini key quota exceeded — rotating to next key (${remaining.length} remaining)`);
+        // Try another Gemini API key
+        const nextKey = getWorkingGeminiKey(activeKey);
+        if (nextKey) {
+          log(`🔄 Rotating to next Gemini key...`);
           return await synthesize(text, engine, voice, speed, nextKey, _logFn);
         }
 
         // No more Gemini keys → try Google Cloud TTS fallback
         const fbVoice = GEMINI_TO_GOOGLE_VOICE[voice] || 'vi-VN-Neural2-D';
-        log(`⚠️ All Gemini keys exhausted — trying Google Cloud TTS fallback (${fbVoice})...`);
+        log(`⚠️ All ${_exhaustedGeminiKeys.size} Gemini keys exhausted — trying Google Cloud TTS fallback (${fbVoice})...`);
         try {
-          return await googleTTS(text, fbVoice, speed, apiKey);
+          return await googleTTS(text, fbVoice, speed, activeKey);
         } catch (fbErr: unknown) {
           const fbMsg = fbErr instanceof Error ? fbErr.message : String(fbErr);
           if (fbMsg.includes('has not been used') || fbMsg.includes('disabled') || fbMsg.includes('PERMISSION_DENIED')) {
             throw new Error(
-              `Gemini TTS đã hết quota (100 req/ngày). Google Cloud TTS chưa bật.\n` +
+              `Gemini TTS đã hết quota (tất cả ${_exhaustedGeminiKeys.size} key). Google Cloud TTS chưa bật.\n` +
               `→ Bật tại: https://console.developers.google.com/apis/api/texttospeech.googleapis.com/overview\n` +
               `→ Hoặc thêm Gemini API key mới vào Key Pool, hoặc đợi reset quota (24h).`
             );
