@@ -32,6 +32,13 @@ export interface GenerateRequest {
   assemblyFormat?: string;
   assemblyTransitions?: string;
   assemblyBgMusic?: boolean;
+  assemblyTextOverlay?: boolean;
+  assemblyPanZoom?: string;
+  assemblyFps?: number;
+  assemblyFadeInOut?: boolean;
+  assemblyTransitionDuration?: number;
+  assemblyScenePadding?: number;
+  assemblyWatermarkUrl?: string;
 }
 
 export interface RunLog {

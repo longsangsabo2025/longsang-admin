@@ -2091,6 +2091,18 @@ CHỈ SỬA NHỮNG THỨ NÀY:
     setPreviewError(null);
     if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
 
+    // Check localStorage cache — avoid repeated API calls for same voice
+    const cacheKey = `voice-preview-${config.engine}__${config.voice}`;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        setPreviewUrl(cached);
+        setPreviewLoading(false);
+        setTimeout(() => previewAudioRef.current?.play(), 100);
+        return;
+      }
+    } catch { /* ignore localStorage errors */ }
+
     const sampleText = 'Xin chào, đây là giọng đọc mẫu. Bạn có thể nghe thử trước khi tạo voiceover cho video.';
 
     try {
@@ -2192,6 +2204,12 @@ CHỈ SỬA NHỮNG THỨ NÀY:
 
       const url = URL.createObjectURL(blob);
       setPreviewUrl(url);
+
+      // Cache audio as data URL — no more API calls for this voice
+      const reader = new FileReader();
+      reader.onload = () => { try { localStorage.setItem(cacheKey, reader.result as string); } catch { /* quota */ } };
+      reader.readAsDataURL(blob);
+
       // Auto-play
       setTimeout(() => previewAudioRef.current?.play(), 100);
     } catch (err) {

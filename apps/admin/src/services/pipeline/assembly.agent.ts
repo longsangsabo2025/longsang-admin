@@ -1,18 +1,23 @@
 /**
  * 🎥 Video Assembly Agent — combines images + audio into final video
  *
- * Uses browser Canvas + MediaRecorder API to:
- * 1. Load all scene images + audio clips from previous steps
- * 2. Render each scene image as frames for the clip's duration
- * 3. Apply transitions (crossfade, cut, zoom, slide)
- * 4. Mix audio clips into the timeline
- * 5. Export as WebM video → upload to Supabase
+ * REAL-TIME rendering approach:
+ * - audioCtx.currentTime is the SINGLE clock source for perfect A/V sync
+ * - setInterval renders frames at FPS rate, reading audio clock each tick
+ * - canvas.captureStream(FPS) captures whatever is on the canvas
+ * - MediaRecorder records both video + audio streams simultaneously
+ * - No OffscreenCanvas → no expensive getImageData/putImageData copies
  *
- * No server-side FFmpeg needed — runs entirely in the browser.
+ * Single-narration handling:
+ * - Detects voiceover.json { singleNarration: true, fullNarrationUrl }
+ * - Plays the single audio file ONCE from the start
+ * - Per-scene mode: schedules each clip at its scene's startTime
  */
 import type { GenerateRequest, ProgressPhase } from './types';
 import { supabase } from '@/lib/supabase';
 import { getRun, startProgressTracker, saveStepResult, failRun, findLatestRunWithFile } from './run-tracker';
+
+// ─── Types ─────────────────────────────────────────────────
 
 interface SceneImage {
   scene: number;
@@ -25,10 +30,25 @@ interface VoiceoverClip {
   duration: number;
 }
 
+interface VoiceoverJson {
+  clips?: VoiceoverClip[];
+  totalDuration?: number;
+  singleNarration?: boolean;
+  fullNarrationUrl?: string;
+  fullAudioUrl?: string;
+}
+
 interface AssemblyConfig {
   format: string;
   transitions: string;
   bgMusic: boolean;
+}
+
+interface SceneTimeline {
+  scene: number;
+  startTime: number;
+  duration: number;
+  image: HTMLImageElement | null;
 }
 
 interface AssemblyResult {
@@ -44,7 +64,6 @@ interface AssemblyResult {
 
 // ─── Helpers ───────────────────────────────────────────────
 
-/** Load an image from URL into an HTMLImageElement */
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
@@ -55,7 +74,6 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Fetch audio clip as ArrayBuffer */
 async function fetchAudioBuffer(url: string, audioCtx: AudioContext): Promise<AudioBuffer> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch audio: ${url}`);
@@ -63,14 +81,12 @@ async function fetchAudioBuffer(url: string, audioCtx: AudioContext): Promise<Au
   return audioCtx.decodeAudioData(arrayBuf);
 }
 
-/** Get resolution from format string */
 function getResolution(format: string): { width: number; height: number } {
   if (format === 'mp4-4k') return { width: 3840, height: 2160 };
-  // Default 1080p for both mp4-1080p and webm-1080p
   return { width: 1920, height: 1080 };
 }
 
-/** Draw image covering the canvas (cover mode) */
+/** Draw image covering the canvas (object-fit: cover). Draws directly — no OffscreenCanvas. */
 function drawImageCover(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
@@ -99,7 +115,6 @@ function drawImageCover(
     sy = (img.height - sh) / 2;
   }
 
-  // Apply scale (for zoom transition)
   const scaledW = cw * scale;
   const scaledH = ch * scale;
   const dx = (cw - scaledW) / 2 + offsetX;
@@ -109,29 +124,53 @@ function drawImageCover(
   ctx.restore();
 }
 
-/** Concatenate AudioBuffers into a single AudioBuffer */
-function concatenateAudioBuffers(
-  audioCtx: AudioContext,
-  buffers: { buffer: AudioBuffer; startTime: number }[],
-  totalDuration: number,
-): AudioBuffer {
-  const sampleRate = audioCtx.sampleRate;
-  const totalSamples = Math.ceil(totalDuration * sampleRate);
-  const output = audioCtx.createBuffer(1, totalSamples, sampleRate);
-  const outputData = output.getChannelData(0);
-
-  for (const { buffer, startTime } of buffers) {
-    const startSample = Math.floor(startTime * sampleRate);
-    const sourceData = buffer.getChannelData(0);
-    for (let i = 0; i < sourceData.length && (startSample + i) < totalSamples; i++) {
-      outputData[startSample + i] += sourceData[i];
-    }
+/** Render the correct frame for a given elapsed time */
+function renderFrame(
+  ctx: CanvasRenderingContext2D,
+  timeline: SceneTimeline[],
+  elapsed: number,
+  width: number,
+  height: number,
+  transitionType: string,
+  transitionDur: number,
+) {
+  // Find current scene
+  let currentIdx = 0;
+  for (let i = 0; i < timeline.length; i++) {
+    if (elapsed >= timeline[i].startTime) currentIdx = i;
   }
+  const scene = timeline[currentIdx];
+  const nextScene = currentIdx + 1 < timeline.length ? timeline[currentIdx + 1] : null;
+  const sceneElapsed = elapsed - scene.startTime;
+  const sceneProgress = scene.duration > 0 ? sceneElapsed / scene.duration : 0;
 
-  return output;
+  // Clear to black
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, width, height);
+
+  if (!scene.image) return;
+
+  // Transition zone: last transitionDur seconds of each scene (before next scene)
+  const isInTransition = nextScene && (scene.duration - sceneElapsed) < transitionDur;
+  const tProgress = isInTransition
+    ? 1 - (scene.duration - sceneElapsed) / transitionDur
+    : 0;
+
+  if (transitionType === 'crossfade' && isInTransition && nextScene?.image) {
+    drawImageCover(ctx, scene.image, width, height, 1 - tProgress);
+    drawImageCover(ctx, nextScene.image, width, height, tProgress);
+  } else if (transitionType === 'zoom') {
+    const zoom = 1 + sceneProgress * 0.1; // Ken Burns slow zoom
+    drawImageCover(ctx, scene.image, width, height, 1, zoom);
+  } else if (transitionType === 'slide' && isInTransition && nextScene?.image) {
+    const offset = -tProgress * width;
+    drawImageCover(ctx, scene.image, width, height, 1, 1, offset);
+    drawImageCover(ctx, nextScene.image, width, height, 1, 1, offset + width);
+  } else {
+    drawImageCover(ctx, scene.image, width, height, 1);
+  }
 }
 
-/** Upload video blob to Supabase storage */
 async function uploadVideo(blob: Blob, channelId: string, runId: string): Promise<{ url: string; fileSize: number }> {
   const filePath = `pipeline-video/${channelId}/${runId}/video.webm`;
   const { error } = await supabase.storage
@@ -152,7 +191,6 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
 
   const channelId = req.channelId || 'default';
 
-  // Parse assembly config from request
   const assemblyConfig: AssemblyConfig = {
     format: (req as Record<string, unknown>).assemblyFormat as string || 'mp4-1080p',
     transitions: (req as Record<string, unknown>).assemblyTransitions as string || 'crossfade',
@@ -165,19 +203,17 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
     const imgRun = findLatestRunWithFile('images.json', req.channelId, runId);
     imagesJson = imgRun?.result?.files?.['images.json'] as { images?: SceneImage[] } | undefined;
   }
-
   if (!imagesJson?.images?.length) {
     failRun(run, 'Cần có images từ Step 3 (Image Generation) trước! Chạy Step 3 trước khi assembly.');
     return;
   }
 
-  // ── 2. Gather audio from Step 4 ──
-  let voiceoverJson = run.result?.files?.['voiceover.json'] as { clips?: VoiceoverClip[]; totalDuration?: number } | undefined;
+  // ── 2. Gather voiceover from Step 4 ──
+  let voiceoverJson = run.result?.files?.['voiceover.json'] as VoiceoverJson | undefined;
   if (!voiceoverJson?.clips?.length) {
     const voRun = findLatestRunWithFile('voiceover.json', req.channelId, runId);
-    voiceoverJson = voRun?.result?.files?.['voiceover.json'] as { clips?: VoiceoverClip[]; totalDuration?: number } | undefined;
+    voiceoverJson = voRun?.result?.files?.['voiceover.json'] as VoiceoverJson | undefined;
   }
-
   if (!voiceoverJson?.clips?.length) {
     failRun(run, 'Cần có voiceover từ Step 4 (Voiceover/TTS) trước! Chạy Step 4 trước khi assembly.');
     return;
@@ -185,26 +221,25 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
 
   const images = imagesJson.images;
   const clips = voiceoverJson.clips;
+  const isSingleNarration = voiceoverJson.singleNarration === true;
+  const fullNarrationUrl = voiceoverJson.fullNarrationUrl || voiceoverJson.fullAudioUrl || '';
   const totalScenes = images.length;
 
   run.logs.push({
     t: Date.now(), level: 'info',
-    msg: `🎥 Starting assembly: ${totalScenes} scenes, ${clips.length} audio clips, format=${assemblyConfig.format}, transitions=${assemblyConfig.transitions}`,
+    msg: `🎥 Starting assembly: ${totalScenes} scenes, audio=${isSingleNarration ? 'single-narration' : `${clips.length} clips`}, format=${assemblyConfig.format}, transitions=${assemblyConfig.transitions}`,
     step: 'assembly',
   });
 
   // ── 3. Progress tracking ──
   const phases: ProgressPhase[] = [
     { pct: 5, msg: '📥 Loading images...' },
-    { pct: 15, msg: '🔊 Loading audio clips...' },
-    { pct: 25, msg: '🎬 Setting up canvas renderer...' },
-    ...images.map((_, i) => ({
-      pct: 30 + Math.round((i / totalScenes) * 50),
-      msg: `🎞️ Rendering scene ${i + 1}/${totalScenes}...`,
-    })),
-    { pct: 85, msg: '🔄 Encoding video...' },
+    { pct: 15, msg: '🔊 Loading audio...' },
+    { pct: 25, msg: '🎬 Setting up real-time renderer...' },
+    { pct: 30, msg: '🎞️ Rendering in real-time (A/V sync)...' },
+    { pct: 85, msg: '🔄 Finalizing recording...' },
     { pct: 90, msg: '💾 Uploading to storage...' },
-    { pct: 95, msg: '✅ Finalizing...' },
+    { pct: 95, msg: '✅ Saving result...' },
   ];
   const tracker = startProgressTracker(run, phases, totalScenes * 12000);
 
@@ -228,95 +263,135 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
       return;
     }
 
-    // ── 5. Load all audio clips ──
-    run.logs.push({ t: Date.now(), level: 'info', msg: `🔊 Loading ${clips.length} audio clips...`, step: 'assembly' });
+    // ── 5. Load audio ──
     const audioCtx = new AudioContext();
-    const audioBuffers = new Map<number, AudioBuffer>();
-    const audioLoadResults = await Promise.allSettled(
-      clips.map(async (clip) => {
-        const buf = await fetchAudioBuffer(clip.url, audioCtx);
-        audioBuffers.set(clip.scene, buf);
-      }),
-    );
-    const audioFailCount = audioLoadResults.filter(r => r.status === 'rejected').length;
-    if (audioFailCount > 0) {
-      run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ ${audioFailCount}/${clips.length} audio clips failed to load`, step: 'assembly' });
+
+    // For single narration: load the ONE audio file
+    // For per-scene: load each clip's unique URL
+    let singleNarrationBuffer: AudioBuffer | null = null;
+    const perSceneBuffers = new Map<number, AudioBuffer>();
+
+    if (isSingleNarration && fullNarrationUrl) {
+      run.logs.push({ t: Date.now(), level: 'info', msg: '🔊 Loading single narration audio...', step: 'assembly' });
+      singleNarrationBuffer = await fetchAudioBuffer(fullNarrationUrl, audioCtx);
+      run.logs.push({ t: Date.now(), level: 'info', msg: `🔊 Single narration loaded: ${singleNarrationBuffer.duration.toFixed(1)}s`, step: 'assembly' });
+    } else {
+      run.logs.push({ t: Date.now(), level: 'info', msg: `🔊 Loading ${clips.length} audio clips...`, step: 'assembly' });
+      // Deduplicate URLs to avoid loading the same file multiple times
+      const uniqueUrls = new Map<string, AudioBuffer>();
+      for (const clip of clips) {
+        if (!uniqueUrls.has(clip.url)) {
+          try {
+            const buf = await fetchAudioBuffer(clip.url, audioCtx);
+            uniqueUrls.set(clip.url, buf);
+          } catch (e) {
+            run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Failed to load audio for scene ${clip.scene}`, step: 'assembly' });
+          }
+        }
+        const buf = uniqueUrls.get(clip.url);
+        if (buf) perSceneBuffers.set(clip.scene, buf);
+      }
+      const audioFailCount = clips.length - perSceneBuffers.size;
+      if (audioFailCount > 0) {
+        run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ ${audioFailCount}/${clips.length} audio clips failed`, step: 'assembly' });
+      }
     }
 
-    // ── 6. Calculate timeline ──
-    // Each scene's duration = its audio clip duration (or 5s fallback)
+    // ── 6. Build timeline ──
+    // For single narration: total duration = actual audio buffer duration
+    //   Scene durations are proportional to estimated clip durations
+    // For per-scene: each scene duration = its AudioBuffer.duration
     const DEFAULT_SCENE_DURATION = 5;
-    const TRANSITION_DURATION = 0.5; // seconds for transition between scenes
-
-    interface SceneTimeline {
-      scene: number;
-      startTime: number;
-      duration: number;
-      image: HTMLImageElement | null;
-      audioBuffer: AudioBuffer | null;
-    }
+    const TRANSITION_DURATION = 0.5;
 
     const timeline: SceneTimeline[] = [];
-    let currentTime = 0;
+    let timeOffset = 0;
 
-    // Build timeline ordered by scene number
     const sceneNumbers = [...new Set([...images.map(i => i.scene), ...clips.map(c => c.scene)])].sort((a, b) => a - b);
 
-    for (const sceneNum of sceneNumbers) {
-      const audioBuf = audioBuffers.get(sceneNum);
-      const img = loadedImages.get(sceneNum);
-      const clipData = clips.find(c => c.scene === sceneNum);
-      const duration = audioBuf ? audioBuf.duration : (clipData?.duration || DEFAULT_SCENE_DURATION);
+    if (isSingleNarration && singleNarrationBuffer) {
+      // Proportional split based on estimated durations from clips
+      const totalEstimated = clips.reduce((sum, c) => sum + (c.duration || 1), 0);
+      const actualTotal = singleNarrationBuffer.duration;
 
-      timeline.push({
-        scene: sceneNum,
-        startTime: currentTime,
-        duration,
-        image: img || null,
-        audioBuffer: audioBuf || null,
-      });
+      for (const sceneNum of sceneNumbers) {
+        const clipData = clips.find(c => c.scene === sceneNum);
+        const estimatedDur = clipData?.duration || DEFAULT_SCENE_DURATION;
+        const duration = actualTotal * (estimatedDur / totalEstimated);
 
-      currentTime += duration;
+        timeline.push({
+          scene: sceneNum,
+          startTime: timeOffset,
+          duration,
+          image: loadedImages.get(sceneNum) || null,
+        });
+        timeOffset += duration;
+      }
+    } else {
+      for (const sceneNum of sceneNumbers) {
+        const audioBuf = perSceneBuffers.get(sceneNum);
+        const clipData = clips.find(c => c.scene === sceneNum);
+        const duration = audioBuf ? audioBuf.duration : (clipData?.duration || DEFAULT_SCENE_DURATION);
+
+        timeline.push({
+          scene: sceneNum,
+          startTime: timeOffset,
+          duration,
+          image: loadedImages.get(sceneNum) || null,
+        });
+        timeOffset += duration;
+      }
     }
 
-    const totalDuration = currentTime;
+    const totalDuration = isSingleNarration && singleNarrationBuffer
+      ? singleNarrationBuffer.duration
+      : timeOffset;
+
     run.logs.push({ t: Date.now(), level: 'info', msg: `⏱️ Total video duration: ${totalDuration.toFixed(1)}s (${timeline.length} scenes)`, step: 'assembly' });
 
-    // ── 7. Render video using Canvas + MediaRecorder ──
+    // ── 7. Set up canvas (direct draw — no OffscreenCanvas) ──
     const { width, height } = getResolution(assemblyConfig.format);
-    const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
     if (!ctx) {
-      failRun(run, 'Browser does not support OffscreenCanvas');
+      failRun(run, 'Failed to create canvas 2D context');
       clearInterval(tracker);
       return;
     }
 
-    // Create a visible canvas for MediaRecorder (OffscreenCanvas doesn't have captureStream)
-    const visibleCanvas = document.createElement('canvas');
-    visibleCanvas.width = width;
-    visibleCanvas.height = height;
-    const visibleCtx = visibleCanvas.getContext('2d')!;
+    const FPS = 24;
+    const videoStream = canvas.captureStream(FPS);
 
-    // Set up MediaRecorder
-    const FPS = 30;
-    const videoStream = visibleCanvas.captureStream(FPS);
-
-    // Mix audio into the stream
+    // ── 8. Schedule audio playback ──
     const audioDestination = audioCtx.createMediaStreamDestination();
     const scheduledSources: AudioBufferSourceNode[] = [];
 
-    for (const scene of timeline) {
-      if (scene.audioBuffer) {
-        const source = audioCtx.createBufferSource();
-        source.buffer = scene.audioBuffer;
-        source.connect(audioDestination);
-        source.start(audioCtx.currentTime + scene.startTime);
-        scheduledSources.push(source);
+    if (isSingleNarration && singleNarrationBuffer) {
+      // SINGLE audio source — play once from the start
+      const source = audioCtx.createBufferSource();
+      source.buffer = singleNarrationBuffer;
+      source.connect(audioDestination);
+      source.start(audioCtx.currentTime);
+      scheduledSources.push(source);
+      run.logs.push({ t: Date.now(), level: 'info', msg: '🔊 Single narration audio scheduled (1 source)', step: 'assembly' });
+    } else {
+      // Per-scene: schedule each clip at its scene's startTime
+      for (const scene of timeline) {
+        const buf = perSceneBuffers.get(scene.scene);
+        if (buf) {
+          const source = audioCtx.createBufferSource();
+          source.buffer = buf;
+          source.connect(audioDestination);
+          source.start(audioCtx.currentTime + scene.startTime);
+          scheduledSources.push(source);
+        }
       }
+      run.logs.push({ t: Date.now(), level: 'info', msg: `🔊 ${scheduledSources.length} audio sources scheduled`, step: 'assembly' });
     }
 
-    // Combine video + audio tracks
+    // ── 9. Set up MediaRecorder ──
     const combinedStream = new MediaStream([
       ...videoStream.getVideoTracks(),
       ...audioDestination.stream.getAudioTracks(),
@@ -344,107 +419,83 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
       };
     });
 
-    recorder.start(1000); // Collect data every 1s
+    recorder.start(1000);
 
-    run.logs.push({ t: Date.now(), level: 'info', msg: `🎬 Rendering ${totalDuration.toFixed(1)}s video at ${width}x${height} ${FPS}fps...`, step: 'assembly' });
+    run.logs.push({ t: Date.now(), level: 'info', msg: `🎬 Real-time rendering: ${totalDuration.toFixed(1)}s at ${width}x${height} ${FPS}fps...`, step: 'assembly' });
 
-    // ── 8. Frame-by-frame rendering loop ──
-    const frameDuration = 1000 / FPS;
-    const totalFrames = Math.ceil(totalDuration * FPS);
+    // ── 10. REAL-TIME render loop ──
+    // audioCtx.currentTime is the single source of truth for A/V sync.
+    // setInterval fires at FPS rate; each tick reads the audio clock and
+    // draws the correct scene frame. captureStream captures automatically.
+    const renderStartTime = audioCtx.currentTime;
+    let lastLoggedSecond = -1;
 
-    for (let frame = 0; frame < totalFrames; frame++) {
-      if (run.status !== 'running') {
-        recorder.stop();
-        scheduledSources.forEach(s => { try { s.stop(); } catch { /* ignore */ } });
-        audioCtx.close();
-        clearInterval(tracker);
-        return;
-      }
+    await new Promise<void>((resolve, reject) => {
+      const intervalMs = 1000 / FPS;
 
-      const currentTime = frame / FPS;
+      const intervalId = setInterval(() => {
+        try {
+          // Check for cancellation
+          if (run.status !== 'running') {
+            clearInterval(intervalId);
+            resolve();
+            return;
+          }
 
-      // Find current scene
-      let currentScene = timeline[0];
-      let nextScene: SceneTimeline | null = null;
-      for (let i = 0; i < timeline.length; i++) {
-        if (currentTime >= timeline[i].startTime) {
-          currentScene = timeline[i];
-          nextScene = i + 1 < timeline.length ? timeline[i + 1] : null;
+          const elapsed = audioCtx.currentTime - renderStartTime;
+
+          // Done rendering
+          if (elapsed >= totalDuration) {
+            clearInterval(intervalId);
+            resolve();
+            return;
+          }
+
+          // Render the current frame directly to canvas
+          renderFrame(ctx, timeline, elapsed, width, height, assemblyConfig.transitions, TRANSITION_DURATION);
+
+          // Update progress every 5 seconds
+          const sec = Math.floor(elapsed);
+          if (sec > 0 && sec % 5 === 0 && sec !== lastLoggedSecond) {
+            lastLoggedSecond = sec;
+            const pct = Math.round((elapsed / totalDuration) * 100);
+            run.logs.push({
+              t: Date.now(), level: 'info',
+              msg: `🎞️ Rendering ${sec}s / ${totalDuration.toFixed(0)}s (${pct}%)`,
+              step: 'assembly',
+            });
+            // Update progress in the 30-85% range proportionally
+            run.progress = 30 + Math.round((elapsed / totalDuration) * 55);
+          }
+        } catch (err) {
+          clearInterval(intervalId);
+          reject(err);
         }
-      }
+      }, intervalMs);
+    });
 
-      const sceneElapsed = currentTime - currentScene.startTime;
-      const sceneProgress = sceneElapsed / currentScene.duration;
+    // ── 11. Finalize recording ──
+    run.logs.push({ t: Date.now(), level: 'info', msg: '🔄 Finalizing recording...', step: 'assembly' });
 
-      // Clear canvas
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(0, 0, width, height);
+    // Small delay to ensure last frames are captured by MediaRecorder
+    await new Promise(r => setTimeout(r, 500));
 
-      if (currentScene.image) {
-        const transitionType = assemblyConfig.transitions;
-
-        // Check if we're in transition zone (last TRANSITION_DURATION of a scene)
-        const isInTransition = nextScene && (currentScene.duration - sceneElapsed) < TRANSITION_DURATION;
-        const transitionProgress = isInTransition
-          ? 1 - ((currentScene.duration - sceneElapsed) / TRANSITION_DURATION)
-          : 0;
-
-        if (transitionType === 'crossfade' && isInTransition && nextScene?.image) {
-          // Crossfade: blend current + next
-          drawImageCover(ctx as unknown as CanvasRenderingContext2D, currentScene.image, width, height, 1 - transitionProgress);
-          drawImageCover(ctx as unknown as CanvasRenderingContext2D, nextScene.image, width, height, transitionProgress);
-        } else if (transitionType === 'zoom') {
-          // Ken Burns effect: slow zoom throughout scene
-          const zoom = 1 + sceneProgress * 0.1;
-          drawImageCover(ctx as unknown as CanvasRenderingContext2D, currentScene.image, width, height, 1, zoom);
-        } else if (transitionType === 'slide' && isInTransition && nextScene?.image) {
-          // Slide: current slides left, next slides in from right
-          const offset = -transitionProgress * width;
-          drawImageCover(ctx as unknown as CanvasRenderingContext2D, currentScene.image, width, height, 1, 1, offset);
-          drawImageCover(ctx as unknown as CanvasRenderingContext2D, nextScene.image, width, height, 1, 1, offset + width);
-        } else {
-          // Cut or default: just show current image
-          drawImageCover(ctx as unknown as CanvasRenderingContext2D, currentScene.image, width, height, 1);
-        }
-      }
-
-      // Copy offscreen → visible canvas for MediaRecorder
-      const imageData = ctx.getImageData(0, 0, width, height);
-      visibleCtx.putImageData(imageData as unknown as ImageData, 0, 0);
-
-      // Log progress every 5 seconds
-      if (frame % (FPS * 5) === 0 && frame > 0) {
-        run.logs.push({
-          t: Date.now(), level: 'info',
-          msg: `🎞️ Rendered ${(currentTime).toFixed(0)}s / ${totalDuration.toFixed(0)}s (${Math.round((frame / totalFrames) * 100)}%)`,
-          step: 'assembly',
-        });
-      }
-
-      // Yield to browser to prevent blocking
-      if (frame % FPS === 0) {
-        await new Promise(r => setTimeout(r, 0));
-      }
-    }
-
-    // ── 9. Stop recording and get video blob ──
-    run.logs.push({ t: Date.now(), level: 'info', msg: '🔄 Encoding final video...', step: 'assembly' });
     recorder.stop();
-    scheduledSources.forEach(s => { try { s.stop(); } catch { /* ignore */ } });
+    scheduledSources.forEach(s => { try { s.stop(); } catch { /* already stopped */ } });
 
     const videoBlob = await recordingDone;
     await audioCtx.close();
 
     run.logs.push({ t: Date.now(), level: 'info', msg: `📦 Video encoded: ${(videoBlob.size / 1024 / 1024).toFixed(1)} MB`, step: 'assembly' });
 
-    // ── 10. Upload to Supabase ──
+    // ── 12. Upload to Supabase ──
     run.logs.push({ t: Date.now(), level: 'info', msg: '💾 Uploading video to storage...', step: 'assembly' });
     const { url: videoUrl, fileSize } = await uploadVideo(videoBlob, channelId, runId);
 
-    // ── 11. Save result ──
+    // ── 13. Save result ──
     const result: AssemblyResult = {
       videoUrl,
-      format: 'webm', // Browser MediaRecorder outputs WebM
+      format: 'webm',
       duration: totalDuration,
       totalScenes: timeline.length,
       resolution: `${width}x${height}`,

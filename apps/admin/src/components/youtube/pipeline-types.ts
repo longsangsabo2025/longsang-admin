@@ -48,6 +48,13 @@ export interface PipelineConfig {
     format: string;
     transitions: string;
     bgMusic: boolean;
+    textOverlay: boolean;
+    panZoom: string;
+    fps: number;
+    fadeInOut: boolean;
+    transitionDuration: number;
+    scenePadding: number;
+    watermarkUrl: string;
   };
 }
 
@@ -99,5 +106,12 @@ export const DEFAULT_PIPELINE: PipelineConfig = {
     format: 'mp4-1080p',
     transitions: 'crossfade',
     bgMusic: true,
+    textOverlay: true,
+    panZoom: 'none',
+    fps: 24,
+    fadeInOut: true,
+    transitionDuration: 0.5,
+    scenePadding: 0.5,
+    watermarkUrl: '',
   },
 };

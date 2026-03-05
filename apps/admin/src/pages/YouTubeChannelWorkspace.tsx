@@ -218,6 +218,13 @@ export default function YouTubeChannelWorkspace() {
       assemblyFormat: pipelineConfig.assembly.format,
       assemblyTransitions: pipelineConfig.assembly.transitions,
       assemblyBgMusic: pipelineConfig.assembly.bgMusic,
+      assemblyTextOverlay: pipelineConfig.assembly.textOverlay,
+      assemblyPanZoom: pipelineConfig.assembly.panZoom,
+      assemblyFps: pipelineConfig.assembly.fps,
+      assemblyFadeInOut: pipelineConfig.assembly.fadeInOut,
+      assemblyTransitionDuration: pipelineConfig.assembly.transitionDuration,
+      assemblyScenePadding: pipelineConfig.assembly.scenePadding,
+      assemblyWatermarkUrl: pipelineConfig.assembly.watermarkUrl || undefined,
     };
     if (mode === 'topic' && topic.trim()) {
       req.topic = topic.trim();
@@ -265,6 +272,13 @@ export default function YouTubeChannelWorkspace() {
       assemblyFormat: pipelineConfig.assembly.format,
       assemblyTransitions: pipelineConfig.assembly.transitions,
       assemblyBgMusic: pipelineConfig.assembly.bgMusic,
+      assemblyTextOverlay: pipelineConfig.assembly.textOverlay,
+      assemblyPanZoom: pipelineConfig.assembly.panZoom,
+      assemblyFps: pipelineConfig.assembly.fps,
+      assemblyFadeInOut: pipelineConfig.assembly.fadeInOut,
+      assemblyTransitionDuration: pipelineConfig.assembly.transitionDuration,
+      assemblyScenePadding: pipelineConfig.assembly.scenePadding,
+      assemblyWatermarkUrl: pipelineConfig.assembly.watermarkUrl || undefined,
     };
     if (mode === 'topic' && topic.trim()) {
       req.topic = topic.trim();
@@ -329,6 +343,13 @@ export default function YouTubeChannelWorkspace() {
         assemblyFormat: pipelineConfig.assembly.format,
         assemblyTransitions: pipelineConfig.assembly.transitions,
         assemblyBgMusic: pipelineConfig.assembly.bgMusic,
+        assemblyTextOverlay: pipelineConfig.assembly.textOverlay,
+        assemblyPanZoom: pipelineConfig.assembly.panZoom,
+        assemblyFps: pipelineConfig.assembly.fps,
+        assemblyFadeInOut: pipelineConfig.assembly.fadeInOut,
+        assemblyTransitionDuration: pipelineConfig.assembly.transitionDuration,
+        assemblyScenePadding: pipelineConfig.assembly.scenePadding,
+        assemblyWatermarkUrl: pipelineConfig.assembly.watermarkUrl || undefined,
       };
       try {
         const data = await youtubeChannelsService.generate(req);
@@ -1039,6 +1060,18 @@ function VoiceTabContent({
     setPreviewError(null);
     if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
 
+    // Check localStorage cache — avoid repeated API calls for same voice
+    const cacheKey = `voice-preview-${voiceoverConfig.engine}__${voiceoverConfig.voice}`;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        setPreviewUrl(cached);
+        setPreviewLoading(false);
+        setTimeout(() => previewAudioRef.current?.play(), 100);
+        return;
+      }
+    } catch { /* ignore localStorage errors */ }
+
     const sampleText = 'Xin chào, đây là giọng đọc mẫu. Bạn có thể nghe thử trước khi tạo voiceover cho video.';
 
     try {
@@ -1138,6 +1171,12 @@ function VoiceTabContent({
 
       const url = URL.createObjectURL(blob);
       setPreviewUrl(url);
+
+      // Cache audio as data URL — no more API calls for this voice
+      const reader = new FileReader();
+      reader.onload = () => { try { localStorage.setItem(cacheKey, reader.result as string); } catch { /* quota */ } };
+      reader.readAsDataURL(blob);
+
       setTimeout(() => previewAudioRef.current?.play(), 100);
     } catch (err) {
       setPreviewError(err instanceof Error ? err.message : String(err));
