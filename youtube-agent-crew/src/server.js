@@ -727,10 +727,10 @@ app.post('/api/admin/generate-script', async (req, res) => {
  */
 app.post('/api/admin/generate-storyboard', async (req, res) => {
   try {
-    const { script, topic, scenes = 12, duration = 6, style = 'Dark Cinematic', aspectRatio, visualIdentity, customPrompt: sbCustomPrompt } = req.body;
+    const { script, topic, scenes = 12, duration = 6, style = 'Dark Cinematic', aspectRatio, visualIdentity, customPrompt: sbCustomPrompt, model: reqModel } = req.body;
     if (!script) return res.status(400).json({ error: 'script required' });
 
-    const storyboardModel = process.env.DEFAULT_MODEL || 'gpt-4o-mini';
+    const storyboardModel = reqModel || process.env.DEFAULT_MODEL || 'gpt-4o-mini';
 
     // Build visual identity block from UI config
     const vi = visualIdentity || {};

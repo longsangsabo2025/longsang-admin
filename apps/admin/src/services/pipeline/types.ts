@@ -15,6 +15,7 @@ export interface GenerateRequest {
   customPrompt?: string;
   storyboardPrompt?: string;
   model?: string;
+  storyboardModel?: string;
   tone?: string;
   wordTarget?: number;
   aspectRatio?: string;

@@ -58,6 +58,7 @@ export async function runStoryboard(runId: string, req: GenerateRequest): Promis
         aspectRatio: req.aspectRatio || '16:9',
         visualIdentity: req.visualIdentity || undefined,
         customPrompt: req.storyboardPrompt || undefined,
+        model: req.storyboardModel || undefined,
       }),
     });
 

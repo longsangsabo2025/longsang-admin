@@ -255,6 +255,8 @@ interface StepDef {
   color: string;
   estimate: string;
   status: 'available' | 'coming-soon';
+  agentLabel: string;
+  getModel?: (config: PipelineConfig) => string;
 }
 
 const STEPS: StepDef[] = [
@@ -266,6 +268,8 @@ const STEPS: StepDef[] = [
     color: 'text-blue-500 bg-blue-500/10 border-blue-500/30',
     estimate: '~30s',
     status: 'available',
+    agentLabel: '🤖 Script Agent',
+    getModel: (c) => c.scriptWriter.model,
   },
   {
     key: 'storyboard',
@@ -275,6 +279,8 @@ const STEPS: StepDef[] = [
     color: 'text-purple-500 bg-purple-500/10 border-purple-500/30',
     estimate: '~15s',
     status: 'available',
+    agentLabel: '🎬 Visual Director',
+    getModel: (c) => c.storyboard.model,
   },
   {
     key: 'imageGen',
@@ -284,6 +290,8 @@ const STEPS: StepDef[] = [
     color: 'text-orange-500 bg-orange-500/10 border-orange-500/30',
     estimate: '~2-5min',
     status: 'available',
+    agentLabel: '🖼️ Image Artist',
+    getModel: (c) => c.imageGen.provider === 'gemini' ? 'gemini-2.0-flash' : c.imageGen.provider,
   },
   {
     key: 'voiceover',
@@ -293,6 +301,8 @@ const STEPS: StepDef[] = [
     color: 'text-green-500 bg-green-500/10 border-green-500/30',
     estimate: '~1-3min',
     status: 'available',
+    agentLabel: '🎤 Voice Producer',
+    getModel: (c) => c.voiceover.engine,
   },
   {
     key: 'assembly',
@@ -302,6 +312,7 @@ const STEPS: StepDef[] = [
     color: 'text-red-500 bg-red-500/10 border-red-500/30',
     estimate: '~3-8min',
     status: 'coming-soon',
+    agentLabel: '🎥 Assembly Bot',
   },
 ];
 
@@ -752,7 +763,28 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                             ? stepStatus.logs[stepStatus.logs.length - 1].msg
                             : step.subtitle}
                         </p>
+                        {/* AI Agent badge */}
+                        {stepConfig.enabled && !isComingSoon && step.getModel && (
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[9px] text-muted-foreground/70">{step.agentLabel}</span>
+                            <Badge variant="outline" className="text-[9px] px-1 py-0 font-mono border-dashed">
+                              {step.getModel(config)}
+                            </Badge>
+                          </div>
+                        )}
                       </div>
+
+                      {/* Inline Retry button for failed/interrupted steps */}
+                      {(isStepFailed || isStepInterrupted) && onRunStep && !isRunning && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="h-7 px-2.5 text-xs shrink-0"
+                          onClick={(e) => { e.stopPropagation(); onRunStep(step.key, config); }}
+                        >
+                          <RotateCcw className="h-3 w-3 mr-1" /> Retry
+                        </Button>
+                      )}
 
                       {/* Toggle + expand */}
                       <div className="flex items-center gap-2 shrink-0">
@@ -947,6 +979,42 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                             {imgResult.images.length > 6 && (
                               <p className="text-[10px] text-muted-foreground text-center">
                                 +{imgResult.images.length - 6} more images
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Voiceover Result Preview */}
+                    {(isStepDone || isStepFailed) && step.key === 'voiceover' && activeRun && (() => {
+                      const voResult = extractVoiceoverResult(activeRun);
+                      if (!voResult) return null;
+                      return (
+                        <div className="mt-3 pt-3 border-t">
+                          <div className="rounded bg-green-950/30 border border-green-500/20 p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-green-400">🎤 Voice Clips</span>
+                              <div className="flex gap-2 text-[10px] text-muted-foreground">
+                                <Badge variant="outline" className="text-[10px]">{voResult.successCount}/{voResult.totalClips} clips</Badge>
+                                <Badge variant="outline" className="text-[10px]">~{voResult.totalDuration}s</Badge>
+                                {voResult.failCount > 0 && (
+                                  <Badge variant="destructive" className="text-[10px]">{voResult.failCount} failed</Badge>
+                                )}
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              {voResult.clips.slice(0, 6).map((clip) => (
+                                <div key={clip.scene} className="flex items-center gap-2 bg-background/30 rounded px-2 py-1">
+                                  <span className="text-[10px] text-muted-foreground w-14 shrink-0">Scene {clip.scene}</span>
+                                  <audio controls src={clip.url} className="h-7 flex-1 min-w-0" preload="none" />
+                                  <span className="text-[9px] text-muted-foreground shrink-0">~{clip.duration}s</span>
+                                </div>
+                              ))}
+                            </div>
+                            {voResult.clips.length > 6 && (
+                              <p className="text-[10px] text-muted-foreground text-center">
+                                +{voResult.clips.length - 6} more clips
                               </p>
                             )}
                           </div>
@@ -1333,8 +1401,23 @@ function StoryboardConfig({
 
   return (
     <div className="space-y-4">
-      {/* Basic settings */}
+      {/* AI Model + Basic settings */}
       <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs">AI Model</Label>
+          <Select value={config.model} onValueChange={(v) => onUpdate({ model: v })}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gpt-4o-mini">GPT-4o Mini (nhanh, rẻ)</SelectItem>
+              <SelectItem value="gpt-4o">GPT-4o (chất lượng)</SelectItem>
+              <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash</SelectItem>
+              <SelectItem value="gemini-2.5-pro">Gemini 2.5 Pro</SelectItem>
+              <SelectItem value="claude-sonnet">Claude Sonnet</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="space-y-1">
           <Label className="text-xs">Scenes</Label>
           <Select value={String(config.scenes)} onValueChange={(v) => onUpdate({ scenes: parseInt(v) })}>
@@ -1766,35 +1849,70 @@ function VoiceoverConfig({
   config: PipelineConfig['voiceover'];
   onUpdate: (u: Partial<PipelineConfig['voiceover']>) => void;
 }) {
+  const isElevenLabs = config.engine === 'elevenlabs';
+  const isGemini = config.engine === 'gemini-tts';
+  const isGoogleTTS = config.engine === 'google-tts';
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <div className="space-y-1">
-        <Label className="text-xs">TTS Engine</Label>
-        <Select value={config.engine} onValueChange={(v) => onUpdate({ engine: v })}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="elevenlabs">ElevenLabs</SelectItem>
-            <SelectItem value="google-tts">Google TTS</SelectItem>
-            <SelectItem value="openai-tts">OpenAI TTS</SelectItem>
-            <SelectItem value="xtts-v2">XTTS v2 (local)</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs">TTS Engine</Label>
+          <Select value={config.engine} onValueChange={(v) => {
+            // Auto-switch voice to sensible default for the engine
+            if (v === 'elevenlabs') onUpdate({ engine: v, voice: 'pNInz6obpgDQGcFmaJgB' });
+            else if (v === 'google-tts') onUpdate({ engine: v, voice: 'vi-VN-Neural2-D' });
+            else onUpdate({ engine: v, voice: 'Kore' });
+          }}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gemini-tts">Gemini TTS (recommended)</SelectItem>
+              <SelectItem value="google-tts">Google Cloud TTS</SelectItem>
+              <SelectItem value="elevenlabs">ElevenLabs</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-xs">Voice</Label>
+          {isElevenLabs ? (
+            <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pNInz6obpgDQGcFmaJgB">Adam (Deep Male)</SelectItem>
+                <SelectItem value="21m00Tcm4TlvDq8ikWAM">Rachel (Narrator)</SelectItem>
+                <SelectItem value="EXAVITQu4vr4xnSDxMaL">Bella (Warm Female)</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : isGoogleTTS ? (
+            <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="vi-VN-Neural2-D">🇻🇳 Nam Neural2</SelectItem>
+                <SelectItem value="vi-VN-Neural2-A">🇻🇳 Nữ Neural2</SelectItem>
+                <SelectItem value="vi-VN-Wavenet-B">🇻🇳 Nam Wavenet</SelectItem>
+                <SelectItem value="vi-VN-Wavenet-A">🇻🇳 Nữ Wavenet</SelectItem>
+                <SelectItem value="en-US-Neural2-D">🇺🇸 Male Neural2</SelectItem>
+                <SelectItem value="en-US-Neural2-F">🇺🇸 Female Neural2</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Kore">Kore (Female, expressive)</SelectItem>
+                <SelectItem value="Charon">Charon (Male, deep)</SelectItem>
+                <SelectItem value="Fenrir">Fenrir (Male, narrative)</SelectItem>
+                <SelectItem value="Aoede">Aoede (Female, warm)</SelectItem>
+                <SelectItem value="Puck">Puck (Male, energetic)</SelectItem>
+                <SelectItem value="Leda">Leda (Female, calm)</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </div>
-      <div className="space-y-1">
-        <Label className="text-xs">Voice</Label>
-        <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="default-vi">Default Vietnamese</SelectItem>
-            <SelectItem value="deep-male-vi">Deep Male (VI)</SelectItem>
-            <SelectItem value="narrator-en">Narrator (EN)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+
       <div className="space-y-1">
         <Label className="text-xs">Speed</Label>
         <Select value={String(config.speed)} onValueChange={(v) => onUpdate({ speed: parseFloat(v) })}>
@@ -1803,10 +1921,21 @@ function VoiceoverConfig({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="0.8">0.8x (Chậm)</SelectItem>
+            <SelectItem value="0.9">0.9x</SelectItem>
             <SelectItem value="1.0">1.0x (Bình thường)</SelectItem>
+            <SelectItem value="1.1">1.1x</SelectItem>
             <SelectItem value="1.2">1.2x (Nhanh)</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="rounded-md border border-green-500/20 bg-green-500/5 px-3 py-2">
+        <p className="text-[10px] text-muted-foreground">
+          🎤 Nếu có Storyboard → tạo audio per-scene từ dialogues. Nếu chỉ có Script → full narration.
+          {isGemini && ' Dùng chung Gemini API key — không cần cấu hình thêm.'}
+          {isElevenLabs && ' Cần VITE_ELEVENLABS_API_KEY trong .env.'}
+          {isGoogleTTS && ' Cần enable Cloud Text-to-Speech API trong GCP Console.'}
+        </p>
       </div>
     </div>
   );

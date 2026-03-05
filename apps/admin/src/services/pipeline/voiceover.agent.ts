@@ -2,7 +2,8 @@
  * 🎤 Voiceover Agent — generates TTS audio from script/storyboard
  *
  * Supports:
- * - Google Cloud TTS (default) — uses VITE_GOOGLE_TTS_API_KEY or VITE_GEMINI_API_KEY
+ * - Gemini TTS (default) — uses VITE_GEMINI_API_KEY, no extra API to enable
+ * - Google Cloud TTS — uses same key but requires Cloud TTS API enabled in GCP
  * - ElevenLabs (premium) — uses VITE_ELEVENLABS_API_KEY
  *
  * If storyboard exists → generates per-scene audio from dialogues.
@@ -13,9 +14,11 @@ import type { GenerateRequest, ProgressPhase } from './types';
 import { supabase } from '@/lib/supabase';
 import { getRun, startProgressTracker, saveStepResult, failRun, findLatestRunWithFile } from './run-tracker';
 
+const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
 const GOOGLE_TTS_KEY = (import.meta.env.VITE_GOOGLE_TTS_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '') as string;
 const ELEVENLABS_KEY = (import.meta.env.VITE_ELEVENLABS_API_KEY || '') as string;
 
+const GEMINI_TTS_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
 const GOOGLE_TTS_URL = 'https://texttospeech.googleapis.com/v1/text:synthesize';
 const ELEVENLABS_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
 
@@ -34,6 +37,42 @@ export interface VoiceoverClip {
 }
 
 // ─── TTS Engines ───────────────────────────────────────────
+
+/** Gemini TTS — uses the same Gemini API key, no extra API to enable */
+async function geminiTTS(text: string, voice: string, _speed: number, apiKey: string): Promise<Blob> {
+  const voiceName = voice || 'Kore';
+  const response = await fetch(`${GEMINI_TTS_URL}?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text }] }],
+      generationConfig: {
+        responseModalities: ['AUDIO'],
+        speechConfig: {
+          voiceConfig: { prebuiltVoiceConfig: { voiceName } },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { error?: { message?: string } })?.error?.message || `Gemini TTS error ${response.status}`);
+  }
+
+  const data = await response.json();
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  for (const part of parts) {
+    if (part.inlineData?.mimeType?.startsWith('audio/')) {
+      const b64 = part.inlineData.data as string;
+      const byteChars = atob(b64);
+      const byteArray = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+      return new Blob([byteArray], { type: part.inlineData.mimeType as string });
+    }
+  }
+  throw new Error('Gemini TTS returned no audio data');
+}
 
 async function googleTTS(text: string, voice: string, speed: number, apiKey: string): Promise<Blob> {
   const langCode = voice.startsWith('en-') ? 'en-US' : 'vi-VN';
@@ -133,7 +172,8 @@ function splitIntoChunks(text: string, maxLen = 4500): string[] {
 /** Generate a single TTS blob using the chosen engine */
 async function synthesize(text: string, engine: string, voice: string, speed: number, apiKey: string): Promise<Blob> {
   if (engine === 'elevenlabs') return elevenLabsTTS(text, voice, speed, apiKey);
-  return googleTTS(text, voice, speed, apiKey);
+  if (engine === 'google-tts') return googleTTS(text, voice, speed, apiKey);
+  return geminiTTS(text, voice, speed, apiKey);
 }
 
 // ─── Main ──────────────────────────────────────────────────
@@ -142,18 +182,21 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
   const run = getRun(runId);
   if (!run) return;
 
-  const engine = req.voiceoverEngine || 'google-tts';
-  const voice = req.voiceoverVoice || 'vi-VN-Neural2-D';
+  const engine = req.voiceoverEngine || 'gemini-tts';
+  const voice = req.voiceoverVoice || 'Kore';
   const speed = req.voiceoverSpeed || 1.0;
 
   // Validate API key
-  const apiKey = engine === 'elevenlabs' ? ELEVENLABS_KEY : GOOGLE_TTS_KEY;
-  if (!apiKey) {
-    const hint = engine === 'elevenlabs'
-      ? 'Missing VITE_ELEVENLABS_API_KEY trong .env'
-      : 'Missing VITE_GOOGLE_TTS_API_KEY hoặc VITE_GEMINI_API_KEY trong .env';
-    failRun(run, hint);
-    return;
+  let apiKey: string;
+  if (engine === 'elevenlabs') {
+    apiKey = ELEVENLABS_KEY;
+    if (!apiKey) { failRun(run, 'Missing VITE_ELEVENLABS_API_KEY trong .env'); return; }
+  } else if (engine === 'google-tts') {
+    apiKey = GOOGLE_TTS_KEY;
+    if (!apiKey) { failRun(run, 'Missing VITE_GOOGLE_TTS_API_KEY hoặc VITE_GEMINI_API_KEY trong .env'); return; }
+  } else {
+    apiKey = GEMINI_API_KEY;
+    if (!apiKey) { failRun(run, 'Missing VITE_GEMINI_API_KEY trong .env'); return; }
   }
 
   const channelId = req.channelId || 'default';

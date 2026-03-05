@@ -173,6 +173,7 @@ export default function YouTubeChannelWorkspace() {
       scriptOnly: !pipelineConfig.storyboard.enabled,
       storyboardOnly: !pipelineConfig.scriptWriter.enabled,
       model: pipelineConfig.scriptWriter.model,
+      storyboardModel: pipelineConfig.storyboard.model,
       tone: pipelineConfig.scriptWriter.tone,
       customPrompt: pipelineConfig.scriptWriter.customPrompt || undefined,
       storyboardPrompt: pipelineConfig.storyboard.customPrompt || undefined,
@@ -203,6 +204,7 @@ export default function YouTubeChannelWorkspace() {
     const req: GenerateRequest = {
       channelId: channel.id,
       model: pipelineConfig.scriptWriter.model,
+      storyboardModel: pipelineConfig.storyboard.model,
       tone: pipelineConfig.scriptWriter.tone,
       customPrompt: pipelineConfig.scriptWriter.customPrompt || undefined,
       storyboardPrompt: pipelineConfig.storyboard.customPrompt || undefined,

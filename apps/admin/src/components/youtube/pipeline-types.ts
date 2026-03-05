@@ -22,6 +22,7 @@ export interface PipelineConfig {
   };
   storyboard: {
     enabled: boolean;
+    model: string;
     scenes: number;
     duration: number;
     style: string;
@@ -71,6 +72,7 @@ export const DEFAULT_PIPELINE: PipelineConfig = {
   },
   storyboard: {
     enabled: true,
+    model: 'gpt-4o-mini',
     scenes: 12,
     duration: 6,
     style: 'dark-cinematic',
@@ -86,8 +88,8 @@ export const DEFAULT_PIPELINE: PipelineConfig = {
   },
   voiceover: {
     enabled: false,
-    engine: 'google-tts',
-    voice: 'vi-VN-Neural2-D',
+    engine: 'gemini-tts',
+    voice: 'Kore',
     speed: 1.0,
   },
   assembly: {
