@@ -429,7 +429,7 @@ async function synthesize(
         return await fallbackTTS(text, voice, speed, activeKey, _exhaustedGeminiKeys.size, log);
       }
 
-      const isRetryable = msg.includes('internal') || msg.includes('500') || msg.includes('503') || msg.includes('retry') || msg.includes('INTERNAL');
+      const isRetryable = msg.includes('internal') || msg.includes('500') || msg.includes('503') || msg.includes('retry') || msg.includes('INTERNAL') || msg.includes('Failed to fetch') || msg.includes('fetch');
       if (isRetryable && attempt < maxRetries) {
         const delay = (attempt + 1) * 3000;
         log(`Attempt ${attempt + 1} failed (${msg}), retrying in ${delay / 1000}s...`);
@@ -621,14 +621,15 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
           failCount++;
           const msg = err instanceof Error ? err.message : String(err);
           run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Scene ${scene.scene} TTS failed: ${msg}` });
-          if (msg.includes('429') || msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('quota')) {
+          if (msg.includes('429') || msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('quota') || msg.includes('Failed to fetch')) {
             reportError(engineKey, apiKey, msg);
-            run.logs.push({ t: Date.now(), level: 'info', msg: '⏳ Rate limited — waiting 10s...' });
-            await new Promise(r => setTimeout(r, 10000));
+            const waitSec = engine === 'elevenlabs' ? 15 : 10;
+            run.logs.push({ t: Date.now(), level: 'info', msg: `⏳ Rate limited — waiting ${waitSec}s...` });
+            await new Promise(r => setTimeout(r, waitSec * 1000));
           }
         }
 
-        if (i < validScenes.length - 1) await new Promise(r => setTimeout(r, 1500));
+        if (i < validScenes.length - 1) await new Promise(r => setTimeout(r, engine === 'elevenlabs' ? 4000 : 1500));
       }
 
       clearInterval(tracker);
