@@ -4,7 +4,7 @@
  * "One screen to rule them all"
  */
 
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,14 +19,22 @@ import {
   Bell,
   RefreshCw,
   MessageSquare,
+  Loader2,
 } from 'lucide-react';
 
-import { MorningBriefing } from '@/components/command-center/MorningBriefing';
-import { AgentOrchestrator } from '@/components/command-center/AgentOrchestrator';
-import { DecisionQueue } from '@/components/command-center/DecisionQueue';
-import { AgentMemory } from '@/components/command-center/AgentMemory';
-import { AIChatPanel } from '@/components/command-center/AIChatPanel';
+// Lazy-load tab components for code splitting (~500KB saved)
+const MorningBriefing = lazy(() => import('@/components/command-center/MorningBriefing').then(m => ({ default: m.MorningBriefing })));
+const AgentOrchestrator = lazy(() => import('@/components/command-center/AgentOrchestrator').then(m => ({ default: m.AgentOrchestrator })));
+const DecisionQueue = lazy(() => import('@/components/command-center/DecisionQueue').then(m => ({ default: m.DecisionQueue })));
+const AgentMemory = lazy(() => import('@/components/command-center/AgentMemory').then(m => ({ default: m.AgentMemory })));
+const AIChatPanel = lazy(() => import('@/components/command-center/AIChatPanel').then(m => ({ default: m.AIChatPanel })));
 import { useUnreadCount, useAgentStats } from '@/hooks/use-agent-company';
+
+const TabLoader = () => (
+  <div className="flex items-center justify-center min-h-[300px]">
+    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+  </div>
+);
 
 // Available agents for chat
 const CHAT_AGENTS = [
@@ -145,7 +153,9 @@ export default function AICommandCenter() {
           </TabsList>
 
           <TabsContent value="briefing" className="space-y-4">
-            <MorningBriefing />
+            <Suspense fallback={<TabLoader />}>
+              <MorningBriefing />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="chat" className="space-y-4">
@@ -162,19 +172,27 @@ export default function AICommandCenter() {
                 </Button>
               ))}
             </div>
-            <AIChatPanel agentRole={selectedChatAgent} height="h-[600px]" showStats={true} />
+            <Suspense fallback={<TabLoader />}>
+              <AIChatPanel agentRole={selectedChatAgent} height="h-[600px]" showStats={true} />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="agents" className="space-y-4">
-            <AgentOrchestrator />
+            <Suspense fallback={<TabLoader />}>
+              <AgentOrchestrator />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="decisions" className="space-y-4">
-            <DecisionQueue />
+            <Suspense fallback={<TabLoader />}>
+              <DecisionQueue />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="memory" className="space-y-4">
-            <AgentMemory />
+            <Suspense fallback={<TabLoader />}>
+              <AgentMemory />
+            </Suspense>
           </TabsContent>
         </Tabs>
       </main>

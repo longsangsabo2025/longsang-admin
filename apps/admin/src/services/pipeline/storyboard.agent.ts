@@ -9,14 +9,17 @@ import { PIPELINE_BASE } from './api-client';
 import { getRun, startProgressTracker, completeRun, failRun, findLatestRunWithFile } from './run-tracker';
 
 const STORYBOARD_PHASES: ProgressPhase[] = [
-  { pct: 5,  msg: '🔌 Connecting to pipeline API...' },
-  { pct: 10, msg: '📤 Sending script to Visual Director...' },
-  { pct: 20, msg: '🎬 AI đang phân tích script structure...' },
-  { pct: 35, msg: '🎨 AI đang tạo scene 1-4...' },
-  { pct: 50, msg: '🎨 AI đang tạo scene 5-8...' },
-  { pct: 65, msg: '🎨 AI đang tạo scene 9-12...' },
-  { pct: 80, msg: '📝 AI đang viết Hailuo prompts...' },
-  { pct: 90, msg: '🖼️ Formatting storyboard + prompts...' },
+  { pct: 3,  msg: '🔌 Connecting to pipeline server...' },
+  { pct: 8,  msg: '📤 Sending script to Visual Director...' },
+  { pct: 18, msg: '🎬 AI đang phân tích script structure...' },
+  { pct: 28, msg: '🎨 AI đang tạo scene 1-4...' },
+  { pct: 40, msg: '🎨 AI đang tạo scene 5-8...' },
+  { pct: 52, msg: '🎨 AI đang tạo scene 9-12...' },
+  { pct: 65, msg: '📝 AI đang viết Hailuo 2.3 prompts...' },
+  { pct: 75, msg: '📋 Formatting storyboard markdown...' },
+  { pct: 85, msg: '📋 Generating copy-paste prompts file...' },
+  { pct: 92, msg: '💾 Saving output files...' },
+  { pct: 95, msg: '⏳ Đang nhận response từ server...' },
 ];
 
 export async function runStoryboard(runId: string, req: GenerateRequest): Promise<void> {
@@ -37,7 +40,7 @@ export async function runStoryboard(runId: string, req: GenerateRequest): Promis
 
   run.logs.push({ t: Date.now(), level: 'info', msg: `📄 Found script (${scriptText.length} chars) — sending to Visual Director...` });
 
-  const tracker = startProgressTracker(run, STORYBOARD_PHASES, 20000);
+  const tracker = startProgressTracker(run, STORYBOARD_PHASES, 45000);
 
   try {
     run.logs.push({ t: Date.now(), level: 'info', msg: `[0%] 📡 POST ${PIPELINE_BASE}/api/admin/generate-storyboard` });

@@ -12,7 +12,6 @@ import {
   Send,
   Wrench,
   History,
-  BarChart3,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -21,7 +20,8 @@ import { Textarea } from '../components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { ScrollArea } from '../components/ui/scroll-area';
 
-const TRAVIS_API = 'http://localhost:8300';
+const TRAVIS_API = import.meta.env.VITE_TRAVIS_API_URL || 'http://localhost:8300';
+const TRAVIS_CONFIGURED = !!import.meta.env.VITE_TRAVIS_API_URL;
 
 interface TravisStats {
   total_conversations: number;
@@ -79,6 +79,7 @@ export default function TravisDashboardPage() {
   }, []);
 
   const fetchAll = async () => {
+    if (!TRAVIS_CONFIGURED) { setIsOnline(false); return; }
     try {
       const [healthRes, statsRes, alertsRes, sessionsRes] = await Promise.allSettled([
         fetch(`${TRAVIS_API}/health`),
@@ -99,12 +100,14 @@ export default function TravisDashboardPage() {
         setAlerts(d.alerts || []);
       }
       if (sessionsRes.status === 'fulfilled' && sessionsRes.value.ok) setSessions(await sessionsRes.value.json());
-    } catch { /* ignore */ }
+    } catch (err) {
+      console.warn('[Travis] Fetch failed:', err);
+    }
   };
 
   const sendChat = async () => {
     const msg = chatInput.trim();
-    if (!msg || isLoading) return;
+    if (!msg || isLoading || !TRAVIS_CONFIGURED) return;
 
     setChatMessages((prev) => [...prev, { role: 'user', content: msg }]);
     setChatInput('');
@@ -396,7 +399,7 @@ export default function TravisDashboardPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">API Endpoint</span>
-                      <span className="font-mono text-xs">:8300</span>
+                      <span className="font-mono text-xs">{TRAVIS_API}</span>
                     </div>
                   </div>
                 </div>

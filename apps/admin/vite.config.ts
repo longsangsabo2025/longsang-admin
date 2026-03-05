@@ -20,14 +20,21 @@ export default defineConfig(({ mode }) => {
     hmr: process.env.NGROK_MODE ? false : { host: 'localhost' },
     proxy: {
       "/api": {
-        target: "http://localhost:3001",
+        target: env.VITE_API_URL || "http://localhost:3001",
         changeOrigin: true,
         configure: (proxy) => {
-          // Suppress ALL proxy errors for optional endpoints (analytics, etc.)
-          // Backend API is optional - analytics works without it
+          proxy.on('proxyReq', (proxyReq) => {
+            // Set trusted origin so Render auth middleware allows the request
+            // (longsang-admin.vercel.app is already in the deployed trusted list)
+            proxyReq.setHeader('Origin', 'https://longsang-admin.vercel.app');
+            // Also forward API key if configured
+            const apiKey = env.VITE_ADMIN_API_KEY;
+            if (apiKey) {
+              proxyReq.setHeader('X-API-Key', apiKey);
+            }
+          });
+          // Suppress proxy errors for optional endpoints
           proxy.on('error', (_err, _req, res) => {
-            // Silently handle - don't log anything
-            // Send empty response to prevent client-side errors
             if (res && !res.headersSent) {
               res.writeHead(503, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ error: 'Backend service unavailable' }));
@@ -49,6 +56,12 @@ export default defineConfig(({ mode }) => {
             }
           });
         },
+      },
+      // YouTube pipeline API proxy to bypass CORS
+      "/pipeline-api": {
+        target: env.YOUTUBE_CREW_URL || "https://youtube-pipeline-bgey.onrender.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/pipeline-api/, ""),
       },
     },
   },
@@ -192,8 +205,8 @@ export default defineConfig(({ mode }) => {
             if (id.includes('prismjs') || id.includes('prism-')) {
               return 'vendor-prism';
             }
-            // React core - always needed
-            if (id.includes('react-dom') || id.includes('scheduler')) {
+            // React core - always needed (react + react-dom + scheduler in same chunk)
+            if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/scheduler/')) {
               return 'vendor-react';
             }
             // UI components

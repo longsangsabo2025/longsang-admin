@@ -92,3 +92,8 @@ apps/admin/templates/
 # ── State files ──
 state/
 *.state.json
+
+# Travis AI temp configs (contain secrets)
+tmp-render-travis.json
+tmp-travis-env.json
+tmp-*.json

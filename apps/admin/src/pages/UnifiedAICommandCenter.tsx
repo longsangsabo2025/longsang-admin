@@ -35,25 +35,27 @@ import {
 } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 
-// Import existing components
-import WorkflowImporter from '@/components/WorkflowImporter';
-import WorkflowTester from '@/components/WorkflowTester';
-import AgentIdeasDashboard from '@/components/agent-center/AgentIdeasDashboard';
-import AgentsDashboard from '@/components/agent-center/AgentsDashboard';
-import AnalyticsDashboard from '@/components/agent-center/AnalyticsDashboard';
+// Layout components (always visible - keep static)
 import { CommandInput } from '@/components/agent-center/CommandInput';
 import { useCommandPalette } from '@/components/agent-center/CommandPalette';
-import ExecutionsDashboard from '@/components/agent-center/ExecutionsDashboard';
 import { IntelligentAlerts } from '@/components/agent-center/IntelligentAlerts';
-import { MVPMarketplace } from '@/components/agent-center/MVPMarketplace';
-import { MultiAgentOrchestrator } from '@/components/agent-center/MultiAgentOrchestrator';
 import { ProactiveSuggestionsPanel } from '@/components/agent-center/ProactiveSuggestionsPanel';
-import ToolsDashboard from '@/components/agent-center/ToolsDashboard';
-import { WorkflowOptimizer } from '@/components/agent-center/WorkflowOptimizer';
-import WorkflowsDashboard from '@/components/agent-center/WorkflowsDashboard';
-import { WorkflowTemplateLibrary } from '@/components/workflow/WorkflowTemplateLibrary';
 import { QuickActionsPanel } from '@/components/copilot/QuickActionsPanel';
 import { useAgentStats } from '@/hooks/use-agent-company';
+
+// Lazy-load tab content components for code splitting
+const WorkflowImporter = lazy(() => import('@/components/WorkflowImporter'));
+const WorkflowTester = lazy(() => import('@/components/WorkflowTester'));
+const AgentIdeasDashboard = lazy(() => import('@/components/agent-center/AgentIdeasDashboard'));
+const AgentsDashboard = lazy(() => import('@/components/agent-center/AgentsDashboard'));
+const AnalyticsDashboard = lazy(() => import('@/components/agent-center/AnalyticsDashboard'));
+const ExecutionsDashboard = lazy(() => import('@/components/agent-center/ExecutionsDashboard'));
+const MVPMarketplace = lazy(() => import('@/components/agent-center/MVPMarketplace').then(m => ({ default: m.MVPMarketplace })));
+const MultiAgentOrchestrator = lazy(() => import('@/components/agent-center/MultiAgentOrchestrator').then(m => ({ default: m.MultiAgentOrchestrator })));
+const ToolsDashboard = lazy(() => import('@/components/agent-center/ToolsDashboard'));
+const WorkflowOptimizer = lazy(() => import('@/components/agent-center/WorkflowOptimizer').then(m => ({ default: m.WorkflowOptimizer })));
+const WorkflowsDashboard = lazy(() => import('@/components/agent-center/WorkflowsDashboard'));
+const WorkflowTemplateLibrary = lazy(() => import('@/components/workflow/WorkflowTemplateLibrary').then(m => ({ default: m.WorkflowTemplateLibrary })));
 
 // Lazy import for Sora Video (heavy component)
 const SoraVideoContent = lazy(() => import('./SoraVideoGenerator'));
@@ -367,15 +369,19 @@ const UnifiedAICommandCenter = () => {
 
           {/* Tab Contents */}
           <TabsContent value="ideas" className="space-y-4 mt-6">
-            <AgentIdeasDashboard
-              onNavigateToTab={handleNavigateToTab}
-              onIdeaCompleted={handleIdeaCompleted}
-            />
+            <Suspense fallback={<LoadingSpinner />}>
+              <AgentIdeasDashboard
+                onNavigateToTab={handleNavigateToTab}
+                onIdeaCompleted={handleIdeaCompleted}
+              />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="agents" className="space-y-4 mt-6">
-            <AgentsDashboard />
-            <MultiAgentOrchestrator />
+            <Suspense fallback={<LoadingSpinner />}>
+              <AgentsDashboard />
+              <MultiAgentOrchestrator />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="workflows" className="space-y-4 mt-6">
@@ -401,12 +407,16 @@ const UnifiedAICommandCenter = () => {
               </div>
 
               <TabsContent value="templates">
-                <WorkflowTemplateLibrary />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <WorkflowTemplateLibrary />
+                </Suspense>
               </TabsContent>
 
               <TabsContent value="builder">
-                <WorkflowsDashboard />
-                <WorkflowOptimizer workflowId={undefined} />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <WorkflowsDashboard />
+                  <WorkflowOptimizer workflowId={undefined} />
+                </Suspense>
               </TabsContent>
 
               <TabsContent value="import">
@@ -436,7 +446,9 @@ const UnifiedAICommandCenter = () => {
                     </div>
                   </div>
                 </div>
-                <WorkflowTester />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <WorkflowTester />
+                </Suspense>
               </TabsContent>
             </Tabs>
           </TabsContent>
@@ -461,7 +473,9 @@ const UnifiedAICommandCenter = () => {
               </div>
 
               <TabsContent value="all">
-                <ToolsDashboard />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ToolsDashboard />
+                </Suspense>
               </TabsContent>
 
               <TabsContent value="sora-video">
@@ -491,15 +505,21 @@ const UnifiedAICommandCenter = () => {
           </TabsContent>
 
           <TabsContent value="marketplace" className="space-y-4 mt-6">
-            <MVPMarketplace />
+            <Suspense fallback={<LoadingSpinner />}>
+              <MVPMarketplace />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="executions" className="space-y-4 mt-6">
-            <ExecutionsDashboard />
+            <Suspense fallback={<LoadingSpinner />}>
+              <ExecutionsDashboard />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4 mt-6">
-            <AnalyticsDashboard />
+            <Suspense fallback={<LoadingSpinner />}>
+              <AnalyticsDashboard />
+            </Suspense>
           </TabsContent>
         </Tabs>
       </div>

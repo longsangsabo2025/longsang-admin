@@ -633,27 +633,36 @@ app.put('/api/admin/calendar/settings', (req, res) => {
  */
 app.post('/api/admin/generate-script', async (req, res) => {
   try {
+    const t0 = Date.now();
     const { topic, model } = req.body;
     if (!topic) return res.status(400).json({ error: 'topic required' });
 
     const scriptModel = model || process.env.SCRIPT_WRITER_MODEL || 'gemini-2.0-flash';
 
-    // Build knowledge context
+    // Build knowledge context — parallel loading for speed
+    const t1 = Date.now();
     let knowledgeBlock = '';
+    let voiceText = '';
     try {
-      const brainCtx = await searchBrain(topic, 2000);
-      const books = await searchBooks(topic, 2);
-      const transcripts = await searchTranscripts(topic, 2);
+      const [brainCtx, books, transcripts, voice] = await Promise.allSettled([
+        searchBrain(topic, 2000),
+        searchBooks(topic, 2),
+        searchTranscripts(topic, 2),
+        loadVoice(),
+      ]);
+      const brainVal = brainCtx.status === 'fulfilled' ? brainCtx.value : '';
+      const booksVal = books.status === 'fulfilled' ? books.value : [];
+      const transVal = transcripts.status === 'fulfilled' ? transcripts.value : [];
+      voiceText = voice.status === 'fulfilled' ? voice.value.substring(0, 1500) : '';
       knowledgeBlock = [
-        brainCtx ? `[BRAIN]\n${brainCtx}` : '',
-        books.length ? `[SÁCH]\n${books.map(b => `${b.title}: ${b.excerpt}`).join('\n')}` : '',
-        transcripts.length ? `[VIDEO]\n${transcripts.map(t => `${t.title}: ${t.excerpt}`).join('\n')}` : '',
+        brainVal ? `[BRAIN]\n${brainVal}` : '',
+        booksVal.length ? `[SÁCH]\n${booksVal.map(b => `${b.title}: ${b.excerpt}`).join('\n')}` : '',
+        transVal.length ? `[VIDEO]\n${transVal.map(t => `${t.title}: ${t.excerpt}`).join('\n')}` : '',
       ].filter(Boolean).join('\n\n');
     } catch {}
+    console.log(`[Script] Knowledge loaded in ${Date.now() - t1}ms`);
 
-    let voiceText = '';
-    try { voiceText = (await loadVoice()).substring(0, 1500); } catch {}
-
+    const t2 = Date.now();
     const { chat: llmChat, estimateCost: estCost } = await import('./core/llm.js');
     const result = await llmChat({
       model: scriptModel,
@@ -663,6 +672,7 @@ app.post('/api/admin/generate-script', async (req, res) => {
       maxTokens: 16384,
       agentId: 'admin-script-gen',
     });
+    console.log(`[Script] LLM done in ${Date.now() - t2}ms | Total: ${Date.now() - t0}ms`);
 
     // Save to output
     const slug = topic.replace(/[^a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF]/g, '-').substring(0, 50);

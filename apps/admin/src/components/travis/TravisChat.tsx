@@ -1,12 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  Bot,
   Send,
   Loader2,
-  Zap,
-  MessageSquare,
   ChevronDown,
-  ChevronUp,
   Wrench,
   Brain,
   Maximize2,
@@ -21,8 +17,9 @@ import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { cn } from '../../lib/utils';
 
-const TRAVIS_API = 'http://localhost:8300';
-const TRAVIS_WS = 'ws://localhost:8300/ws';
+const TRAVIS_API = import.meta.env.VITE_TRAVIS_API_URL || 'http://localhost:8300';
+const TRAVIS_WS = import.meta.env.VITE_TRAVIS_WS_URL || 'ws://localhost:8300/ws';
+const TRAVIS_CONFIGURED = !!import.meta.env.VITE_TRAVIS_API_URL;
 
 interface Message {
   id: string;
@@ -55,13 +52,25 @@ export default function TravisChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimerRef = useRef<number | null>(null);
 
   // Check Travis health on mount
   useEffect(() => {
     checkHealth();
     fetchStats();
     const interval = setInterval(fetchStats, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+      if (wsRef.current) {
+        wsRef.current.onclose = null; // Prevent reconnect loop
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
   }, []);
 
   // Auto-scroll
@@ -72,25 +81,37 @@ export default function TravisChat() {
   }, [messages]);
 
   const checkHealth = async () => {
+    if (!TRAVIS_CONFIGURED) { setIsConnected(false); return; }
     try {
-      const res = await fetch(`${TRAVIS_API}/health`);
-      setIsConnected(res.ok);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      const res = await fetch(`${TRAVIS_API}/health`, { signal: controller.signal, mode: 'no-cors' as RequestMode });
+      clearTimeout(timeout);
+      // no-cors returns opaque response (status 0), so treat any non-abort as "maybe up"
+      setIsConnected(res.type !== 'opaque' ? res.ok : true);
     } catch {
       setIsConnected(false);
     }
   };
 
   const fetchStats = async () => {
+    if (!TRAVIS_CONFIGURED) return;
     try {
-      const res = await fetch(`${TRAVIS_API}/stats`);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      const res = await fetch(`${TRAVIS_API}/stats`, { signal: controller.signal });
+      clearTimeout(timeout);
       if (res.ok) setStats(await res.json());
-    } catch { /* ignore */ }
+    } catch {
+      // Travis service offline — silently ignore
+    }
   };
 
   // WebSocket connection
   const connectWs = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
+    if (!TRAVIS_CONFIGURED) { setWsStatus('disconnected'); return; }
     setWsStatus('connecting');
     const ws = new WebSocket(TRAVIS_WS);
 
@@ -130,8 +151,8 @@ export default function TravisChat() {
 
     ws.onclose = () => {
       setWsStatus('disconnected');
-      // Auto-reconnect after 5s
-      setTimeout(connectWs, 5000);
+      // Auto-reconnect after 5s (only if component mounted)
+      reconnectTimerRef.current = window.setTimeout(connectWs, 5000);
     };
 
     ws.onerror = () => setWsStatus('disconnected');
@@ -191,7 +212,7 @@ export default function TravisChat() {
         {
           id: `err-${Date.now()}`,
           role: 'system',
-          content: `❌ Không thể kết nối Travis AI: ${errorMessage}\n\nĐảm bảo Travis server đang chạy ở port 8300.`,
+          content: `❌ Không thể kết nối Travis AI: ${errorMessage}\n\nKiểm tra kết nối tới ${TRAVIS_API}.`,
           timestamp: new Date(),
         },
       ]);

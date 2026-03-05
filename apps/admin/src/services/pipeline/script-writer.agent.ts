@@ -8,21 +8,27 @@ import { PIPELINE_BASE } from './api-client';
 import { getRun, startProgressTracker, completeRun, failRun } from './run-tracker';
 
 const SCRIPT_PHASES: ProgressPhase[] = [
-  { pct: 5,  msg: '🔌 Connecting to pipeline API...' },
-  { pct: 10, msg: '📤 Sending request to AI model...' },
-  { pct: 20, msg: '🤖 AI đang phân tích topic...' },
-  { pct: 35, msg: '✍️ AI đang viết script (Section 1-2)...' },
-  { pct: 50, msg: '✍️ AI đang viết script (Section 3-4)...' },
-  { pct: 65, msg: '✍️ AI đang viết script (Section 5-6)...' },
-  { pct: 80, msg: '📝 AI đang hoàn thiện + formatting...' },
-  { pct: 90, msg: '📊 Tính toán word count & cost...' },
+  { pct: 3,  msg: '🔌 Connecting to pipeline server...' },
+  { pct: 8,  msg: '📤 Sending request to AI model...' },
+  { pct: 15, msg: '🤖 AI đang phân tích topic + load knowledge...' },
+  { pct: 22, msg: '✍️ AI đang viết script — HOOK + INTRO...' },
+  { pct: 32, msg: '✍️ AI đang viết — BỐI CẢNH...' },
+  { pct: 42, msg: '✍️ AI đang viết — GIẢI PHẪU (Section 3-4)...' },
+  { pct: 52, msg: '✍️ AI đang viết — TWIST + ĐỨNG DẬY...' },
+  { pct: 60, msg: '✍️ AI đang viết — KẾT + OUTRO...' },
+  { pct: 68, msg: '📝 AI đang hoàn thiện nội dung...' },
+  { pct: 75, msg: '📝 Formatting & quality check...' },
+  { pct: 82, msg: '📝 Finalizing script (~1800+ từ)...' },
+  { pct: 88, msg: '📊 Tính toán word count & cost...' },
+  { pct: 92, msg: '💾 Saving output files...' },
+  { pct: 95, msg: '⏳ Đang nhận response từ server...' },
 ];
 
 export async function runScriptWriter(runId: string, req: GenerateRequest): Promise<void> {
   const run = getRun(runId);
   if (!run) return;
 
-  const tracker = startProgressTracker(run, SCRIPT_PHASES, 25000);
+  const tracker = startProgressTracker(run, SCRIPT_PHASES, 60000);
 
   try {
     run.logs.push({ t: Date.now(), level: 'info', msg: `[0%] 📡 POST ${PIPELINE_BASE}/api/admin/generate-script` });

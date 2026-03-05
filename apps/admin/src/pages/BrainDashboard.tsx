@@ -8,24 +8,34 @@
  * - Structured knowledge storage with vector embeddings
  */
 
-import { BulkOperations } from '@/brain/components/BulkOperations';
-import { DomainManager } from '@/brain/components/DomainManager';
+import { Suspense, lazy } from 'react';
+import { Loader2 } from 'lucide-react';
+
+// Lazy-load all tab components for code splitting (~250KB saved)
+const BulkOperations = lazy(() => import('@/brain/components/BulkOperations').then(m => ({ default: m.BulkOperations })));
+const DomainManager = lazy(() => import('@/brain/components/DomainManager').then(m => ({ default: m.DomainManager })));
 import { DocumentationViewer } from '@/brain/components/DocumentationViewer';
-import { KnowledgeIngestion } from '@/brain/components/KnowledgeIngestion';
-import { YouTubeHarvester } from '@/brain/components/YouTubeHarvester';
-import { NewsHarvester } from '@/brain/components/NewsHarvester';
-import { SocialHarvester } from '@/brain/components/SocialHarvester';
-import { FileHarvester } from '@/brain/components/FileHarvester';
-import { AudioHarvester } from '@/brain/components/AudioHarvester';
-import { KnowledgeManager } from '@/brain/components/KnowledgeManager';
-import { KnowledgeSearch } from '@/brain/components/KnowledgeSearch';
-import { MultiDomainQuery } from '@/brain/components/MultiDomainQuery';
-import { MasterBrainInterface } from '@/brain/components/MasterBrainInterface';
-import { KnowledgeGraphVisualizer } from '@/brain/components/KnowledgeGraphVisualizer';
-import { DomainRouter } from '@/brain/components/DomainRouter';
-import { ImageBrainLibrary } from '@/brain/components/ImageBrainLibrary';
+const KnowledgeIngestion = lazy(() => import('@/brain/components/KnowledgeIngestion').then(m => ({ default: m.KnowledgeIngestion })));
+const YouTubeHarvester = lazy(() => import('@/brain/components/YouTubeHarvester').then(m => ({ default: m.YouTubeHarvester })));
+const NewsHarvester = lazy(() => import('@/brain/components/NewsHarvester').then(m => ({ default: m.NewsHarvester })));
+const SocialHarvester = lazy(() => import('@/brain/components/SocialHarvester').then(m => ({ default: m.SocialHarvester })));
+const FileHarvester = lazy(() => import('@/brain/components/FileHarvester').then(m => ({ default: m.FileHarvester })));
+const AudioHarvester = lazy(() => import('@/brain/components/AudioHarvester').then(m => ({ default: m.AudioHarvester })));
+const KnowledgeManager = lazy(() => import('@/brain/components/KnowledgeManager').then(m => ({ default: m.KnowledgeManager })));
+const KnowledgeSearch = lazy(() => import('@/brain/components/KnowledgeSearch').then(m => ({ default: m.KnowledgeSearch })));
+const MultiDomainQuery = lazy(() => import('@/brain/components/MultiDomainQuery').then(m => ({ default: m.MultiDomainQuery })));
+const MasterBrainInterface = lazy(() => import('@/brain/components/MasterBrainInterface').then(m => ({ default: m.MasterBrainInterface })));
+const KnowledgeGraphVisualizer = lazy(() => import('@/brain/components/KnowledgeGraphVisualizer').then(m => ({ default: m.KnowledgeGraphVisualizer })));
+const DomainRouter = lazy(() => import('@/brain/components/DomainRouter').then(m => ({ default: m.DomainRouter })));
+const ImageBrainLibrary = lazy(() => import('@/brain/components/ImageBrainLibrary').then(m => ({ default: m.ImageBrainLibrary })));
 import { useDomains } from '@/brain/hooks/useDomains';
 import { useCoreLogic } from '@/brain/hooks/useCoreLogic';
+
+const TabLoader = () => (
+  <div className="flex items-center justify-center min-h-[300px]">
+    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+  </div>
+);
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -213,27 +223,37 @@ export default function BrainDashboard() {
 
                 {/* YouTube Harvester */}
                 <TabsContent value="youtube" className="mt-4">
-                  <YouTubeHarvester selectedDomainId={selectedDomainId} />
+                  <Suspense fallback={<TabLoader />}>
+                    <YouTubeHarvester selectedDomainId={selectedDomainId} />
+                  </Suspense>
                 </TabsContent>
 
                 {/* News Harvester */}
                 <TabsContent value="news" className="mt-4">
-                  <NewsHarvester selectedDomainId={selectedDomainId} />
+                  <Suspense fallback={<TabLoader />}>
+                    <NewsHarvester selectedDomainId={selectedDomainId} />
+                  </Suspense>
                 </TabsContent>
 
                 {/* Social Monitor */}
                 <TabsContent value="social" className="mt-4">
-                  <SocialHarvester selectedDomainId={selectedDomainId} />
+                  <Suspense fallback={<TabLoader />}>
+                    <SocialHarvester selectedDomainId={selectedDomainId} />
+                  </Suspense>
                 </TabsContent>
 
                 {/* File Scanner */}
                 <TabsContent value="files" className="mt-4">
-                  <FileHarvester selectedDomainId={selectedDomainId} />
+                  <Suspense fallback={<TabLoader />}>
+                    <FileHarvester selectedDomainId={selectedDomainId} />
+                  </Suspense>
                 </TabsContent>
 
                 {/* Audio Harvester */}
                 <TabsContent value="audio" className="mt-4">
-                  <AudioHarvester selectedDomainId={selectedDomainId} />
+                  <Suspense fallback={<TabLoader />}>
+                    <AudioHarvester selectedDomainId={selectedDomainId} />
+                  </Suspense>
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -258,17 +278,21 @@ export default function BrainDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DomainManager
-                onDomainSelect={setSelectedDomainId}
-                selectedDomainId={selectedDomainId}
-              />
+              <Suspense fallback={<TabLoader />}>
+                <DomainManager
+                  onDomainSelect={setSelectedDomainId}
+                  selectedDomainId={selectedDomainId}
+                />
+              </Suspense>
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Knowledge Manager Tab */}
         <TabsContent value="manager" className="space-y-4">
-          <KnowledgeManager selectedDomainId={selectedDomainId} />
+          <Suspense fallback={<TabLoader />}>
+            <KnowledgeManager selectedDomainId={selectedDomainId} />
+          </Suspense>
         </TabsContent>
 
         {/* Knowledge Ingestion Tab */}
@@ -285,14 +309,18 @@ export default function BrainDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <KnowledgeIngestion selectedDomainId={selectedDomainId} />
+              <Suspense fallback={<TabLoader />}>
+                <KnowledgeIngestion selectedDomainId={selectedDomainId} />
+              </Suspense>
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Bulk Operations Tab */}
         <TabsContent value="bulk" className="space-y-4">
-          <BulkOperations domainId={selectedDomainId} />
+          <Suspense fallback={<TabLoader />}>
+            <BulkOperations domainId={selectedDomainId} />
+          </Suspense>
         </TabsContent>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
@@ -313,19 +341,25 @@ export default function BrainDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <KnowledgeSearch selectedDomainId={selectedDomainId} />
+              <Suspense fallback={<TabLoader />}>
+                <KnowledgeSearch selectedDomainId={selectedDomainId} />
+              </Suspense>
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Master Brain Tab */}
         <TabsContent value="master-brain" className="space-y-4">
-          <MasterBrainInterface />
+          <Suspense fallback={<TabLoader />}>
+            <MasterBrainInterface />
+          </Suspense>
         </TabsContent>
 
         {/* Multi-Domain Tab */}
         <TabsContent value="multi-domain" className="space-y-4">
-          <MultiDomainQuery />
+          <Suspense fallback={<TabLoader />}>
+            <MultiDomainQuery />
+          </Suspense>
         </TabsContent>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
@@ -334,12 +368,16 @@ export default function BrainDashboard() {
 
         {/* Knowledge Graph Tab */}
         <TabsContent value="graph" className="space-y-4">
-          <KnowledgeGraphVisualizer />
+          <Suspense fallback={<TabLoader />}>
+            <KnowledgeGraphVisualizer />
+          </Suspense>
         </TabsContent>
 
         {/* Domain Router Tab */}
         <TabsContent value="router" className="space-y-4">
-          <DomainRouter />
+          <Suspense fallback={<TabLoader />}>
+            <DomainRouter />
+          </Suspense>
         </TabsContent>
 
         {/* 🖼️ IMAGE LIBRARY TAB - Visual Memory for AI */}
@@ -363,12 +401,14 @@ export default function BrainDashboard() {
               </div>
             </CardHeader>
             <CardContent className="h-[calc(100vh-20rem)]">
-              <ImageBrainLibrary
-                selectionMode={false}
-                onSelectImages={(images) => {
-                  console.log('[Brain Dashboard] Selected images:', images);
-                }}
-              />
+              <Suspense fallback={<TabLoader />}>
+                <ImageBrainLibrary
+                  selectionMode={false}
+                  onSelectImages={(images) => {
+                    console.log('[Brain Dashboard] Selected images:', images);
+                  }}
+                />
+              </Suspense>
             </CardContent>
           </Card>
         </TabsContent>

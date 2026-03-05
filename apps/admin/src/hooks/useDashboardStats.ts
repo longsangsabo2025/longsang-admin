@@ -73,7 +73,7 @@ export function useDashboardStats() {
       });
       setError(null);
     } catch (err: any) {
-      console.error('Error fetching dashboard stats:', err);
+      // Supabase query error — suppress console noise, set state for UI
       setError(err.message);
     } finally {
       setLoading(false);

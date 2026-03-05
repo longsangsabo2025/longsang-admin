@@ -182,6 +182,7 @@ const PipelineDashboard = lazy(() => import('./pages/PipelineDashboard'));
 
 // YouTube Channels - 5-channel strategy + video factory
 const YouTubeChannels = lazy(() => import('./pages/YouTubeChannels'));
+const YouTubeChannelWorkspace = lazy(() => import('./pages/YouTubeChannelWorkspace'));
 
 // Video Factory - Automated video production with Higgsfield.ai
 const VideoFactoryDashboard = lazy(() => import('./pages/VideoFactoryDashboard'));
@@ -387,6 +388,7 @@ const App = () => {
                         <Route path="ai-pricing" element={<Navigate to="/admin/ai-cost" replace />} />
                         <Route path="pipeline" element={<PipelineDashboard />} />
                         <Route path="youtube-channels" element={<YouTubeChannels />} />
+                        <Route path="youtube-channels/:channelId" element={<YouTubeChannelWorkspace />} />
                         <Route path="video-factory" element={<VideoFactoryDashboard />} />
                         <Route path="video-composer" element={<VideoComposer />} />
                         <Route path="revenue" element={<RevenueDashboardPage />} />

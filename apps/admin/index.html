@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3002 http://localhost:3003 http://localhost:3004 http://localhost:3005 http://localhost:3006 http://localhost:3007 http://localhost:3008 http://127.0.0.1:*; font-src 'self' https://fonts.gstatic.com; media-src 'self' data: blob: http://localhost:* https:; connect-src 'self' http://localhost:* ws://localhost:* wss://localhost:* https://*.supabase.co wss://*.supabase.co https://api.openai.com https://generativelanguage.googleapis.com https://*.googleapis.com https://api.imgbb.com https://api.kie.ai https://i.ibb.co https://tempfile.aiquickdraw.com https://res.cloudinary.com https://*.cloudinary.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3002 http://localhost:3003 http://localhost:3004 http://localhost:3005 http://localhost:3006 http://localhost:3007 http://localhost:3008 http://127.0.0.1:*; font-src 'self' https://fonts.gstatic.com; media-src 'self' data: blob: http://localhost:* https:; connect-src 'self' http://localhost:* ws://localhost:* wss://localhost:* https://*.supabase.co wss://*.supabase.co https://*.onrender.com https://api.openai.com https://generativelanguage.googleapis.com https://*.googleapis.com https://api.imgbb.com https://api.kie.ai https://i.ibb.co https://tempfile.aiquickdraw.com https://res.cloudinary.com https://*.cloudinary.com;">
     
     <!-- Unregister old service workers in development -->
     <script>
@@ -45,15 +45,12 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     
     <!-- DNS Prefetch & Preconnect for Performance -->
-    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
-    <link rel="dns-prefetch" href="//google-analytics.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
     
-    <!-- Google Fonts with optimized loading -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts - Combined request (Inter + Be Vietnam Pro) -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="website" />
@@ -74,13 +71,9 @@
     <meta name="twitter:creator" content="@saboarena" />
     <meta name="twitter:title" content="SABO ARENA - Billiards & Gaming Platform Vietnam" />
     <meta name="twitter:description" content="Professional billiard tournaments, pool competitions, and esports events. Join Vietnam's leading billiards and gaming platform." />
-    <meta name="twitter:title" content="SABO ARENA - Gaming Platform Vietnam" />
-    <meta name="twitter:description" content="Vietnam's leading gaming platform with AI automation. Join esports tournaments and experience competitive gaming excellence." />
     <meta name="twitter:image" content="https://saboarena.com/og-image-home.jpg" />
-    <meta name="twitter:image:alt" content="SABO ARENA Gaming Platform" />
 
     <!-- Apple Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="SABO ARENA" />
     
@@ -92,12 +85,6 @@
     <meta name="theme-color" content="#1a202c" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="format-detection" content="telephone=no" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    
-    <!-- Google Fonts - Be Vietnam Pro for Vietnamese -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -151,7 +138,7 @@
     <!-- Facebook SDK Root Element -->
     <div id="fb-root"></div>
     
-    <!-- Facebook SDK for JavaScript -->
+    <!-- Facebook SDK for JavaScript (deferred until after page load) -->
     <script>
       window.fbAsyncInit = function() {
         FB.init({
@@ -160,21 +147,20 @@
           xfbml      : true,
           version    : 'v18.0'
         });
-        
-        // Log page view for Facebook Analytics
         FB.AppEvents.logPageView();
-        
-        // Dispatch custom event when FB SDK is ready
         window.dispatchEvent(new Event('fb-sdk-ready'));
       };
 
-      (function(d, s, id){
-        var js, fjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) {return;}
-        js = d.createElement(s); js.id = id;
-        js.src = "https://connect.facebook.net/vi_VN/sdk.js";
-        fjs.parentNode.insertBefore(js, fjs);
-      }(document, 'script', 'facebook-jssdk'));
+      // Defer FB SDK load until after the page is interactive
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var d = document, s = 'script', id = 'facebook-jssdk';
+          if (d.getElementById(id)) return;
+          var js = d.createElement(s); js.id = id; js.async = true; js.defer = true;
+          js.src = "https://connect.facebook.net/vi_VN/sdk.js";
+          d.head.appendChild(js);
+        }, 2000);
+      });
     </script>
 
     <div id="root"></div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -22,24 +22,31 @@ import {
   RefreshCw,
   Image,
   Megaphone,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Tab Components
-import { ProjectOverviewTab } from '@/components/project/ProjectOverviewTab';
-import { ProjectCredentialsTab } from '@/components/project/ProjectCredentialsTab';
-import { ProjectDomainsTab } from '@/components/project/ProjectDomainsTab';
-import { ProjectSocialTab } from '@/components/project/ProjectSocialTab';
-import { ProjectAnalyticsTab } from '@/components/project/ProjectAnalyticsTab';
-import { ProjectSEOTab } from '@/components/project/ProjectSEOTab';
-import { ProjectWorkflowsTab } from '@/components/project/ProjectWorkflowsTab';
-import { ProjectContentTab } from '@/components/project/ProjectContentTab';
-import { ProjectTeamTab } from '@/components/project/ProjectTeamTab';
-import { ProjectDocsTab } from '@/components/project/ProjectDocsTab';
-import { ProjectIntegrationsTab } from '@/components/project/ProjectIntegrationsTab';
-import { ProjectSettingsTab } from '@/components/project/ProjectSettingsTab';
-import { ProjectMarketingTab } from '@/components/project/ProjectMarketingTab';
-import { MediaGallery } from '@/components/media/MediaGallery';
+// Lazy-load all tab components for code splitting (~200KB saved)
+const ProjectOverviewTab = lazy(() => import('@/components/project/ProjectOverviewTab').then(m => ({ default: m.ProjectOverviewTab })));
+const ProjectCredentialsTab = lazy(() => import('@/components/project/ProjectCredentialsTab').then(m => ({ default: m.ProjectCredentialsTab })));
+const ProjectDomainsTab = lazy(() => import('@/components/project/ProjectDomainsTab').then(m => ({ default: m.ProjectDomainsTab })));
+const ProjectSocialTab = lazy(() => import('@/components/project/ProjectSocialTab').then(m => ({ default: m.ProjectSocialTab })));
+const ProjectAnalyticsTab = lazy(() => import('@/components/project/ProjectAnalyticsTab').then(m => ({ default: m.ProjectAnalyticsTab })));
+const ProjectSEOTab = lazy(() => import('@/components/project/ProjectSEOTab').then(m => ({ default: m.ProjectSEOTab })));
+const ProjectWorkflowsTab = lazy(() => import('@/components/project/ProjectWorkflowsTab').then(m => ({ default: m.ProjectWorkflowsTab })));
+const ProjectContentTab = lazy(() => import('@/components/project/ProjectContentTab').then(m => ({ default: m.ProjectContentTab })));
+const ProjectTeamTab = lazy(() => import('@/components/project/ProjectTeamTab').then(m => ({ default: m.ProjectTeamTab })));
+const ProjectDocsTab = lazy(() => import('@/components/project/ProjectDocsTab').then(m => ({ default: m.ProjectDocsTab })));
+const ProjectIntegrationsTab = lazy(() => import('@/components/project/ProjectIntegrationsTab').then(m => ({ default: m.ProjectIntegrationsTab })));
+const ProjectSettingsTab = lazy(() => import('@/components/project/ProjectSettingsTab').then(m => ({ default: m.ProjectSettingsTab })));
+const ProjectMarketingTab = lazy(() => import('@/components/project/ProjectMarketingTab').then(m => ({ default: m.ProjectMarketingTab })));
+const MediaGallery = lazy(() => import('@/components/media/MediaGallery').then(m => ({ default: m.MediaGallery })));
+
+const TabLoader = () => (
+  <div className="flex items-center justify-center min-h-[300px]">
+    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+  </div>
+);
 
 interface Project {
   id: string;
@@ -302,61 +309,75 @@ export default function ProjectCommandCenter() {
 
         {/* Tab Contents */}
         <TabsContent value="overview">
-          <ProjectOverviewTab project={project} projectId={project.id} onRefresh={fetchProject} />
+          <Suspense fallback={<TabLoader />}>
+            <ProjectOverviewTab project={project} projectId={project.id} onRefresh={fetchProject} />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="credentials">
-          <div className="space-y-8">
-            <ProjectCredentialsTab projectId={project.id} projectSlug={project.slug} />
-            <ProjectDomainsTab projectId={project.id} />
-            <ProjectIntegrationsTab projectId={project.id} />
-          </div>
+          <Suspense fallback={<TabLoader />}>
+            <div className="space-y-8">
+              <ProjectCredentialsTab projectId={project.id} projectSlug={project.slug} />
+              <ProjectDomainsTab projectId={project.id} />
+              <ProjectIntegrationsTab projectId={project.id} />
+            </div>
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="social">
-          <div className="space-y-8">
-            <ProjectSocialTab projectId={project.id} projectName={project.name} />
-            <ProjectAnalyticsTab projectId={project.id} />
-          </div>
+          <Suspense fallback={<TabLoader />}>
+            <div className="space-y-8">
+              <ProjectSocialTab projectId={project.id} projectName={project.name} />
+              <ProjectAnalyticsTab projectId={project.id} />
+            </div>
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="marketing">
-          <ProjectMarketingTab 
-            projectId={project.id} 
-            projectName={project.name}
-            projectSlug={project.slug}
-          />
+          <Suspense fallback={<TabLoader />}>
+            <ProjectMarketingTab 
+              projectId={project.id} 
+              projectName={project.name}
+              projectSlug={project.slug}
+            />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="media" className="h-[calc(100vh-280px)] min-h-[500px]">
           <Card className="h-full">
             <CardContent className="p-6 h-full">
-              <MediaGallery
-                projectSlug={project.slug}
-                projectFolderId={PROJECT_DRIVE_FOLDERS[project.slug]}
-                onSelectMedia={(files) => {
-                  console.log('Selected media:', files);
-                  toast.success(`Đã chọn ${files.length} files - Sẵn sàng để sử dụng!`);
-                }}
-              />
+              <Suspense fallback={<TabLoader />}>
+                <MediaGallery
+                  projectSlug={project.slug}
+                  projectFolderId={PROJECT_DRIVE_FOLDERS[project.slug]}
+                  onSelectMedia={(files) => {
+                    console.log('Selected media:', files);
+                    toast.success(`Đã chọn ${files.length} files - Sẵn sàng để sử dụng!`);
+                  }}
+                />
+              </Suspense>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="content">
-          <div className="space-y-8">
-            <ProjectContentTab projectId={project.id} />
-            <ProjectSEOTab projectId={project.id} />
-            <ProjectDocsTab projectId={project.id} />
-            <ProjectWorkflowsTab projectId={project.id} projectSlug={project.slug} />
-          </div>
+          <Suspense fallback={<TabLoader />}>
+            <div className="space-y-8">
+              <ProjectContentTab projectId={project.id} />
+              <ProjectSEOTab projectId={project.id} />
+              <ProjectDocsTab projectId={project.id} />
+              <ProjectWorkflowsTab projectId={project.id} projectSlug={project.slug} />
+            </div>
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="settings">
-          <div className="space-y-8">
-            <ProjectSettingsTab project={project} onRefresh={fetchProject} />
-            <ProjectTeamTab projectId={project.id} />
-          </div>
+          <Suspense fallback={<TabLoader />}>
+            <div className="space-y-8">
+              <ProjectSettingsTab project={project} onRefresh={fetchProject} />
+              <ProjectTeamTab projectId={project.id} />
+            </div>
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>

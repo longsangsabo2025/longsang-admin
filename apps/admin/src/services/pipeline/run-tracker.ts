@@ -54,6 +54,7 @@ export function failRun(run: GenerationRun, error: string) {
 export function startProgressTracker(run: GenerationRun, phases: ProgressPhase[], estimatedMs: number): ReturnType<typeof setInterval> {
   let phaseIdx = 0;
   const interval = estimatedMs / phases.length;
+  const startMs = Date.now();
 
   const timer = setInterval(() => {
     if (run.status !== 'running' || phaseIdx >= phases.length) {
@@ -61,7 +62,8 @@ export function startProgressTracker(run: GenerationRun, phases: ProgressPhase[]
       return;
     }
     const phase = phases[phaseIdx];
-    run.logs.push({ t: Date.now(), level: 'info', msg: `[${phase.pct}%] ${phase.msg}` });
+    const elapsed = ((Date.now() - startMs) / 1000).toFixed(0);
+    run.logs.push({ t: Date.now(), level: 'info', msg: `[${phase.pct}%] ${phase.msg} (${elapsed}s)` });
     phaseIdx++;
   }, interval);
 

@@ -7,7 +7,8 @@
  * Usage: import this file once in main.tsx (before any API calls).
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+// Only activate in production builds — in dev, Vite's server proxy handles /api/* forwarding
+const API_BASE = import.meta.env.PROD ? (import.meta.env.VITE_API_URL || '') : '';
 
 if (API_BASE) {
   const originalFetch = window.fetch.bind(window);
