@@ -69,6 +69,36 @@ function getGemini() {
 // Initialize Langfuse on first import
 getLangfuse();
 
+// ─── Retry helper with exponential backoff ──────────────────
+const GEMINI_FALLBACK_CHAIN = [
+  'gemini-2.5-pro',
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+  'gemini-1.5-flash',
+];
+
+async function withRetry(fn, { maxRetries = 3, baseDelayMs = 2000, label = 'LLM' } = {}) {
+  let lastError;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      const is429 = err.status === 429 || err.message?.includes('429') || err.message?.includes('Resource exhausted');
+      const is503 = err.status === 503 || err.message?.includes('503') || err.message?.includes('overloaded');
+      if ((is429 || is503) && attempt < maxRetries) {
+        const delay = baseDelayMs * Math.pow(2, attempt) + Math.random() * 1000;
+        console.log(`[${label}] ${is429 ? '429 Rate Limited' : '503 Overloaded'} — retry ${attempt + 1}/${maxRetries} in ${(delay / 1000).toFixed(1)}s`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastError;
+}
+
 export async function chat({
   model = 'gpt-4o-mini',
   systemPrompt = '',
@@ -97,41 +127,64 @@ export async function chat({
     if (responseFormat === 'json') {
       params.response_format = { type: 'json_object' };
     }
-    const res = await openai.chat.completions.create(params);
-    result = {
-      content: res.choices[0].message.content,
-      tokens: {
-        input: res.usage?.prompt_tokens || 0,
-        output: res.usage?.completion_tokens || 0,
-      },
-      model,
-      durationMs: Date.now() - startTime,
-    };
+    result = await withRetry(async () => {
+      const res = await openai.chat.completions.create(params);
+      return {
+        content: res.choices[0].message.content,
+        tokens: {
+          input: res.usage?.prompt_tokens || 0,
+          output: res.usage?.completion_tokens || 0,
+        },
+        model,
+        durationMs: Date.now() - startTime,
+      };
+    }, { label: `OpenAI:${model}` });
   }
 
-  // --- Gemini models ---
+  // --- Gemini models (with fallback chain) ---
   else if (model.startsWith('gemini')) {
     const genai = getGemini();
-    const genModel = genai.getGenerativeModel({
-      model,
-      systemInstruction: systemPrompt || undefined,
-      generationConfig: {
-        temperature,
-        maxOutputTokens: maxTokens,
-        responseMimeType: responseFormat === 'json' ? 'application/json' : 'text/plain',
-      },
-    });
-    const res = await genModel.generateContent(userMessage);
-    const response = res.response;
-    result = {
-      content: response.text(),
-      tokens: {
-        input: response.usageMetadata?.promptTokenCount || 0,
-        output: response.usageMetadata?.candidatesTokenCount || 0,
-      },
-      model,
-      durationMs: Date.now() - startTime,
-    };
+
+    // Build fallback order: requested model first, then others in chain
+    const modelsToTry = [model, ...GEMINI_FALLBACK_CHAIN.filter(m => m !== model)];
+
+    for (const tryModel of modelsToTry) {
+      try {
+        result = await withRetry(async () => {
+          const genModel = genai.getGenerativeModel({
+            model: tryModel,
+            systemInstruction: systemPrompt || undefined,
+            generationConfig: {
+              temperature,
+              maxOutputTokens: maxTokens,
+              responseMimeType: responseFormat === 'json' ? 'application/json' : 'text/plain',
+            },
+          });
+          const res = await genModel.generateContent(userMessage);
+          const response = res.response;
+          return {
+            content: response.text(),
+            tokens: {
+              input: response.usageMetadata?.promptTokenCount || 0,
+              output: response.usageMetadata?.candidatesTokenCount || 0,
+            },
+            model: tryModel,
+            durationMs: Date.now() - startTime,
+          };
+        }, { maxRetries: 2, label: `Gemini:${tryModel}` });
+        if (tryModel !== model) {
+          console.log(`[LLM] ⚡ Fallback: ${model} → ${tryModel} succeeded`);
+        }
+        break; // success — exit fallback loop
+      } catch (err) {
+        const is429 = err.status === 429 || err.message?.includes('429') || err.message?.includes('Resource exhausted');
+        if (is429 && tryModel !== modelsToTry[modelsToTry.length - 1]) {
+          console.log(`[LLM] ${tryModel} exhausted — trying next fallback model...`);
+          continue;
+        }
+        throw err;
+      }
+    }
   }
 
   else {
