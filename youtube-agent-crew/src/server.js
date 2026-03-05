@@ -732,11 +732,27 @@ app.post('/api/admin/generate-storyboard', async (req, res) => {
 
     const storyboardModel = reqModel || process.env.DEFAULT_MODEL || 'gpt-4o-mini';
 
-    // Build visual identity block from UI config
+    // Build visual identity block from UI config — ALWAYS include if any VI field exists
     const vi = visualIdentity || {};
-    const viBlock = vi.colorPalette ? `\n## VISUAL IDENTITY (Maintain consistency across ALL scenes)\n- Color Palette: ${vi.colorPalette}\n- Lighting: ${vi.lighting || 'cinematic'}\n- Camera: ${vi.cameraStyle || 'close-up focus'}\n- Character: ${vi.characterPresence === 'none' ? 'No characters' : `${vi.characterPresence}${vi.characterDesc ? ' — ' + vi.characterDesc : ''}`}\n- Environment: ${vi.environment || 'varies'}\n- Mood: ${vi.moodKeywords || 'cinematic, dramatic'}\n- Negative (AVOID): ${vi.negativePrompt || 'text, watermark, logo'}\n` : '';
+    const hasVi = vi.colorPalette || vi.lighting || vi.cameraStyle || vi.environment || vi.moodKeywords || vi.characterDesc;
+    const viBlock = hasVi ? `
+## VISUAL IDENTITY — MANDATORY FOR EVERY SCENE PROMPT
+You MUST incorporate ALL of these visual elements into EVERY scene prompt. Do NOT simplify or omit any detail.
+- Color Palette: ${vi.colorPalette || 'cinematic tones'}
+- Lighting: ${vi.lighting || 'cinematic'}
+- Camera: ${vi.cameraStyle || 'close-up focus'}
+- Character: ${vi.characterPresence === 'none' ? 'No human characters — focus on environment, objects, symbols' : `${vi.characterPresence}${vi.characterDesc ? ' — ' + vi.characterDesc : ''}`}
+- Environment: ${vi.environment || 'varies per scene'}
+- Mood: ${vi.moodKeywords || 'cinematic, dramatic'}
+- Negative (NEVER include these): ${vi.negativePrompt || 'text, watermark, logo'}
+` : '';
     const sbCustomBlock = sbCustomPrompt ? `\n## CUSTOM STORYBOARD INSTRUCTIONS\n${sbCustomPrompt}\n` : '';
     const arBlock = aspectRatio ? `Aspect ratio: ${aspectRatio}. ` : '';
+
+    // Build a concrete prompt example using the actual VI settings for better AI compliance
+    const examplePrompt = hasVi
+      ? `${vi.characterPresence !== 'none' && vi.characterDesc ? vi.characterDesc : 'Abstract symbolic object'}, ${vi.environment ? vi.environment.split(',')[0].trim() : 'dark environment'}, ${vi.lighting ? vi.lighting.split(',')[0].trim() : 'dramatic lighting'}, ${vi.cameraStyle ? vi.cameraStyle.split(',')[0].trim() : 'close-up'}, ${vi.colorPalette ? vi.colorPalette.split(',').slice(0, 2).join(',').trim() : 'cinematic tones'}, ${vi.moodKeywords ? vi.moodKeywords.split(',').slice(0, 2).join(',').trim() : 'cinematic'}, photorealistic, 4K`
+      : '[Subject] + [Action] + [Camera angle] + [Lighting] + [Color palette] + [Mood] — photorealistic, 4K';
 
     const STORYBOARD_PROMPT = `You are a Visual Director — you design the visual layer for podcast-style YouTube videos.
 
@@ -754,7 +770,7 @@ ${viBlock}${sbCustomBlock}
       "timestamp": "0:00-0:${String(duration).padStart(2, '0')}",
       "scriptSection": "hook",
       "dialogue": "Exact Vietnamese narration for this segment",
-      "prompt": "Hailuo 2.3 prompt: [Subject] + [Action] + [Camera] + [Style] — cinematic, 4K",
+      "prompt": "${examplePrompt}",
       "motion": "slow zoom in",
       "transition": "fade through black",
       "duration": ${duration}
@@ -770,10 +786,13 @@ ${viBlock}${sbCustomBlock}
   "totalScenes": ${scenes}
 }
 
-## RULES
-- Each scene MUST have a detailed Hailuo 2.3 image/video prompt (English)
+## RULES — CRITICAL
+- Each prompt MUST be a DETAILED image generation prompt (40-80 words minimum)
+- Each prompt MUST include ALL of: subject + action + camera angle + lighting + color palette + environment + mood
+${hasVi ? `- Each prompt MUST use the Visual Identity settings above — color palette, lighting, camera, character, environment, mood
+- NEVER generate a generic prompt like "cinematic, 4K" without specific Visual Identity details
+- The character description, color palette, and lighting MUST appear in EVERY prompt` : '- prompt must be specific: subject, action, camera angle, lighting, style'}
 - dialogue must be the exact Vietnamese text spoken during that scene
-- prompt must be specific: subject, action, camera angle, lighting, style
 - motion: slow zoom in, pan left, dolly forward, static, etc.
 - transition: fade, cut, dissolve, zoom transition
 - ALWAYS output valid JSON only (no markdown code blocks)`;
