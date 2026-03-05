@@ -20,7 +20,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -2069,61 +2069,90 @@ function VoiceoverConfig({
             <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
               <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="pNInz6obpgDQGcFmaJgB">Adam (Deep Male)</SelectItem>
-                <SelectItem value="21m00Tcm4TlvDq8ikWAM">Rachel (Narrator)</SelectItem>
-                <SelectItem value="EXAVITQu4vr4xnSDxMaL">Bella (Warm Female)</SelectItem>
-                <SelectItem value="yoZ06aMxZJJ28mfd3POQ">Sam (Authoritative Male)</SelectItem>
-                <SelectItem value="jBpfuIE2acCO8z3wKNLl">Gigi (Animated Female)</SelectItem>
-                <SelectItem value="onwK4e9ZLuTAKqWW03F9">Daniel (British Male)</SelectItem>
-                <SelectItem value="XB0fDUnXU5powFXDhCwa">Charlotte (Calm Female)</SelectItem>
-                <SelectItem value="TX3LPaxmHKxFdv7VOQHJ">Liam (Natural Male)</SelectItem>
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">👨 Nam</SelectLabel>
+                  <SelectItem value="pNInz6obpgDQGcFmaJgB">Adam (Deep)</SelectItem>
+                  <SelectItem value="yoZ06aMxZJJ28mfd3POQ">Sam (Authoritative)</SelectItem>
+                  <SelectItem value="onwK4e9ZLuTAKqWW03F9">Daniel (British)</SelectItem>
+                  <SelectItem value="TX3LPaxmHKxFdv7VOQHJ">Liam (Natural)</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">👩 Nữ</SelectLabel>
+                  <SelectItem value="21m00Tcm4TlvDq8ikWAM">Rachel (Narrator)</SelectItem>
+                  <SelectItem value="EXAVITQu4vr4xnSDxMaL">Bella (Warm)</SelectItem>
+                  <SelectItem value="jBpfuIE2acCO8z3wKNLl">Gigi (Animated)</SelectItem>
+                  <SelectItem value="XB0fDUnXU5powFXDhCwa">Charlotte (Calm)</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           ) : isGoogleTTS ? (
             <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
               <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="vi-VN-Neural2-D">🇻🇳 Nam Neural2-D</SelectItem>
-                <SelectItem value="vi-VN-Neural2-A">🇻🇳 Nữ Neural2-A</SelectItem>
-                <SelectItem value="vi-VN-Wavenet-B">🇻🇳 Nam Wavenet-B</SelectItem>
-                <SelectItem value="vi-VN-Wavenet-A">🇻🇳 Nữ Wavenet-A</SelectItem>
-                <SelectItem value="vi-VN-Wavenet-C">🇻🇳 Nữ Wavenet-C</SelectItem>
-                <SelectItem value="vi-VN-Wavenet-D">🇻🇳 Nam Wavenet-D</SelectItem>
-                <SelectItem value="vi-VN-Standard-A">🇻🇳 Nữ Standard-A</SelectItem>
-                <SelectItem value="vi-VN-Standard-B">🇻🇳 Nam Standard-B</SelectItem>
-                <SelectItem value="en-US-Neural2-D">🇺🇸 Male Neural2-D</SelectItem>
-                <SelectItem value="en-US-Neural2-F">🇺🇸 Female Neural2-F</SelectItem>
-                <SelectItem value="en-US-Neural2-A">🇺🇸 Male Neural2-A</SelectItem>
-                <SelectItem value="en-US-Neural2-C">🇺🇸 Female Neural2-C</SelectItem>
-                <SelectItem value="en-US-Studio-O">🇺🇸 Male Studio-O</SelectItem>
-                <SelectItem value="en-US-Studio-Q">🇺🇸 Female Studio-Q</SelectItem>
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">🇻🇳 Tiếng Việt — Nam</SelectLabel>
+                  <SelectItem value="vi-VN-Neural2-D">Neural2-D (tự nhiên)</SelectItem>
+                  <SelectItem value="vi-VN-Wavenet-B">Wavenet-B (mượt)</SelectItem>
+                  <SelectItem value="vi-VN-Wavenet-D">Wavenet-D (trầm)</SelectItem>
+                  <SelectItem value="vi-VN-Standard-B">Standard-B</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">🇻🇳 Tiếng Việt — Nữ</SelectLabel>
+                  <SelectItem value="vi-VN-Neural2-A">Neural2-A (tự nhiên)</SelectItem>
+                  <SelectItem value="vi-VN-Wavenet-A">Wavenet-A (mượt)</SelectItem>
+                  <SelectItem value="vi-VN-Wavenet-C">Wavenet-C (nhẹ nhàng)</SelectItem>
+                  <SelectItem value="vi-VN-Standard-A">Standard-A</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">🇺🇸 English — Male</SelectLabel>
+                  <SelectItem value="en-US-Neural2-D">Neural2-D (natural)</SelectItem>
+                  <SelectItem value="en-US-Neural2-A">Neural2-A (warm)</SelectItem>
+                  <SelectItem value="en-US-Studio-O">Studio-O (premium)</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">🇺🇸 English — Female</SelectLabel>
+                  <SelectItem value="en-US-Neural2-F">Neural2-F (natural)</SelectItem>
+                  <SelectItem value="en-US-Neural2-C">Neural2-C (warm)</SelectItem>
+                  <SelectItem value="en-US-Studio-Q">Studio-Q (premium)</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           ) : (
             <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
               <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Kore">Kore (Nữ, expressive) ⭐</SelectItem>
-                <SelectItem value="Charon">Charon (Nam, trầm)</SelectItem>
-                <SelectItem value="Fenrir">Fenrir (Nam, narrative)</SelectItem>
-                <SelectItem value="Aoede">Aoede (Nữ, ấm áp)</SelectItem>
-                <SelectItem value="Puck">Puck (Nam, năng động)</SelectItem>
-                <SelectItem value="Leda">Leda (Nữ, nhẹ nhàng)</SelectItem>
-                <SelectItem value="Orus">Orus (Nam, firm)</SelectItem>
-                <SelectItem value="Zephyr">Zephyr (Nữ, bright)</SelectItem>
-                <SelectItem value="Achernar">Achernar (Nữ, soft)</SelectItem>
-                <SelectItem value="Autonoe">Autonoe (Nữ, bright)</SelectItem>
-                <SelectItem value="Callirrhoe">Callirrhoe (Nữ, warm med)</SelectItem>
-                <SelectItem value="Despina">Despina (Nữ, clear)</SelectItem>
-                <SelectItem value="Erinome">Erinome (Nữ, clear gentle)</SelectItem>
-                <SelectItem value="Gacrux">Gacrux (Nam, mature)</SelectItem>
-                <SelectItem value="Iapetus">Iapetus (Nam, clear)</SelectItem>
-                <SelectItem value="Umbriel">Umbriel (Nam, calm)</SelectItem>
-                <SelectItem value="Algenib">Algenib (Nam, gravelly low)</SelectItem>
-                <SelectItem value="Rasalgethi">Rasalgethi (Nam, informative)</SelectItem>
-                <SelectItem value="Laomedeia">Laomedeia (Nữ, upbeat)</SelectItem>
-                <SelectItem value="Sulafat">Sulafat (Nữ, warm breathy)</SelectItem>
-                <SelectItem value="Vindemiatrix">Vindemiatrix (Nữ, gentle low)</SelectItem>
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">👨 Nam</SelectLabel>
+                  <SelectItem value="Charon">Charon — trầm, sâu</SelectItem>
+                  <SelectItem value="Fenrir">Fenrir — kể chuyện</SelectItem>
+                  <SelectItem value="Puck">Puck — năng động</SelectItem>
+                  <SelectItem value="Orus">Orus — chắc, rõ</SelectItem>
+                  <SelectItem value="Gacrux">Gacrux — chín chắn</SelectItem>
+                  <SelectItem value="Iapetus">Iapetus — trong trẻo</SelectItem>
+                  <SelectItem value="Umbriel">Umbriel — điềm tĩnh</SelectItem>
+                  <SelectItem value="Algenib">Algenib — trầm khàn</SelectItem>
+                  <SelectItem value="Rasalgethi">Rasalgethi — truyền thông</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">👩 Nữ</SelectLabel>
+                  <SelectItem value="Kore">Kore — biểu cảm ⭐</SelectItem>
+                  <SelectItem value="Aoede">Aoede — ấm áp</SelectItem>
+                  <SelectItem value="Leda">Leda — nhẹ nhàng</SelectItem>
+                  <SelectItem value="Zephyr">Zephyr — tươi sáng</SelectItem>
+                  <SelectItem value="Achernar">Achernar — dịu dàng</SelectItem>
+                  <SelectItem value="Autonoe">Autonoe — rõ ràng</SelectItem>
+                  <SelectItem value="Callirrhoe">Callirrhoe — ấm vừa</SelectItem>
+                  <SelectItem value="Despina">Despina — trong trẻo</SelectItem>
+                  <SelectItem value="Erinome">Erinome — nhẹ, sáng</SelectItem>
+                  <SelectItem value="Laomedeia">Laomedeia — vui tươi</SelectItem>
+                  <SelectItem value="Sulafat">Sulafat — ấm, thì thầm</SelectItem>
+                  <SelectItem value="Vindemiatrix">Vindemiatrix — trầm nhẹ</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           )}
