@@ -1911,21 +1911,14 @@ function VoiceoverConfig({
   const isGemini = config.engine === 'gemini-tts';
   const isGoogleTTS = config.engine === 'google-tts';
 
-  // Extract script source for preview
+  // Extract script source for preview — always use script.txt from Step 1
   const scriptSource = (() => {
     const result = (activeRun as { result?: { files?: Record<string, unknown> } } | undefined)?.result;
     if (!result?.files) return null;
 
-    // Prefer storyboard dialogues
-    const sbJson = result.files['storyboard.json'] as { scenes?: { scene: number; dialogue: string }[] } | undefined;
-    if (sbJson?.scenes?.some(s => s.dialogue?.trim())) {
-      return { mode: 'storyboard' as const, scenes: sbJson.scenes.filter(s => s.dialogue?.trim()) };
-    }
-
-    // Fallback to script text
     const scriptTxt = result.files['script.txt'] as string | undefined;
     if (scriptTxt?.trim()) {
-      return { mode: 'script' as const, text: scriptTxt };
+      return { text: scriptTxt };
     }
 
     return null;
@@ -2240,10 +2233,7 @@ function VoiceoverConfig({
           >
             {showScriptPreview ? <ChevronDown className="h-3 w-3 text-blue-400 shrink-0" /> : <ChevronRight className="h-3 w-3 text-blue-400 shrink-0" />}
             <span className="text-[10px] font-medium text-blue-400">
-              {scriptSource.mode === 'storyboard'
-                ? `📋 ${scriptSource.scenes.length} đoạn dialogue từ Storyboard`
-                : `📝 Script (${scriptSource.text.length} ký tự)`
-              }
+              📝 Script từ Step 1 ({scriptSource.text.length.toLocaleString()} ký tự)
               {' — '}
               <span className="text-muted-foreground">{showScriptPreview ? 'ẩn' : 'xem nội dung'}</span>
             </span>
@@ -2251,30 +2241,19 @@ function VoiceoverConfig({
 
           {showScriptPreview && (
             <ScrollArea className="max-h-48">
-              {scriptSource.mode === 'storyboard' ? (
-                <div className="space-y-1.5 pr-2">
-                  {scriptSource.scenes.map((s) => (
-                    <div key={s.scene} className="flex gap-2 text-[10px]">
-                      <span className="text-blue-400 font-mono shrink-0 pt-0.5">#{s.scene}</span>
-                      <p className="text-muted-foreground leading-relaxed">{s.dialogue}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-[10px] text-muted-foreground whitespace-pre-wrap leading-relaxed pr-2">
-                  {scriptSource.text.length > 2000
-                    ? scriptSource.text.substring(0, 2000) + '...'
-                    : scriptSource.text
-                  }
-                </p>
-              )}
+              <p className="text-[10px] text-muted-foreground whitespace-pre-wrap leading-relaxed pr-2">
+                {scriptSource.text.length > 2000
+                  ? scriptSource.text.substring(0, 2000) + '...'
+                  : scriptSource.text
+                }
+              </p>
             </ScrollArea>
           )}
         </div>
       ) : (
         <div className="rounded-md border border-yellow-500/20 bg-yellow-500/5 px-3 py-2">
           <p className="text-[10px] text-yellow-400">
-            ⚠️ Chưa có Script hoặc Storyboard. Chạy Step 1 hoặc Step 2 trước để tạo nội dung cho TTS.
+            ⚠️ Chưa có Script. Chạy Step 1 (Script Writer) trước để tạo nội dung cho TTS.
           </p>
         </div>
       )}
