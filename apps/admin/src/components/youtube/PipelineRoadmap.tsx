@@ -1947,6 +1947,8 @@ function VoiceoverConfig({
   })();
 
   const [showScriptPreview, setShowScriptPreview] = useState(false);
+  const [scriptFullView, setScriptFullView] = useState(false);
+  const [optimizedFullView, setOptimizedFullView] = useState(false);
 
   // AI Script → TTS Optimizer
   const [optimizerLoading, setOptimizerLoading] = useState(false);
@@ -1966,26 +1968,27 @@ function VoiceoverConfig({
         ? scriptSource.text.substring(0, 8000)
         : scriptSource.text;
 
-      const systemPrompt = `Bạn là chuyên gia biên tập script cho Text-to-Speech (TTS).
+      const systemPrompt = `Bạn là chuyên gia làm sạch script cho Text-to-Speech (TTS).
 
-NHIỆM VỤ: Nhận script gốc → trả về bản script ĐÃ TỐI ƯU cho giọng đọc AI.
+NHIỆM VỤ: Nhận script gốc → trả về bản GẦN NHƯ Y HỆT, chỉ sửa những gì TTS engine không đọc được.
 
-QUY TẮC BIÊN TẬP:
-1. XÓA TIÊU ĐỀ → dòng đầu tiên nếu là title/heading video thì BỎ HOÀN TOÀN, TTS không cần đọc tiêu đề
-2. SỐ & KÝ HIỆU → viết thành chữ (100k → một trăm nghìn, 30% → ba mươi phần trăm, $50 → năm mươi đô, AI → A.I., CEO → C.E.O., 2024 → hai nghìn không trăm hai mươi bốn)
-3. CÂU DÀI → tách thành câu ngắn 15-25 từ, thêm dấu phẩy ngắt hơi
-4. VIẾT TẮT → viết đầy đủ hoặc thêm dấu chấm giữa (VD: FOMO → F.O.M.O.)
-5. CẤU TRÚC → chia thành đoạn rõ ràng, mỗi đoạn 3-5 câu, cách nhau bằng dòng trống
-6. LOẠI BỎ → heading (#), markdown (**bold**, *italic*), links, code blocks, emoji decorative (🎙️📌🔥)
-7. GIỮ NGUYÊN → ý nghĩa, phong cách, tone giọng, ngôn ngữ gốc
-8. NHỊP THỞ → thêm "..." hoặc "—" ở chỗ cần dừng nhấn mạnh
-9. MỞ ĐẦU → bắt đầu bằng hook hấp dẫn, KHÔNG đọc tên video
+NGUYÊN TẮC VÀNG: GIỮ NGUYÊN TỐI ĐA — chỉ sửa khi CẦN THIẾT cho TTS.
+- GIỮ NGUYÊN: từ ngữ, câu văn, phong cách, tone giọng, thứ tự nội dung, độ dài
+- KHÔNG được viết lại câu, KHÔNG thêm/bớt ý, KHÔNG thay đổi cách diễn đạt
+- KHÔNG sáng tạo, KHÔNG paraphrase — bạn là người DỌN DẸP, không phải biên tập viên
+
+CHỈ SỬA NHỮNG THỨ NÀY:
+1. XÓA TIÊU ĐỀ → dòng đầu tiên nếu là title/heading video (có emoji, in hoa, dạng tiêu đề) thì BỎ
+2. SỐ → viết thành chữ (100k → một trăm nghìn, 30% → ba mươi phần trăm, 2024 → hai nghìn không trăm hai mươi bốn)
+3. KÝ HIỆU/VIẾT TẮT → AI → A.I., CEO → C.E.O., FOMO → F.O.M.O.
+4. LOẠI BỎ → heading (#), markdown (**bold**, *italic*), links [text](url), code blocks, emoji (🎙️📌🔥💡)
+5. CÂU QUÁ DÀI (trên 40 từ) → tách bằng dấu phẩy hoặc chấm, GIỮ NGUYÊN TỪ NGỮ
+6. NHỊP THỞ → thêm "..." hoặc dấu phẩy ở chỗ cần dừng nhấn mạnh
 
 ĐỊNH DẠNG OUTPUT:
-- Chỉ trả text thuần (plain text), KHÔNG JSON, KHÔNG markdown
-- Mỗi đoạn cách nhau bằng 1 dòng trống
-- Mỗi câu nên nằm riêng 1 dòng hoặc cách bằng dấu phẩy/chấm phẩy
-- KHÔNG thêm ghi chú, KHÔNG giải thích — chỉ trả script đã tối ưu`;
+- Chỉ trả text thuần (plain text)
+- Mỗi đoạn cách nhau bằng 1 dòng trống (giữ nguyên cấu trúc đoạn gốc)
+- KHÔNG thêm ghi chú, KHÔNG giải thích — chỉ trả script đã làm sạch`;
 
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -2344,11 +2347,20 @@ QUY TẮC BIÊN TẬP:
             </button>
 
             {showScriptPreview && (
-              <ScrollArea className="max-h-[300px]">
-                <p className="text-[10px] text-muted-foreground whitespace-pre-wrap leading-relaxed pr-2">
-                  {scriptSource.text}
-                </p>
-              </ScrollArea>
+              <>
+                <ScrollArea className={scriptFullView ? 'max-h-[80vh]' : 'max-h-[300px]'}>
+                  <p className="text-[10px] text-muted-foreground whitespace-pre-wrap leading-relaxed pr-2">
+                    {scriptSource.text}
+                  </p>
+                </ScrollArea>
+                <button
+                  type="button"
+                  className="text-[9px] text-blue-400 hover:text-blue-300 mt-1"
+                  onClick={() => setScriptFullView(v => !v)}
+                >
+                  {scriptFullView ? '↑ Thu gọn' : '↓ Xem full script'}
+                </button>
+              </>
             )}
           </div>
 
@@ -2399,11 +2411,18 @@ QUY TẮC BIÊN TẬP:
 
               {showOptimized && (
                 <div className="px-3 pb-3 space-y-2 border-t border-green-500/20 pt-2">
-                  <ScrollArea className="max-h-[400px]">
+                  <ScrollArea className={optimizedFullView ? 'max-h-[80vh]' : 'max-h-[400px]'}>
                     <p className="text-[10px] text-foreground/80 whitespace-pre-wrap leading-relaxed pr-2 font-mono">
                       {optimizedScript}
                     </p>
                   </ScrollArea>
+                  <button
+                    type="button"
+                    className="text-[9px] text-green-400 hover:text-green-300"
+                    onClick={() => setOptimizedFullView(v => !v)}
+                  >
+                    {optimizedFullView ? '↑ Thu gọn' : '↓ Xem full script'}
+                  </button>
 
                   <div className="flex gap-2">
                     {!config.cleanedScript || config.cleanedScript !== optimizedScript ? (

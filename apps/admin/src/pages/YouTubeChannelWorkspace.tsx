@@ -55,7 +55,6 @@ export default function YouTubeChannelWorkspace() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [mode, setMode] = useState<'topic' | 'transcript'>(s.mode || 'topic');
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
-  const [newApiKey, setNewApiKey] = useState('');
   const [activeTab, setActiveTab] = useState(s.activeTab || 'generate');
   const [voiceConfig, setVoiceConfig] = useState({ engine: 'gemini-tts', voice: 'Kore', speed: 1.0 });
 
@@ -66,27 +65,6 @@ export default function YouTubeChannelWorkspace() {
   });
 
   const channel = plansData?.channels?.find(c => c.id === channelId) || null;
-
-  // ── API Key ──
-  const { data: apiKeyStatus, refetch: refetchApiKey } = useQuery({
-    queryKey: ['youtube-channels', 'api-key-status'],
-    queryFn: () => youtubeChannelsService.getApiKeyStatus(),
-    retry: false,
-    meta: { errorMessage: false },
-  });
-
-  const apiKeyMut = useMutation({
-    mutationFn: (key: string) => youtubeChannelsService.updateApiKey(key),
-    onSuccess: (data) => {
-      toast({ title: '✅ API Key Updated', description: data.message });
-      setShowApiKeyDialog(false);
-      setNewApiKey('');
-      refetchApiKey();
-    },
-    onError: (err: Error) => {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    },
-  });
 
   // ── Persist state ──
   useEffect(() => {
@@ -357,10 +335,10 @@ export default function YouTubeChannelWorkspace() {
             </div>
             <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowApiKeyDialog(true)}>
               <Key className="h-4 w-4" />
-              API Key
-              {apiKeyStatus && (
-                <span className={`h-2 w-2 rounded-full ${apiKeyStatus.hasKey ? 'bg-green-500' : 'bg-red-500'}`} />
-              )}
+              Key Pool
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                {getPool().filter(e => !e.disabled).length || 'env'}
+              </Badge>
             </Button>
           </div>
         </div>
