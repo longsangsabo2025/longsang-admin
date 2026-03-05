@@ -497,9 +497,14 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
     const validScenes = scenes.filter(s => s.dialogue?.trim());
     const total = validScenes.length;
 
-    // ── SINGLE-NARRATION MODE (Gemini TTS, >1 scene) ────────
+    // ── SINGLE-NARRATION MODE (Gemini TTS / ElevenLabs, >1 scene) ──
     // Gộp tất cả dialogue thành 1 text → 1 API call → giọng 100% nhất quán
-    const useSingleNarration = engine === 'gemini-tts' && total > 1;
+    // ElevenLabs: gộp nếu tổng text ≤ 5000 chars (API limit an toàn)
+    const combinedLength = validScenes.reduce((s, sc) => s + (sc.dialogue?.length || 0), 0);
+    const useSingleNarration = total > 1 && (
+      engine === 'gemini-tts' ||
+      (engine === 'elevenlabs' && combinedLength <= 5000)
+    );
 
     if (useSingleNarration) {
       run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Single-narration mode: gộp ${total} scenes → 1 API call (${engine}) — giọng nhất quán 100%` });
