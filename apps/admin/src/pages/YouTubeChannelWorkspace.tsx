@@ -26,7 +26,7 @@ import {
   CheckCircle2, XCircle, Clock, Zap, Eye, FileText,
   Copy, RefreshCw, Search, ChevronRight, ChevronDown, ExternalLink,
   Layers, Key, ArrowLeft, Tv, ImageIcon, Mic, Volume2, Wand2,
-  Plus, Trash2, ToggleLeft, ToggleRight,
+  Plus, Trash2, ToggleLeft, ToggleRight, Film, Download,
 } from 'lucide-react';
 import { youtubeChannelsService } from '@/services/youtube-channels.service';
 import type { ChannelPlan, GenerateRequest, GenerationRun } from '@/services/youtube-channels.service';
@@ -192,6 +192,10 @@ export default function YouTubeChannelWorkspace() {
       voiceoverVoice: pipelineConfig.voiceover.voice,
       voiceoverSpeed: pipelineConfig.voiceover.speed,
       voiceoverCleanedScript: pipelineConfig.voiceover.cleanedScript || undefined,
+      assemblyEnabled: pipelineConfig.assembly.enabled,
+      assemblyFormat: pipelineConfig.assembly.format,
+      assemblyTransitions: pipelineConfig.assembly.transitions,
+      assemblyBgMusic: pipelineConfig.assembly.bgMusic,
     };
     if (mode === 'topic' && topic.trim()) {
       req.topic = topic.trim();
@@ -235,6 +239,10 @@ export default function YouTubeChannelWorkspace() {
       voiceoverVoice: pipelineConfig.voiceover.voice,
       voiceoverSpeed: pipelineConfig.voiceover.speed,
       voiceoverCleanedScript: pipelineConfig.voiceover.cleanedScript || undefined,
+      assemblyEnabled: step === 'assembly' ? true : pipelineConfig.assembly.enabled,
+      assemblyFormat: pipelineConfig.assembly.format,
+      assemblyTransitions: pipelineConfig.assembly.transitions,
+      assemblyBgMusic: pipelineConfig.assembly.bgMusic,
     };
     if (mode === 'topic' && topic.trim()) {
       req.topic = topic.trim();
@@ -573,7 +581,7 @@ export default function YouTubeChannelWorkspace() {
 
             {/* ── Results Tab ── */}
             <TabsContent value="results">
-              {activeRun && activeRun.status === 'completed' && activeRun.result ? (
+              {activeRun && activeRun.result ? (
                 <ResultsView run={activeRun} onRunImageGen={() => {
                   handlePipelineStepRun('imageGen', {
                     scriptWriter: { enabled: true, model: 'gemini-2.0-flash', tone: 'engaging', wordTarget: 600, customPrompt: '' },
@@ -1399,10 +1407,11 @@ Nếu script tốt, trả issues rỗng và score cao. Tập trung vào các l�
 
 // ─── RESULTS VIEW ─────────────────────────────────────────
 
-function ResultsView({ run, onRunImageGen, onRunVoiceover, isGenerating, voiceoverConfig, onVoiceoverConfigChange }: {
+function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGenerating, voiceoverConfig, onVoiceoverConfigChange }: {
   run: GenerationRun;
   onRunImageGen?: () => void;
   onRunVoiceover?: () => void;
+  onRunAssembly?: () => void;
   isGenerating?: boolean;
   voiceoverConfig?: { engine: string; voice: string; speed: number };
   onVoiceoverConfigChange?: (u: Partial<{ engine: string; voice: string; speed: number }>) => void;
@@ -1417,6 +1426,7 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, isGenerating, voiceov
   const storyboardJson = result.files?.['storyboard.json'] as { scenes?: { scene: number; dialogue: string; prompt: string; motion: string; transition: string }[] } | undefined;
   const imagesJson = result.files?.['images.json'] as { images?: { scene: number; url: string; prompt: string }[]; successCount?: number; totalScenes?: number } | undefined;
   const voiceoverJson = result.files?.['voiceover.json'] as { clips?: { scene: number; url: string; duration: number; charCount: number; engine: string }[]; totalClips?: number; successCount?: number; failCount?: number; totalDuration?: number; engine?: string; voice?: string; speed?: number } | undefined;
+  const assemblyJson = result.files?.['assembly.json'] as { videoUrl?: string; format?: string; duration?: number; totalScenes?: number; resolution?: string; fileSize?: number; transitions?: string; bgMusic?: boolean } | undefined;
   const imageMap = new Map<number, string>();
   if (imagesJson?.images) {
     for (const img of imagesJson.images) imageMap.set(img.scene, img.url);
@@ -1467,6 +1477,7 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, isGenerating, voiceov
           <TabsTrigger value="script">📝 Script</TabsTrigger>
           <TabsTrigger value="storyboard">🎬 Storyboard</TabsTrigger>
           <TabsTrigger value="voice">🎤 Voice</TabsTrigger>
+          <TabsTrigger value="video">🎥 Video</TabsTrigger>
           <TabsTrigger value="logs">📊 Logs</TabsTrigger>
         </TabsList>
 
@@ -1595,6 +1606,84 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, isGenerating, voiceov
             onRunVoiceover={onRunVoiceover}
             isGenerating={isGenerating}
           />
+        </TabsContent>
+
+        <TabsContent value="video">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between">
+              <CardTitle className="text-lg">Video Assembly</CardTitle>
+              <div className="flex items-center gap-2">
+                {assemblyJson?.videoUrl && (
+                  <Badge variant="outline" className="text-xs border-green-500/30 text-green-400">
+                    ✅ {assemblyJson.totalScenes} scenes · {Math.round(assemblyJson.duration || 0)}s · {assemblyJson.resolution}
+                  </Badge>
+                )}
+                {onRunAssembly && imagesJson?.images && voiceoverJson?.clips && (
+                  <Button
+                    variant={assemblyJson?.videoUrl ? 'outline' : 'default'}
+                    size="sm"
+                    onClick={onRunAssembly}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? (
+                      <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Đang ghép...</>
+                    ) : assemblyJson?.videoUrl ? (
+                      <><RefreshCw className="h-4 w-4 mr-1" /> Re-assemble</>  
+                    ) : (
+                      <><Film className="h-4 w-4 mr-1" /> Assemble Video</>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {assemblyJson?.videoUrl ? (
+                <div className="space-y-4">
+                  <video
+                    src={assemblyJson.videoUrl}
+                    controls
+                    className="w-full max-w-[800px] mx-auto rounded-lg border aspect-video bg-black"
+                  />
+                  <div className="grid grid-cols-4 gap-3">
+                    <div className="text-center p-2 rounded-md bg-muted/30">
+                      <p className="text-lg font-bold">{Math.round(assemblyJson.duration || 0)}s</p>
+                      <p className="text-[10px] text-muted-foreground">Duration</p>
+                    </div>
+                    <div className="text-center p-2 rounded-md bg-muted/30">
+                      <p className="text-lg font-bold">{assemblyJson.resolution}</p>
+                      <p className="text-[10px] text-muted-foreground">Resolution</p>
+                    </div>
+                    <div className="text-center p-2 rounded-md bg-muted/30">
+                      <p className="text-lg font-bold">{assemblyJson.format?.toUpperCase()}</p>
+                      <p className="text-[10px] text-muted-foreground">Format</p>
+                    </div>
+                    <div className="text-center p-2 rounded-md bg-muted/30">
+                      <p className="text-lg font-bold">{assemblyJson.fileSize ? (assemblyJson.fileSize / 1024 / 1024).toFixed(1) + 'MB' : '—'}</p>
+                      <p className="text-[10px] text-muted-foreground">File Size</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant="secondary" className="text-[10px]">Transitions: {assemblyJson.transitions}</Badge>
+                    <Badge variant="secondary" className="text-[10px]">BG Music: {assemblyJson.bgMusic ? 'On' : 'Off'}</Badge>
+                    <a href={assemblyJson.videoUrl} download className="ml-auto">
+                      <Button variant="outline" size="sm"><Download className="h-3 w-3 mr-1" /> Download</Button>
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-12 text-center text-muted-foreground">
+                  <Film className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                  {!imagesJson?.images ? (
+                    <p>⚠️ Cần tạo Images (Step 3) trước khi ghép video.</p>
+                  ) : !voiceoverJson?.clips ? (
+                    <p>⚠️ Cần tạo Voiceover (Step 4) trước khi ghép video.</p>
+                  ) : (
+                    <p>Nhấn "Assemble Video" để ghép images + audio thành video hoàn chỉnh.</p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="logs">

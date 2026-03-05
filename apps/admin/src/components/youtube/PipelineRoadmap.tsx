@@ -311,8 +311,9 @@ const STEPS: StepDef[] = [
     subtitle: 'Ghép images + audio → video hoàn chỉnh',
     color: 'text-red-500 bg-red-500/10 border-red-500/30',
     estimate: '~3-8min',
-    status: 'coming-soon',
+    status: 'available',
     agentLabel: '🎥 Assembly Bot',
+    getModel: () => 'browser-canvas',
   },
 ];
 
@@ -2537,6 +2538,11 @@ function AssemblyConfig({
           onCheckedChange={(checked) => onUpdate({ bgMusic: checked })}
         />
         <Label className="text-xs">Background Music</Label>
+      </div>
+      <div className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2 col-span-2">
+        <p className="text-[10px] text-muted-foreground">
+          🎥 Browser-based rendering (Canvas + MediaRecorder). Output: WebM (VP9+Opus). Cần images (Step 3) + audio (Step 4) trước khi chạy.
+        </p>
       </div>
     </div>
   );
