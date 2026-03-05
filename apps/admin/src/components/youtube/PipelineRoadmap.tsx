@@ -1926,6 +1926,81 @@ function VoiceoverConfig({
 
   const [showScriptPreview, setShowScriptPreview] = useState(false);
 
+  // AI Script Doctor
+  const [doctorLoading, setDoctorLoading] = useState(false);
+  const [doctorResult, setDoctorResult] = useState<{ issues: Array<{ type: string; original: string; suggest: string; reason: string }>; summary: string; score: number } | null>(null);
+  const [doctorError, setDoctorError] = useState<string | null>(null);
+  const [showDoctor, setShowDoctor] = useState(false);
+
+  const handleScriptDoctor = async () => {
+    if (!scriptSource?.text) return;
+    setDoctorLoading(true);
+    setDoctorError(null);
+    try {
+      const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
+      if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
+
+      const scriptText = scriptSource.text.length > 6000
+        ? scriptSource.text.substring(0, 6000)
+        : scriptSource.text;
+
+      const systemPrompt = `Bạn là AI Script Doctor chuyên rà soát script TRƯỚC KHI chuyển sang TTS (Text-to-Speech).
+Nhiệm vụ: Tìm mọi "sạn" khiến giọng đọc AI đọc sai hoặc nghe không tự nhiên.
+
+Phân loại lỗi:
+- "tts-unfriendly": Số, ký hiệu, viết tắt mà TTS đọc sai (vd: "100k" → "một trăm nghìn", "AI" → "A.I.", "30/12" → "ba mươi tháng mười hai")
+- "awkward-phrasing": Câu dài/lủng củng khó đọc thành lời, thiếu ngắt hơi
+- "grammar": Lỗi chính tả, ngữ pháp, dấu câu
+- "rhythm": Nhịp câu không tự nhiên khi đọc thành tiếng (câu quá dài, thiếu dấu phẩy ngắt hơi)
+- "tone-break": Đoạn bị gãy tone, không nhất quán phong cách
+- "repetitive": Từ/cụm từ lặp lại quá nhiều lần gần nhau
+
+Trả về JSON (KHÔNG markdown, KHÔNG code block):
+{
+  "score": <điểm 1-10, 10=hoàn hảo>,
+  "summary": "<tóm tắt 1-2 câu tình trạng script>",
+  "issues": [
+    {
+      "type": "<loại lỗi>",
+      "original": "<đoạn gốc có vấn đề - tối đa 80 ký tự>",
+      "suggest": "<gợi ý sửa>",
+      "reason": "<lý do ngắn gọn>"
+    }
+  ]
+}
+
+Nếu script tốt, trả issues rỗng và score cao. Tập trung vào các lỗi THỰC SỰ ảnh hưởng chất lượng voice, KHÔNG nitpick.`;
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ parts: [{ text: `Rà soát script sau cho TTS:\n\n${scriptText}` }] }],
+            generationConfig: { temperature: 0.3 },
+          }),
+        },
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { error?: { message?: string } })?.error?.message || `Gemini error ${res.status}`);
+      }
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      // Strip markdown code fences if present
+      const clean = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```$/m, '').trim();
+      const parsed = JSON.parse(clean);
+      setDoctorResult(parsed);
+      setShowDoctor(true);
+    } catch (err) {
+      setDoctorError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDoctorLoading(false);
+    }
+  };
+
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -2249,12 +2324,118 @@ function VoiceoverConfig({
               </p>
             </ScrollArea>
           )}
+
+          {/* AI Script Doctor Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full h-7 text-[10px] gap-1.5 border-purple-500/30 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300 mt-1"
+            onClick={handleScriptDoctor}
+            disabled={doctorLoading}
+          >
+            {doctorLoading ? (
+              <><Loader2 className="h-3 w-3 animate-spin" /> Đang rà soát script...</>
+            ) : (
+              <><Wand2 className="h-3 w-3" /> 🩺 AI Script Doctor — Tìm sạn trước khi đọc</>
+            )}
+          </Button>
         </div>
       ) : (
         <div className="rounded-md border border-yellow-500/20 bg-yellow-500/5 px-3 py-2">
           <p className="text-[10px] text-yellow-400">
             ⚠️ Chưa có Script. Chạy Step 1 (Script Writer) trước để tạo nội dung cho TTS.
           </p>
+        </div>
+      )}
+
+      {/* AI Script Doctor Results */}
+      {doctorError && (
+        <div className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2">
+          <p className="text-[10px] text-red-400">⚠️ {doctorError}</p>
+        </div>
+      )}
+
+      {doctorResult && (
+        <div className="rounded-md border border-purple-500/30 bg-purple-500/5 overflow-hidden">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between px-3 py-2 hover:bg-purple-500/10 transition-colors"
+            onClick={() => setShowDoctor(v => !v)}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium">
+                🩺 Script Doctor
+              </span>
+              <Badge
+                variant="outline"
+                className={cn('text-[10px]',
+                  doctorResult.score >= 8 ? 'border-green-500/50 text-green-400' :
+                  doctorResult.score >= 5 ? 'border-yellow-500/50 text-yellow-400' :
+                  'border-red-500/50 text-red-400'
+                )}
+              >
+                {doctorResult.score}/10
+              </Badge>
+              {doctorResult.issues.length > 0 && (
+                <Badge variant="outline" className="text-[10px] border-orange-500/50 text-orange-400">
+                  {doctorResult.issues.length} sạn
+                </Badge>
+              )}
+            </div>
+            {showDoctor ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+          </button>
+
+          {showDoctor && (
+            <div className="px-3 pb-3 space-y-2 border-t border-purple-500/20 pt-2">
+              <p className="text-[10px] text-muted-foreground">{doctorResult.summary}</p>
+
+              {doctorResult.issues.length === 0 ? (
+                <div className="text-center py-3">
+                  <span className="text-2xl">✅</span>
+                  <p className="text-[10px] text-green-400 mt-1">Script sạch — sẵn sàng cho TTS!</p>
+                </div>
+              ) : (
+                <ScrollArea className="max-h-64">
+                  <div className="space-y-2 pr-2">
+                    {doctorResult.issues.map((issue, idx) => (
+                      <div key={idx} className="rounded border border-border/50 bg-background/50 p-2 space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant="outline" className={cn('text-[9px] px-1.5 py-0',
+                            issue.type === 'tts-unfriendly' ? 'border-red-500/50 text-red-400' :
+                            issue.type === 'grammar' ? 'border-orange-500/50 text-orange-400' :
+                            issue.type === 'awkward-phrasing' ? 'border-yellow-500/50 text-yellow-400' :
+                            issue.type === 'rhythm' ? 'border-blue-500/50 text-blue-400' :
+                            issue.type === 'tone-break' ? 'border-purple-500/50 text-purple-400' :
+                            issue.type === 'repetitive' ? 'border-cyan-500/50 text-cyan-400' :
+                            'border-muted-foreground/50 text-muted-foreground'
+                          )}>
+                            {issue.type === 'tts-unfriendly' ? '🔊 TTS' :
+                             issue.type === 'grammar' ? '✏️ Ngữ pháp' :
+                             issue.type === 'awkward-phrasing' ? '💬 Lủng củng' :
+                             issue.type === 'rhythm' ? '🎵 Nhịp câu' :
+                             issue.type === 'tone-break' ? '🎭 Gãy tone' :
+                             issue.type === 'repetitive' ? '🔄 Lặp lại' :
+                             issue.type}
+                          </Badge>
+                          <span className="text-[9px] text-muted-foreground">{issue.reason}</span>
+                        </div>
+                        <div className="text-[10px] space-y-0.5">
+                          <div className="flex items-start gap-1">
+                            <span className="text-red-400 shrink-0">−</span>
+                            <span className="text-red-300/80 line-through">{issue.original}</span>
+                          </div>
+                          <div className="flex items-start gap-1">
+                            <span className="text-green-400 shrink-0">+</span>
+                            <span className="text-green-300/80">{issue.suggest}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </div>
+          )}
         </div>
       )}
 
