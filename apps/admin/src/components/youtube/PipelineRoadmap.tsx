@@ -31,6 +31,7 @@ import { supabase } from '@/lib/supabase';
 import SmartAudio from './SmartAudio';
 import { Slider } from '@/components/ui/slider';
 import { type PipelineConfig, type VisualIdentity, DEFAULT_PIPELINE, DEFAULT_VISUAL_IDENTITY } from './pipeline-types';
+import { getNextKey } from '@/services/pipeline/api-key-pool';
 
 export type { PipelineConfig } from './pipeline-types';
 
@@ -1370,7 +1371,7 @@ function StoryboardConfig({
   const [showFullImage, setShowFullImage] = useState(false);
   const [savedPreviews, setSavedPreviews] = useState<Array<{ id: string; url: string; prompt: string; createdAt: string }>>([]);
 
-  const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
+  const GEMINI_API_KEY = getNextKey('gemini') || '';
   const STORAGE_KEY = `storyboard-previews-${channelId || 'default'}`;
 
   // Load saved previews from localStorage on mount
@@ -2001,8 +2002,8 @@ function VoiceoverConfig({
     setOptimizerLoading(true);
     setOptimizerError(null);
     try {
-      const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-      if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
+      const apiKey = getNextKey('gemini');
+      if (!apiKey) throw new Error('No Gemini key — add keys to Key Pool');
 
       const scriptText = scriptSource.text.length > 8000
         ? scriptSource.text.substring(0, 8000)
@@ -2095,8 +2096,8 @@ Quy tắc:
 
     const generatePreview = async (): Promise<Blob> => {
       if (isGem) {
-        const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-        if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
+        const apiKey = getNextKey('gemini');
+        if (!apiKey) throw new Error('No Gemini key — add keys to Key Pool');
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
           {
@@ -2139,8 +2140,8 @@ Quy tắc:
         return new Blob([byteArr], { type: mime || 'audio/wav' });
       } else {
         // ElevenLabs
-        const apiKey = (import.meta.env.VITE_ELEVENLABS_API_KEY || '') as string;
-        if (!apiKey) throw new Error('Missing ElevenLabs API key');
+        const apiKey = getNextKey('elevenlabs');
+        if (!apiKey) throw new Error('No ElevenLabs key — add keys to Key Pool');
         const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(config.voice)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'xi-api-key': apiKey },
@@ -2213,8 +2214,8 @@ Quy tắc:
       let blob: Blob;
 
       if (config.engine === 'gemini-tts') {
-        const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-        if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
+        const apiKey = getNextKey('gemini');
+        if (!apiKey) throw new Error('No Gemini key — add keys to Key Pool');
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
           {
@@ -2268,8 +2269,8 @@ Quy tắc:
           blob = new Blob([byteArr], { type: mime || 'audio/wav' });
         }
       } else if (config.engine === 'google-tts') {
-        const apiKey = (import.meta.env.VITE_GOOGLE_TTS_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-        if (!apiKey) throw new Error('Missing Google TTS API key');
+        const apiKey = getNextKey('google-tts') || getNextKey('gemini');
+        if (!apiKey) throw new Error('No Google TTS key — add keys to Key Pool');
         const langCode = config.voice?.startsWith('en-') ? 'en-US' : 'vi-VN';
         const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
           method: 'POST',
@@ -2291,8 +2292,8 @@ Quy tắc:
         blob = new Blob([byteArr], { type: 'audio/mpeg' });
       } else {
         // ElevenLabs
-        const apiKey = (import.meta.env.VITE_ELEVENLABS_API_KEY || '') as string;
-        if (!apiKey) throw new Error('Missing VITE_ELEVENLABS_API_KEY');
+        const apiKey = getNextKey('elevenlabs');
+        if (!apiKey) throw new Error('No ElevenLabs key — add keys to Key Pool');
         const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${config.voice}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'xi-api-key': apiKey },

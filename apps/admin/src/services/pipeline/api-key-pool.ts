@@ -25,10 +25,20 @@ const ENV_FALLBACKS: Record<EngineType, string> = {
   'google-tts': import.meta.env.VITE_GOOGLE_TTS_API_KEY as string,
 };
 
+const PINNED_KEY = 'pipeline-api-key-pinned'; // { engine: key }
+
 const _lastIndex = new Map<string, number>();
 const _listeners = new Set<() => void>();
 let _dbHydrated = false;
 let _savingToDb = false;
+
+function loadPins(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(PINNED_KEY) || '{}'); } catch { return {}; }
+}
+function savePins(pins: Record<string, string>) {
+  localStorage.setItem(PINNED_KEY, JSON.stringify(pins));
+  notify();
+}
 
 function notify() {
   _listeners.forEach((cb) => cb());
@@ -178,10 +188,36 @@ export function enableKey(engine: string, key: string) {
   }
 }
 
+export function pinKey(engine: string, key: string) {
+  const pins = loadPins();
+  pins[engine] = key;
+  savePins(pins);
+}
+
+export function unpinKey(engine: string) {
+  const pins = loadPins();
+  delete pins[engine];
+  savePins(pins);
+}
+
+export function getPinnedKey(engine: string): string | null {
+  return loadPins()[engine] || null;
+}
+
 export function getNextKey(engine: string): string | null {
   const available = getPoolForEngine(engine);
   if (available.length === 0) {
     return ENV_FALLBACKS[engine as EngineType] || null;
+  }
+
+  // If a key is pinned for this engine, use it
+  const pinned = loadPins()[engine];
+  const pinnedEntry = pinned ? available.find(e => e.key === pinned) : null;
+  if (pinnedEntry) {
+    const pool = load();
+    const entry = pool.find(e => e.engine === pinnedEntry.engine && e.key === pinnedEntry.key);
+    if (entry) { entry.usageCount++; entry.lastUsedAt = new Date().toISOString(); save(pool); }
+    return pinnedEntry.key;
   }
 
   const last = _lastIndex.get(engine) ?? -1;
@@ -228,4 +264,41 @@ export function resetStats() {
 export function onPoolChange(cb: () => void): () => void {
   _listeners.add(cb);
   return () => _listeners.delete(cb);
+}
+
+/** Test if a key is valid by making a minimal API call. Returns { ok, error? } */
+export async function testKey(engine: string, key: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    if (engine === 'gemini') {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`,
+        { method: 'GET', signal: AbortSignal.timeout(10000) },
+      );
+      if (res.ok) return { ok: true };
+      const data = await res.json().catch(() => ({}));
+      const msg = (data as { error?: { message?: string } })?.error?.message || `HTTP ${res.status}`;
+      return { ok: false, error: msg };
+    }
+    if (engine === 'elevenlabs') {
+      const res = await fetch('https://api.elevenlabs.io/v1/user', {
+        headers: { 'xi-api-key': key },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (res.ok) return { ok: true };
+      return { ok: false, error: `HTTP ${res.status}` };
+    }
+    if (engine === 'google-tts') {
+      const res = await fetch(
+        `https://texttospeech.googleapis.com/v1/voices?key=${encodeURIComponent(key)}`,
+        { signal: AbortSignal.timeout(10000) },
+      );
+      if (res.ok) return { ok: true };
+      const data = await res.json().catch(() => ({}));
+      const msg = (data as { error?: { message?: string } })?.error?.message || `HTTP ${res.status}`;
+      return { ok: false, error: msg };
+    }
+    return { ok: false, error: 'Unknown engine' };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
 }

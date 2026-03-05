@@ -33,7 +33,7 @@ import type { ChannelPlan, GenerateRequest, GenerationRun } from '@/services/you
 import PipelineRoadmap, { type PipelineConfig } from '@/components/youtube/PipelineRoadmap';
 import { DEFAULT_PIPELINE } from '@/components/youtube/pipeline-types';
 import SmartAudio from '@/components/youtube/SmartAudio';
-import { getPool, addKey, removeKey, enableKey, disableKey, resetStats, onPoolChange, hydrateFromDb as hydrateKeyPool, type PoolEntry } from '@/services/pipeline/api-key-pool';
+import { getPool, addKey, removeKey, enableKey, disableKey, resetStats, onPoolChange, hydrateFromDb as hydrateKeyPool, testKey, pinKey, unpinKey, getPinnedKey, getNextKey, type PoolEntry } from '@/services/pipeline/api-key-pool';
 import { getRunningIdsForChannel } from '@/services/pipeline';
 import { regenerateSingleClip } from '@/services/pipeline/voiceover.agent';
 
@@ -841,6 +841,7 @@ export default function YouTubeChannelWorkspace() {
                 }} isGenerating={stepMut.isPending}
                   voiceoverConfig={voiceConfig}
                   onVoiceoverConfigChange={(u) => setVoiceConfig(prev => ({ ...prev, ...u }))}
+                  onOpenKeyPool={() => setShowApiKeyDialog(true)}
                 />
               ) : (
                 <Card>
@@ -891,23 +892,70 @@ function KeyPoolManager() {
   const [newEngine, setNewEngine] = useState<string>('gemini');
   const [newKey, setNewKey] = useState('');
   const [newLabel, setNewLabel] = useState('');
+  // key status: 'testing' | 'ok' | error string
+  const [keyStatus, setKeyStatus] = useState<Record<string, string>>({});
+  const [pins, setPins] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem('pipeline-api-key-pinned') || '{}'); } catch { return {}; }
+  });
 
   useEffect(() => {
-    const unsub = onPoolChange(() => setPool(getPool()));
+    const unsub = onPoolChange(() => { setPool(getPool()); try { setPins(JSON.parse(localStorage.getItem('pipeline-api-key-pinned') || '{}')); } catch {} });
     return unsub;
   }, []);
 
-  const handleAdd = () => {
+  const handlePin = (engine: string, key: string) => {
+    if (pins[engine] === key) {
+      unpinKey(engine);
+    } else {
+      pinKey(engine, key);
+    }
+  };
+
+  const statusKey = (engine: string, key: string) => `${engine}::${key}`;
+
+  const runTest = async (engine: string, key: string) => {
+    const sk = statusKey(engine, key);
+    setKeyStatus(prev => ({ ...prev, [sk]: 'testing' }));
+    const result = await testKey(engine, key);
+    setKeyStatus(prev => ({ ...prev, [sk]: result.ok ? 'ok' : (result.error || 'Invalid') }));
+    if (!result.ok) {
+      disableKey(engine, key, result.error);
+    } else {
+      enableKey(engine, key);
+    }
+  };
+
+  const handleAdd = async () => {
     if (!newKey.trim()) return;
-    addKey(newEngine, newKey.trim(), newLabel.trim() || undefined);
+    const key = newKey.trim();
+    const engine = newEngine;
+    addKey(engine, key, newLabel.trim() || undefined);
     setNewKey('');
     setNewLabel('');
+    // Auto-test the new key
+    await runTest(engine, key);
+  };
+
+  const handleTestAll = async () => {
+    const current = getPool();
+    for (const entry of current) {
+      await runTest(entry.engine, entry.key);
+    }
   };
 
   const mask = (key: string) => key.slice(0, 6) + '...' + key.slice(-4);
 
   const engineKeys = (engine: string) => pool.filter(e => e.engine === engine);
   const hasKeys = pool.length > 0;
+
+  const statusBadge = (engine: string, key: string) => {
+    const sk = statusKey(engine, key);
+    const s = keyStatus[sk];
+    if (!s) return null;
+    if (s === 'testing') return <Badge variant="outline" className="text-[9px] h-4 border-blue-500/40 text-blue-400 animate-pulse">Testing...</Badge>;
+    if (s === 'ok') return <Badge variant="outline" className="text-[9px] h-4 border-green-500/40 text-green-400">✓ OK</Badge>;
+    return <Badge variant="outline" className="text-[9px] h-4 border-red-500/40 text-red-400 max-w-[120px] truncate" title={s}>✗ {s.length > 20 ? s.slice(0, 20) + '…' : s}</Badge>;
+  };
 
   return (
     <div className="space-y-4">
@@ -960,15 +1008,34 @@ function KeyPoolManager() {
             <Label className="text-xs text-muted-foreground">{eng.label} ({keys.length} key{keys.length > 1 ? 's' : ''})</Label>
             {keys.map(entry => (
               <div key={entry.key} className={`flex items-center gap-2 rounded border p-2 text-xs ${entry.disabled ? 'opacity-50 bg-red-500/5' : ''}`}>
-                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${entry.disabled ? 'bg-red-500' : 'bg-green-500'}`} />
+                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${entry.disabled ? 'bg-red-500' : keyStatus[statusKey(eng.value, entry.key)] === 'ok' ? 'bg-green-500' : 'bg-green-500'}`} />
                 <div className="flex-1 min-w-0">
-                  <span className="font-mono">{mask(entry.key)}</span>
-                  {entry.label && <span className="ml-2 text-muted-foreground">{entry.label}</span>}
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono">{mask(entry.key)}</span>
+                    {entry.label && <span className="text-muted-foreground">{entry.label}</span>}
+                    {statusBadge(eng.value, entry.key)}
+                  </div>
                   <div className="flex gap-3 text-[10px] text-muted-foreground mt-0.5">
                     <span>Used: {entry.usageCount}x</span>
-                    {entry.lastError && <span className="text-red-400 truncate max-w-[150px]">Err: {entry.lastError}</span>}
+                    {entry.lastError && <span className="text-red-400 truncate max-w-[180px]" title={entry.lastError}>Err: {entry.lastError}</span>}
                   </div>
                 </div>
+                <Button
+                  variant={pins[eng.value] === entry.key ? 'default' : 'ghost'}
+                  size="sm"
+                  className={`h-6 px-2 text-[10px] ${pins[eng.value] === entry.key ? 'bg-green-600 hover:bg-green-700 text-white' : 'text-muted-foreground'}`}
+                  onClick={() => handlePin(eng.value, entry.key)}
+                  title={pins[eng.value] === entry.key ? 'Bỏ ghim key này' : 'Áp dụng key này'}
+                >
+                  {pins[eng.value] === entry.key ? '📌 Đang dùng' : '📌 Áp dụng'}
+                </Button>
+                <Button
+                  variant="ghost" size="icon" className="h-6 w-6 text-blue-400 hover:text-blue-300"
+                  onClick={() => runTest(eng.value, entry.key)}
+                  title="Test key"
+                >
+                  <Zap className="h-3 w-3" />
+                </Button>
                 <Button
                   variant="ghost" size="icon" className="h-6 w-6"
                   onClick={() => entry.disabled ? enableKey(eng.value, entry.key) : disableKey(eng.value, entry.key)}
@@ -990,7 +1057,10 @@ function KeyPoolManager() {
 
       {/* Actions */}
       {hasKeys && (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" className="text-xs h-7" onClick={handleTestAll}>
+            <Zap className="h-3 w-3 mr-1" /> Test All
+          </Button>
           <Button variant="outline" size="sm" className="text-xs h-7" onClick={resetStats}>
             <RefreshCw className="h-3 w-3 mr-1" /> Reset Stats
           </Button>
@@ -1049,6 +1119,7 @@ function VoiceTabContent({
   onVoiceoverConfigChange,
   onRunVoiceover,
   isGenerating,
+  onOpenKeyPool,
 }: {
   run: GenerationRun;
   voiceoverJson?: VoiceoverData;
@@ -1058,6 +1129,7 @@ function VoiceTabContent({
   onVoiceoverConfigChange?: (u: Partial<{ engine: string; voice: string; speed: number; cleanedScript?: string }>) => void;
   onRunVoiceover?: () => void;
   isGenerating?: boolean;
+  onOpenKeyPool?: () => void;
 }) {
   const engine = voiceoverConfig?.engine || 'gemini-tts';
   const [regeneratingScene, setRegeneratingScene] = useState<number | null>(null);
@@ -1076,8 +1148,8 @@ function VoiceTabContent({
     setOptimizerLoading(true);
     setOptimizerError(null);
     try {
-      const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-      if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
+      const apiKey = getNextKey('gemini');
+      if (!apiKey) throw new Error('No Gemini key available — add keys to Key Pool hoặc set VITE_GEMINI_API_KEY');
       const scriptText = scriptTxt.length > 8000 ? scriptTxt.substring(0, 8000) : scriptTxt;
       const systemPrompt = `Trích xuất phần lời đọc (narration/voice) từ script video dưới đây.\n\nQuy tắc:\n- CHỈ giữ lại phần narrator sẽ đọc thành lời\n- BỎ: tiêu đề, heading, stage directions (VD: [B-roll], [cắt cảnh]), markdown (# ** * []()), emoji, ghi chú kỹ thuật\n- GIỮ NGUYÊN câu từ gốc — không viết lại, không thêm bớt ý\n- Trả về plain text, mỗi đoạn cách 1 dòng trống`;
       const res = await fetch(
@@ -1165,8 +1237,8 @@ function VoiceTabContent({
 
     const generatePreview = async (): Promise<Blob> => {
       if (isGem) {
-        const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-        if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
+        const apiKey = getNextKey('gemini');
+        if (!apiKey) throw new Error('No Gemini key — add keys to Key Pool');
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
           {
@@ -1209,8 +1281,8 @@ function VoiceTabContent({
         return new Blob([byteArr], { type: mime || 'audio/wav' });
       } else {
         // ElevenLabs
-        const apiKey = (import.meta.env.VITE_ELEVENLABS_API_KEY || '') as string;
-        if (!apiKey) throw new Error('Missing ElevenLabs API key');
+        const apiKey = getNextKey('elevenlabs');
+        if (!apiKey) throw new Error('No ElevenLabs key — add keys to Key Pool');
         const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceoverConfig.voice)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'xi-api-key': apiKey },
@@ -1287,8 +1359,8 @@ function VoiceTabContent({
       let blob: Blob;
 
       if (voiceoverConfig.engine === 'gemini-tts') {
-        const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-        if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
+        const apiKey = getNextKey('gemini');
+        if (!apiKey) throw new Error('No Gemini key — add keys to Key Pool');
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
           {
@@ -1341,8 +1413,8 @@ function VoiceTabContent({
           blob = new Blob([byteArr], { type: mime || 'audio/wav' });
         }
       } else if (voiceoverConfig.engine === 'google-tts') {
-        const apiKey = (import.meta.env.VITE_GOOGLE_TTS_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-        if (!apiKey) throw new Error('Missing Google TTS API key');
+        const apiKey = getNextKey('google-tts') || getNextKey('gemini');
+        if (!apiKey) throw new Error('No Google TTS key — add keys to Key Pool');
         const langCode = voiceoverConfig.voice?.startsWith('en-') ? 'en-US' : 'vi-VN';
         const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
           method: 'POST',
@@ -1363,9 +1435,9 @@ function VoiceTabContent({
         for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
         blob = new Blob([byteArr], { type: 'audio/mpeg' });
       } else {
-        const apiKey = (import.meta.env.VITE_ELEVENLABS_API_KEY || '') as string;
-        if (!apiKey) throw new Error('Missing VITE_ELEVENLABS_API_KEY');
-        const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceoverConfig.voice}`, {
+        const apiKey = getNextKey('elevenlabs');
+        if (!apiKey) throw new Error('No ElevenLabs key — add keys to Key Pool');
+        const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceoverConfig.voice)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'xi-api-key': apiKey },
           body: JSON.stringify({
@@ -1628,7 +1700,14 @@ function VoiceTabContent({
               )}
 
               {previewError && (
-                <p className="text-[10px] text-red-400">⚠️ {previewError}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] text-red-400 flex-1">⚠️ {previewError}</p>
+                  {onOpenKeyPool && (
+                    <button onClick={onOpenKeyPool} className="text-[10px] text-blue-400 hover:text-blue-300 underline whitespace-nowrap">
+                      🔑 Đổi API Key
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -1845,7 +1924,7 @@ function VoiceTabContent({
 
 // ─── RESULTS VIEW ─────────────────────────────────────────
 
-function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGenerating, voiceoverConfig, onVoiceoverConfigChange }: {
+function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGenerating, voiceoverConfig, onVoiceoverConfigChange, onOpenKeyPool }: {
   run: GenerationRun;
   onRunImageGen?: () => void;
   onRunVoiceover?: () => void;
@@ -1853,6 +1932,7 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGene
   isGenerating?: boolean;
   voiceoverConfig?: { engine: string; voice: string; speed: number; cleanedScript?: string };
   onVoiceoverConfigChange?: (u: Partial<{ engine: string; voice: string; speed: number; cleanedScript?: string }>) => void;
+  onOpenKeyPool?: () => void;
 }) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const result = run.result;
@@ -2043,6 +2123,7 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGene
             onVoiceoverConfigChange={onVoiceoverConfigChange}
             onRunVoiceover={onRunVoiceover}
             isGenerating={isGenerating}
+            onOpenKeyPool={onOpenKeyPool}
           />
         </TabsContent>
 
