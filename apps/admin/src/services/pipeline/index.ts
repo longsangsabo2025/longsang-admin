@@ -7,5 +7,5 @@
  *   import { getRun } from '@/services/pipeline';
  */
 export type { GenerationRun, GenerateRequest, RunLog, ProgressPhase } from './types';
-export { getRun, getAllRuns, findLatestRunWithFile } from './run-tracker';
+export { getRun, getAllRuns, findLatestRunWithFile, hydrateRunsForChannel, hydrateAllRuns } from './run-tracker';
 export { generate, generateStep } from './orchestrator';

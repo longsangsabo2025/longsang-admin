@@ -99,9 +99,14 @@ export default function YouTubeChannelWorkspace() {
     queryFn: () => youtubeChannelsService.getKnowledgeStats(),
   });
 
+  // Hydrate saved runs from Supabase on first load, then poll local map
   const { data: runsData, refetch: refetchRuns } = useQuery({
-    queryKey: ['youtube-channels', 'runs'],
-    queryFn: () => youtubeChannelsService.getRuns(),
+    queryKey: ['youtube-channels', 'runs', channelId],
+    queryFn: async () => {
+      // On first call, hydrate from DB; subsequent polls just read the in-memory map
+      if (channelId) await youtubeChannelsService.hydrateChannel(channelId);
+      return youtubeChannelsService.getRuns();
+    },
     refetchInterval: activeRunId ? 3000 : false,
   });
 

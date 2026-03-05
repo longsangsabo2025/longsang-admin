@@ -12,7 +12,7 @@ import {
   FileText, Image, Mic, Film, Sparkles,
   ChevronDown, ChevronRight, Play,
   Loader2, Zap, CheckCircle2, XCircle, Clock, AlertTriangle,
-  RotateCcw,
+  RotateCcw, Wand2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -87,6 +87,60 @@ const CHANNEL_VISUAL_PRESETS: Record<string, VisualIdentity> = {
     environment: 'digital void, abstract data streams, futuristic city, mirror reflections',
     moodKeywords: 'mysterious, ethereal, digital, noir, philosophical, AI consciousness',
     negativePrompt: 'text, watermark, logo, realistic human faces, bright daylight, nature, cartoon',
+  },
+};
+
+// ─── STYLE PREVIEW VISUAL DATA ──────────────────────────────
+
+interface StylePreviewMeta {
+  label: string;
+  gradient: string;
+  colors: string[];         // CSS hex colors for palette dots
+  characterIcon: string;
+  environmentShort: string;
+  moodShort: string;
+}
+
+const CHANNEL_STYLE_PREVIEW: Record<string, StylePreviewMeta> = {
+  'dung-day-di': {
+    label: 'Đừng Dậy Đi',
+    gradient: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a3e 40%, #8b0000 75%, #d4a017 100%)',
+    colors: ['#0a0a0a', '#1a1a3e', '#8b0000', '#d4a017'],
+    characterIcon: '👤',
+    environmentShort: 'Dark alleys, rainy streets',
+    moodShort: 'Cinematic · Dramatic · Mysterious',
+  },
+  'sach-15-phut': {
+    label: 'Sách 15 Phút',
+    gradient: 'linear-gradient(135deg, #f5f0e8 0%, #d4a574 35%, #8b6914 70%, #3e2723 100%)',
+    colors: ['#f5f0e8', '#d4a574', '#8b6914', '#3e2723'],
+    characterIcon: '🚫',
+    environmentShort: 'Cozy library, coffee shop',
+    moodShort: 'Warm · Intellectual · Inviting',
+  },
+  'ai-builder-vn': {
+    label: 'AI Builder VN',
+    gradient: 'linear-gradient(135deg, #0a1628 0%, #1e90ff 40%, #ffffff 70%, #00ff88 100%)',
+    colors: ['#1e90ff', '#f0f8ff', '#00ff88', '#0a1628'],
+    characterIcon: '🧑',
+    environmentShort: 'Modern workspace, code screens',
+    moodShort: 'Tech · Modern · Futuristic',
+  },
+  'tien-thong-minh': {
+    label: 'Tiền Thông Minh',
+    gradient: 'linear-gradient(135deg, #0a0a0a 0%, #004d2e 35%, #d4a017 70%, #c0c0c0 100%)',
+    colors: ['#0a0a0a', '#004d2e', '#d4a017', '#c0c0c0'],
+    characterIcon: '👤',
+    environmentShort: 'Stock market, city skyline',
+    moodShort: 'Financial · Powerful · Strategic',
+  },
+  'ly-black': {
+    label: 'Ly Black',
+    gradient: 'linear-gradient(135deg, #0a0a0a 0%, #6a0dad 35%, #ff1493 70%, #00bfff 100%)',
+    colors: ['#0a0a0a', '#6a0dad', '#ff1493', '#00bfff'],
+    characterIcon: '🎭',
+    environmentShort: 'Digital void, data streams',
+    moodShort: 'Ethereal · Noir · Philosophical',
   },
 };
 
@@ -1007,6 +1061,10 @@ function StoryboardConfig({
   const vi = config.visualIdentity;
   const channelPreset = channelId ? CHANNEL_VISUAL_PRESETS[channelId] : undefined;
   const [showVisualId, setShowVisualId] = useState(true);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+
+  const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyBfLqZs_2OeJ8ZptYcaeTlB1HqMegtKSmA') as string;
 
   const applyChannelPreset = () => {
     if (channelPreset) {
@@ -1014,11 +1072,91 @@ function StoryboardConfig({
         style: channelPreset.style,
         visualIdentity: { ...channelPreset },
       });
+      setPreviewImage(null); // clear old preview
+    }
+  };
+
+  const applyPreset = (presetId: string) => {
+    const preset = CHANNEL_VISUAL_PRESETS[presetId];
+    if (preset) {
+      onUpdate({
+        style: preset.style,
+        visualIdentity: { ...preset },
+      });
+      setPreviewImage(null); // clear old preview
+    }
+  };
+
+  // Generate AI preview image from current visual identity settings
+  const generatePreview = async () => {
+    setIsGeneratingPreview(true);
+    try {
+      // Build comprehensive prompt from visual identity
+      const parts: string[] = [];
+      parts.push(`A cinematic still frame for a YouTube video thumbnail.`);
+      parts.push(`Visual style: ${vi.style.replace(/-/g, ' ')}.`);
+      if (vi.colorPalette) parts.push(`Color palette: ${vi.colorPalette}.`);
+      if (vi.lighting) parts.push(`Lighting: ${vi.lighting}.`);
+      if (vi.cameraStyle) parts.push(`Camera: ${vi.cameraStyle}.`);
+      if (vi.characterPresence !== 'none' && vi.characterDesc) {
+        parts.push(`Character: ${vi.characterDesc}.`);
+      } else if (vi.characterPresence === 'none') {
+        parts.push(`No human characters, focus on environment and objects.`);
+      }
+      if (vi.environment) parts.push(`Environment: ${vi.environment}.`);
+      if (vi.moodKeywords) parts.push(`Mood: ${vi.moodKeywords}.`);
+      parts.push(`16:9 aspect ratio, photorealistic cinematic quality, film grain.`);
+      if (vi.negativePrompt) parts.push(`Do NOT include: ${vi.negativePrompt}.`);
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `Generate an image: ${parts.join(' ')}` }] }],
+            generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error('API error');
+
+      const data = await response.json();
+      const candidate = data.candidates?.[0];
+      const respParts = candidate?.content?.parts || [];
+
+      for (const part of respParts) {
+        if (part.inlineData?.mimeType?.startsWith('image/')) {
+          setPreviewImage(`data:${part.inlineData.mimeType};base64,${part.inlineData.data}`);
+          break;
+        }
+      }
+    } catch {
+      // Silently fail — gradient preview remains
+    } finally {
+      setIsGeneratingPreview(false);
     }
   };
 
   const updateVi = (updates: Partial<VisualIdentity>) => {
     onUpdate({ visualIdentity: { ...vi, ...updates } });
+  };
+
+  // Find active preset match
+  const activePresetId = Object.entries(CHANNEL_VISUAL_PRESETS).find(
+    ([, preset]) => preset.style === vi.style && preset.colorPalette === vi.colorPalette
+  )?.[0];
+
+  // Get preview meta for current style (match by preset or infer)
+  const currentPreview = activePresetId ? CHANNEL_STYLE_PREVIEW[activePresetId] : null;
+
+  // Build a dynamic gradient from color palette text if no preset match
+  const CHARACTER_ICONS: Record<string, string> = {
+    'none': '🚫',
+    'silhouette': '👤',
+    'faceless': '🧑',
+    'consistent-character': '🎭',
   };
 
   return (
@@ -1080,6 +1218,134 @@ function StoryboardConfig({
               <SelectItem value="neon-cyberpunk">Neon Cyberpunk</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+      </div>
+
+      {/* ── Visual Style Preview ── */}
+      <div className="space-y-2">
+        {/* Current Style Preview — large card with AI image or gradient */}
+        <div
+          className="relative rounded-lg overflow-hidden border border-white/10"
+          style={{ 
+            background: !previewImage ? (currentPreview?.gradient || 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)') : undefined,
+            minHeight: previewImage ? '180px' : '112px',
+          }}
+        >
+          {/* AI-generated preview image */}
+          {previewImage && (
+            <img
+              src={previewImage}
+              alt="Style preview"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+
+          {/* Overlay grain texture (only on gradient) */}
+          {!previewImage && (
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'256\' height=\'256\' filter=\'url(%23n)\' opacity=\'0.5\'/%3E%3C/svg%3E")' }} />
+          )}
+
+          {/* Dark overlay for readability when image is shown */}
+          {previewImage && <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />}
+
+          {/* Content */}
+          <div className="relative z-10 h-full flex items-stretch p-3 gap-3" style={{ minHeight: previewImage ? '180px' : '112px' }}>
+            {/* Left — Mock frame or preview button */}
+            <div className="w-40 h-full rounded-md bg-black/30 flex flex-col items-center justify-center shrink-0 border border-white/10 backdrop-blur-sm gap-2">
+              {!previewImage && !isGeneratingPreview && (
+                <>
+                  <span className="text-3xl block">{CHARACTER_ICONS[vi.characterPresence] || '🎬'}</span>
+                  <span className="text-[9px] text-white/60 block uppercase tracking-wider">{vi.characterPresence.replace('-', ' ')}</span>
+                </>
+              )}
+              {isGeneratingPreview && (
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="h-6 w-6 text-purple-400 animate-spin" />
+                  <span className="text-[9px] text-white/60">Generating...</span>
+                </div>
+              )}
+              {previewImage && !isGeneratingPreview && (
+                <span className="text-[9px] text-white/60 uppercase tracking-wider">AI Preview</span>
+              )}
+              <button
+                className="mt-1 px-2 py-1 rounded text-[9px] font-medium bg-purple-500/80 hover:bg-purple-500 text-white transition-colors disabled:opacity-50 flex items-center gap-1"
+                onClick={generatePreview}
+                disabled={isGeneratingPreview}
+              >
+                <Wand2 className="h-3 w-3" />
+                {previewImage ? 'Regenerate' : 'Preview'}
+              </button>
+            </div>
+
+            {/* Right — Style info */}
+            <div className="flex-1 flex flex-col justify-between min-w-0">
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-sm font-semibold text-white drop-shadow-lg truncate">
+                    {currentPreview?.label || vi.style.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                  </span>
+                  {activePresetId && (
+                    <span className="text-[9px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full backdrop-blur-sm">Preset</span>
+                  )}
+                </div>
+                <p className="text-[10px] text-white/70 truncate">{currentPreview?.moodShort || vi.moodKeywords}</p>
+                <p className="text-[10px] text-white/50 truncate mt-0.5">{currentPreview?.environmentShort || vi.environment}</p>
+              </div>
+
+              {/* Color palette dots */}
+              <div className="flex items-center gap-1.5">
+                {(currentPreview?.colors || ['#1a1a2e', '#16213e', '#0f3460', '#e94560']).map((c, i) => (
+                  <div
+                    key={i}
+                    className="w-4 h-4 rounded-full border border-white/30 shadow-sm"
+                    style={{ backgroundColor: c }}
+                    title={c}
+                  />
+                ))}
+                <span className="text-[9px] text-white/40 ml-1">{vi.lighting.split(',')[0]}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Preset Thumbnails — clickable row */}
+        <div className="grid grid-cols-5 gap-1.5">
+          {Object.entries(CHANNEL_STYLE_PREVIEW).map(([presetId, meta]) => (
+            <button
+              key={presetId}
+              className={`relative group rounded-md overflow-hidden h-16 transition-all border-2 ${
+                activePresetId === presetId
+                  ? 'border-purple-500 ring-1 ring-purple-500/50 scale-[1.02]'
+                  : 'border-transparent hover:border-white/30 opacity-70 hover:opacity-100'
+              }`}
+              style={{ background: meta.gradient }}
+              onClick={() => applyPreset(presetId)}
+              title={`Apply ${meta.label} style`}
+            >
+              {/* Content overlay */}
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center gap-0.5 px-1">
+                <span className="text-lg">{meta.characterIcon}</span>
+                <span className="text-[8px] text-white font-medium text-center leading-tight truncate w-full drop-shadow-lg">
+                  {meta.label}
+                </span>
+                {/* Mini color dots */}
+                <div className="flex gap-0.5">
+                  {meta.colors.map((c, i) => (
+                    <div key={i} className="w-1.5 h-1.5 rounded-full border border-white/40" style={{ backgroundColor: c }} />
+                  ))}
+                </div>
+              </div>
+              {/* Active indicator */}
+              {activePresetId === presetId && (
+                <div className="absolute top-0.5 right-0.5 w-3 h-3 bg-purple-500 rounded-full flex items-center justify-center">
+                  <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
+            </button>
+          ))}
         </div>
       </div>
 

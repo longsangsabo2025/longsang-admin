@@ -3,10 +3,15 @@
  * 
  * Manages the in-memory Map of GenerationRun objects and 
  * provides progress tracking with simulated % phases.
+ * 
+ * Persists completed/failed runs to Supabase `pipeline_runs` table
+ * and loads them back on page refresh.
  */
 import type { GenerationRun, GenerateRequest, ProgressPhase } from './types';
+import { persistCreate, persistUpdate, loadRunsByChannel, loadAllRuns } from './run-persistence';
 
 const clientRuns = new Map<string, GenerationRun>();
+const hydratedChannels = new Set<string>();
 
 /** Create a new run and store it in the client-side Map */
 export function createRun(runId: string, req: GenerateRequest, stepLabel?: string): GenerationRun {
@@ -20,6 +25,8 @@ export function createRun(runId: string, req: GenerateRequest, stepLabel?: strin
     logs: [{ t: Date.now(), level: 'info', msg: stepLabel || '🚀 Starting generation...' }],
   };
   clientRuns.set(runId, run);
+  // Fire-and-forget persist (don't block the UI)
+  persistCreate(run).catch(() => {});
   return run;
 }
 
@@ -39,6 +46,7 @@ export function completeRun(run: GenerationRun, result: GenerationRun['result'])
   run.completedAt = new Date().toISOString();
   run.durationMs = Date.now() - new Date(run.startedAt).getTime();
   run.result = result;
+  persistUpdate(run).catch(() => {});
 }
 
 /** Mark a run as failed */
@@ -48,6 +56,7 @@ export function failRun(run: GenerationRun, error: string) {
   run.completedAt = new Date().toISOString();
   run.durationMs = Date.now() - new Date(run.startedAt).getTime();
   run.logs.push({ t: Date.now(), level: 'error', msg: `❌ ${error}` });
+  persistUpdate(run).catch(() => {});
 }
 
 /** Simulate progress phases while waiting for an API call */
@@ -80,4 +89,28 @@ export function findLatestRunWithFile(fileName: string, channelId?: string | nul
     if (!latest || run.startedAt > latest.startedAt) latest = run;
   }
   return latest;
+}
+
+/** Load saved runs from Supabase into the in-memory Map (call once per channel) */
+export async function hydrateRunsForChannel(channelId: string): Promise<GenerationRun[]> {
+  if (hydratedChannels.has(channelId)) return getAllRuns();
+  hydratedChannels.add(channelId);
+  const saved = await loadRunsByChannel(channelId);
+  for (const run of saved) {
+    if (!clientRuns.has(run.id)) {
+      clientRuns.set(run.id, run);
+    }
+  }
+  return getAllRuns();
+}
+
+/** Load all saved runs from Supabase */
+export async function hydrateAllRuns(): Promise<GenerationRun[]> {
+  const saved = await loadAllRuns();
+  for (const run of saved) {
+    if (!clientRuns.has(run.id)) {
+      clientRuns.set(run.id, run);
+    }
+  }
+  return getAllRuns();
 }

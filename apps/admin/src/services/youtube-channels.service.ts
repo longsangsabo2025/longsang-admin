@@ -3,7 +3,7 @@
  * Channel CRUD + data queries. Pipeline logic is in @/services/pipeline/
  */
 import { apiFetch } from './pipeline/api-client';
-import { getRun } from './pipeline/run-tracker';
+import { getRun, getAllRuns, hydrateRunsForChannel } from './pipeline/run-tracker';
 import { generate, generateStep } from './pipeline/orchestrator';
 import type { GenerationRun } from './pipeline/types';
 
@@ -79,7 +79,14 @@ export const youtubeChannelsService = {
 
   // ─── Data queries ──────────────────────────────────────
   async getRuns(): Promise<{ runs: GenerationRun[]; total: number }> {
-    return apiFetch('/runs');
+    const runs = getAllRuns();
+    return { runs, total: runs.length };
+  },
+
+  /** Load saved runs from Supabase for a channel (call once on mount) */
+  async hydrateChannel(channelId: string): Promise<{ runs: GenerationRun[]; total: number }> {
+    const runs = await hydrateRunsForChannel(channelId);
+    return { runs, total: runs.length };
   },
 
   async searchTranscripts(query?: string, limit?: number): Promise<{ transcripts: TranscriptItem[]; total: number }> {
