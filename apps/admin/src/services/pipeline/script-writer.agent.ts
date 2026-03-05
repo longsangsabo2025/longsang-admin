@@ -58,9 +58,12 @@ export async function runScriptWriter(runId: string, req: GenerateRequest): Prom
       outputDir?: string;
     };
 
+    // Merge with existing files (e.g. storyboard from a reused run)
+    const existingFiles = run.result?.files || {};
     const stepResult = {
       outputDir: data.outputDir || 'remote',
       files: {
+        ...existingFiles,
         'script.txt': data.script,
         'script.json': {
           title: data.title,

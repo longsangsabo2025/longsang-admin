@@ -86,6 +86,23 @@ export function startProgressTracker(run: GenerationRun, phases: ProgressPhase[]
   return timer;
 }
 
+/** Find a recent completed run for the same channel+topic that can be reused (append more steps) */
+export function findReusableRun(channelId?: string | null, topic?: string | null): GenerationRun | null {
+  if (!channelId || !topic) return null;
+  let latest: GenerationRun | null = null;
+  const maxAge = 60 * 60 * 1000; // 1 hour
+  for (const run of clientRuns.values()) {
+    if (run.channelId !== channelId) continue;
+    if (run.status !== 'completed') continue;
+    const runTopic = run.input?.topic || run.input?.transcript;
+    if (runTopic !== topic) continue;
+    const age = Date.now() - new Date(run.startedAt).getTime();
+    if (age > maxAge) continue;
+    if (!latest || run.startedAt > latest.startedAt) latest = run;
+  }
+  return latest;
+}
+
 /** Find the latest run that has a specific file (completed or in-progress with result) */
 export function findLatestRunWithFile(fileName: string, channelId?: string | null): GenerationRun | null {
   let latest: GenerationRun | null = null;

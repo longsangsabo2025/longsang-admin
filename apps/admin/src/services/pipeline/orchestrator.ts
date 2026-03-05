@@ -5,7 +5,7 @@
  * Each agent is a separate module that can be tested/reused independently.
  */
 import type { GenerateRequest } from './types';
-import { createRun, getRun, failRun, completeRun } from './run-tracker';
+import { createRun, getRun, failRun, completeRun, findReusableRun } from './run-tracker';
 import { persistUpdate } from './run-persistence';
 import { runScriptWriter } from './script-writer.agent';
 import { runStoryboard } from './storyboard.agent';
@@ -57,6 +57,10 @@ async function executeStep(step: string, runId: string, req: GenerateRequest): P
 
   if (run.status === 'failed') return false;
 
+  // Track completed step
+  if (!run.completedSteps) run.completedSteps = [];
+  if (!run.completedSteps.includes(step)) run.completedSteps.push(step);
+
   return true;
 }
 
@@ -85,13 +89,32 @@ export async function generate(req: GenerateRequest): Promise<{ success: boolean
   return { success: true, runId, message: `Pipeline started: ${steps.join(' → ')}` };
 }
 
-/** Run a single pipeline step */
+/** Run a single pipeline step — reuses a recent run for the same channel+topic if available */
 export async function generateStep(step: string, req: GenerateRequest): Promise<{ success: boolean; runId: string; message: string }> {
-  const runId = `step_${step}_${Date.now()}`;
   const label = STEP_LABELS[step] || `🔧 Running ${step}...`;
-  const run = createRun(runId, req, label);
-  run.pipelineSteps = [step];
-  run.completedSteps = [];
+  const topic = req.topic || req.transcript;
+
+  // Reuse a recent completed run for the same channel+topic so steps are grouped
+  const reusable = findReusableRun(req.channelId, topic);
+  let runId: string;
+  let run;
+
+  if (reusable) {
+    runId = reusable.id;
+    run = reusable;
+    run.status = 'running';
+    run.error = undefined;
+    run.completedAt = undefined;
+    run.durationMs = undefined;
+    run.pipelineSteps = [...new Set([...(run.pipelineSteps || []), step])];
+    run.logs.push({ t: Date.now(), level: 'info', msg: `🔄 Appending step: ${label}`, step });
+    persistUpdate(run).catch(() => {});
+  } else {
+    runId = `run_${Date.now()}`;
+    run = createRun(runId, req, label);
+    run.pipelineSteps = [step];
+    run.completedSteps = [];
+  }
 
   // Run in background, then finalize
   (async () => {

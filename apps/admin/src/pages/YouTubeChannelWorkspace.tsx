@@ -632,6 +632,10 @@ export default function YouTubeChannelWorkspace() {
 function RunCard({ run, onView }: { run: GenerationRun; onView: () => void }) {
   const statusColor = run.status === 'completed' ? 'text-green-500' : run.status === 'failed' ? 'text-red-500' : 'text-blue-500';
   const StatusIcon = run.status === 'completed' ? CheckCircle2 : run.status === 'failed' ? XCircle : Loader2;
+  const stepIcons: Record<string, string> = { scriptWriter: '✍️', storyboard: '🎬', imageGen: '🖼️', voiceover: '🎤', assembly: '🎥' };
+  const stepsLabel = run.completedSteps?.length
+    ? run.completedSteps.map(s => stepIcons[s] || s).join(' → ')
+    : run.pipelineSteps?.map(s => stepIcons[s] || s).join(' → ') || '';
 
   return (
     <div
@@ -645,6 +649,7 @@ function RunCard({ run, onView }: { run: GenerationRun; onView: () => void }) {
           <p className="text-xs text-muted-foreground">
             {new Date(run.startedAt).toLocaleString('vi-VN')}
             {run.durationMs ? ` • ${(run.durationMs / 1000).toFixed(1)}s` : ''}
+            {stepsLabel ? ` • ${stepsLabel}` : ''}
           </p>
         </div>
       </div>
