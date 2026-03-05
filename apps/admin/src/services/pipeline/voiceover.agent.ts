@@ -328,19 +328,43 @@ async function mergeClipsToFullAudio(
   return await uploadAudio(wavBlob, channelId, runId, 'full-audio.wav');
 }
 
-/** Track exhausted Gemini API keys this session → rotate to next key */
-const _exhaustedGeminiKeys = new Set<string>();
+/** Track exhausted Gemini API keys with TTL-based auto-recovery.
+ *  After GEMINI_KEY_COOLDOWN_MS, keys auto-recover and can be retried. */
+const GEMINI_KEY_COOLDOWN_MS = 60_000; // 60s cooldown then auto-recover
+const _exhaustedGeminiKeys = new Map<string, number>(); // key → timestamp when exhausted
+
+function markGeminiKeyExhausted(key: string) {
+  _exhaustedGeminiKeys.set(key, Date.now());
+}
+
+function isGeminiKeyExhausted(key: string): boolean {
+  const ts = _exhaustedGeminiKeys.get(key);
+  if (!ts) return false;
+  if (Date.now() - ts >= GEMINI_KEY_COOLDOWN_MS) {
+    _exhaustedGeminiKeys.delete(key); // auto-recover after cooldown
+    return false;
+  }
+  return true;
+}
+
+function exhaustedGeminiKeyCount(): number {
+  // Clean up expired entries and return count
+  for (const [k, ts] of _exhaustedGeminiKeys) {
+    if (Date.now() - ts >= GEMINI_KEY_COOLDOWN_MS) _exhaustedGeminiKeys.delete(k);
+  }
+  return _exhaustedGeminiKeys.size;
+}
 
 /** Default ElevenLabs voice for Vietnamese narration fallback */
 const ELEVENLABS_DEFAULT_VOICE = 'pNInz6obpgDQGcFmaJgB'; // Adam — multilingual
 
 /** Find a working Gemini key — skip exhausted ones, try pool then env fallback */
 function getWorkingGeminiKey(currentKey: string): string | null {
-  if (!_exhaustedGeminiKeys.has(currentKey)) return currentKey;
-  const remaining = getPoolForEngine('gemini').filter(e => !_exhaustedGeminiKeys.has(e.key));
+  if (!isGeminiKeyExhausted(currentKey)) return currentKey;
+  const remaining = getPoolForEngine('gemini').filter(e => !isGeminiKeyExhausted(e.key));
   if (remaining.length > 0) return remaining[0].key;
   const envKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-  if (envKey && !_exhaustedGeminiKeys.has(envKey)) return envKey;
+  if (envKey && !isGeminiKeyExhausted(envKey)) return envKey;
   return null;
 }
 
@@ -381,7 +405,7 @@ async function fallbackTTS(
 }
 
 /** Generate a single TTS blob using the chosen engine, with retry on transient errors.
- *  On Gemini quota: tries other Gemini keys → ElevenLabs → Google Cloud TTS → clear error. */
+ *  On Gemini quota: waits & retries same key first → tries other keys → fallback chain. */
 async function synthesize(
   text: string, engine: string, voice: string, speed: number, apiKey: string,
   _logFn?: (msg: string) => void,
@@ -390,15 +414,31 @@ async function synthesize(
 
   // Early check: if this Gemini key is already exhausted, find a working one immediately
   let activeKey = apiKey;
-  if (engine === 'gemini-tts' && _exhaustedGeminiKeys.has(apiKey)) {
+  if (engine === 'gemini-tts' && isGeminiKeyExhausted(apiKey)) {
     const fresh = getWorkingGeminiKey(apiKey);
     if (fresh) {
       log(`⚡ Key exhausted — switching to next Gemini key`);
       activeKey = fresh;
     } else {
-      // No Gemini keys left → fallback chain: ElevenLabs → Google TTS
-      log(`⚠️ All ${_exhaustedGeminiKeys.size} Gemini keys exhausted`);
-      return await fallbackTTS(text, voice, speed, apiKey, _exhaustedGeminiKeys.size, log);
+      // Check if cooldown is almost done — wait for it
+      const oldestTs = Math.min(...[..._exhaustedGeminiKeys.values()]);
+      const remaining = GEMINI_KEY_COOLDOWN_MS - (Date.now() - oldestTs);
+      if (remaining > 0 && remaining <= GEMINI_KEY_COOLDOWN_MS) {
+        log(`⏳ All ${exhaustedGeminiKeyCount()} Gemini keys exhausted — waiting ${Math.ceil(remaining / 1000)}s for cooldown...`);
+        await new Promise(r => setTimeout(r, remaining + 1000));
+        // After cooldown, keys auto-recover
+        const recovered = getWorkingGeminiKey(apiKey);
+        if (recovered) {
+          log(`✅ Gemini key recovered after cooldown`);
+          activeKey = recovered;
+        } else {
+          log(`⚠️ All Gemini keys still exhausted after cooldown`);
+          return await fallbackTTS(text, voice, speed, apiKey, exhaustedGeminiKeyCount(), log);
+        }
+      } else {
+        log(`⚠️ All ${exhaustedGeminiKeyCount()} Gemini keys exhausted`);
+        return await fallbackTTS(text, voice, speed, apiKey, exhaustedGeminiKeyCount(), log);
+      }
     }
   }
 
@@ -411,12 +451,22 @@ async function synthesize(
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
 
-      // ─── Gemini quota/rate-limit handling ───
+      // ─── Gemini quota/rate-limit handling with smart backoff ───
       if (engine === 'gemini-tts' && isQuotaError(msg)) {
-        _exhaustedGeminiKeys.add(activeKey);
-        disableKey('gemini', activeKey, 'Quota exhausted');
         reportError('gemini', activeKey, msg);
-        log(`⚠️ Gemini key quota exceeded (${_exhaustedGeminiKeys.size} key(s) exhausted)`);
+
+        // Smart backoff: on 429, wait 30s and retry SAME key before marking exhausted
+        if (attempt < maxRetries) {
+          const waitSec = 30;
+          log(`⏳ Gemini rate limited (attempt ${attempt + 1}/${maxRetries}) — waiting ${waitSec}s before retry...`);
+          await new Promise(r => setTimeout(r, waitSec * 1000));
+          continue;
+        }
+
+        // After all retries failed → mark key exhausted (with TTL auto-recovery)
+        markGeminiKeyExhausted(activeKey);
+        disableKey('gemini', activeKey, 'Quota exhausted');
+        log(`⚠️ Gemini key quota exceeded after ${maxRetries} retries (${exhaustedGeminiKeyCount()} key(s) exhausted, auto-recover in ${GEMINI_KEY_COOLDOWN_MS / 1000}s)`);
 
         // Try another Gemini API key
         const nextKey = getWorkingGeminiKey(activeKey);
@@ -426,7 +476,7 @@ async function synthesize(
         }
 
         // No more Gemini keys → fallback chain: ElevenLabs → Google TTS
-        return await fallbackTTS(text, voice, speed, activeKey, _exhaustedGeminiKeys.size, log);
+        return await fallbackTTS(text, voice, speed, activeKey, exhaustedGeminiKeyCount(), log);
       }
 
       const isRetryable = msg.includes('internal') || msg.includes('500') || msg.includes('503') || msg.includes('retry') || msg.includes('INTERNAL') || msg.includes('Failed to fetch') || msg.includes('fetch');
@@ -501,13 +551,19 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
     // Gộp tất cả dialogue thành 1 text → 1 API call → giọng 100% nhất quán
     // ElevenLabs: gộp nếu tổng text ≤ 5000 chars (API limit an toàn)
     const combinedLength = validScenes.reduce((s, sc) => s + (sc.dialogue?.length || 0), 0);
+    const GEMINI_SAFE_LIMIT = 3500; // Gemini TTS often 500s on long text
     const useSingleNarration = total > 1 && (
-      engine === 'gemini-tts' ||
+      (engine === 'gemini-tts' && combinedLength <= GEMINI_SAFE_LIMIT) ||
       (engine === 'elevenlabs' && combinedLength <= 5000)
     );
 
     if (useSingleNarration) {
       run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Single-narration mode: gộp ${total} scenes → 1 API call (${engine}) — giọng nhất quán 100%` });
+    } else if (total > 1 && engine === 'gemini-tts' && combinedLength > GEMINI_SAFE_LIMIT) {
+      run.logs.push({ t: Date.now(), level: 'info', msg: `📏 Combined dialogue ${combinedLength} chars > ${GEMINI_SAFE_LIMIT} limit — using per-scene mode to avoid Gemini 500 errors` });
+    }
+
+    if (useSingleNarration) {
 
       const phases: ProgressPhase[] = [
         { pct: 10, msg: '📝 Gộp dialogue các scene...' },

@@ -1054,7 +1054,7 @@ function VoiceTabContent({
       const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
       if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
       const scriptText = scriptTxt.length > 8000 ? scriptTxt.substring(0, 8000) : scriptTxt;
-      const systemPrompt = `Bạn là chuyên gia làm sạch script cho Text-to-Speech (TTS).\n\nNHIỆM VỤ: Nhận script gốc → trả về bản GẦN NHƯ Y HỆT, chỉ sửa những gì TTS engine không đọc được.\n\nNGUYÊN TẮC VÀNG: GIỮ NGUYÊN TỐI ĐA — chỉ sửa khi CẦN THIẾT cho TTS.\n- GIỮ NGUYÊN: từ ngữ, câu văn, phong cách, tone giọng, thứ tự nội dung, độ dài\n- KHÔNG được viết lại câu, KHÔNG thêm/bớt ý\n\nCHỈ SỬA:\n1. XÓA TIÊU ĐỀ → dòng đầu nếu là heading thì BỎ\n2. SỐ → viết thành chữ (100k → một trăm nghìn)\n3. KÝ HIỆU/VIẾT TẮT → AI → A.I., CEO → C.E.O.\n4. LOẠI BỎ → heading (#), markdown, links, emoji\n5. CÂU QUÁ DÀI (trên 40 từ) → tách bằng dấu phẩy/chấm, GIỮ NGUYÊN TỪ NGỮ\n6. NHỊP THỞ → thêm "..." hoặc dấu phẩy ở chỗ cần nhấn mạnh\n\nĐỊNH DẠNG: Chỉ trả text thuần, mỗi đoạn cách 1 dòng trống.`;
+      const systemPrompt = `Trích xuất phần lời đọc (narration/voice) từ script video dưới đây.\n\nQuy tắc:\n- CHỈ giữ lại phần narrator sẽ đọc thành lời\n- BỎ: tiêu đề, heading, stage directions (VD: [B-roll], [cắt cảnh]), markdown (# ** * []()), emoji, ghi chú kỹ thuật\n- GIỮ NGUYÊN câu từ gốc — không viết lại, không thêm bớt ý\n- Trả về plain text, mỗi đoạn cách 1 dòng trống`;
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
         {
@@ -1062,7 +1062,7 @@ function VoiceTabContent({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ parts: [{ text: `Tối ưu script sau cho TTS:\n\n${scriptText}` }] }],
+            contents: [{ parts: [{ text: `Trích voice từ script:\n\n${scriptText}` }] }],
             generationConfig: { temperature: 0.2 },
           }),
         },
@@ -1106,9 +1106,12 @@ function VoiceTabContent({
   // Script Preview
   const [showScriptPreview, setShowScriptPreview] = useState(false);
 
-  // Auto-generate Vietnamese preview when ElevenLabs voice changes (cached in localStorage)
+  // Auto-generate Vietnamese preview when voice changes (cached in localStorage)
+  // Works for both ElevenLabs and Gemini TTS
   useEffect(() => {
-    if (voiceoverConfig?.engine !== 'elevenlabs' || !voiceoverConfig?.voice) {
+    const isEL = voiceoverConfig?.engine === 'elevenlabs';
+    const isGem = voiceoverConfig?.engine === 'gemini-tts';
+    if ((!isEL && !isGem) || !voiceoverConfig?.voice) {
       if (previewUrl && !previewUrl.startsWith('data:')) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
       setPreviewError(null);
@@ -1116,7 +1119,7 @@ function VoiceTabContent({
     }
     if (previewAudioRef.current) previewAudioRef.current.pause();
 
-    const cacheKey = `voice-preview-vi-elevenlabs__${voiceoverConfig.voice}`;
+    const cacheKey = `voice-preview-vi-${voiceoverConfig.engine}__${voiceoverConfig.voice}`;
     try {
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
@@ -1133,19 +1136,71 @@ function VoiceTabContent({
     setPreviewError(null);
     setPreviewUrl(null);
 
-    const apiKey = (import.meta.env.VITE_ELEVENLABS_API_KEY || '') as string;
-    if (!apiKey) { setPreviewError('Missing ElevenLabs API key'); setPreviewLoading(false); return; }
+    const sampleText = 'Xin chào, đây là giọng đọc mẫu bằng tiếng Việt. Bạn có thể nghe thử trước khi chọn.';
 
-    fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceoverConfig.voice)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'xi-api-key': apiKey },
-      body: JSON.stringify({
-        text: 'Xin chào, đây là giọng đọc mẫu bằng tiếng Việt. Bạn có thể nghe thử trước khi chọn.',
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
-      }),
-    })
-      .then(res => { if (!res.ok) throw new Error(`ElevenLabs ${res.status}`); return res.blob(); })
+    const generatePreview = async (): Promise<Blob> => {
+      if (isGem) {
+        const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
+        if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: sampleText }] }],
+              generationConfig: {
+                responseModalities: ['AUDIO'],
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceoverConfig.voice || 'Kore' } } },
+              },
+            }),
+          },
+        );
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error((err as { error?: { message?: string } })?.error?.message || `Gemini TTS error ${res.status}`);
+        }
+        const data = await res.json();
+        const parts = data.candidates?.[0]?.content?.parts || [];
+        const audioPart = parts.find((p: { inlineData?: { mimeType?: string } }) => p.inlineData?.mimeType?.startsWith('audio/'));
+        if (!audioPart) throw new Error('No audio returned');
+        const b64 = audioPart.inlineData.data as string;
+        const byteChars = atob(b64);
+        const byteArr = new Uint8Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+        const mime = (audioPart.inlineData.mimeType as string) || '';
+        if (mime.includes('L16') || mime.includes('pcm') || mime.includes('raw')) {
+          const sampleRate = 24000;
+          const wavHeader = new ArrayBuffer(44);
+          const view = new DataView(wavHeader);
+          const writeStr = (off: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+          writeStr(0, 'RIFF'); view.setUint32(4, 36 + byteArr.length, true); writeStr(8, 'WAVE');
+          writeStr(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+          view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true);
+          view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true);
+          view.setUint16(34, 16, true); writeStr(36, 'data'); view.setUint32(40, byteArr.length, true);
+          return new Blob([wavHeader, byteArr], { type: 'audio/wav' });
+        }
+        return new Blob([byteArr], { type: mime || 'audio/wav' });
+      } else {
+        // ElevenLabs
+        const apiKey = (import.meta.env.VITE_ELEVENLABS_API_KEY || '') as string;
+        if (!apiKey) throw new Error('Missing ElevenLabs API key');
+        const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceoverConfig.voice)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'xi-api-key': apiKey },
+          body: JSON.stringify({
+            text: sampleText,
+            model_id: 'eleven_multilingual_v2',
+            voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+          }),
+        });
+        if (!res.ok) throw new Error(`ElevenLabs ${res.status}`);
+        return await res.blob();
+      }
+    };
+
+    generatePreview()
       .then(blob => {
         if (cancelled) return;
         const url = URL.createObjectURL(blob);

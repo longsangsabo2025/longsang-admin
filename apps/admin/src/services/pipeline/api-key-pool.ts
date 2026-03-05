@@ -9,11 +9,13 @@ export interface PoolEntry {
   lastUsedAt?: string;
   lastError?: string;
   disabled: boolean;
+  disabledAt?: string;   // timestamp when disabled → for auto-recovery
   consecutiveErrors: number;
 }
 
 const STORAGE_KEY = 'pipeline-api-key-pool';
 const AUTO_DISABLE_THRESHOLD = 3;
+const AUTO_RECOVER_MS = 60_000; // auto-re-enable disabled keys after 60s
 
 const ENV_FALLBACKS: Record<EngineType, string> = {
   gemini: import.meta.env.VITE_GEMINI_API_KEY as string,
@@ -46,7 +48,23 @@ export function getPool(): PoolEntry[] {
 }
 
 export function getPoolForEngine(engine: string): PoolEntry[] {
-  return load().filter((e) => e.engine === engine && !e.disabled);
+  const pool = load();
+  let changed = false;
+  // Auto-recover disabled keys after cooldown
+  for (const entry of pool) {
+    if (entry.disabled && entry.disabledAt) {
+      const elapsed = Date.now() - new Date(entry.disabledAt).getTime();
+      if (elapsed >= AUTO_RECOVER_MS) {
+        entry.disabled = false;
+        entry.consecutiveErrors = 0;
+        entry.lastError = undefined;
+        entry.disabledAt = undefined;
+        changed = true;
+      }
+    }
+  }
+  if (changed) save(pool);
+  return pool.filter((e) => e.engine === engine && !e.disabled);
 }
 
 export function addKey(engine: string, key: string, label?: string) {
@@ -73,6 +91,7 @@ export function disableKey(engine: string, key: string, reason?: string) {
   const entry = pool.find((e) => e.engine === engine && e.key === key);
   if (entry) {
     entry.disabled = true;
+    entry.disabledAt = new Date().toISOString();
     if (reason) entry.lastError = reason;
     save(pool);
   }
@@ -83,6 +102,7 @@ export function enableKey(engine: string, key: string) {
   const entry = pool.find((e) => e.engine === engine && e.key === key);
   if (entry) {
     entry.disabled = false;
+    entry.disabledAt = undefined;
     entry.consecutiveErrors = 0;
     save(pool);
   }
@@ -118,6 +138,7 @@ export function reportError(engine: string, key: string, error: string) {
     entry.lastError = error;
     if (entry.consecutiveErrors >= AUTO_DISABLE_THRESHOLD) {
       entry.disabled = true;
+      entry.disabledAt = new Date().toISOString();
     }
     save(pool);
   }
