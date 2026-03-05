@@ -69,7 +69,9 @@ export function failRun(run: GenerationRun, error: string) {
   run.error = error;
   run.completedAt = new Date().toISOString();
   run.durationMs = Date.now() - new Date(run.startedAt).getTime();
-  run.logs.push({ t: Date.now(), level: 'error', msg: `❌ ${error}` });
+  // Tag error log with the current running step so it shows in the right panel
+  const currentStep = run.pipelineSteps?.[(run.completedSteps?.length || 0)];
+  run.logs.push({ t: Date.now(), level: 'error', msg: `\u274C ${error}`, step: currentStep });
   persistUpdate(run).catch(() => {});
 }
 

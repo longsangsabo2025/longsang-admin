@@ -45,28 +45,43 @@ export async function runStoryboard(runId: string, req: GenerateRequest): Promis
   try {
     run.logs.push({ t: Date.now(), level: 'info', msg: `[0%] 📡 POST ${PIPELINE_BASE}/api/admin/generate-storyboard`, step: 'storyboard' });
 
-    // Send style name + raw visualIdentity to server — server builds the full prompt
-    const res = await fetch(`${PIPELINE_BASE}/api/admin/generate-storyboard`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        script: scriptText,
-        topic: req.topic || req.transcript,
-        scenes: req.scenes || 12,
-        duration: req.duration || 6,
-        style: req.style || 'dark-cinematic',
-        aspectRatio: req.aspectRatio || '16:9',
-        visualIdentity: req.visualIdentity || undefined,
-        customPrompt: req.storyboardPrompt || undefined,
-        model: req.storyboardModel || undefined,
-      }),
-    });
+    // Retry on transient Gemini INTERNAL errors
+    let res: Response | null = null;
+    const maxRetries = 3;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      res = await fetch(`${PIPELINE_BASE}/api/admin/generate-storyboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          script: scriptText,
+          topic: req.topic || req.transcript,
+          scenes: req.scenes || 12,
+          duration: req.duration || 6,
+          style: req.style || 'dark-cinematic',
+          aspectRatio: req.aspectRatio || '16:9',
+          visualIdentity: req.visualIdentity || undefined,
+          customPrompt: req.storyboardPrompt || undefined,
+          model: req.storyboardModel || undefined,
+        }),
+      });
+      if (res.ok) break;
+      const errBody = await res.json().catch(() => ({}));
+      const errMsg = (errBody as { error?: string }).error || `Pipeline API error ${res.status}`;
+      const isRetryable = errMsg.includes('internal') || errMsg.includes('INTERNAL') || errMsg.includes('500') || errMsg.includes('503') || errMsg.includes('retry');
+      if (isRetryable && attempt < maxRetries) {
+        const delay = (attempt + 1) * 5000;
+        run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Attempt ${attempt + 1} failed (${errMsg}), retrying in ${delay / 1000}s...`, step: 'storyboard' });
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw new Error(errMsg);
+    }
 
     clearInterval(tracker);
 
-    if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}));
-      throw new Error((errBody as { error?: string }).error || `Pipeline API error ${res.status}`);
+    if (!res || !res.ok) {
+      const errBody = !res ? {} : await res.json().catch(() => ({}));
+      throw new Error((errBody as { error?: string }).error || `Pipeline API error ${res?.status || 'no response'}`);
     }
 
     const data = await res.json() as {

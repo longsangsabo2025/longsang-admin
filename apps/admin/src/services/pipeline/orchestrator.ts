@@ -111,8 +111,8 @@ export async function generateStep(step: string, req: GenerateRequest): Promise<
     run.error = undefined;
     run.completedAt = undefined;
     run.durationMs = undefined;
-    run.pipelineSteps = [...new Set([...(run.pipelineSteps || []), step])];
-    run.logs.push({ t: Date.now(), level: 'info', msg: `🔄 Appending step: ${label}`, step });
+    run.pipelineSteps = [...new Set([...(run.pipelineSteps || []), step])];    // Clear old error/warn logs from previous failed attempts to avoid stale messages
+    run.logs = run.logs.filter(l => l.level !== 'error' && l.level !== 'warn');    run.logs.push({ t: Date.now(), level: 'info', msg: `🔄 Appending step: ${label}`, step });
     persistUpdate(run).catch(() => {});
   } else {
     runId = `run_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;

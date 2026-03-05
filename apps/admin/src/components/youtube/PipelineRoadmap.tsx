@@ -1249,7 +1249,7 @@ function StepConfig({
     case 'voiceover':
       return <VoiceoverConfig config={config.voiceover} activeRun={activeRun} onUpdate={(u) => onUpdate('voiceover', u)} />;
     case 'assembly':
-      return <AssemblyConfig config={config.assembly} onUpdate={(u) => onUpdate('assembly', u)} />;
+      return <AssemblyConfig config={config.assembly} activeRun={activeRun} onUpdate={(u) => onUpdate('assembly', u)} />;
     default:
       return null;
   }
@@ -2517,50 +2517,92 @@ CHỈ SỬA NHỮNG THỨ NÀY:
 
 function AssemblyConfig({
   config,
+  activeRun,
   onUpdate,
 }: {
   config: PipelineConfig['assembly'];
+  activeRun?: ActiveRunInfo;
   onUpdate: (u: Partial<PipelineConfig['assembly']>) => void;
 }) {
+  // Check prerequisites from the active run
+  const files = activeRun?.result?.files || {};
+  const imagesJson = files['images.json'] as { images?: unknown[]; successCount?: number } | undefined;
+  const voiceoverJson = files['voiceover.json'] as { clips?: unknown[]; successCount?: number; totalDuration?: number; singleNarration?: boolean } | undefined;
+  const hasImages = !!(imagesJson?.images && imagesJson.images.length > 0);
+  const hasAudio = !!(voiceoverJson?.clips && voiceoverJson.clips.length > 0);
+
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <div className="space-y-1">
-        <Label className="text-xs">Format</Label>
-        <Select value={config.format} onValueChange={(v) => onUpdate({ format: v })}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="mp4-1080p">MP4 1080p</SelectItem>
-            <SelectItem value="mp4-4k">MP4 4K</SelectItem>
-            <SelectItem value="webm-1080p">WebM 1080p</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="space-y-3">
+      {/* Prerequisites Status */}
+      <div className="rounded-md border bg-muted/30 px-3 py-2.5 space-y-1.5">
+        <p className="text-[11px] font-medium text-muted-foreground">📋 Yêu cầu đầu vào (tự động lấy từ các step trước):</p>
+        <div className="grid grid-cols-2 gap-2">
+          <div className={`flex items-center gap-1.5 text-[11px] ${hasImages ? 'text-green-400' : 'text-muted-foreground'}`}>
+            {hasImages ? '✅' : '⬜'} Step 3 — Images {hasImages && <span className="text-[9px] opacity-70">({imagesJson?.successCount} ảnh)</span>}
+          </div>
+          <div className={`flex items-center gap-1.5 text-[11px] ${hasAudio ? 'text-green-400' : 'text-muted-foreground'}`}>
+            {hasAudio ? '✅' : '⬜'} Step 4 — Audio {hasAudio && <span className="text-[9px] opacity-70">({voiceoverJson?.successCount} clips, ~{voiceoverJson?.totalDuration}s)</span>}
+          </div>
+        </div>
+        {!hasImages && !hasAudio && (
+          <p className="text-[10px] text-yellow-400 mt-1">⚠️ Chạy Step 3 + Step 4 trước, sau đó bật toggle và chạy Step 5.</p>
+        )}
+        {hasImages && !hasAudio && (
+          <p className="text-[10px] text-yellow-400 mt-1">⚠️ Cần thêm audio — chạy Step 4 (Voiceover) trước.</p>
+        )}
+        {!hasImages && hasAudio && (
+          <p className="text-[10px] text-yellow-400 mt-1">⚠️ Cần thêm images — chạy Step 3 (Image Gen) trước.</p>
+        )}
+        {hasImages && hasAudio && (
+          <p className="text-[10px] text-green-400 mt-1">✅ Sẵn sàng! Bật toggle và nhấn "Run Video Assembly Only" để ghép video.</p>
+        )}
       </div>
-      <div className="space-y-1">
-        <Label className="text-xs">Transitions</Label>
-        <Select value={config.transitions} onValueChange={(v) => onUpdate({ transitions: v })}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="crossfade">Crossfade</SelectItem>
-            <SelectItem value="cut">Hard Cut</SelectItem>
-            <SelectItem value="zoom">Zoom</SelectItem>
-            <SelectItem value="slide">Slide</SelectItem>
-          </SelectContent>
-        </Select>
+
+      {/* Config Options */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs">Format</Label>
+          <Select value={config.format} onValueChange={(v) => onUpdate({ format: v })}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mp4-1080p">MP4 1080p</SelectItem>
+              <SelectItem value="mp4-4k">MP4 4K</SelectItem>
+              <SelectItem value="webm-1080p">WebM 1080p</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Transitions</Label>
+          <Select value={config.transitions} onValueChange={(v) => onUpdate({ transitions: v })}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="crossfade">Crossfade — Mờ dần chuyển cảnh</SelectItem>
+              <SelectItem value="cut">Hard Cut — Cắt trực tiếp</SelectItem>
+              <SelectItem value="zoom">Zoom — Ken Burns effect</SelectItem>
+              <SelectItem value="slide">Slide — Trượt ngang</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2 col-span-2">
+          <Switch
+            checked={config.bgMusic}
+            onCheckedChange={(checked) => onUpdate({ bgMusic: checked })}
+          />
+          <Label className="text-xs">Background Music</Label>
+        </div>
       </div>
-      <div className="flex items-center gap-2 col-span-2">
-        <Switch
-          checked={config.bgMusic}
-          onCheckedChange={(checked) => onUpdate({ bgMusic: checked })}
-        />
-        <Label className="text-xs">Background Music</Label>
-      </div>
-      <div className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2 col-span-2">
-        <p className="text-[10px] text-muted-foreground">
-          🎥 Browser-based rendering (Canvas + MediaRecorder). Output: WebM (VP9+Opus). Cần images (Step 3) + audio (Step 4) trước khi chạy.
+
+      {/* How it works */}
+      <div className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2 space-y-1">
+        <p className="text-[10px] font-medium text-red-400/80">🎥 Cách hoạt động:</p>
+        <p className="text-[10px] text-muted-foreground leading-relaxed">
+          Tự động lấy images từ Step 3 + audio từ Step 4 → render video bằng Canvas API trong browser → 
+          output WebM (VP9+Opus) → upload lên Supabase. Mỗi scene hiển thị ảnh + phát audio tương ứng, 
+          chuyển cảnh theo transition đã chọn.
         </p>
       </div>
     </div>
