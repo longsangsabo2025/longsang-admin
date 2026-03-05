@@ -1,5 +1,17 @@
 // ─── Pipeline types & defaults (extracted for Fast Refresh) ──
 
+export interface VisualIdentity {
+  style: string;             // e.g. 'dark-cinematic'
+  colorPalette: string;      // dominant colors for consistent look
+  lighting: string;          // e.g. 'low-key dramatic', 'soft natural'
+  cameraStyle: string;       // e.g. 'close-up focus', 'wide establishing'
+  characterPresence: 'none' | 'silhouette' | 'faceless' | 'consistent-character';
+  characterDesc: string;     // e.g. 'Vietnamese man, 30s, dark hoodie'
+  environment: string;       // recurring setting/backdrop
+  moodKeywords: string;      // comma-separated mood tags
+  negativePrompt: string;    // what to avoid
+}
+
 export interface PipelineConfig {
   scriptWriter: {
     enabled: boolean;
@@ -14,6 +26,8 @@ export interface PipelineConfig {
     duration: number;
     style: string;
     aspectRatio: string;
+    visualIdentity: VisualIdentity;
+    customPrompt: string;
   };
   imageGen: {
     enabled: boolean;
@@ -35,6 +49,18 @@ export interface PipelineConfig {
   };
 }
 
+export const DEFAULT_VISUAL_IDENTITY: VisualIdentity = {
+  style: 'dark-cinematic',
+  colorPalette: 'deep blacks, dark blues, golden highlights',
+  lighting: 'low-key dramatic, single spotlight',
+  cameraStyle: 'slow zoom in, close-up focus',
+  characterPresence: 'silhouette',
+  characterDesc: '',
+  environment: 'dark urban, moody interiors',
+  moodKeywords: 'cinematic, dramatic, mysterious, powerful',
+  negativePrompt: 'text, watermark, logo, cartoon, anime, bright colors, cheerful',
+};
+
 export const DEFAULT_PIPELINE: PipelineConfig = {
   scriptWriter: {
     enabled: true,
@@ -49,6 +75,8 @@ export const DEFAULT_PIPELINE: PipelineConfig = {
     duration: 6,
     style: 'dark-cinematic',
     aspectRatio: '16:9',
+    visualIdentity: DEFAULT_VISUAL_IDENTITY,
+    customPrompt: '',
   },
   imageGen: {
     enabled: false,

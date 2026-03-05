@@ -634,10 +634,11 @@ app.put('/api/admin/calendar/settings', (req, res) => {
 app.post('/api/admin/generate-script', async (req, res) => {
   try {
     const t0 = Date.now();
-    const { topic, model } = req.body;
+    const { topic, model, tone, customPrompt, wordTarget } = req.body;
     if (!topic) return res.status(400).json({ error: 'topic required' });
 
     const scriptModel = model || process.env.SCRIPT_WRITER_MODEL || 'gemini-2.0-flash';
+    const targetWords = wordTarget || 2500;
 
     // Build knowledge context — parallel loading for speed
     const t1 = Date.now();
@@ -664,10 +665,23 @@ app.post('/api/admin/generate-script', async (req, res) => {
 
     const t2 = Date.now();
     const { chat: llmChat, estimateCost: estCost } = await import('./core/llm.js');
+    // Build system prompt from tone + custom prompt
+    const toneMap = {
+      'dark-philosophical': 'Giọng: Triết gia bóng tối. Đầy uy lực, mỗi câu như một cú đấm vào tâm trí.',
+      'motivational': 'Giọng: Motivational speaker. Truyền cảm hứng mạnh mẽ, năng lượng tích cực.',
+      'storytelling': 'Giọng: Storyteller. Kể chuyện cuốn hút, thân mật như mentor chia sẻ ở quán cà phê.',
+      'educational': 'Giọng: Giáo viên chuyên nghiệp. Rõ ràng, dễ hiểu, có hệ thống.',
+      'humorous': 'Giọng: Hài hước, châm biếm thông minh. Dùng ví dụ vui nhưng sâu sắc.',
+    };
+    const toneInstruction = toneMap[tone] || toneMap['dark-philosophical'];
+    const customBlock = customPrompt ? `\n\n## CUSTOM INSTRUCTIONS\n${customPrompt}` : '';
+
+    const systemPrompt = `Bạn là Script Writer chuyên nghiệp. ${toneInstruction} TỐI THIỂU: ${targetWords} từ.${customBlock}`;
+
     const result = await llmChat({
       model: scriptModel,
-      systemPrompt: `Bạn là Script Writer của kênh "ĐỨNG DẬY ĐI". Giọng: Triết gia bóng tối. TỐI THIỂU: 1800 từ.`,
-      userMessage: `Viết script podcast: "${topic}"\n\n--- VOICE ---\n${voiceText}\n\n--- KNOWLEDGE ---\n${knowledgeBlock}\n\nFormat: --- [TIMESTAMP] SECTION --- (HOOK, SIGNATURE_INTRO, BOI_CANH, GIAI_PHAU, TWIST, DUNG_DAY, KET)`,
+      systemPrompt,
+      userMessage: `Viết script podcast: "${topic}"\n\n--- VOICE ---\n${voiceText}\n\n--- KNOWLEDGE ---\n${knowledgeBlock}\n\nFormat: --- [TIMESTAMP] SECTION --- (HOOK, SIGNATURE_INTRO, BOI_CANH, GIAI_PHAU, TWIST, DUNG_DAY, KET)\n\nWord target: ${targetWords} từ.`,
       temperature: 0.85,
       maxTokens: 16384,
       agentId: 'admin-script-gen',
@@ -713,17 +727,24 @@ app.post('/api/admin/generate-script', async (req, res) => {
  */
 app.post('/api/admin/generate-storyboard', async (req, res) => {
   try {
-    const { script, topic, scenes = 12, duration = 6, style = 'Dark Cinematic' } = req.body;
+    const { script, topic, scenes = 12, duration = 6, style = 'Dark Cinematic', aspectRatio, visualIdentity, customPrompt: sbCustomPrompt } = req.body;
     if (!script) return res.status(400).json({ error: 'script required' });
 
     const storyboardModel = process.env.DEFAULT_MODEL || 'gpt-4o-mini';
+
+    // Build visual identity block from UI config
+    const vi = visualIdentity || {};
+    const viBlock = vi.colorPalette ? `\n## VISUAL IDENTITY (Maintain consistency across ALL scenes)\n- Color Palette: ${vi.colorPalette}\n- Lighting: ${vi.lighting || 'cinematic'}\n- Camera: ${vi.cameraStyle || 'close-up focus'}\n- Character: ${vi.characterPresence === 'none' ? 'No characters' : `${vi.characterPresence}${vi.characterDesc ? ' — ' + vi.characterDesc : ''}`}\n- Environment: ${vi.environment || 'varies'}\n- Mood: ${vi.moodKeywords || 'cinematic, dramatic'}\n- Negative (AVOID): ${vi.negativePrompt || 'text, watermark, logo'}\n` : '';
+    const sbCustomBlock = sbCustomPrompt ? `\n## CUSTOM STORYBOARD INSTRUCTIONS\n${sbCustomPrompt}\n` : '';
+    const arBlock = aspectRatio ? `Aspect ratio: ${aspectRatio}. ` : '';
 
     const STORYBOARD_PROMPT = `You are a Visual Director — you design the visual layer for podcast-style YouTube videos.
 
 ## YOUR MISSION
 Create a visual storyboard for a podcast video.  
 Each scene = ~${duration}s of footage. Create exactly ${scenes} scenes.
-Style: ${style}. Language: Vietnamese.
+Style: ${style}. ${arBlock}Language: Vietnamese.
+${viBlock}${sbCustomBlock}
 
 ## OUTPUT FORMAT (JSON only, no markdown)
 {

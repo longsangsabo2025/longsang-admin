@@ -26,9 +26,69 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { type PipelineConfig, DEFAULT_PIPELINE } from './pipeline-types';
+import { type PipelineConfig, type VisualIdentity, DEFAULT_PIPELINE, DEFAULT_VISUAL_IDENTITY } from './pipeline-types';
 
 export type { PipelineConfig } from './pipeline-types';
+
+// ─── CHANNEL VISUAL IDENTITY PRESETS ────────────────────────
+
+const CHANNEL_VISUAL_PRESETS: Record<string, VisualIdentity> = {
+  'dung-day-di': {
+    style: 'dark-cinematic',
+    colorPalette: 'deep blacks, dark blues, blood red accents, golden highlights',
+    lighting: 'low-key dramatic, single spotlight, rim lighting',
+    cameraStyle: 'slow zoom in, extreme close-up, dolly forward',
+    characterPresence: 'silhouette',
+    characterDesc: 'lone masculine silhouette, strong posture, wearing dark clothing',
+    environment: 'dark alleyways, rainy streets, empty rooms, rooftops at night',
+    moodKeywords: 'cinematic, dramatic, mysterious, powerful, dark philosophy, warrior',
+    negativePrompt: 'text, watermark, logo, cartoon, anime, bright cheerful colors, smiling faces',
+  },
+  'sach-15-phut': {
+    style: 'storytelling',
+    colorPalette: 'warm earth tones, cream, dark brown, amber, soft gold',
+    lighting: 'warm ambient, soft window light, golden hour',
+    cameraStyle: 'medium shot, gentle pan, static wide',
+    characterPresence: 'none',
+    characterDesc: '',
+    environment: 'cozy library, coffee shop, reading nook, book-filled rooms',
+    moodKeywords: 'warm, intellectual, inviting, cozy, thoughtful, wisdom',
+    negativePrompt: 'text, watermark, logo, neon, cyberpunk, dark horror, violence',
+  },
+  'ai-builder-vn': {
+    style: 'bright-modern',
+    colorPalette: 'electric blue, white, neon green accents, clean gradients',
+    lighting: 'bright studio, even lighting, soft shadows, screen glow',
+    cameraStyle: 'eye-level static, gentle zoom, over-shoulder screen view',
+    characterPresence: 'faceless',
+    characterDesc: 'hands typing on keyboard, person at desk with multiple monitors',
+    environment: 'modern workspace, dual monitors, code on screen, clean desk setup',
+    moodKeywords: 'tech, modern, clean, futuristic, productive, innovative',
+    negativePrompt: 'text, watermark, logo, old-fashioned, rustic, dark moody',
+  },
+  'tien-thong-minh': {
+    style: 'dark-cinematic',
+    colorPalette: 'dark emerald green, gold, black, silver metallic',
+    lighting: 'dramatic side lighting, spotlight on subject, dark background',
+    cameraStyle: 'slow dolly forward, close-up on details, wide establishing',
+    characterPresence: 'silhouette',
+    characterDesc: 'business person silhouette, suit, looking at financial data',
+    environment: 'stock market screens, money imagery, dark office, city skyline at night',
+    moodKeywords: 'financial, serious, powerful, data-driven, wealth, strategic',
+    negativePrompt: 'text, watermark, logo, cartoon, anime, bright playful colors',
+  },
+  'ly-black': {
+    style: 'neon-cyberpunk',
+    colorPalette: 'deep black, neon purple, electric pink, holographic blue',
+    lighting: 'neon glow, volumetric light, lens flare, bioluminescent',
+    cameraStyle: 'slow zoom in, static portrait, fade through black',
+    characterPresence: 'consistent-character',
+    characterDesc: 'Ly Black: Vietnamese AI virtual woman, short black hair, glowing purple eyes, minimalist black outfit, ethereal digital aura',
+    environment: 'digital void, abstract data streams, futuristic city, mirror reflections',
+    moodKeywords: 'mysterious, ethereal, digital, noir, philosophical, AI consciousness',
+    negativePrompt: 'text, watermark, logo, realistic human faces, bright daylight, nature, cartoon',
+  },
+};
 
 // ─── CHANNEL PROMPT PRESETS ─────────────────────────────────
 
@@ -359,27 +419,54 @@ interface PipelineRoadmapProps {
 
 const STORAGE_KEY = 'yt-pipeline-config';
 
-function loadSavedConfig(channelStyle?: string): PipelineConfig {
+function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineConfig {
+  const visualPreset = channelId ? CHANNEL_VISUAL_PRESETS[channelId] : undefined;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as PipelineConfig;
       // Ensure all keys exist (in case we add new steps later)
-      return { ...DEFAULT_PIPELINE, ...parsed };
+      const merged = { ...DEFAULT_PIPELINE, ...parsed };
+      // Apply channel visual identity if available and storyboard doesn't have one yet
+      if (visualPreset && !merged.storyboard.visualIdentity?.colorPalette) {
+        merged.storyboard = {
+          ...merged.storyboard,
+          style: channelStyle || visualPreset.style || merged.storyboard.style,
+          visualIdentity: { ...visualPreset },
+        };
+      }
+      return merged;
     }
   } catch { /* ignore corrupt data */ }
   return {
     ...DEFAULT_PIPELINE,
     storyboard: {
       ...DEFAULT_PIPELINE.storyboard,
-      style: channelStyle || DEFAULT_PIPELINE.storyboard.style,
+      style: channelStyle || visualPreset?.style || DEFAULT_PIPELINE.storyboard.style,
+      visualIdentity: visualPreset || DEFAULT_VISUAL_IDENTITY,
     },
   };
 }
 
 export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunStep, isRunning, activeRun }: PipelineRoadmapProps) {
-  const [config, setConfig] = useState<PipelineConfig>(() => loadSavedConfig(channelStyle));
+  const [config, setConfig] = useState<PipelineConfig>(() => loadSavedConfig(channelId, channelStyle));
   const [expandedStep, setExpandedStep] = useState<string | null>('scriptWriter');
+
+  // ── Apply channel-specific visual identity when channelId changes ──
+  useEffect(() => {
+    if (!channelId) return;
+    const preset = CHANNEL_VISUAL_PRESETS[channelId];
+    if (preset) {
+      setConfig(prev => ({
+        ...prev,
+        storyboard: {
+          ...prev.storyboard,
+          style: preset.style,
+          visualIdentity: { ...preset },
+        },
+      }));
+    }
+  }, [channelId]);
 
   // ── Persist config to localStorage on change ──
   useEffect(() => {
@@ -799,7 +886,7 @@ function StepConfig({
     case 'scriptWriter':
       return <ScriptWriterConfig config={config.scriptWriter} channelId={channelId} onUpdate={(u) => onUpdate('scriptWriter', u)} />;
     case 'storyboard':
-      return <StoryboardConfig config={config.storyboard} onUpdate={(u) => onUpdate('storyboard', u)} />;
+      return <StoryboardConfig config={config.storyboard} channelId={channelId} onUpdate={(u) => onUpdate('storyboard', u)} />;
     case 'imageGen':
       return <ImageGenConfig config={config.imageGen} onUpdate={(u) => onUpdate('imageGen', u)} />;
     case 'voiceover':
@@ -910,66 +997,242 @@ function ScriptWriterConfig({
 
 function StoryboardConfig({
   config,
+  channelId,
   onUpdate,
 }: {
   config: PipelineConfig['storyboard'];
+  channelId?: string;
   onUpdate: (u: Partial<PipelineConfig['storyboard']>) => void;
 }) {
+  const vi = config.visualIdentity;
+  const channelPreset = channelId ? CHANNEL_VISUAL_PRESETS[channelId] : undefined;
+  const [showVisualId, setShowVisualId] = useState(true);
+
+  const applyChannelPreset = () => {
+    if (channelPreset) {
+      onUpdate({
+        style: channelPreset.style,
+        visualIdentity: { ...channelPreset },
+      });
+    }
+  };
+
+  const updateVi = (updates: Partial<VisualIdentity>) => {
+    onUpdate({ visualIdentity: { ...vi, ...updates } });
+  };
+
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <div className="space-y-1">
-        <Label className="text-xs">Scenes</Label>
-        <Select value={String(config.scenes)} onValueChange={(v) => onUpdate({ scenes: parseInt(v) })}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {[6, 8, 10, 12, 15, 20].map(n => (
-              <SelectItem key={n} value={String(n)}>{n} scenes</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="space-y-4">
+      {/* Basic settings */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs">Scenes</Label>
+          <Select value={String(config.scenes)} onValueChange={(v) => onUpdate({ scenes: parseInt(v) })}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[6, 8, 10, 12, 15, 20].map(n => (
+                <SelectItem key={n} value={String(n)}>{n} scenes</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Duration / Scene</Label>
+          <Select value={String(config.duration)} onValueChange={(v) => onUpdate({ duration: parseInt(v) })}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[4, 5, 6, 8, 10].map(n => (
+                <SelectItem key={n} value={String(n)}>{n}s</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Aspect Ratio</Label>
+          <Select value={config.aspectRatio} onValueChange={(v) => onUpdate({ aspectRatio: v })}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="16:9">16:9 (YouTube)</SelectItem>
+              <SelectItem value="9:16">9:16 (Shorts)</SelectItem>
+              <SelectItem value="1:1">1:1 (Square)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Visual Style</Label>
+          <Select value={config.style} onValueChange={(v) => onUpdate({ style: v, visualIdentity: { ...vi, style: v } })}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="dark-cinematic">Dark Cinematic</SelectItem>
+              <SelectItem value="modern-minimal">Modern Minimal</SelectItem>
+              <SelectItem value="bright-modern">Bright Modern</SelectItem>
+              <SelectItem value="storytelling">Storytelling / Warm</SelectItem>
+              <SelectItem value="anime-style">Anime Style</SelectItem>
+              <SelectItem value="documentary">Documentary</SelectItem>
+              <SelectItem value="neon-cyberpunk">Neon Cyberpunk</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-      <div className="space-y-1">
-        <Label className="text-xs">Duration / Scene</Label>
-        <Select value={String(config.duration)} onValueChange={(v) => onUpdate({ duration: parseInt(v) })}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {[4, 5, 6, 8, 10].map(n => (
-              <SelectItem key={n} value={String(n)}>{n}s</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+
+      {/* Visual Identity Section */}
+      <div className="rounded-lg border border-purple-500/30 bg-purple-500/5 overflow-hidden">
+        <button
+          className="w-full flex items-center justify-between px-3 py-2 hover:bg-purple-500/10 transition-colors"
+          onClick={() => setShowVisualId(!showVisualId)}
+        >
+          <span className="text-xs font-medium flex items-center gap-2">
+            🎨 Visual Identity — Channel Consistency
+          </span>
+          <div className="flex items-center gap-2">
+            {channelPreset && (
+              <Badge
+                variant="outline"
+                className="text-[10px] cursor-pointer border-purple-500/50 text-purple-400 hover:bg-purple-500/20"
+                onClick={(e) => { e.stopPropagation(); applyChannelPreset(); }}
+              >
+                ↻ Reset to Channel Preset
+              </Badge>
+            )}
+            {showVisualId ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+          </div>
+        </button>
+
+        {showVisualId && (
+          <div className="px-3 pb-3 space-y-3 border-t border-purple-500/20 pt-3">
+            {/* Character Presence */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Character Presence</Label>
+                <Select
+                  value={vi.characterPresence}
+                  onValueChange={(v: VisualIdentity['characterPresence']) => updateVi({ characterPresence: v })}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">🚫 No Character</SelectItem>
+                    <SelectItem value="silhouette">👤 Silhouette Only</SelectItem>
+                    <SelectItem value="faceless">🧑 Faceless (body only)</SelectItem>
+                    <SelectItem value="consistent-character">🎭 Consistent Character</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Lighting</Label>
+                <Select value={vi.lighting} onValueChange={(v) => updateVi({ lighting: v })}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low-key dramatic, single spotlight">Low-key Dramatic</SelectItem>
+                    <SelectItem value="low-key dramatic, single spotlight, rim lighting">Dramatic + Rim Light</SelectItem>
+                    <SelectItem value="warm ambient, soft window light, golden hour">Warm Ambient</SelectItem>
+                    <SelectItem value="bright studio, even lighting, soft shadows">Bright Studio</SelectItem>
+                    <SelectItem value="neon glow, volumetric light, lens flare">Neon Glow</SelectItem>
+                    <SelectItem value="natural daylight, soft shadows">Natural Daylight</SelectItem>
+                    <SelectItem value="dramatic side lighting, spotlight on subject">Side Spotlight</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Camera + Color */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Camera Style</Label>
+                <Select value={vi.cameraStyle} onValueChange={(v) => updateVi({ cameraStyle: v })}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="slow zoom in, close-up focus">Slow Zoom + Close-up</SelectItem>
+                    <SelectItem value="slow zoom in, extreme close-up, dolly forward">Extreme Close-up + Dolly</SelectItem>
+                    <SelectItem value="medium shot, gentle pan, static wide">Medium Pan + Wide</SelectItem>
+                    <SelectItem value="eye-level static, gentle zoom, over-shoulder">Eye-level + Over-shoulder</SelectItem>
+                    <SelectItem value="slow dolly forward, close-up on details, wide establishing">Dolly + Wide Establishing</SelectItem>
+                    <SelectItem value="slow zoom in, static portrait, fade through black">Portrait + Fade</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Color Palette</Label>
+                <Input
+                  className="h-8 text-xs"
+                  placeholder="e.g. deep blacks, golden highlights"
+                  value={vi.colorPalette}
+                  onChange={(e) => updateVi({ colorPalette: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* Character Description (only shown if character is present) */}
+            {vi.characterPresence !== 'none' && (
+              <div className="space-y-1">
+                <Label className="text-xs">Character Description</Label>
+                <Input
+                  className="h-8 text-xs"
+                  placeholder="e.g. Vietnamese man, 30s, dark hoodie, strong posture"
+                  value={vi.characterDesc}
+                  onChange={(e) => updateVi({ characterDesc: e.target.value })}
+                />
+              </div>
+            )}
+
+            {/* Environment + Mood */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Environment / Backdrop</Label>
+                <Input
+                  className="h-8 text-xs"
+                  placeholder="e.g. dark alleyways, rainy streets"
+                  value={vi.environment}
+                  onChange={(e) => updateVi({ environment: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Mood Keywords</Label>
+                <Input
+                  className="h-8 text-xs"
+                  placeholder="cinematic, dramatic, mysterious"
+                  value={vi.moodKeywords}
+                  onChange={(e) => updateVi({ moodKeywords: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* Negative prompt */}
+            <div className="space-y-1">
+              <Label className="text-xs">Negative Prompt (avoid in images)</Label>
+              <Input
+                className="h-8 text-xs"
+                placeholder="text, watermark, logo, cartoon..."
+                value={vi.negativePrompt}
+                onChange={(e) => updateVi({ negativePrompt: e.target.value })}
+              />
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Custom Storyboard Prompt */}
       <div className="space-y-1">
-        <Label className="text-xs">Visual Style</Label>
-        <Select value={config.style} onValueChange={(v) => onUpdate({ style: v })}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="dark-cinematic">Dark Cinematic</SelectItem>
-            <SelectItem value="modern-minimal">Modern Minimal</SelectItem>
-            <SelectItem value="anime-style">Anime Style</SelectItem>
-            <SelectItem value="documentary">Documentary</SelectItem>
-            <SelectItem value="neon-cyberpunk">Neon Cyberpunk</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-1">
-        <Label className="text-xs">Aspect Ratio</Label>
-        <Select value={config.aspectRatio} onValueChange={(v) => onUpdate({ aspectRatio: v })}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="16:9">16:9 (YouTube)</SelectItem>
-            <SelectItem value="9:16">9:16 (Shorts)</SelectItem>
-            <SelectItem value="1:1">1:1 (Square)</SelectItem>
-          </SelectContent>
-        </Select>
+        <Label className="text-xs">Custom Storyboard Prompt (optional)</Label>
+        <textarea
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs min-h-[60px] resize-y focus:outline-none focus:ring-1 focus:ring-purple-500/50"
+          placeholder="Thêm hướng dẫn riêng cho AI Visual Director. VD: Mỗi scene phải có text overlay, focus vào biểu cảm nhân vật..."
+          value={config.customPrompt || ''}
+          onChange={(e) => onUpdate({ customPrompt: e.target.value })}
+        />
       </div>
     </div>
   );

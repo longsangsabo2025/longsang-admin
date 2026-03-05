@@ -45,6 +45,23 @@ export async function runStoryboard(runId: string, req: GenerateRequest): Promis
   try {
     run.logs.push({ t: Date.now(), level: 'info', msg: `[0%] 📡 POST ${PIPELINE_BASE}/api/admin/generate-storyboard` });
 
+    // Build rich style directive from visual identity if available
+    let styleDirective = req.style || 'Dark Cinematic';
+    if (req.visualIdentity) {
+      const vi = req.visualIdentity;
+      const parts: string[] = [`Style: ${vi.style}`];
+      if (vi.colorPalette) parts.push(`Colors: ${vi.colorPalette}`);
+      if (vi.lighting) parts.push(`Lighting: ${vi.lighting}`);
+      if (vi.cameraStyle) parts.push(`Camera: ${vi.cameraStyle}`);
+      if (vi.characterPresence && vi.characterPresence !== 'none') {
+        parts.push(`Character: ${vi.characterPresence}${vi.characterDesc ? ` — ${vi.characterDesc}` : ''}`);
+      }
+      if (vi.environment) parts.push(`Environment: ${vi.environment}`);
+      if (vi.moodKeywords) parts.push(`Mood: ${vi.moodKeywords}`);
+      if (vi.negativePrompt) parts.push(`Avoid: ${vi.negativePrompt}`);
+      styleDirective = parts.join(' | ');
+    }
+
     const res = await fetch(`${PIPELINE_BASE}/api/admin/generate-storyboard`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -53,8 +70,10 @@ export async function runStoryboard(runId: string, req: GenerateRequest): Promis
         topic: req.topic || req.transcript,
         scenes: req.scenes || 12,
         duration: req.duration || 6,
-        style: req.style || 'Dark Cinematic',
+        style: styleDirective,
         aspectRatio: req.aspectRatio || '16:9',
+        visualIdentity: req.visualIdentity || undefined,
+        customPrompt: req.storyboardPrompt || undefined,
       }),
     });
 

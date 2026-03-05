@@ -1,6 +1,7 @@
 /**
  * 🎯 Pipeline Types — shared across all pipeline agents & services
  */
+import type { VisualIdentity } from '@/components/youtube/pipeline-types';
 
 export interface GenerateRequest {
   channelId?: string;
@@ -12,10 +13,12 @@ export interface GenerateRequest {
   scriptOnly?: boolean;
   storyboardOnly?: boolean;
   customPrompt?: string;
+  storyboardPrompt?: string;
   model?: string;
   tone?: string;
   wordTarget?: number;
   aspectRatio?: string;
+  visualIdentity?: VisualIdentity;
 }
 
 export interface RunLog {

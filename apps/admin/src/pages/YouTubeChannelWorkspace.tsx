@@ -168,8 +168,10 @@ export default function YouTubeChannelWorkspace() {
       model: pipelineConfig.scriptWriter.model,
       tone: pipelineConfig.scriptWriter.tone,
       customPrompt: pipelineConfig.scriptWriter.customPrompt || undefined,
+      storyboardPrompt: pipelineConfig.storyboard.customPrompt || undefined,
       wordTarget: pipelineConfig.scriptWriter.wordTarget,
       aspectRatio: pipelineConfig.storyboard.aspectRatio,
+      visualIdentity: pipelineConfig.storyboard.visualIdentity,
     };
     if (mode === 'topic' && topic.trim()) {
       req.topic = topic.trim();
@@ -189,11 +191,13 @@ export default function YouTubeChannelWorkspace() {
       model: pipelineConfig.scriptWriter.model,
       tone: pipelineConfig.scriptWriter.tone,
       customPrompt: pipelineConfig.scriptWriter.customPrompt || undefined,
+      storyboardPrompt: pipelineConfig.storyboard.customPrompt || undefined,
       scenes: pipelineConfig.storyboard.scenes,
       duration: pipelineConfig.storyboard.duration,
       style: pipelineConfig.storyboard.style,
       wordTarget: pipelineConfig.scriptWriter.wordTarget,
       aspectRatio: pipelineConfig.storyboard.aspectRatio,
+      visualIdentity: pipelineConfig.storyboard.visualIdentity,
     };
     if (mode === 'topic' && topic.trim()) {
       req.topic = topic.trim();
