@@ -62,7 +62,7 @@ export default function YouTubeChannelWorkspace() {
   const [batchTopics, setBatchTopics] = useState('');
   const [batchLaunching, setBatchLaunching] = useState(false);
   const [activeTab, setActiveTab] = useState(s.activeTab || 'generate');
-  const [voiceConfig, setVoiceConfig] = useState({ engine: 'gemini-tts', voice: 'Kore', speed: 1.0 });
+  const [voiceConfig, setVoiceConfig] = useState<{ engine: string; voice: string; speed: number; cleanedScript?: string }>({ engine: 'gemini-tts', voice: 'Kore', speed: 1.0 });
 
   // ── Fetch channel data ──
   const { data: plansData, isLoading: plansLoading } = useQuery({
@@ -717,7 +717,7 @@ export default function YouTubeChannelWorkspace() {
                     scriptWriter: { enabled: true, model: 'gemini-2.0-flash', tone: 'engaging', wordTarget: 600, customPrompt: '' },
                     storyboard: { enabled: true, model: 'hailuo-2.3', style: 'dark-cinematic', scenes: 5, duration: 6, aspectRatio: '16:9', visualIdentity: {} as never, customPrompt: '' },
                     imageGen: { enabled: false, provider: 'gemini', quality: 'standard', negativePrompt: 'text, watermark, logo' },
-                    voiceover: { enabled: true, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed },
+                    voiceover: { enabled: true, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed, cleanedScript: voiceConfig.cleanedScript },
                     assembly: { enabled: false, format: 'mp4-1080p', transitions: 'crossfade', bgMusic: true },
                   });
                 }} onRunAssembly={() => {
@@ -955,6 +955,63 @@ function VoiceTabContent({
   const isGemini = engine === 'gemini-tts';
   const isGoogleTTS = engine === 'google-tts';
 
+  // ── TTS Script Optimizer ──
+  const [optimizerLoading, setOptimizerLoading] = useState(false);
+  const [optimizedScript, setOptimizedScript] = useState<string | null>(voiceoverConfig?.cleanedScript || null);
+  const [optimizerError, setOptimizerError] = useState<string | null>(null);
+  const [showOptimized, setShowOptimized] = useState(!!voiceoverConfig?.cleanedScript);
+
+  const handleOptimizeForTTS = async () => {
+    if (!scriptTxt?.trim()) return;
+    setOptimizerLoading(true);
+    setOptimizerError(null);
+    try {
+      const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
+      if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
+      const scriptText = scriptTxt.length > 8000 ? scriptTxt.substring(0, 8000) : scriptTxt;
+      const systemPrompt = `Bạn là chuyên gia làm sạch script cho Text-to-Speech (TTS).\n\nNHIỆM VỤ: Nhận script gốc → trả về bản GẦN NHƯ Y HỆT, chỉ sửa những gì TTS engine không đọc được.\n\nNGUYÊN TẮC VÀNG: GIỮ NGUYÊN TỐI ĐA — chỉ sửa khi CẦN THIẾT cho TTS.\n- GIỮ NGUYÊN: từ ngữ, câu văn, phong cách, tone giọng, thứ tự nội dung, độ dài\n- KHÔNG được viết lại câu, KHÔNG thêm/bớt ý\n\nCHỈ SỬA:\n1. XÓA TIÊU ĐỀ → dòng đầu nếu là heading thì BỎ\n2. SỐ → viết thành chữ (100k → một trăm nghìn)\n3. KÝ HIỆU/VIẾT TẮT → AI → A.I., CEO → C.E.O.\n4. LOẠI BỎ → heading (#), markdown, links, emoji\n5. CÂU QUÁ DÀI (trên 40 từ) → tách bằng dấu phẩy/chấm, GIỮ NGUYÊN TỪ NGỮ\n6. NHỊP THỞ → thêm "..." hoặc dấu phẩy ở chỗ cần nhấn mạnh\n\nĐỊNH DẠNG: Chỉ trả text thuần, mỗi đoạn cách 1 dòng trống.`;
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ parts: [{ text: `Tối ưu script sau cho TTS:\n\n${scriptText}` }] }],
+            generationConfig: { temperature: 0.2 },
+          }),
+        },
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { error?: { message?: string } })?.error?.message || `Gemini error ${res.status}`);
+      }
+      const data = await res.json();
+      const text = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+      if (!text) throw new Error('AI trả về rỗng');
+      setOptimizedScript(text);
+      setShowOptimized(true);
+    } catch (err) {
+      setOptimizerError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setOptimizerLoading(false);
+    }
+  };
+
+  const handleApplyOptimized = () => {
+    if (optimizedScript && onVoiceoverConfigChange) {
+      onVoiceoverConfigChange({ cleanedScript: optimizedScript } as never);
+    }
+  };
+
+  const handleClearOptimized = () => {
+    setOptimizedScript(null);
+    setShowOptimized(false);
+    if (onVoiceoverConfigChange) {
+      onVoiceoverConfigChange({ cleanedScript: '' } as never);
+    }
+  };
+
   // Voice Preview states
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -1102,7 +1159,7 @@ function VoiceTabContent({
               {voiceoverJson.totalDuration ? ` • ${voiceoverJson.totalDuration.toFixed(1)}s` : ''}
             </Badge>
           )}
-          {onRunVoiceover && storyboardJson?.scenes && storyboardJson.scenes.length > 0 && (
+          {onRunVoiceover && (storyboardJson?.scenes?.length || scriptTxt) && (
             <Button
               variant={voiceoverJson?.clips ? 'outline' : 'default'}
               size="sm"
@@ -1318,6 +1375,88 @@ function VoiceTabContent({
             <p className="text-[10px] text-yellow-400">
               ⚠️ Chưa có Script. Chạy Step 1 (Script Writer) trước để tạo nội dung cho TTS.
             </p>
+          </div>
+        )}
+
+        {/* ── TTS Script Optimizer ── */}
+        {scriptTxt?.trim() && (
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-8 text-[11px] gap-2 border-purple-500/30 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
+              onClick={handleOptimizeForTTS}
+              disabled={optimizerLoading}
+            >
+              {optimizerLoading ? (
+                <><Loader2 className="h-3 w-3 animate-spin" /> Đang tối ưu script cho TTS...</>
+              ) : optimizedScript ? (
+                <><Sparkles className="h-3 w-3" /> 🔄 Tối ưu lại script cho TTS</>
+              ) : (
+                <><Sparkles className="h-3 w-3" /> ✨ AI tối ưu script → bản sạch cho TTS</>
+              )}
+            </Button>
+
+            {optimizerError && (
+              <p className="text-[10px] text-red-400">⚠️ {optimizerError}</p>
+            )}
+
+            {optimizedScript && (
+              <div className="rounded-md border border-green-500/30 bg-green-500/5 overflow-hidden">
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between px-3 py-2 hover:bg-green-500/10 transition-colors"
+                  onClick={() => setShowOptimized(v => !v)}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-green-400">✅ Script TTS-Ready</span>
+                    <Badge variant="outline" className="text-[10px] border-green-500/50 text-green-400">
+                      {optimizedScript.length.toLocaleString()} ký tự
+                    </Badge>
+                    {voiceoverConfig?.cleanedScript ? (
+                      <Badge variant="outline" className="text-[9px] border-green-500/50 text-green-400">đã áp dụng</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[9px] border-yellow-500/50 text-yellow-400">chưa áp dụng</Badge>
+                    )}
+                  </div>
+                  {showOptimized ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                </button>
+
+                {showOptimized && (
+                  <div className="px-3 pb-3 space-y-2 border-t border-green-500/20 pt-2">
+                    <ScrollArea className="max-h-48">
+                      <p className="text-[10px] text-foreground/80 whitespace-pre-wrap leading-relaxed pr-2 font-mono">
+                        {optimizedScript}
+                      </p>
+                    </ScrollArea>
+
+                    <div className="flex gap-2">
+                      {!voiceoverConfig?.cleanedScript || voiceoverConfig.cleanedScript !== optimizedScript ? (
+                        <Button
+                          size="sm"
+                          className="flex-1 h-7 text-[10px] gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+                          onClick={handleApplyOptimized}
+                        >
+                          <CheckCircle2 className="h-3 w-3" /> Áp dụng cho TTS
+                        </Button>
+                      ) : (
+                        <Badge className="flex-1 justify-center bg-green-600/20 text-green-400 border-green-500/50 h-7">
+                          ✅ Đã áp dụng — Re-gen Voice sẽ dùng bản này
+                        </Badge>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-[10px] text-muted-foreground hover:text-red-400"
+                        onClick={handleClearOptimized}
+                      >
+                        Xóa
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -1681,14 +1820,97 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGene
                   </div>
                 </div>
               ) : (
-                <div className="py-12 text-center text-muted-foreground">
-                  <Film className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                  {!imagesJson?.images ? (
-                    <p>⚠️ Cần tạo Images (Step 3) trước khi ghép video.</p>
-                  ) : !voiceoverJson?.clips ? (
-                    <p>⚠️ Cần tạo Voiceover (Step 4) trước khi ghép video.</p>
-                  ) : (
-                    <p>Nhấn "Assemble Video" để ghép images + audio thành video hoàn chỉnh.</p>
+                <div className="space-y-4">
+                  {/* Prerequisites status */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className={`rounded-lg border p-3 ${imagesJson?.images ? 'border-green-500/30 bg-green-500/5' : 'border-yellow-500/30 bg-yellow-500/5'}`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        {imagesJson?.images ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <ImageIcon className="h-4 w-4 text-yellow-500" />}
+                        <span className="text-sm font-medium">Images (Step 3)</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {imagesJson?.images ? `✅ ${imagesJson.successCount || imagesJson.images.length} ảnh sẵn sàng` : '⚠️ Chưa có — chạy Step 3 trước'}
+                      </p>
+                    </div>
+                    <div className={`rounded-lg border p-3 ${voiceoverJson?.clips ? 'border-green-500/30 bg-green-500/5' : 'border-yellow-500/30 bg-yellow-500/5'}`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        {voiceoverJson?.clips ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Mic className="h-4 w-4 text-yellow-500" />}
+                        <span className="text-sm font-medium">Audio (Step 4)</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {voiceoverJson?.clips ? `✅ ${voiceoverJson.successCount} clips · ~${voiceoverJson.totalDuration}s · ${voiceoverJson.engine}` : '⚠️ Chưa có — chạy Step 4 trước'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Scene-by-scene preview */}
+                  {storyboardJson?.scenes && storyboardJson.scenes.length > 0 && (imagesJson?.images || voiceoverJson?.clips) && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground">📋 Preview: {storyboardJson.scenes.length} scenes sẽ được ghép</p>
+                      <div className="grid gap-2">
+                        {storyboardJson.scenes.map((scene, i) => {
+                          const imgUrl = imageMap.get(scene.scene);
+                          const clip = voiceoverJson?.clips?.find(c => c.scene === scene.scene);
+                          return (
+                            <div key={i} className="flex items-center gap-3 p-2 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
+                              {/* Thumbnail */}
+                              <div className="w-24 h-14 rounded overflow-hidden bg-muted flex-shrink-0 border">
+                                {imgUrl ? (
+                                  <img src={imgUrl} alt={`Scene ${scene.scene}`} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <ImageIcon className="h-5 w-5 text-muted-foreground/30" />
+                                  </div>
+                                )}
+                              </div>
+                              {/* Scene info */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-[10px] px-1.5">Scene {scene.scene}</Badge>
+                                  {imgUrl && <span className="text-[10px] text-green-400">🖼️</span>}
+                                  {clip && <span className="text-[10px] text-green-400">🎤 ~{clip.duration}s</span>}
+                                  {!imgUrl && <span className="text-[10px] text-yellow-400">⬜ no image</span>}
+                                  {!clip && <span className="text-[10px] text-yellow-400">⬜ no audio</span>}
+                                </div>
+                                <p className="text-[11px] text-muted-foreground truncate mt-0.5">"{scene.dialogue}"</p>
+                              </div>
+                              {/* Transition */}
+                              <Badge variant="secondary" className="text-[9px] flex-shrink-0">{scene.transition}</Badge>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Summary + estimated output */}
+                  {imagesJson?.images && voiceoverJson?.clips && (
+                    <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3 space-y-1.5">
+                      <p className="text-xs font-medium text-blue-400">🎥 Ước tính video output:</p>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span>📐 1920×1080</span>
+                        <span>⏱️ ~{voiceoverJson.totalDuration}s</span>
+                        <span>🖼️ {imagesJson.images.length} scenes</span>
+                        <span>📦 WebM (VP9+Opus)</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Nhấn "Assemble Video" để bắt đầu render. Video sẽ được tạo ngay trong browser bằng Canvas API.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Missing prerequisites */}
+                  {(!imagesJson?.images || !voiceoverJson?.clips) && (
+                    <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-3">
+                      <p className="text-xs text-yellow-400">
+                        {!imagesJson?.images && !voiceoverJson?.clips
+                          ? '⚠️ Cần chạy Step 3 (Images) + Step 4 (Voiceover) trước khi ghép video.'
+                          : !imagesJson?.images
+                          ? '⚠️ Cần chạy Step 3 (Image Gen) trước — đã có audio, chỉ cần thêm ảnh.'
+                          : '⚠️ Cần chạy Step 4 (Voiceover) trước — đã có ảnh, chỉ cần thêm audio.'
+                        }
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
