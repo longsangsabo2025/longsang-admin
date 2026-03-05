@@ -1,9 +1,14 @@
 /**
  * 🎬 YouTube Channels Service
- * API client for 5-channel strategy + video factory
+ * Channel CRUD + data queries. Pipeline logic is in @/services/pipeline/
  */
+import { apiFetch } from './pipeline/api-client';
+import { getRun } from './pipeline/run-tracker';
+import { generate, generateStep } from './pipeline/orchestrator';
+import type { GenerationRun } from './pipeline/types';
 
-const API_BASE = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
+// Re-export pipeline types so existing imports still work
+export type { GenerateRequest, GenerationRun } from './pipeline/types';
 
 export interface ChannelPlan {
   id: string;
@@ -37,35 +42,6 @@ export interface ChannelPlan {
   sampleTopics: string[];
 }
 
-export interface GenerateRequest {
-  channelId?: string;
-  topic?: string;
-  transcript?: string;
-  scenes?: number;
-  style?: string;
-  duration?: number;
-  scriptOnly?: boolean;
-  storyboardOnly?: boolean;
-}
-
-export interface GenerationRun {
-  id: string;
-  channelId: string | null;
-  channelName: string | null;
-  status: 'running' | 'completed' | 'failed';
-  startedAt: string;
-  completedAt?: string;
-  durationMs?: number;
-  input: GenerateRequest;
-  logs: { t: number; level: string; msg: string }[];
-  result?: {
-    outputDir: string;
-    files: Record<string, unknown>;
-  };
-  hasResult?: boolean;
-  error?: string;
-}
-
 export interface TranscriptItem {
   id: string;
   title: string;
@@ -81,48 +57,31 @@ export interface KnowledgeStats {
   brain: boolean;
 }
 
-async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}/api/youtube-channels${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || `API error ${res.status}`);
-  }
-  return res.json();
-}
-
 export const youtubeChannelsService = {
-  /** Get all 5 channel plans */
+  // ─── Channel CRUD ──────────────────────────────────────
   async getPlans(): Promise<{ channels: ChannelPlan[]; total: number }> {
     return apiFetch('/plans');
   },
 
-  /** Get single channel plan */
   async getPlan(id: string): Promise<ChannelPlan> {
     return apiFetch(`/plans/${id}`);
   },
 
-  /** Start script + storyboard generation */
-  async generate(req: GenerateRequest): Promise<{ success: boolean; runId: string; message: string }> {
-    return apiFetch('/generate', {
-      method: 'POST',
-      body: JSON.stringify(req),
-    });
-  },
+  // ─── Pipeline (delegates to pipeline/) ─────────────────
+  generate,
+  generateStep,
 
-  /** Get generation run status */
   async getRunStatus(runId: string): Promise<GenerationRun> {
-    return apiFetch(`/generate/${runId}`);
+    const local = getRun(runId);
+    if (local) return local;
+    return apiFetch<GenerationRun>(`/generate/${runId}`);
   },
 
-  /** List recent runs */
+  // ─── Data queries ──────────────────────────────────────
   async getRuns(): Promise<{ runs: GenerationRun[]; total: number }> {
     return apiFetch('/runs');
   },
 
-  /** Search transcripts */
   async searchTranscripts(query?: string, limit?: number): Promise<{ transcripts: TranscriptItem[]; total: number }> {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
@@ -130,13 +89,26 @@ export const youtubeChannelsService = {
     return apiFetch(`/transcripts?${params}`);
   },
 
-  /** Knowledge base stats */
   async getKnowledgeStats(): Promise<KnowledgeStats> {
     return apiFetch('/knowledge/stats');
   },
 
-  /** List recent outputs */
   async getOutputs(): Promise<{ outputs: { id: string; createdAt: string; files: string[]; title: string; stats: Record<string, unknown> | null }[]; total: number }> {
     return apiFetch('/outputs');
+  },
+
+  async getApiKeyStatus(): Promise<{ hasKey: boolean; maskedKey: string }> {
+    try {
+      return await apiFetch('/api-key/status');
+    } catch {
+      return { hasKey: false, maskedKey: '' };
+    }
+  },
+
+  async updateApiKey(key: string): Promise<{ success: boolean; maskedKey: string; message: string }> {
+    return apiFetch('/api-key', {
+      method: 'PUT',
+      body: JSON.stringify({ key }),
+    });
   },
 };

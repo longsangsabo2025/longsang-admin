@@ -698,6 +698,129 @@ app.post('/api/admin/generate-script', async (req, res) => {
 });
 
 /**
+ * POST /api/admin/generate-storyboard — Generate storyboard from script
+ * Body: { script, topic?, scenes?, duration?, style? }
+ */
+app.post('/api/admin/generate-storyboard', async (req, res) => {
+  try {
+    const { script, topic, scenes = 12, duration = 6, style = 'Dark Cinematic' } = req.body;
+    if (!script) return res.status(400).json({ error: 'script required' });
+
+    const storyboardModel = process.env.DEFAULT_MODEL || 'gpt-4o-mini';
+
+    const STORYBOARD_PROMPT = `You are a Visual Director — you design the visual layer for podcast-style YouTube videos.
+
+## YOUR MISSION
+Create a visual storyboard for a podcast video.  
+Each scene = ~${duration}s of footage. Create exactly ${scenes} scenes.
+Style: ${style}. Language: Vietnamese.
+
+## OUTPUT FORMAT (JSON only, no markdown)
+{
+  "scenes": [
+    {
+      "scene": 1,
+      "timestamp": "0:00-0:${String(duration).padStart(2, '0')}",
+      "scriptSection": "hook",
+      "dialogue": "Exact Vietnamese narration for this segment",
+      "prompt": "Hailuo 2.3 prompt: [Subject] + [Action] + [Camera] + [Style] — cinematic, 4K",
+      "motion": "slow zoom in",
+      "transition": "fade through black",
+      "duration": ${duration}
+    }
+  ],
+  "thumbnail": {
+    "concept": "Thumbnail description",
+    "textOverlay": "Main text on thumbnail (max 6 words)",
+    "mood": "dramatic"
+  },
+  "style": { "name": "${style}", "colorDesc": "dark tones with gold accents", "moodWords": "mysterious, powerful" },
+  "config": { "scenes": ${scenes}, "duration": ${duration} },
+  "totalScenes": ${scenes}
+}
+
+## RULES
+- Each scene MUST have a detailed Hailuo 2.3 image/video prompt (English)
+- dialogue must be the exact Vietnamese text spoken during that scene
+- prompt must be specific: subject, action, camera angle, lighting, style
+- motion: slow zoom in, pan left, dolly forward, static, etc.
+- transition: fade, cut, dissolve, zoom transition
+- ALWAYS output valid JSON only (no markdown code blocks)`;
+
+    const { chat: llmChat, estimateCost: estCost } = await import('./core/llm.js');
+    const result = await llmChat({
+      model: storyboardModel,
+      systemPrompt: STORYBOARD_PROMPT,
+      userMessage: `Create a ${scenes}-scene storyboard for this script:\n\nTOPIC: ${topic || 'N/A'}\n\nSCRIPT:\n${script.substring(0, 12000)}`,
+      temperature: 0.8,
+      maxTokens: 8192,
+      agentId: 'admin-storyboard-gen',
+    });
+
+    // Parse JSON from response
+    let storyboard;
+    try {
+      const cleaned = result.content.replace(/```json\n?/g, '').replace(/```/g, '').trim();
+      storyboard = JSON.parse(cleaned);
+    } catch {
+      // Try to extract JSON from response
+      const jsonMatch = result.content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        storyboard = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('Failed to parse storyboard JSON from AI response');
+      }
+    }
+
+    // Generate prompts.txt (one prompt per line)
+    const promptsTxt = (storyboard.scenes || [])
+      .map((s, i) => `[Scene ${i + 1}] ${s.prompt}`)
+      .join('\n\n');
+
+    // Generate storyboard.md (markdown table)
+    const storyboardMd = [
+      `# Storyboard — ${topic || 'Video'}`,
+      `Style: ${style} | Scenes: ${scenes} | Duration: ${duration}s each\n`,
+      '| Scene | Timestamp | Dialogue | Prompt | Motion | Transition |',
+      '|-------|-----------|----------|--------|--------|------------|',
+      ...(storyboard.scenes || []).map(s =>
+        `| ${s.scene} | ${s.timestamp || ''} | ${(s.dialogue || '').substring(0, 60)}... | ${(s.prompt || '').substring(0, 80)}... | ${s.motion || ''} | ${s.transition || ''} |`
+      ),
+      '',
+      '## Hailuo 2.3 Prompts (Copy-Paste Ready)\n',
+      ...(storyboard.scenes || []).map((s, i) =>
+        `### Scene ${i + 1}\n\`\`\`\n${s.prompt}\n\`\`\`\n`
+      ),
+    ].join('\n');
+
+    // Save to output
+    const slug = (topic || 'storyboard').replace(/[^a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF]/g, '-').substring(0, 50);
+    const outDir = join(__dirname, '..', 'output', '_video-factory', `${slug}_${Date.now()}`);
+    mkdirSync(outDir, { recursive: true });
+    writeFileSync(join(outDir, 'storyboard.json'), JSON.stringify(storyboard, null, 2), 'utf-8');
+    writeFileSync(join(outDir, 'storyboard.md'), storyboardMd, 'utf-8');
+    writeFileSync(join(outDir, 'prompts.txt'), promptsTxt, 'utf-8');
+
+    const cost = estCost(storyboardModel, result.tokens.input, result.tokens.output);
+
+    res.json({
+      success: true,
+      storyboard,
+      storyboardMd,
+      promptsTxt,
+      scenes: storyboard.scenes?.length || 0,
+      tokens: result.tokens,
+      cost,
+      model: storyboardModel,
+      outputDir: outDir,
+    });
+  } catch (err) {
+    console.error('[Storyboard Error]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * POST /api/admin/batch-generate — Generate multiple scripts
  * Body: { topics: string[], auto?: number, concurrency?: number }
  */
