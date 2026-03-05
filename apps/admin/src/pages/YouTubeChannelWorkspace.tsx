@@ -1850,9 +1850,14 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGene
                       <p className="text-[10px] text-muted-foreground">File Size</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Badge variant="secondary" className="text-[10px]">Transitions: {assemblyJson.transitions}</Badge>
-                    <Badge variant="secondary" className="text-[10px]">BG Music: {assemblyJson.bgMusic ? 'On' : 'Off'}</Badge>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant="secondary" className="text-[10px]">{assemblyJson.fps || 24} fps</Badge>
+                    <Badge variant="secondary" className="text-[10px]">🎬 {assemblyJson.transitions}</Badge>
+                    {assemblyJson.panZoom && assemblyJson.panZoom !== 'none' && (
+                      <Badge variant="secondary" className="text-[10px]">🔍 {assemblyJson.panZoom}</Badge>
+                    )}
+                    {assemblyJson.textOverlay && <Badge variant="secondary" className="text-[10px]">📝 phụ đề</Badge>}
+                    <Badge variant="secondary" className="text-[10px]">{assemblyJson.bgMusic ? '🎵 nhạc nền' : '🔇 không nhạc'}</Badge>
                     <a href={assemblyJson.videoUrl} download className="ml-auto">
                       <Button variant="outline" size="sm"><Download className="h-3 w-3 mr-1" /> Download</Button>
                     </a>

@@ -29,6 +29,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import SmartAudio from './SmartAudio';
+import { Slider } from '@/components/ui/slider';
 import { type PipelineConfig, type VisualIdentity, DEFAULT_PIPELINE, DEFAULT_VISUAL_IDENTITY } from './pipeline-types';
 
 export type { PipelineConfig } from './pipeline-types';
@@ -2549,6 +2550,8 @@ function AssemblyConfig({
   const hasImages = !!(imagesJson?.images && imagesJson.images.length > 0);
   const hasAudio = !!(voiceoverJson?.clips && voiceoverJson.clips.length > 0);
 
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   return (
     <div className="space-y-3">
       {/* Prerequisites Status */}
@@ -2576,52 +2579,179 @@ function AssemblyConfig({
         )}
       </div>
 
-      {/* Config Options */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label className="text-xs">Format</Label>
-          <Select value={config.format} onValueChange={(v) => onUpdate({ format: v })}>
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mp4-1080p">MP4 1080p</SelectItem>
-              <SelectItem value="mp4-4k">MP4 4K</SelectItem>
-              <SelectItem value="webm-1080p">WebM 1080p</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Transitions</Label>
-          <Select value={config.transitions} onValueChange={(v) => onUpdate({ transitions: v })}>
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="crossfade">Crossfade — Mờ dần chuyển cảnh</SelectItem>
-              <SelectItem value="cut">Hard Cut — Cắt trực tiếp</SelectItem>
-              <SelectItem value="zoom">Zoom — Ken Burns effect</SelectItem>
-              <SelectItem value="slide">Slide — Trượt ngang</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-2 col-span-2">
-          <Switch
-            checked={config.bgMusic}
-            onCheckedChange={(checked) => onUpdate({ bgMusic: checked })}
-          />
-          <Label className="text-xs">Background Music</Label>
+      {/* ── Core Config ── */}
+      <div className="space-y-1.5">
+        <p className="text-[11px] font-medium text-muted-foreground">🎬 Cấu hình chính</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Label className="text-xs">Format</Label>
+            <Select value={config.format} onValueChange={(v) => onUpdate({ format: v })}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mp4-1080p">MP4 1080p (Full HD)</SelectItem>
+                <SelectItem value="mp4-4k">MP4 4K (Ultra HD)</SelectItem>
+                <SelectItem value="webm-1080p">WebM 1080p</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">FPS — Tốc độ khung hình</Label>
+            <Select value={String(config.fps)} onValueChange={(v) => onUpdate({ fps: Number(v) })}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="24">24 fps — Cinematic</SelectItem>
+                <SelectItem value="30">30 fps — Standard</SelectItem>
+                <SelectItem value="60">60 fps — Smooth</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
-      {/* How it works */}
-      <div className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2 space-y-1">
-        <p className="text-[10px] font-medium text-red-400/80">🎥 Cách hoạt động:</p>
-        <p className="text-[10px] text-muted-foreground leading-relaxed">
-          Tự động lấy images từ Step 3 + audio từ Step 4 → render video bằng Canvas API trong browser → 
-          output WebM (VP9+Opus) → upload lên Supabase. Mỗi scene hiển thị ảnh + phát audio tương ứng, 
-          chuyển cảnh theo transition đã chọn.
-        </p>
+      {/* ── Transitions & Effects ── */}
+      <div className="space-y-1.5">
+        <p className="text-[11px] font-medium text-muted-foreground">✨ Chuyển cảnh & Hiệu ứng</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Label className="text-xs">Transition — Chuyển cảnh</Label>
+            <Select value={config.transitions} onValueChange={(v) => onUpdate({ transitions: v })}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="crossfade">🌗 Crossfade — Mờ dần chuyển cảnh</SelectItem>
+                <SelectItem value="cut">✂️ Hard Cut — Cắt trực tiếp</SelectItem>
+                <SelectItem value="zoom">🔍 Zoom — Ken Burns effect</SelectItem>
+                <SelectItem value="slide">➡️ Slide — Trượt ngang</SelectItem>
+                <SelectItem value="fade-black">⬛ Fade to Black — Mờ đen</SelectItem>
+                <SelectItem value="wipe">🔲 Wipe — Quét ngang</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Pan & Zoom — Chuyển động ảnh</Label>
+            <Select value={config.panZoom} onValueChange={(v) => onUpdate({ panZoom: v })}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Không — Ảnh tĩnh</SelectItem>
+                <SelectItem value="zoom-in">🔍 Zoom In — Phóng to dần</SelectItem>
+                <SelectItem value="zoom-out">🔎 Zoom Out — Thu nhỏ dần</SelectItem>
+                <SelectItem value="pan-left">⬅️ Pan Left — Trượt trái</SelectItem>
+                <SelectItem value="pan-right">➡️ Pan Right — Trượt phải</SelectItem>
+                <SelectItem value="random">🎲 Random — Ngẫu nhiên mỗi scene</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Transition Duration — Thời gian chuyển cảnh</Label>
+            <span className="text-[10px] text-muted-foreground tabular-nums">{config.transitionDuration}s</span>
+          </div>
+          <Slider
+            value={[config.transitionDuration]}
+            onValueChange={([v]) => onUpdate({ transitionDuration: v })}
+            min={0.2}
+            max={2.0}
+            step={0.1}
+            className="py-1"
+          />
+          <div className="flex justify-between text-[9px] text-muted-foreground/50">
+            <span>0.2s nhanh</span><span>2.0s mượt</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Text & Overlay ── */}
+      <div className="space-y-1.5">
+        <p className="text-[11px] font-medium text-muted-foreground">📝 Phụ đề & Lớp phủ</p>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={config.textOverlay}
+              onCheckedChange={(checked) => onUpdate({ textOverlay: checked })}
+            />
+            <Label className="text-xs">Phụ đề — Hiện dialogue trên video</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={config.fadeInOut}
+              onCheckedChange={(checked) => onUpdate({ fadeInOut: checked })}
+            />
+            <Label className="text-xs">Fade In/Out — Mờ đen đầu/cuối</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={config.bgMusic}
+              onCheckedChange={(checked) => onUpdate({ bgMusic: checked })}
+            />
+            <Label className="text-xs">Background Music</Label>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Advanced ── */}
+      <button
+        onClick={() => setShowAdvanced(!showAdvanced)}
+        className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {showAdvanced ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+        Nâng cao
+      </button>
+
+      {showAdvanced && (
+        <div className="space-y-3 pl-2 border-l-2 border-muted">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">Scene Padding — Thêm giây mỗi scene</Label>
+              <span className="text-[10px] text-muted-foreground tabular-nums">{config.scenePadding}s</span>
+            </div>
+            <Slider
+              value={[config.scenePadding]}
+              onValueChange={([v]) => onUpdate({ scenePadding: v })}
+              min={0}
+              max={3.0}
+              step={0.25}
+              className="py-1"
+            />
+            <p className="text-[9px] text-muted-foreground/60">Thêm thời gian hiển thị ảnh trước/sau audio (pause effect)</p>
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs">Watermark URL — Logo chèn góc video</Label>
+            <Input
+              value={config.watermarkUrl}
+              onChange={(e) => onUpdate({ watermarkUrl: e.target.value })}
+              placeholder="https://... (để trống = không watermark)"
+              className="h-8 text-xs"
+            />
+            <p className="text-[9px] text-muted-foreground/60">URL ảnh PNG trong suốt, sẽ hiện góc dưới phải video</p>
+          </div>
+        </div>
+      )}
+
+      {/* Active config summary */}
+      <div className="rounded-md border bg-muted/20 px-3 py-2 space-y-1">
+        <p className="text-[10px] font-medium text-muted-foreground">📋 Tổng quan cấu hình:</p>
+        <div className="flex flex-wrap gap-1.5">
+          <Badge variant="secondary" className="text-[9px]">{config.format}</Badge>
+          <Badge variant="secondary" className="text-[9px]">{config.fps}fps</Badge>
+          <Badge variant="secondary" className="text-[9px]">{config.transitions}</Badge>
+          {config.panZoom !== 'none' && <Badge variant="secondary" className="text-[9px]">🎬 {config.panZoom}</Badge>}
+          {config.textOverlay && <Badge variant="secondary" className="text-[9px]">📝 phụ đề</Badge>}
+          {config.fadeInOut && <Badge variant="secondary" className="text-[9px]">🌑 fade</Badge>}
+          {config.bgMusic && <Badge variant="secondary" className="text-[9px]">🎵 nhạc nền</Badge>}
+          <Badge variant="secondary" className="text-[9px]">⏱ transition {config.transitionDuration}s</Badge>
+          {config.scenePadding > 0 && <Badge variant="secondary" className="text-[9px]">⏸ pad {config.scenePadding}s</Badge>}
+          {config.watermarkUrl && <Badge variant="secondary" className="text-[9px]">🔒 watermark</Badge>}
+        </div>
       </div>
     </div>
   );

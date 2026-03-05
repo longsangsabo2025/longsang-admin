@@ -217,9 +217,30 @@ function splitIntoChunks(text: string, maxLen = 1500): string[] {
   return chunks;
 }
 
-/** Get file extension from engine type */
-function audioExt(engine: string): string {
+/** Get file extension from engine type or blob type */
+function audioExt(engine: string, blob?: Blob): string {
+  // If blob available, detect from actual MIME type (handles Gemini→Google fallback)
+  if (blob?.type) {
+    if (blob.type.includes('mpeg') || blob.type.includes('mp3')) return 'mp3';
+    if (blob.type.includes('wav') || blob.type.includes('pcm') || blob.type.includes('L16')) return 'wav';
+  }
   return engine === 'gemini-tts' ? 'wav' : 'mp3';
+}
+
+/** Gemini voice → best Google Cloud TTS Vietnamese voice mapping for fallback */
+const GEMINI_TO_GOOGLE_VOICE: Record<string, string> = {
+  Kore: 'vi-VN-Neural2-A',  Aoede: 'vi-VN-Wavenet-A', Leda: 'vi-VN-Wavenet-C',
+  Zephyr: 'vi-VN-Neural2-A', Achernar: 'vi-VN-Wavenet-A', Autonoe: 'vi-VN-Neural2-A',
+  Callirrhoe: 'vi-VN-Wavenet-C', Despina: 'vi-VN-Neural2-A', Erinome: 'vi-VN-Wavenet-A',
+  Laomedeia: 'vi-VN-Neural2-A', Sulafat: 'vi-VN-Wavenet-C', Vindemiatrix: 'vi-VN-Wavenet-A',
+  Charon: 'vi-VN-Neural2-D', Fenrir: 'vi-VN-Wavenet-D', Puck: 'vi-VN-Wavenet-B',
+  Orus: 'vi-VN-Neural2-D', Gacrux: 'vi-VN-Wavenet-D', Iapetus: 'vi-VN-Wavenet-B',
+  Umbriel: 'vi-VN-Neural2-D', Algenib: 'vi-VN-Wavenet-D', Rasalgethi: 'vi-VN-Neural2-D',
+};
+
+function isQuotaError(msg: string): boolean {
+  const lower = msg.toLowerCase();
+  return lower.includes('quota') || lower.includes('rate') || msg.includes('429') || lower.includes('resource_exhausted');
 }
 
 /** Merge all clip blobs into a single full-audio WAV file using Web Audio API */
@@ -307,8 +328,24 @@ async function mergeClipsToFullAudio(
   return await uploadAudio(wavBlob, channelId, runId, 'full-audio.wav');
 }
 
-/** Generate a single TTS blob using the chosen engine, with retry on transient errors */
-async function synthesize(text: string, engine: string, voice: string, speed: number, apiKey: string): Promise<Blob> {
+/** Track whether Gemini TTS quota is exhausted this session → skip straight to fallback */
+let _geminiQuotaExhausted = false;
+
+/** Generate a single TTS blob using the chosen engine, with retry on transient errors.
+ *  Auto-falls back from Gemini → Google Cloud TTS on quota/rate-limit errors. */
+async function synthesize(
+  text: string, engine: string, voice: string, speed: number, apiKey: string,
+  _logFn?: (msg: string) => void,
+): Promise<Blob> {
+  const log = _logFn || ((m: string) => console.log('[TTS]', m));
+
+  // If Gemini quota already exhausted this session, go straight to Google TTS
+  if (engine === 'gemini-tts' && _geminiQuotaExhausted) {
+    const fbVoice = GEMINI_TO_GOOGLE_VOICE[voice] || 'vi-VN-Neural2-D';
+    log(`⚡ Gemini quota exhausted — using Google TTS (${fbVoice}) directly`);
+    return await googleTTS(text, fbVoice, speed, apiKey);
+  }
+
   const maxRetries = 3;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -317,10 +354,19 @@ async function synthesize(text: string, engine: string, voice: string, speed: nu
       return await geminiTTS(text, voice, speed, apiKey);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
+
+      // Quota/rate-limit → auto-fallback to Google Cloud TTS (same API key works)
+      if (engine === 'gemini-tts' && isQuotaError(msg)) {
+        _geminiQuotaExhausted = true;
+        const fbVoice = GEMINI_TO_GOOGLE_VOICE[voice] || 'vi-VN-Neural2-D';
+        log(`⚠️ Gemini quota exceeded — auto-fallback to Google Cloud TTS (${fbVoice})`);
+        return await googleTTS(text, fbVoice, speed, apiKey);
+      }
+
       const isRetryable = msg.includes('internal') || msg.includes('500') || msg.includes('503') || msg.includes('retry') || msg.includes('INTERNAL');
       if (isRetryable && attempt < maxRetries) {
         const delay = (attempt + 1) * 3000; // 3s, 6s, 9s
-        console.warn(`[TTS] Attempt ${attempt + 1} failed (${msg}), retrying in ${delay / 1000}s...`);
+        log(`Attempt ${attempt + 1} failed (${msg}), retrying in ${delay / 1000}s...`);
         await new Promise(r => setTimeout(r, delay));
         continue;
       }
@@ -413,8 +459,9 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
 
         run.logs.push({ t: Date.now(), level: 'info', msg: `[30%] 🎙️ Generating single narration (${combinedText.length} chars, ${total} scenes)...` });
 
-        const blob = await synthesize(combinedText, engine, voice, speed, apiKey);
-        const ext = audioExt(engine);
+        const logFn = (m: string) => run.logs.push({ t: Date.now(), level: 'info', msg: m });
+        const blob = await synthesize(combinedText, engine, voice, speed, apiKey, logFn);
+        const ext = audioExt(engine, blob);
         const filename = `full-narration.${ext}`;
         const url = await uploadAudio(blob, channelId, runId, filename);
 
@@ -489,8 +536,9 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
         run.logs.push({ t: Date.now(), level: 'info', msg: `[${Math.round(((i + 0.5) / total) * 90) + 5}%] 🎙️ Scene ${scene.scene}: generating (${clean.length} chars)...` });
 
         try {
-          const blob = await synthesize(clean, engine, voice, speed, apiKey);
-          const ext = audioExt(engine);
+          const logFn = (m: string) => run.logs.push({ t: Date.now(), level: 'info', msg: m });
+          const blob = await synthesize(clean, engine, voice, speed, apiKey, logFn);
+          const ext = audioExt(engine, blob);
           const filename = `scene-${String(scene.scene).padStart(2, '0')}.${ext}`;
           const url = await uploadAudio(blob, channelId, runId, filename);
           const dur = estimateDuration(clean.length, speed);
@@ -578,8 +626,9 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
 
       run.logs.push({ t: Date.now(), level: 'info', msg: `[${Math.round(((i + 0.5) / total) * 90) + 5}%] 🎙️ Part ${i + 1}: generating (${chunks[i].length} chars)...` });
 
-      const blob = await synthesize(chunks[i], engine, voice, speed, apiKey);
-      const ext = audioExt(engine);
+      const logFn = (m: string) => run.logs.push({ t: Date.now(), level: 'info', msg: m });
+      const blob = await synthesize(chunks[i], engine, voice, speed, apiKey, logFn);
+      const ext = audioExt(engine, blob);
       const filename = total === 1 ? `narration.${ext}` : `part-${String(i + 1).padStart(2, '0')}.${ext}`;
       const url = await uploadAudio(blob, channelId, runId, filename);
       const dur = estimateDuration(chunks[i].length, speed);
@@ -639,7 +688,7 @@ export async function regenerateSingleClip(opts: {
   if (!clean) throw new Error('Text trống');
 
   const blob = await synthesize(clean, engine, voice, speed, apiKey);
-  const ext = audioExt(engine);
+  const ext = audioExt(engine, blob);
   const filename = `scene-${String(sceneNum).padStart(2, '0')}-regen.${ext}`;
   const url = await uploadAudio(blob, channelId, runId, filename);
   const duration = estimateDuration(clean.length, speed);

@@ -38,10 +38,25 @@ interface VoiceoverJson {
   fullAudioUrl?: string;
 }
 
+interface StoryboardScene {
+  scene: number;
+  dialogue: string;
+  prompt?: string;
+  motion?: string;
+  transition?: string;
+}
+
 interface AssemblyConfig {
   format: string;
   transitions: string;
   bgMusic: boolean;
+  textOverlay: boolean;
+  panZoom: string;
+  fps: number;
+  fadeInOut: boolean;
+  transitionDuration: number;
+  scenePadding: number;
+  watermarkUrl: string;
 }
 
 interface SceneTimeline {
@@ -49,6 +64,7 @@ interface SceneTimeline {
   startTime: number;
   duration: number;
   image: HTMLImageElement | null;
+  dialogue: string;
 }
 
 interface AssemblyResult {
@@ -60,6 +76,9 @@ interface AssemblyResult {
   fileSize: number;
   transitions: string;
   bgMusic: boolean;
+  panZoom: string;
+  textOverlay: boolean;
+  fps: number;
 }
 
 // ─── Helpers ───────────────────────────────────────────────
@@ -124,15 +143,105 @@ function drawImageCover(
   ctx.restore();
 }
 
-/** Render the correct frame for a given elapsed time */
+const PAN_ZOOM_OPTIONS = ['zoom-in', 'zoom-out', 'pan-left', 'pan-right'] as const;
+
+/** Get pan/zoom effect for a scene. For 'random' mode, uses scene index as seed. */
+function resolvePanZoom(configValue: string, sceneIdx: number): string {
+  if (configValue === 'random') return PAN_ZOOM_OPTIONS[sceneIdx % PAN_ZOOM_OPTIONS.length];
+  return configValue;
+}
+
+/** Apply pan & zoom motion to the image draw. Returns scale and offsetX. */
+function getPanZoomParams(panZoom: string, progress: number): { scale: number; offsetX: number } {
+  switch (panZoom) {
+    case 'zoom-in':  return { scale: 1 + progress * 0.12, offsetX: 0 };
+    case 'zoom-out': return { scale: 1.12 - progress * 0.12, offsetX: 0 };
+    case 'pan-left': return { scale: 1.08, offsetX: progress * -60 };
+    case 'pan-right':return { scale: 1.08, offsetX: progress * 60 };
+    default:         return { scale: 1, offsetX: 0 };
+  }
+}
+
+/** Draw text overlay (subtitle) on the canvas bottom area */
+function drawTextOverlay(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  width: number,
+  height: number,
+) {
+  if (!text) return;
+  const fontSize = Math.round(height * 0.032); // ~35px at 1080p
+  const padding = Math.round(height * 0.04);
+  const maxWidth = width * 0.82;
+
+  ctx.save();
+  ctx.font = `600 ${fontSize}px "Segoe UI", Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+
+  // Word-wrap text
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    if (ctx.measureText(testLine).width > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+
+  // Draw semi-transparent background box
+  const lineHeight = fontSize * 1.35;
+  const boxH = lines.length * lineHeight + padding * 0.6;
+  const boxY = height - padding - boxH;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.beginPath();
+  const r = 8;
+  const boxX = (width - maxWidth - padding) / 2;
+  const boxW = maxWidth + padding;
+  ctx.roundRect(boxX, boxY, boxW, boxH + padding * 0.3, r);
+  ctx.fill();
+
+  // Draw text lines
+  ctx.fillStyle = '#FFFFFF';
+  ctx.shadowColor = 'rgba(0,0,0,0.8)';
+  ctx.shadowBlur = 4;
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], width / 2, boxY + (i + 1) * lineHeight + padding * 0.15);
+  }
+  ctx.restore();
+}
+
+/** Draw watermark image at bottom-right corner */
+function drawWatermark(
+  ctx: CanvasRenderingContext2D,
+  watermark: HTMLImageElement,
+  width: number,
+  height: number,
+) {
+  const wmH = Math.round(height * 0.06); // 6% of video height
+  const wmW = Math.round(wmH * (watermark.width / watermark.height));
+  const margin = Math.round(height * 0.02);
+  ctx.save();
+  ctx.globalAlpha = 0.7;
+  ctx.drawImage(watermark, width - wmW - margin, height - wmH - margin, wmW, wmH);
+  ctx.restore();
+}
+
+/** Render the correct frame for a given elapsed time (with all effects) */
 function renderFrame(
   ctx: CanvasRenderingContext2D,
   timeline: SceneTimeline[],
   elapsed: number,
+  totalDuration: number,
   width: number,
   height: number,
-  transitionType: string,
-  transitionDur: number,
+  config: AssemblyConfig,
+  watermarkImg: HTMLImageElement | null,
 ) {
   // Find current scene
   let currentIdx = 0;
@@ -143,6 +252,7 @@ function renderFrame(
   const nextScene = currentIdx + 1 < timeline.length ? timeline[currentIdx + 1] : null;
   const sceneElapsed = elapsed - scene.startTime;
   const sceneProgress = scene.duration > 0 ? sceneElapsed / scene.duration : 0;
+  const transitionDur = config.transitionDuration;
 
   // Clear to black
   ctx.fillStyle = '#000000';
@@ -150,24 +260,81 @@ function renderFrame(
 
   if (!scene.image) return;
 
-  // Transition zone: last transitionDur seconds of each scene (before next scene)
+  // Pan & zoom motion applied during the entire scene
+  const panZoom = resolvePanZoom(config.panZoom, currentIdx);
+  const { scale: pzScale, offsetX: pzOffsetX } = getPanZoomParams(panZoom, sceneProgress);
+
+  // Transition zone: last transitionDur seconds of a scene
   const isInTransition = nextScene && (scene.duration - sceneElapsed) < transitionDur;
   const tProgress = isInTransition
     ? 1 - (scene.duration - sceneElapsed) / transitionDur
     : 0;
 
+  const transitionType = config.transitions;
+
   if (transitionType === 'crossfade' && isInTransition && nextScene?.image) {
-    drawImageCover(ctx, scene.image, width, height, 1 - tProgress);
-    drawImageCover(ctx, nextScene.image, width, height, tProgress);
-  } else if (transitionType === 'zoom') {
-    const zoom = 1 + sceneProgress * 0.1; // Ken Burns slow zoom
-    drawImageCover(ctx, scene.image, width, height, 1, zoom);
+    drawImageCover(ctx, scene.image, width, height, 1 - tProgress, pzScale, pzOffsetX);
+    const nextPz = getPanZoomParams(resolvePanZoom(config.panZoom, currentIdx + 1), 0);
+    drawImageCover(ctx, nextScene.image, width, height, tProgress, nextPz.scale, nextPz.offsetX);
+  } else if (transitionType === 'fade-black' && isInTransition && nextScene?.image) {
+    // Fade to black then fade in next
+    if (tProgress < 0.5) {
+      drawImageCover(ctx, scene.image, width, height, 1 - tProgress * 2, pzScale, pzOffsetX);
+    } else {
+      const nextPz = getPanZoomParams(resolvePanZoom(config.panZoom, currentIdx + 1), 0);
+      drawImageCover(ctx, nextScene.image, width, height, (tProgress - 0.5) * 2, nextPz.scale, nextPz.offsetX);
+    }
+  } else if (transitionType === 'wipe' && isInTransition && nextScene?.image) {
+    // Horizontal wipe: next scene revealed from left
+    const nextPz = getPanZoomParams(resolvePanZoom(config.panZoom, currentIdx + 1), 0);
+    drawImageCover(ctx, scene.image, width, height, 1, pzScale, pzOffsetX);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, width * tProgress, height);
+    ctx.clip();
+    drawImageCover(ctx, nextScene.image, width, height, 1, nextPz.scale, nextPz.offsetX);
+    ctx.restore();
+  } else if (transitionType === 'zoom' && isInTransition && nextScene?.image) {
+    // Legacy zoom transition: zoom into current, then show next
+    const zoom = pzScale * (1 + tProgress * 0.15);
+    drawImageCover(ctx, scene.image, width, height, 1 - tProgress, zoom, pzOffsetX);
+    const nextPz = getPanZoomParams(resolvePanZoom(config.panZoom, currentIdx + 1), 0);
+    drawImageCover(ctx, nextScene.image, width, height, tProgress, nextPz.scale, nextPz.offsetX);
   } else if (transitionType === 'slide' && isInTransition && nextScene?.image) {
     const offset = -tProgress * width;
-    drawImageCover(ctx, scene.image, width, height, 1, 1, offset);
-    drawImageCover(ctx, nextScene.image, width, height, 1, 1, offset + width);
+    drawImageCover(ctx, scene.image, width, height, 1, pzScale, pzOffsetX + offset);
+    const nextPz = getPanZoomParams(resolvePanZoom(config.panZoom, currentIdx + 1), 0);
+    drawImageCover(ctx, nextScene.image, width, height, 1, nextPz.scale, nextPz.offsetX + offset + width);
   } else {
-    drawImageCover(ctx, scene.image, width, height, 1);
+    // Cut or default (+ non-transition zone)
+    drawImageCover(ctx, scene.image, width, height, 1, pzScale, pzOffsetX);
+  }
+
+  // Text overlay (subtitle)
+  if (config.textOverlay && scene.dialogue) {
+    drawTextOverlay(ctx, scene.dialogue, width, height);
+  }
+
+  // Watermark
+  if (watermarkImg) {
+    drawWatermark(ctx, watermarkImg, width, height);
+  }
+
+  // Fade in at start / fade out at end
+  if (config.fadeInOut) {
+    const FADE_DUR = 1.0; // 1s fade
+    let overlay = 0;
+    if (elapsed < FADE_DUR) {
+      overlay = 1 - elapsed / FADE_DUR; // fade in from black
+    } else if (elapsed > totalDuration - FADE_DUR) {
+      overlay = (elapsed - (totalDuration - FADE_DUR)) / FADE_DUR; // fade out to black
+    }
+    if (overlay > 0) {
+      ctx.save();
+      ctx.fillStyle = `rgba(0, 0, 0, ${overlay})`;
+      ctx.fillRect(0, 0, width, height);
+      ctx.restore();
+    }
   }
 }
 
@@ -191,10 +358,18 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
 
   const channelId = req.channelId || 'default';
 
+  const r = req as Record<string, unknown>;
   const assemblyConfig: AssemblyConfig = {
-    format: (req as Record<string, unknown>).assemblyFormat as string || 'mp4-1080p',
-    transitions: (req as Record<string, unknown>).assemblyTransitions as string || 'crossfade',
-    bgMusic: (req as Record<string, unknown>).assemblyBgMusic !== false,
+    format: r.assemblyFormat as string || 'mp4-1080p',
+    transitions: r.assemblyTransitions as string || 'crossfade',
+    bgMusic: r.assemblyBgMusic !== false,
+    textOverlay: r.assemblyTextOverlay !== false,
+    panZoom: r.assemblyPanZoom as string || 'none',
+    fps: Number(r.assemblyFps) || 24,
+    fadeInOut: r.assemblyFadeInOut !== false,
+    transitionDuration: Number(r.assemblyTransitionDuration) || 0.5,
+    scenePadding: Number(r.assemblyScenePadding) || 0,
+    watermarkUrl: (r.assemblyWatermarkUrl as string) || '',
   };
 
   // ── 1. Gather images from Step 3 ──
@@ -219,15 +394,40 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
     return;
   }
 
+  // ── 2b. Gather storyboard for text overlay ──
+  let storyboardJson: { scenes?: StoryboardScene[] } | undefined;
+  if (assemblyConfig.textOverlay) {
+    storyboardJson = run.result?.files?.['storyboard.json'] as { scenes?: StoryboardScene[] } | undefined;
+    if (!storyboardJson?.scenes?.length) {
+      const sbRun = findLatestRunWithFile('storyboard.json', req.channelId, runId);
+      storyboardJson = sbRun?.result?.files?.['storyboard.json'] as { scenes?: StoryboardScene[] } | undefined;
+    }
+  }
+  const dialogueMap = new Map<number, string>();
+  if (storyboardJson?.scenes) {
+    for (const s of storyboardJson.scenes) {
+      if (s.dialogue) dialogueMap.set(s.scene, s.dialogue);
+    }
+  }
+
   const images = imagesJson.images;
   const clips = voiceoverJson.clips;
   const isSingleNarration = voiceoverJson.singleNarration === true;
   const fullNarrationUrl = voiceoverJson.fullNarrationUrl || voiceoverJson.fullAudioUrl || '';
   const totalScenes = images.length;
 
+  const activeEffects = [
+    assemblyConfig.transitions,
+    assemblyConfig.panZoom !== 'none' ? `pan:${assemblyConfig.panZoom}` : '',
+    assemblyConfig.textOverlay ? 'subtitle' : '',
+    assemblyConfig.fadeInOut ? 'fade' : '',
+    assemblyConfig.watermarkUrl ? 'watermark' : '',
+    assemblyConfig.scenePadding > 0 ? `pad:${assemblyConfig.scenePadding}s` : '',
+  ].filter(Boolean).join(', ');
+
   run.logs.push({
     t: Date.now(), level: 'info',
-    msg: `🎥 Starting assembly: ${totalScenes} scenes, audio=${isSingleNarration ? 'single-narration' : `${clips.length} clips`}, format=${assemblyConfig.format}, transitions=${assemblyConfig.transitions}`,
+    msg: `🎥 Starting assembly: ${totalScenes} scenes, audio=${isSingleNarration ? 'single-narration' : `${clips.length} clips`}, ${assemblyConfig.fps}fps, effects=[${activeEffects}]`,
     step: 'assembly',
   });
 
@@ -297,12 +497,20 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
       }
     }
 
-    // ── 6. Build timeline ──
-    // For single narration: total duration = actual audio buffer duration
-    //   Scene durations are proportional to estimated clip durations
-    // For per-scene: each scene duration = its AudioBuffer.duration
+    // ── 6. Load watermark (if configured) ──
+    let watermarkImg: HTMLImageElement | null = null;
+    if (assemblyConfig.watermarkUrl) {
+      try {
+        watermarkImg = await loadImage(assemblyConfig.watermarkUrl);
+        run.logs.push({ t: Date.now(), level: 'info', msg: '🔒 Watermark loaded', step: 'assembly' });
+      } catch {
+        run.logs.push({ t: Date.now(), level: 'warn', msg: '⚠️ Watermark failed to load, skipping', step: 'assembly' });
+      }
+    }
+
+    // ── 7. Build timeline ──
     const DEFAULT_SCENE_DURATION = 5;
-    const TRANSITION_DURATION = 0.5;
+    const pad = assemblyConfig.scenePadding;
 
     const timeline: SceneTimeline[] = [];
     let timeOffset = 0;
@@ -310,41 +518,46 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
     const sceneNumbers = [...new Set([...images.map(i => i.scene), ...clips.map(c => c.scene)])].sort((a, b) => a - b);
 
     if (isSingleNarration && singleNarrationBuffer) {
-      // Proportional split based on estimated durations from clips
       const totalEstimated = clips.reduce((sum, c) => sum + (c.duration || 1), 0);
       const actualTotal = singleNarrationBuffer.duration;
+      const totalPadding = pad * sceneNumbers.length;
 
       for (const sceneNum of sceneNumbers) {
         const clipData = clips.find(c => c.scene === sceneNum);
         const estimatedDur = clipData?.duration || DEFAULT_SCENE_DURATION;
-        const duration = actualTotal * (estimatedDur / totalEstimated);
+        const duration = actualTotal * (estimatedDur / totalEstimated) + pad;
 
         timeline.push({
           scene: sceneNum,
           startTime: timeOffset,
           duration,
           image: loadedImages.get(sceneNum) || null,
+          dialogue: dialogueMap.get(sceneNum) || '',
         });
         timeOffset += duration;
       }
+      // Single narration total = audio + all padding
+      // (audio still plays from 0 for its natural duration)
     } else {
       for (const sceneNum of sceneNumbers) {
         const audioBuf = perSceneBuffers.get(sceneNum);
         const clipData = clips.find(c => c.scene === sceneNum);
-        const duration = audioBuf ? audioBuf.duration : (clipData?.duration || DEFAULT_SCENE_DURATION);
+        const baseDuration = audioBuf ? audioBuf.duration : (clipData?.duration || DEFAULT_SCENE_DURATION);
+        const duration = baseDuration + pad;
 
         timeline.push({
           scene: sceneNum,
           startTime: timeOffset,
           duration,
           image: loadedImages.get(sceneNum) || null,
+          dialogue: dialogueMap.get(sceneNum) || '',
         });
         timeOffset += duration;
       }
     }
 
     const totalDuration = isSingleNarration && singleNarrationBuffer
-      ? singleNarrationBuffer.duration
+      ? singleNarrationBuffer.duration + pad * sceneNumbers.length
       : timeOffset;
 
     run.logs.push({ t: Date.now(), level: 'info', msg: `⏱️ Total video duration: ${totalDuration.toFixed(1)}s (${timeline.length} scenes)`, step: 'assembly' });
@@ -361,7 +574,7 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
       return;
     }
 
-    const FPS = 24;
+    const FPS = assemblyConfig.fps;
     const videoStream = canvas.captureStream(FPS);
 
     // ── 8. Schedule audio playback ──
@@ -452,7 +665,7 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
           }
 
           // Render the current frame directly to canvas
-          renderFrame(ctx, timeline, elapsed, width, height, assemblyConfig.transitions, TRANSITION_DURATION);
+          renderFrame(ctx, timeline, elapsed, totalDuration, width, height, assemblyConfig, watermarkImg);
 
           // Update progress every 5 seconds
           const sec = Math.floor(elapsed);
@@ -502,6 +715,9 @@ export async function runAssembly(runId: string, req: GenerateRequest): Promise<
       fileSize,
       transitions: assemblyConfig.transitions,
       bgMusic: assemblyConfig.bgMusic,
+      panZoom: assemblyConfig.panZoom,
+      textOverlay: assemblyConfig.textOverlay,
+      fps: FPS,
     };
 
     clearInterval(tracker);
