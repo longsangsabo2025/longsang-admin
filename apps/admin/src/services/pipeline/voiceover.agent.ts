@@ -331,21 +331,57 @@ async function mergeClipsToFullAudio(
 /** Track exhausted Gemini API keys this session → rotate to next key */
 const _exhaustedGeminiKeys = new Set<string>();
 
+/** Default ElevenLabs voice for Vietnamese narration fallback */
+const ELEVENLABS_DEFAULT_VOICE = 'pNInz6obpgDQGcFmaJgB'; // Adam — multilingual
+
 /** Find a working Gemini key — skip exhausted ones, try pool then env fallback */
 function getWorkingGeminiKey(currentKey: string): string | null {
-  // If current key is still good, use it
   if (!_exhaustedGeminiKeys.has(currentKey)) return currentKey;
-  // Try pool keys that aren't exhausted
   const remaining = getPoolForEngine('gemini').filter(e => !_exhaustedGeminiKeys.has(e.key));
   if (remaining.length > 0) return remaining[0].key;
-  // Try env fallback
   const envKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
   if (envKey && !_exhaustedGeminiKeys.has(envKey)) return envKey;
   return null;
 }
 
+/** Try ElevenLabs → Google Cloud TTS → clear error message */
+async function fallbackTTS(
+  text: string, voice: string, speed: number, geminiKey: string,
+  exhaustedCount: number, log: (msg: string) => void,
+): Promise<Blob> {
+  // 1. Try ElevenLabs (if key available)
+  const elKey = (import.meta.env.VITE_ELEVENLABS_API_KEY || '') as string;
+  if (elKey) {
+    log(`🔄 Fallback → ElevenLabs TTS...`);
+    try {
+      return await elevenLabsTTS(text, ELEVENLABS_DEFAULT_VOICE, speed, elKey);
+    } catch (elErr: unknown) {
+      log(`⚠️ ElevenLabs fallback failed: ${elErr instanceof Error ? elErr.message : String(elErr)}`);
+    }
+  }
+
+  // 2. Try Google Cloud TTS
+  const fbVoice = GEMINI_TO_GOOGLE_VOICE[voice] || 'vi-VN-Neural2-D';
+  log(`🔄 Fallback → Google Cloud TTS (${fbVoice})...`);
+  try {
+    return await googleTTS(text, fbVoice, speed, geminiKey);
+  } catch (fbErr: unknown) {
+    const fbMsg = fbErr instanceof Error ? fbErr.message : String(fbErr);
+    if (fbMsg.includes('has not been used') || fbMsg.includes('disabled') || fbMsg.includes('PERMISSION_DENIED')) {
+      throw new Error(
+        `Gemini TTS đã hết quota (${exhaustedCount} key).` +
+        (elKey ? ' ElevenLabs cũng lỗi.' : '') +
+        ` Google Cloud TTS chưa bật.\n` +
+        `→ Bật Google TTS tại: https://console.developers.google.com/apis/api/texttospeech.googleapis.com/overview\n` +
+        `→ Hoặc thêm Gemini API key mới vào Key Pool, hoặc đợi reset quota (24h).`
+      );
+    }
+    throw fbErr;
+  }
+}
+
 /** Generate a single TTS blob using the chosen engine, with retry on transient errors.
- *  On Gemini quota: tries other Gemini keys from pool → falls back to Google Cloud TTS → clear error. */
+ *  On Gemini quota: tries other Gemini keys → ElevenLabs → Google Cloud TTS → clear error. */
 async function synthesize(
   text: string, engine: string, voice: string, speed: number, apiKey: string,
   _logFn?: (msg: string) => void,
@@ -360,22 +396,9 @@ async function synthesize(
       log(`⚡ Key exhausted — switching to next Gemini key`);
       activeKey = fresh;
     } else {
-      // No Gemini keys left → try Google Cloud TTS
-      const fbVoice = GEMINI_TO_GOOGLE_VOICE[voice] || 'vi-VN-Neural2-D';
-      log(`⚠️ All Gemini keys exhausted — trying Google Cloud TTS (${fbVoice})...`);
-      try {
-        return await googleTTS(text, fbVoice, speed, apiKey);
-      } catch (fbErr: unknown) {
-        const fbMsg = fbErr instanceof Error ? fbErr.message : String(fbErr);
-        if (fbMsg.includes('has not been used') || fbMsg.includes('disabled') || fbMsg.includes('PERMISSION_DENIED')) {
-          throw new Error(
-            `Gemini TTS đã hết quota (tất cả ${_exhaustedGeminiKeys.size} key). Google Cloud TTS chưa bật.\n` +
-            `→ Bật tại: https://console.developers.google.com/apis/api/texttospeech.googleapis.com/overview\n` +
-            `→ Hoặc thêm Gemini API key mới vào Key Pool, hoặc đợi reset quota (24h).`
-          );
-        }
-        throw fbErr;
-      }
+      // No Gemini keys left → fallback chain: ElevenLabs → Google TTS
+      log(`⚠️ All ${_exhaustedGeminiKeys.size} Gemini keys exhausted`);
+      return await fallbackTTS(text, voice, speed, apiKey, _exhaustedGeminiKeys.size, log);
     }
   }
 
@@ -402,27 +425,13 @@ async function synthesize(
           return await synthesize(text, engine, voice, speed, nextKey, _logFn);
         }
 
-        // No more Gemini keys → try Google Cloud TTS fallback
-        const fbVoice = GEMINI_TO_GOOGLE_VOICE[voice] || 'vi-VN-Neural2-D';
-        log(`⚠️ All ${_exhaustedGeminiKeys.size} Gemini keys exhausted — trying Google Cloud TTS fallback (${fbVoice})...`);
-        try {
-          return await googleTTS(text, fbVoice, speed, activeKey);
-        } catch (fbErr: unknown) {
-          const fbMsg = fbErr instanceof Error ? fbErr.message : String(fbErr);
-          if (fbMsg.includes('has not been used') || fbMsg.includes('disabled') || fbMsg.includes('PERMISSION_DENIED')) {
-            throw new Error(
-              `Gemini TTS đã hết quota (tất cả ${_exhaustedGeminiKeys.size} key). Google Cloud TTS chưa bật.\n` +
-              `→ Bật tại: https://console.developers.google.com/apis/api/texttospeech.googleapis.com/overview\n` +
-              `→ Hoặc thêm Gemini API key mới vào Key Pool, hoặc đợi reset quota (24h).`
-            );
-          }
-          throw fbErr;
-        }
+        // No more Gemini keys → fallback chain: ElevenLabs → Google TTS
+        return await fallbackTTS(text, voice, speed, activeKey, _exhaustedGeminiKeys.size, log);
       }
 
       const isRetryable = msg.includes('internal') || msg.includes('500') || msg.includes('503') || msg.includes('retry') || msg.includes('INTERNAL');
       if (isRetryable && attempt < maxRetries) {
-        const delay = (attempt + 1) * 3000; // 3s, 6s, 9s
+        const delay = (attempt + 1) * 3000;
         log(`Attempt ${attempt + 1} failed (${msg}), retrying in ${delay / 1000}s...`);
         await new Promise(r => setTimeout(r, delay));
         continue;

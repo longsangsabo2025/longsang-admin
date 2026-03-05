@@ -88,6 +88,14 @@ export default function YouTubeChannelWorkspace() {
     }
   }, [channelId]); // activeRunId intentionally excluded to only run on channel change
 
+  // ── Clear stale pipeline display when user edits topic ──
+  // If the previous run already finished, reset so PipelineRoadmap shows idle state
+  useEffect(() => {
+    if (activeRunId && !runningRunIds.has(activeRunId)) {
+      setActiveRunId(null);
+    }
+  }, [topic]);
+
   // ── Debounce transcript search ──
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(transcriptSearch), 300);
