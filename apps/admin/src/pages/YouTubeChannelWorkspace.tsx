@@ -1106,16 +1106,62 @@ function VoiceTabContent({
   // Script Preview
   const [showScriptPreview, setShowScriptPreview] = useState(false);
 
+  // ElevenLabs free preview URLs (English samples, no API cost)
+  const ELEVENLABS_PREVIEW: Record<string, string> = {
+    JBFqnCBsd6RMkjVDRZzb: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/JBFqnCBsd6RMkjVDRZzb/e6206d1a-0721-4787-aafb-06a6e705cac5.mp3',
+    onwK4e9ZLuTAKqWW03F9: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/onwK4e9ZLuTAKqWW03F9/7eee0236-1a72-4b86-b303-5dcadc007ba9.mp3',
+    pqHfZKP75CvOlQylNhV4: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/pqHfZKP75CvOlQylNhV4/d782b3ff-84ba-4029-848c-acf01285524d.mp3',
+    cjVigY5qzO86Huf0OWal: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/cjVigY5qzO86Huf0OWal/d098fda0-6456-4030-b3d8-63aa048c9070.mp3',
+    pNInz6obpgDQGcFmaJgB: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/pNInz6obpgDQGcFmaJgB/d6905d7a-dd26-4187-bfff-1bd3a5ea7cac.mp3',
+    nPczCjzI2devNBz1zQrb: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/nPczCjzI2devNBz1zQrb/2dd3e72c-4fd3-42f1-93ea-abc5d4e5aa1d.mp3',
+    TX3LPaxmHKxFdv7VOQHJ: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/TX3LPaxmHKxFdv7VOQHJ/63148076-6363-42db-aea8-31424308b92c.mp3',
+    CwhRBWXzGAHq8TQ4Fs17: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/CwhRBWXzGAHq8TQ4Fs17/58ee3ff5-f6f2-4628-93b8-e38eb31806b0.mp3',
+    IKne3meq5aSn9XLyUdCD: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/IKne3meq5aSn9XLyUdCD/102de6f2-22ed-43e0-a1f1-111fa75c5481.mp3',
+    iP95p4xoKVk53GoZ742B: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/iP95p4xoKVk53GoZ742B/3f4bde72-cc48-40dd-829f-57fbf906f4d7.mp3',
+    bIHbv24MWmeRgasZH58o: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/bIHbv24MWmeRgasZH58o/8caf8f3d-ad29-4980-af41-53f20c72d7a4.mp3',
+    Xb7hH8MSUJpSbSDYk0k2: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/Xb7hH8MSUJpSbSDYk0k2/d10f7534-11f6-41fe-a012-2de1e482d336.mp3',
+    XrExE9yKIg1WjnnlVkGX: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/XrExE9yKIg1WjnnlVkGX/b930e18d-6b4d-466e-bab2-0ae97c6d8535.mp3',
+    hpp4J3VqNfWAUOO0d1Us: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/hpp4J3VqNfWAUOO0d1Us/dab0f5ba-3aa4-48a8-9fad-f138fea1126d.mp3',
+    pFZP5JQG7iQjIQuC4Bku: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/pFZP5JQG7iQjIQuC4Bku/89b68b35-b3dd-4348-a84a-a3c13a3c2b30.mp3',
+    EXAVITQu4vr4xnSDxMaL: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/EXAVITQu4vr4xnSDxMaL/01a3e33c-6e99-4ee7-8543-ff2216a32186.mp3',
+    FGY2WhTYpPnrIDTdsKH5: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/FGY2WhTYpPnrIDTdsKH5/67341759-ad08-41a5-be6e-de12fe448618.mp3',
+    cgSgspJ2msm6clMCkdW9: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/cgSgspJ2msm6clMCkdW9/56a97bf8-b69b-448f-846c-c3a11683d45a.mp3',
+    SAz9YHcvj6GT2YYXdXww: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/SAz9YHcvj6GT2YYXdXww/e6c95f0b-2227-491a-b3d7-2249240decb7.mp3',
+  };
 
-
-  // Clear preview when engine/voice/speed changes
+  // Auto-play ElevenLabs preview when voice changes (free, no API cost)
   useEffect(() => {
-    if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
-    setPreviewError(null);
-  }, [voiceoverConfig?.engine, voiceoverConfig?.voice, voiceoverConfig?.speed]); // previewUrl is intentionally excluded
+    if (voiceoverConfig?.engine === 'elevenlabs' && voiceoverConfig?.voice && ELEVENLABS_PREVIEW[voiceoverConfig.voice]) {
+      if (previewAudioRef.current) { previewAudioRef.current.pause(); }
+      const url = ELEVENLABS_PREVIEW[voiceoverConfig.voice];
+      setPreviewUrl(url);
+      setPreviewError(null);
+      setTimeout(() => previewAudioRef.current?.play().catch(() => {}), 150);
+    } else {
+      if (previewUrl && !previewUrl.startsWith('https://storage.googleapis.com/eleven-public-prod')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl(null);
+      setPreviewError(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voiceoverConfig?.engine, voiceoverConfig?.voice]);
+
+  // Clear preview when speed changes (non-ElevenLabs engines)
+  useEffect(() => {
+    if (voiceoverConfig?.engine !== 'elevenlabs') {
+      if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
+      setPreviewError(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voiceoverConfig?.speed]);
 
   useEffect(() => {
-    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
+    return () => {
+      if (previewUrl && !previewUrl.startsWith('https://storage.googleapis.com/eleven-public-prod')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
   }, [previewUrl]);
 
   const handlePreview = async () => {
@@ -1440,28 +1486,43 @@ function VoiceTabContent({
 
             {/* Voice Preview */}
             <div className="space-y-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full h-8 text-xs gap-2"
-                onClick={handlePreview}
-                disabled={previewLoading}
-              >
-                {previewLoading ? (
-                  <><Loader2 className="h-3 w-3 animate-spin" /> Đang tạo mẫu...</>
-                ) : (
-                  <><Play className="h-3 w-3" /> Nghe thử giọng đọc</>
-                )}
-              </Button>
+              {voiceoverConfig.engine === 'elevenlabs' && previewUrl ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-green-400 shrink-0">🔊 Preview</span>
+                  <audio
+                    ref={previewAudioRef}
+                    controls
+                    src={previewUrl}
+                    className="w-full h-8"
+                    preload="auto"
+                  />
+                </div>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full h-8 text-xs gap-2"
+                    onClick={handlePreview}
+                    disabled={previewLoading}
+                  >
+                    {previewLoading ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Đang tạo mẫu...</>
+                    ) : (
+                      <><Play className="h-3 w-3" /> Nghe thử giọng đọc</>
+                    )}
+                  </Button>
 
-              {previewUrl && (
-                <audio
-                  ref={previewAudioRef}
-                  controls
-                  src={previewUrl}
-                  className="w-full h-8"
-                  preload="auto"
-                />
+                  {previewUrl && (
+                    <audio
+                      ref={previewAudioRef}
+                      controls
+                      src={previewUrl}
+                      className="w-full h-8"
+                      preload="auto"
+                    />
+                  )}
+                </>
               )}
 
               {previewError && (
