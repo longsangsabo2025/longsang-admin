@@ -2249,19 +2249,42 @@ CHỈ SỬA NHỮNG THỨ NÀY:
               <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel className="text-[10px] text-muted-foreground">👨 Nam</SelectLabel>
-                  <SelectItem value="pNInz6obpgDQGcFmaJgB">Adam (Deep)</SelectItem>
-                  <SelectItem value="yoZ06aMxZJJ28mfd3POQ">Sam (Authoritative)</SelectItem>
-                  <SelectItem value="onwK4e9ZLuTAKqWW03F9">Daniel (British)</SelectItem>
-                  <SelectItem value="TX3LPaxmHKxFdv7VOQHJ">Liam (Natural)</SelectItem>
+                  <SelectLabel className="text-[10px] text-muted-foreground">🎙️ Nam — Kể chuyện / Thuyết minh</SelectLabel>
+                  <SelectItem value="JBFqnCBsd6RMkjVDRZzb">George (Storyteller)</SelectItem>
+                  <SelectItem value="onwK4e9ZLuTAKqWW03F9">Daniel (Broadcaster)</SelectItem>
+                  <SelectItem value="pqHfZKP75CvOlQylNhV4">Bill (Wise, Mature)</SelectItem>
+                  <SelectItem value="cjVigY5qzO86Huf0OWal">Eric (Smooth)</SelectItem>
                 </SelectGroup>
                 <SelectSeparator />
                 <SelectGroup>
-                  <SelectLabel className="text-[10px] text-muted-foreground">👩 Nữ</SelectLabel>
-                  <SelectItem value="21m00Tcm4TlvDq8ikWAM">Rachel (Narrator)</SelectItem>
-                  <SelectItem value="EXAVITQu4vr4xnSDxMaL">Bella (Warm)</SelectItem>
-                  <SelectItem value="jBpfuIE2acCO8z3wKNLl">Gigi (Animated)</SelectItem>
-                  <SelectItem value="XB0fDUnXU5powFXDhCwa">Charlotte (Calm)</SelectItem>
+                  <SelectLabel className="text-[10px] text-muted-foreground">👨 Nam — Social / Trẻ trung</SelectLabel>
+                  <SelectItem value="pNInz6obpgDQGcFmaJgB">Adam (Deep)</SelectItem>
+                  <SelectItem value="nPczCjzI2devNBz1zQrb">Brian (Deep, Comforting)</SelectItem>
+                  <SelectItem value="TX3LPaxmHKxFdv7VOQHJ">Liam (Energetic)</SelectItem>
+                  <SelectItem value="CwhRBWXzGAHq8TQ4Fs17">Roger (Laid-Back)</SelectItem>
+                  <SelectItem value="IKne3meq5aSn9XLyUdCD">Charlie (Confident)</SelectItem>
+                  <SelectItem value="iP95p4xoKVk53GoZ742B">Chris (Down-to-Earth)</SelectItem>
+                  <SelectItem value="bIHbv24MWmeRgasZH58o">Will (Relaxed)</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">🎙️ Nữ — Thuyết minh / Giáo dục</SelectLabel>
+                  <SelectItem value="Xb7hH8MSUJpSbSDYk0k2">Alice (Educator)</SelectItem>
+                  <SelectItem value="XrExE9yKIg1WjnnlVkGX">Matilda (Professional)</SelectItem>
+                  <SelectItem value="hpp4J3VqNfWAUOO0d1Us">Bella (Informative)</SelectItem>
+                  <SelectItem value="pFZP5JQG7iQjIQuC4Bku">Lily (Velvety)</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">👩 Nữ — Social / Trẻ trung</SelectLabel>
+                  <SelectItem value="EXAVITQu4vr4xnSDxMaL">Sarah (Mature)</SelectItem>
+                  <SelectItem value="FGY2WhTYpPnrIDTdsKH5">Laura (Enthusiast)</SelectItem>
+                  <SelectItem value="cgSgspJ2msm6clMCkdW9">Jessica (Playful)</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">🌐 Trung tính</SelectLabel>
+                  <SelectItem value="SAz9YHcvj6GT2YYXdXww">River (Neutral)</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
