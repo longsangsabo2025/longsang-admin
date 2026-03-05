@@ -19,6 +19,9 @@ export interface GenerateRequest {
   wordTarget?: number;
   aspectRatio?: string;
   visualIdentity?: VisualIdentity;
+  imageGenEnabled?: boolean;
+  imageGenProvider?: string;
+  imageGenQuality?: string;
 }
 
 export interface RunLog {
@@ -31,7 +34,7 @@ export interface GenerationRun {
   id: string;
   channelId: string | null;
   channelName: string | null;
-  status: 'running' | 'completed' | 'failed';
+  status: 'running' | 'completed' | 'failed' | 'interrupted';
   startedAt: string;
   completedAt?: string;
   durationMs?: number;
@@ -43,6 +46,10 @@ export interface GenerationRun {
   };
   hasResult?: boolean;
   error?: string;
+  /** Steps this pipeline run should execute (for full pipeline runs) */
+  pipelineSteps?: string[];
+  /** Steps that completed successfully before interruption */
+  completedSteps?: string[];
 }
 
 export interface ProgressPhase {

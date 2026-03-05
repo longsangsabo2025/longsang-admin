@@ -103,8 +103,19 @@ function fixOrphanedRun(run: GenerationRun): void {
   if (run.status !== 'running') return;
   const ageMs = Date.now() - new Date(run.startedAt).getTime();
   if (ageMs > 5 * 60 * 1000) {
-    run.status = 'failed';
-    run.error = 'Pipeline bị gián đoạn (orphaned run). Vui lòng chạy lại.';
+    const hasPartialResult = run.hasResult || !!run.result?.files;
+    const hasCompletedSteps = (run.completedSteps?.length || 0) > 0;
+    const hasPendingSteps = run.pipelineSteps && run.pipelineSteps.length > (run.completedSteps?.length || 0);
+
+    if ((hasPartialResult || hasCompletedSteps) && hasPendingSteps) {
+      // Has partial progress — mark as interrupted (resumable)
+      run.status = 'interrupted';
+      run.error = 'Pipeline bị gián đoạn. Bấm Resume để tiếp tục từ step tiếp theo.';
+    } else {
+      // No useful progress — mark as failed
+      run.status = 'failed';
+      run.error = 'Pipeline bị gián đoạn (orphaned run). Vui lòng chạy lại.';
+    }
     run.completedAt = run.completedAt || new Date().toISOString();
     run.durationMs = run.durationMs || ageMs;
     persistUpdate(run).catch(() => {});

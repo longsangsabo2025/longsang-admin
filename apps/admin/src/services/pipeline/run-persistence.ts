@@ -20,7 +20,7 @@ interface DbRow {
   pipeline_id: string;
   status: string;
   input: Record<string, unknown>;
-  stages: { channelName?: string | null; logs?: unknown[]; result?: unknown };
+  stages: { channelName?: string | null; logs?: unknown[]; result?: unknown; pipelineSteps?: string[]; completedSteps?: string[] };
   error_message: string | null;
   total_duration_ms: number;
   started_at: string;
@@ -37,6 +37,8 @@ function toRow(run: GenerationRun): Omit<DbRow, never> {
       channelName: run.channelName,
       logs: run.logs,
       result: run.result,
+      pipelineSteps: run.pipelineSteps,
+      completedSteps: run.completedSteps,
     },
     error_message: run.error || null,
     total_duration_ms: run.durationMs || 0,
@@ -47,7 +49,7 @@ function toRow(run: GenerationRun): Omit<DbRow, never> {
 
 /** Convert a DB row back to a GenerationRun */
 function fromRow(row: DbRow): GenerationRun {
-  const stages = (row.stages || {}) as { channelName?: string | null; logs?: unknown[]; result?: { outputDir: string; files: Record<string, unknown> } };
+  const stages = (row.stages || {}) as { channelName?: string | null; logs?: unknown[]; result?: { outputDir: string; files: Record<string, unknown> }; pipelineSteps?: string[]; completedSteps?: string[] };
   return {
     id: row.pipeline_id,
     channelId: (row.input as { channelId?: string })?.channelId || null,
@@ -61,6 +63,8 @@ function fromRow(row: DbRow): GenerationRun {
     result: stages.result as GenerationRun['result'],
     hasResult: !!stages.result,
     error: row.error_message || undefined,
+    pipelineSteps: stages.pipelineSteps,
+    completedSteps: stages.completedSteps,
   };
 }
 

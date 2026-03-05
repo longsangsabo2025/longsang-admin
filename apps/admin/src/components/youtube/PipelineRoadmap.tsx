@@ -12,7 +12,7 @@ import {
   FileText, Image, Mic, Film, Sparkles,
   ChevronDown, ChevronRight, Play,
   Loader2, Zap, CheckCircle2, XCircle, Clock, AlertTriangle,
-  RotateCcw, Wand2,
+  RotateCcw, Wand2, Maximize2, X, Trash2, Download,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 import { type PipelineConfig, type VisualIdentity, DEFAULT_PIPELINE, DEFAULT_VISUAL_IDENTITY } from './pipeline-types';
 
 export type { PipelineConfig } from './pipeline-types';
@@ -281,7 +283,7 @@ const STEPS: StepDef[] = [
     subtitle: 'Tạo hình ảnh cho từng scene',
     color: 'text-orange-500 bg-orange-500/10 border-orange-500/30',
     estimate: '~2-5min',
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     key: 'voiceover',
@@ -307,7 +309,7 @@ const STEPS: StepDef[] = [
 
 // ─── RUN STATUS TYPES ───────────────────────────────────
 
-export type StepStatus = 'idle' | 'running' | 'completed' | 'failed' | 'skipped';
+export type StepStatus = 'idle' | 'running' | 'completed' | 'failed' | 'skipped' | 'interrupted';
 
 export interface RunLog {
   t: number;
@@ -316,20 +318,22 @@ export interface RunLog {
 }
 
 export interface ActiveRunInfo {
-  status: 'running' | 'completed' | 'failed';
+  status: 'running' | 'completed' | 'failed' | 'interrupted';
   logs: RunLog[];
   error?: string;
   result?: {
     outputDir: string;
     files: Record<string, unknown>;
   };
+  completedSteps?: string[];
+  pipelineSteps?: string[];
 }
 
 // Map log messages to pipeline steps by keyword matching
 const STEP_LOG_PATTERNS: Record<keyof PipelineConfig, RegExp> = {
   scriptWriter: /script|writing|gemini|gpt|claude|model|prompt|topic|transcript|words?\s*count|generating/i,
   storyboard: /storyboard|scene|visual|hailuo|prompt.*gen|motion|transition/i,
-  imageGen: /image|flux|dall-e|midjourney|render.*image|generating.*image/i,
+  imageGen: /image|flux|dall-e|midjourney|render.*image|generating.*image|scene.*done|scene.*generat|scene.*fail/i,
   voiceover: /voice|tts|audio|speech|elevenlabs|xtts|narrat/i,
   assembly: /assembl|video|merge|concat|ffmpeg|output.*mp4|final/i,
 };
@@ -395,6 +399,19 @@ function deriveStepStatuses(
       if (idx < failIdx) result[key].status = 'completed';
       else if (idx === failIdx) result[key].status = 'failed';
       else result[key].status = 'idle';
+    }
+  } else if (run.status === 'interrupted') {
+    // Interrupted: mark completed steps, the next one as interrupted, rest idle
+    const doneSet = new Set(run.completedSteps || []);
+    let foundInterrupted = false;
+    for (const key of enabledSteps) {
+      if (doneSet.has(key)) {
+        result[key].status = 'completed';
+      } else if (!foundInterrupted) {
+        result[key].status = 'interrupted';
+        foundInterrupted = true;
+      }
+      // else stays idle
     }
   } else if (run.status === 'running') {
     // Running: steps with logs are running/completed, rest pending
@@ -462,11 +479,37 @@ function extractStoryboardResult(run?: ActiveRunInfo & { result?: { files?: Reco
   return { scenes: sbJson?.scenes, sceneCount: sbJson?.scenes?.length, promptsTxt, storyboardMd };
 }
 
+// Extract image generation result from run for inline preview
+function extractImageGenResult(run?: ActiveRunInfo & { result?: { files?: Record<string, unknown> } }): {
+  images: { scene: number; url: string; prompt: string }[];
+  totalScenes: number;
+  successCount: number;
+  failCount: number;
+} | null {
+  if (!run) return null;
+  const result = (run as { result?: { files?: Record<string, unknown> } }).result;
+  if (!result?.files) return null;
+  const imagesJson = result.files['images.json'] as {
+    images?: { scene: number; url: string; prompt: string }[];
+    totalScenes?: number;
+    successCount?: number;
+    failCount?: number;
+  } | undefined;
+  if (!imagesJson?.images) return null;
+  return {
+    images: imagesJson.images,
+    totalScenes: imagesJson.totalScenes || imagesJson.images.length,
+    successCount: imagesJson.successCount || imagesJson.images.length,
+    failCount: imagesJson.failCount || 0,
+  };
+}
+
 interface PipelineRoadmapProps {
   channelId?: string;
   channelStyle?: string;
   onRun: (config: PipelineConfig) => void;
   onRunStep?: (step: string, config: PipelineConfig) => void;
+  onResume?: () => void;
   isRunning: boolean;
   activeRun?: ActiveRunInfo;
 }
@@ -502,7 +545,7 @@ function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineCon
   };
 }
 
-export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunStep, isRunning, activeRun }: PipelineRoadmapProps) {
+export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunStep, onResume, isRunning, activeRun }: PipelineRoadmapProps) {
   const [config, setConfig] = useState<PipelineConfig>(() => loadSavedConfig(channelId, channelStyle));
   const [expandedStep, setExpandedStep] = useState<string | null>('scriptWriter');
 
@@ -586,6 +629,7 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
             const isStepRunning = stepStatus.status === 'running';
             const isStepDone = stepStatus.status === 'completed';
             const isStepFailed = stepStatus.status === 'failed';
+            const isStepInterrupted = stepStatus.status === 'interrupted';
 
             return (
               <div key={step.key} className="relative">
@@ -593,9 +637,10 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                   className={cn(
                     'transition-all duration-200',
                     isStepFailed && 'border-red-500/50 bg-red-500/5',
+                    isStepInterrupted && 'border-yellow-500/50 bg-yellow-500/5',
                     isStepRunning && 'border-blue-500/50 bg-blue-500/5 ring-1 ring-blue-500/20',
                     isStepDone && 'border-green-500/30 bg-green-500/5',
-                    !isStepRunning && !isStepDone && !isStepFailed && stepConfig.enabled && !isComingSoon
+                    !isStepRunning && !isStepDone && !isStepFailed && !isStepInterrupted && stepConfig.enabled && !isComingSoon
                       ? 'border-l-2 border-l-current ' + step.color.split(' ')[0].replace('text-', 'border-l-')
                       : '',
                     !stepConfig.enabled && 'opacity-60',
@@ -611,6 +656,7 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                         isStepRunning ? 'bg-blue-500/10 text-blue-500 border-blue-500/30' :
                         isStepDone ? 'bg-green-500/10 text-green-500 border-green-500/30' :
                         isStepFailed ? 'bg-red-500/10 text-red-500 border-red-500/30' :
+                        isStepInterrupted ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30' :
                         stepConfig.enabled && !isComingSoon ? step.color : 'bg-muted text-muted-foreground',
                       )}>
                         {isStepRunning ? (
@@ -619,6 +665,8 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                           <CheckCircle2 className="h-5 w-5" />
                         ) : isStepFailed ? (
                           <XCircle className="h-5 w-5" />
+                        ) : isStepInterrupted ? (
+                          <AlertTriangle className="h-5 w-5" />
                         ) : (
                           <Icon className="h-5 w-5" />
                         )}
@@ -654,7 +702,12 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                               Failed
                             </Badge>
                           )}
-                          {!isStepRunning && !isStepDone && !isStepFailed && (
+                          {isStepInterrupted && (
+                            <Badge className="text-[10px] px-1.5 py-0 bg-yellow-600">
+                              Interrupted
+                            </Badge>
+                          )}
+                          {!isStepRunning && !isStepDone && !isStepFailed && !isStepInterrupted && (
                             <span className="text-[10px] text-muted-foreground">{step.estimate}</span>
                           )}
                         </div>
@@ -825,6 +878,46 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                       );
                     })()}
 
+                    {/* Image Generation Result Preview */}
+                    {(isStepDone || isStepFailed) && step.key === 'imageGen' && activeRun && (() => {
+                      const imgResult = extractImageGenResult(activeRun);
+                      if (!imgResult) return null;
+                      return (
+                        <div className="mt-3 pt-3 border-t">
+                          <div className="rounded bg-orange-950/30 border border-orange-500/20 p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-orange-400">🖼️ Generated Images</span>
+                              <div className="flex gap-2 text-[10px] text-muted-foreground">
+                                <Badge variant="outline" className="text-[10px]">{imgResult.successCount}/{imgResult.totalScenes} scenes</Badge>
+                                {imgResult.failCount > 0 && (
+                                  <Badge variant="destructive" className="text-[10px]">{imgResult.failCount} failed</Badge>
+                                )}
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {imgResult.images.slice(0, 6).map((img) => (
+                                <div key={img.scene} className="relative group">
+                                  <img
+                                    src={img.url}
+                                    alt={`Scene ${img.scene}`}
+                                    className="w-full aspect-video object-cover rounded-md border border-border"
+                                  />
+                                  <span className="absolute bottom-0.5 left-0.5 text-[8px] bg-black/60 text-white/80 px-1 rounded">
+                                    Scene {img.scene}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            {imgResult.images.length > 6 && (
+                              <p className="text-[10px] text-muted-foreground text-center">
+                                +{imgResult.images.length - 6} more images
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                     {isExpanded && isComingSoon && (
                       <div className="mt-3 pt-3 border-t">
                         <p className="text-xs text-muted-foreground italic">
@@ -851,6 +944,18 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
           })}
         </div>
       </div>
+
+      {/* Resume Button (for interrupted runs) */}
+      {activeRun?.status === 'interrupted' && onResume && (
+        <Button
+          className="w-full mt-4 bg-yellow-600 hover:bg-yellow-700"
+          size="lg"
+          disabled={isRunning}
+          onClick={onResume}
+        >
+          <RotateCcw className="h-4 w-4 mr-2" /> Resume Pipeline ({(activeRun.completedSteps?.length || 0)}/{(activeRun.pipelineSteps?.length || '?')} steps done)
+        </Button>
+      )}
 
       {/* Run Button */}
       <Button
@@ -1063,8 +1168,19 @@ function StoryboardConfig({
   const [showVisualId, setShowVisualId] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+  const [showFullImage, setShowFullImage] = useState(false);
+  const [savedPreviews, setSavedPreviews] = useState<Array<{ id: string; url: string; prompt: string; createdAt: string }>>([]);
 
-  const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyBfLqZs_2OeJ8ZptYcaeTlB1HqMegtKSmA') as string;
+  const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyAEh_hNcNbBHGxgenaNXA_YdF4_Z0w-rJw') as string;
+  const STORAGE_KEY = `storyboard-previews-${channelId || 'default'}`;
+
+  // Load saved previews from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) setSavedPreviews(JSON.parse(saved));
+    } catch { /* empty */ }
+  }, [STORAGE_KEY]);
 
   const applyChannelPreset = () => {
     if (channelPreset) {
@@ -1076,15 +1192,43 @@ function StoryboardConfig({
     }
   };
 
-  const applyPreset = (presetId: string) => {
-    const preset = CHANNEL_VISUAL_PRESETS[presetId];
-    if (preset) {
-      onUpdate({
-        style: preset.style,
-        visualIdentity: { ...preset },
-      });
-      setPreviewImage(null); // clear old preview
-    }
+  // Save a preview image to Supabase storage + localStorage
+  const savePreviewImage = async (dataUrl: string, promptText: string) => {
+    const id = `preview-${Date.now()}`;
+    let finalUrl = dataUrl;
+
+    // Try uploading to Supabase storage
+    try {
+      const base64Data = dataUrl.split(',')[1];
+      if (base64Data) {
+        const byteChars = atob(base64Data);
+        const byteArray = new Uint8Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+        const blob = new Blob([byteArray], { type: 'image/png' });
+        const filePath = `storyboard-previews/${channelId || 'default'}/${id}.png`;
+
+        const { error } = await supabase.storage
+          .from('post-images')
+          .upload(filePath, blob, { contentType: 'image/png', upsert: false });
+
+        if (!error) {
+          const { data: urlData } = supabase.storage.from('post-images').getPublicUrl(filePath);
+          if (urlData?.publicUrl) finalUrl = urlData.publicUrl;
+        }
+      }
+    } catch { /* fall back to data URL */ }
+
+    const entry = { id, url: finalUrl, prompt: promptText, createdAt: new Date().toISOString() };
+    const updated = [entry, ...savedPreviews].slice(0, 20);
+    setSavedPreviews(updated);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(updated)); } catch { /* quota */ }
+  };
+
+  // Delete a saved preview
+  const deletePreview = (previewId: string) => {
+    const updated = savedPreviews.filter(p => p.id !== previewId);
+    setSavedPreviews(updated);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(updated)); } catch { /* empty */ }
   };
 
   // Generate AI preview image from current visual identity settings
@@ -1108,13 +1252,15 @@ function StoryboardConfig({
       parts.push(`16:9 aspect ratio, photorealistic cinematic quality, film grain.`);
       if (vi.negativePrompt) parts.push(`Do NOT include: ${vi.negativePrompt}.`);
 
+      const promptText = parts.join(' ');
+
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `Generate an image: ${parts.join(' ')}` }] }],
+            contents: [{ parts: [{ text: `Generate an image: ${promptText}` }] }],
             generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
           }),
         }
@@ -1128,12 +1274,15 @@ function StoryboardConfig({
 
       for (const part of respParts) {
         if (part.inlineData?.mimeType?.startsWith('image/')) {
-          setPreviewImage(`data:${part.inlineData.mimeType};base64,${part.inlineData.data}`);
+          const dataUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          setPreviewImage(dataUrl);
+          // Auto-save the generated image
+          await savePreviewImage(dataUrl, promptText);
           break;
         }
       }
     } catch {
-      // Silently fail — gradient preview remains
+      // Silently fail
     } finally {
       setIsGeneratingPreview(false);
     }
@@ -1143,21 +1292,8 @@ function StoryboardConfig({
     onUpdate({ visualIdentity: { ...vi, ...updates } });
   };
 
-  // Find active preset match
-  const activePresetId = Object.entries(CHANNEL_VISUAL_PRESETS).find(
-    ([, preset]) => preset.style === vi.style && preset.colorPalette === vi.colorPalette
-  )?.[0];
-
-  // Get preview meta for current style (match by preset or infer)
-  const currentPreview = activePresetId ? CHANNEL_STYLE_PREVIEW[activePresetId] : null;
-
-  // Build a dynamic gradient from color palette text if no preset match
-  const CHARACTER_ICONS: Record<string, string> = {
-    'none': '🚫',
-    'silhouette': '👤',
-    'faceless': '🧑',
-    'consistent-character': '🎭',
-  };
+  // Get preview meta for current channel
+  const currentPreview = channelId ? CHANNEL_STYLE_PREVIEW[channelId] : null;
 
   return (
     <div className="space-y-4">
@@ -1221,133 +1357,161 @@ function StoryboardConfig({
         </div>
       </div>
 
-      {/* ── Visual Style Preview ── */}
+      {/* ── AI Preview Section ── */}
       <div className="space-y-2">
-        {/* Current Style Preview — large card with AI image or gradient */}
-        <div
-          className="relative rounded-lg overflow-hidden border border-white/10"
-          style={{ 
-            background: !previewImage ? (currentPreview?.gradient || 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)') : undefined,
-            minHeight: previewImage ? '180px' : '112px',
-          }}
-        >
-          {/* AI-generated preview image */}
-          {previewImage && (
-            <img
-              src={previewImage}
-              alt="Style preview"
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          )}
+        {/* Current channel style info bar */}
+        {currentPreview && (
+          <div className="flex items-center gap-3 px-3 py-2 rounded-lg border border-border bg-muted/30">
+            <div className="flex gap-1">
+              {currentPreview.colors.map((c, i) => (
+                <div key={i} className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: c }} />
+              ))}
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-xs font-medium">{currentPreview.label}</span>
+              <span className="text-[10px] text-muted-foreground ml-2">{currentPreview.moodShort}</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground">{vi.lighting.split(',')[0]}</span>
+          </div>
+        )}
 
-          {/* Overlay grain texture (only on gradient) */}
-          {!previewImage && (
-            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'256\' height=\'256\' filter=\'url(%23n)\' opacity=\'0.5\'/%3E%3C/svg%3E")' }} />
-          )}
-
-          {/* Dark overlay for readability when image is shown */}
-          {previewImage && <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />}
-
-          {/* Content */}
-          <div className="relative z-10 h-full flex items-stretch p-3 gap-3" style={{ minHeight: previewImage ? '180px' : '112px' }}>
-            {/* Left — Mock frame or preview button */}
-            <div className="w-40 h-full rounded-md bg-black/30 flex flex-col items-center justify-center shrink-0 border border-white/10 backdrop-blur-sm gap-2">
-              {!previewImage && !isGeneratingPreview && (
+        {/* AI Preview Card — clean, no gradient */}
+        <div className="rounded-lg border border-border bg-muted/20 overflow-hidden">
+          {previewImage ? (
+            <div className="relative group">
+              <img
+                src={previewImage}
+                alt="AI generated style preview"
+                className="w-full aspect-video object-cover cursor-pointer"
+                onClick={() => setShowFullImage(true)}
+              />
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  className="p-1.5 rounded-md bg-black/60 hover:bg-black/80 text-white transition-colors"
+                  onClick={() => setShowFullImage(true)}
+                  title="Xem full"
+                >
+                  <Maximize2 className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  className="p-1.5 rounded-md bg-black/60 hover:bg-black/80 text-white transition-colors"
+                  onClick={() => {
+                    const a = document.createElement('a');
+                    a.href = previewImage;
+                    a.download = `preview-${channelId}-${Date.now()}.png`;
+                    a.click();
+                  }}
+                  title="Tải về"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                <span className="text-[9px] bg-black/50 text-white/80 px-2 py-0.5 rounded-full">AI Preview</span>
+                <button
+                  className="px-2 py-1 rounded text-[9px] font-medium bg-purple-500/80 hover:bg-purple-500 text-white transition-colors disabled:opacity-50 flex items-center gap-1"
+                  onClick={generatePreview}
+                  disabled={isGeneratingPreview}
+                >
+                  <Wand2 className="h-3 w-3" />
+                  Regenerate
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 gap-3">
+              {isGeneratingPreview ? (
                 <>
-                  <span className="text-3xl block">{CHARACTER_ICONS[vi.characterPresence] || '🎬'}</span>
-                  <span className="text-[9px] text-white/60 block uppercase tracking-wider">{vi.characterPresence.replace('-', ' ')}</span>
+                  <Loader2 className="h-8 w-8 text-purple-400 animate-spin" />
+                  <span className="text-xs text-muted-foreground">Generating preview...</span>
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl">🎬</div>
+                  <p className="text-xs text-muted-foreground text-center max-w-[200px]">
+                    Generate an AI preview to see how your visual identity looks
+                  </p>
+                  <button
+                    className="px-3 py-1.5 rounded-md text-xs font-medium bg-purple-500 hover:bg-purple-600 text-white transition-colors flex items-center gap-1.5"
+                    onClick={generatePreview}
+                  >
+                    <Wand2 className="h-3.5 w-3.5" />
+                    Generate Preview
+                  </button>
                 </>
               )}
-              {isGeneratingPreview && (
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-6 w-6 text-purple-400 animate-spin" />
-                  <span className="text-[9px] text-white/60">Generating...</span>
-                </div>
-              )}
-              {previewImage && !isGeneratingPreview && (
-                <span className="text-[9px] text-white/60 uppercase tracking-wider">AI Preview</span>
-              )}
-              <button
-                className="mt-1 px-2 py-1 rounded text-[9px] font-medium bg-purple-500/80 hover:bg-purple-500 text-white transition-colors disabled:opacity-50 flex items-center gap-1"
-                onClick={generatePreview}
-                disabled={isGeneratingPreview}
-              >
-                <Wand2 className="h-3 w-3" />
-                {previewImage ? 'Regenerate' : 'Preview'}
-              </button>
             </div>
+          )}
+        </div>
 
-            {/* Right — Style info */}
-            <div className="flex-1 flex flex-col justify-between min-w-0">
-              <div>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-sm font-semibold text-white drop-shadow-lg truncate">
-                    {currentPreview?.label || vi.style.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                  </span>
-                  {activePresetId && (
-                    <span className="text-[9px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full backdrop-blur-sm">Preset</span>
-                  )}
-                </div>
-                <p className="text-[10px] text-white/70 truncate">{currentPreview?.moodShort || vi.moodKeywords}</p>
-                <p className="text-[10px] text-white/50 truncate mt-0.5">{currentPreview?.environmentShort || vi.environment}</p>
-              </div>
-
-              {/* Color palette dots */}
-              <div className="flex items-center gap-1.5">
-                {(currentPreview?.colors || ['#1a1a2e', '#16213e', '#0f3460', '#e94560']).map((c, i) => (
-                  <div
-                    key={i}
-                    className="w-4 h-4 rounded-full border border-white/30 shadow-sm"
-                    style={{ backgroundColor: c }}
-                    title={c}
+        {/* Saved Previews History */}
+        {savedPreviews.length > 0 && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Saved Previews ({savedPreviews.length})</span>
+            </div>
+            <div className="flex gap-1.5 overflow-x-auto pb-1">
+              {savedPreviews.map((p) => (
+                <div key={p.id} className="relative group shrink-0">
+                  <img
+                    src={p.url}
+                    alt="Saved preview"
+                    className="h-14 w-24 object-cover rounded-md border border-border cursor-pointer hover:border-purple-500/50 transition-colors"
+                    onClick={() => { setPreviewImage(p.url); setShowFullImage(true); }}
                   />
-                ))}
-                <span className="text-[9px] text-white/40 ml-1">{vi.lighting.split(',')[0]}</span>
-              </div>
+                  <button
+                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => deletePreview(p.id)}
+                    title="Xóa"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                  <span className="absolute bottom-0.5 left-0.5 text-[7px] bg-black/50 text-white/70 px-1 rounded">
+                    {new Date(p.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-
-        {/* Preset Thumbnails — clickable row */}
-        <div className="grid grid-cols-5 gap-1.5">
-          {Object.entries(CHANNEL_STYLE_PREVIEW).map(([presetId, meta]) => (
-            <button
-              key={presetId}
-              className={`relative group rounded-md overflow-hidden h-16 transition-all border-2 ${
-                activePresetId === presetId
-                  ? 'border-purple-500 ring-1 ring-purple-500/50 scale-[1.02]'
-                  : 'border-transparent hover:border-white/30 opacity-70 hover:opacity-100'
-              }`}
-              style={{ background: meta.gradient }}
-              onClick={() => applyPreset(presetId)}
-              title={`Apply ${meta.label} style`}
-            >
-              {/* Content overlay */}
-              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-              <div className="relative z-10 h-full flex flex-col items-center justify-center gap-0.5 px-1">
-                <span className="text-lg">{meta.characterIcon}</span>
-                <span className="text-[8px] text-white font-medium text-center leading-tight truncate w-full drop-shadow-lg">
-                  {meta.label}
-                </span>
-                {/* Mini color dots */}
-                <div className="flex gap-0.5">
-                  {meta.colors.map((c, i) => (
-                    <div key={i} className="w-1.5 h-1.5 rounded-full border border-white/40" style={{ backgroundColor: c }} />
-                  ))}
-                </div>
-              </div>
-              {/* Active indicator */}
-              {activePresetId === presetId && (
-                <div className="absolute top-0.5 right-0.5 w-3 h-3 bg-purple-500 rounded-full flex items-center justify-center">
-                  <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              )}
-            </button>
-          ))}
-        </div>
+        )}
       </div>
+
+      {/* Full Image Lightbox */}
+      <Dialog open={showFullImage} onOpenChange={setShowFullImage}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden bg-black/95 border-none">
+          <DialogTitle className="sr-only">Preview Image</DialogTitle>
+          {previewImage && (
+            <div className="relative flex items-center justify-center min-h-[300px]">
+              <img
+                src={previewImage}
+                alt="Full preview"
+                className="max-w-full max-h-[85vh] object-contain"
+              />
+              <div className="absolute top-3 right-3 flex gap-2">
+                <button
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  onClick={() => {
+                    const a = document.createElement('a');
+                    a.href = previewImage;
+                    a.download = `preview-${channelId}-${Date.now()}.png`;
+                    a.click();
+                  }}
+                  title="Tải về"
+                >
+                  <Download className="h-4 w-4" />
+                </button>
+                <button
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  onClick={() => setShowFullImage(false)}
+                  title="Đóng"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Visual Identity Section */}
       <div className="rounded-lg border border-purple-500/30 bg-purple-500/5 overflow-hidden">
@@ -1512,41 +1676,48 @@ function ImageGenConfig({
   onUpdate: (u: Partial<PipelineConfig['imageGen']>) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <div className="space-y-1">
-        <Label className="text-xs">Provider</Label>
-        <Select value={config.provider} onValueChange={(v) => onUpdate({ provider: v })}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="hailuo-2.3">Hailuo 2.3</SelectItem>
-            <SelectItem value="flux-pro">Flux Pro</SelectItem>
-            <SelectItem value="dall-e-3">DALL-E 3</SelectItem>
-            <SelectItem value="midjourney">Midjourney API</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs">Provider</Label>
+          <Select value={config.provider} onValueChange={(v) => onUpdate({ provider: v })}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
+              <SelectItem value="flux-pro">Flux Pro (coming soon)</SelectItem>
+              <SelectItem value="dall-e-3">DALL-E 3 (coming soon)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Quality</Label>
+          <Select value={config.quality} onValueChange={(v) => onUpdate({ quality: v })}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Draft (nhanh)</SelectItem>
+              <SelectItem value="standard">Standard</SelectItem>
+              <SelectItem value="hd">HD (chậm hơn)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">Quality</Label>
-        <Select value={config.quality} onValueChange={(v) => onUpdate({ quality: v })}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="draft">Draft (nhanh)</SelectItem>
-            <SelectItem value="standard">Standard</SelectItem>
-            <SelectItem value="hd">HD (chậm hơn)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-1 col-span-2">
         <Label className="text-xs">Negative Prompt</Label>
         <Input
           className="h-8 text-xs"
           value={config.negativePrompt}
           onChange={(e) => onUpdate({ negativePrompt: e.target.value })}
+          placeholder="text, watermark, logo, cartoon..."
         />
+      </div>
+      <div className="rounded-md border border-orange-500/20 bg-orange-500/5 px-3 py-2">
+        <p className="text-[10px] text-muted-foreground">
+          💡 Sử dụng visual prompts từ Storyboard (Step 2) + Visual Identity settings để tạo hình ảnh cho từng scene. Hình ảnh được lưu vào Supabase Storage.
+        </p>
       </div>
     </div>
   );

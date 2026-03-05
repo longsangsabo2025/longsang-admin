@@ -125,10 +125,12 @@ export default function YouTubeChannelWorkspace() {
   });
 
   useEffect(() => {
-    if (activeRun && (activeRun.status === 'completed' || activeRun.status === 'failed')) {
+    if (activeRun && (activeRun.status === 'completed' || activeRun.status === 'failed' || activeRun.status === 'interrupted')) {
       if (activeRun.status === 'completed') {
         toast({ title: '✅ Generation Complete', description: 'Script + Storyboard ready!' });
         setActiveTab('results');
+      } else if (activeRun.status === 'interrupted') {
+        toast({ title: '⚠️ Pipeline Interrupted', description: 'Bấm Resume để tiếp tục.', variant: 'destructive' });
       } else {
         toast({ title: '❌ Generation Failed', description: activeRun.error || 'Check logs', variant: 'destructive' });
       }
@@ -177,6 +179,9 @@ export default function YouTubeChannelWorkspace() {
       wordTarget: pipelineConfig.scriptWriter.wordTarget,
       aspectRatio: pipelineConfig.storyboard.aspectRatio,
       visualIdentity: pipelineConfig.storyboard.visualIdentity,
+      imageGenEnabled: pipelineConfig.imageGen.enabled,
+      imageGenProvider: pipelineConfig.imageGen.provider,
+      imageGenQuality: pipelineConfig.imageGen.quality,
     };
     if (mode === 'topic' && topic.trim()) {
       req.topic = topic.trim();
@@ -203,6 +208,9 @@ export default function YouTubeChannelWorkspace() {
       wordTarget: pipelineConfig.scriptWriter.wordTarget,
       aspectRatio: pipelineConfig.storyboard.aspectRatio,
       visualIdentity: pipelineConfig.storyboard.visualIdentity,
+      imageGenEnabled: pipelineConfig.imageGen.enabled,
+      imageGenProvider: pipelineConfig.imageGen.provider,
+      imageGenQuality: pipelineConfig.imageGen.quality,
     };
     if (mode === 'topic' && topic.trim()) {
       req.topic = topic.trim();
@@ -214,6 +222,21 @@ export default function YouTubeChannelWorkspace() {
     }
     stepMut.mutate({ step, req });
   };
+
+  // ── Resume Mutation ──
+  const resumeMut = useMutation({
+    mutationFn: () => {
+      if (!activeRunId) throw new Error('No active run to resume');
+      return youtubeChannelsService.resumeRun(activeRunId);
+    },
+    onSuccess: (data) => {
+      setActiveRunId(data.runId);
+      toast({ title: '🔄 Pipeline Resumed', description: data.message });
+    },
+    onError: (err: Error) => {
+      toast({ title: 'Resume Failed', description: err.message, variant: 'destructive' });
+    },
+  });
 
   // Filter runs for this channel only
   const channelRuns = runsData?.runs?.filter(r => r.channelId === channelId) || [];
@@ -472,8 +495,9 @@ export default function YouTubeChannelWorkspace() {
                     channelStyle={channel.style}
                     onRun={handlePipelineRun}
                     onRunStep={handlePipelineStepRun}
-                    isRunning={generateMut.isPending || stepMut.isPending}
-                    activeRun={activeRun ? { status: activeRun.status, logs: activeRun.logs, error: activeRun.error, result: activeRun.result } : undefined}
+                    onResume={() => resumeMut.mutate()}
+                    isRunning={generateMut.isPending || stepMut.isPending || resumeMut.isPending}
+                    activeRun={activeRun ? { status: activeRun.status, logs: activeRun.logs, error: activeRun.error, result: activeRun.result, completedSteps: activeRun.completedSteps, pipelineSteps: activeRun.pipelineSteps } : undefined}
                   />
                 </CardContent>
               </Card>

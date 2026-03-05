@@ -8,4 +8,4 @@
  */
 export type { GenerationRun, GenerateRequest, RunLog, ProgressPhase } from './types';
 export { getRun, getAllRuns, findLatestRunWithFile, hydrateRunsForChannel, hydrateAllRuns } from './run-tracker';
-export { generate, generateStep } from './orchestrator';
+export { generate, generateStep, resumeRun } from './orchestrator';

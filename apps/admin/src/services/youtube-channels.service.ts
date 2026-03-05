@@ -4,7 +4,7 @@
  */
 import { apiFetch } from './pipeline/api-client';
 import { getRun, getAllRuns, hydrateRunsForChannel } from './pipeline/run-tracker';
-import { generate, generateStep } from './pipeline/orchestrator';
+import { generate, generateStep, resumeRun } from './pipeline/orchestrator';
 import type { GenerationRun } from './pipeline/types';
 
 // Re-export pipeline types so existing imports still work
@@ -70,6 +70,7 @@ export const youtubeChannelsService = {
   // ─── Pipeline (delegates to pipeline/) ─────────────────
   generate,
   generateStep,
+  resumeRun,
 
   async getRunStatus(runId: string): Promise<GenerationRun> {
     const local = getRun(runId);
