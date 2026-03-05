@@ -90,13 +90,15 @@ export function startProgressTracker(run: GenerationRun, phases: ProgressPhase[]
 export function findReusableRun(channelId?: string | null, topic?: string | null): GenerationRun | null {
   if (!channelId || !topic) return null;
   let latest: GenerationRun | null = null;
-  const maxAge = 60 * 60 * 1000; // 1 hour
+  const maxAge = 2 * 60 * 60 * 1000; // 2 hours
   for (const run of clientRuns.values()) {
     if (run.channelId !== channelId) continue;
     if (run.status !== 'completed') continue;
     const runTopic = run.input?.topic || run.input?.transcript;
     if (runTopic !== topic) continue;
-    const age = Date.now() - new Date(run.startedAt).getTime();
+    // Use completedAt if available (long runs may start hours before finishing)
+    const refTime = run.completedAt || run.startedAt;
+    const age = Date.now() - new Date(refTime).getTime();
     if (age > maxAge) continue;
     if (!latest || run.startedAt > latest.startedAt) latest = run;
   }
@@ -164,7 +166,9 @@ function mergeRelatedRuns(runs: GenerationRun[]): void {
 
     for (let i = 1; i < group.length; i++) {
       const other = group[i];
-      const gap = new Date(other.startedAt).getTime() - new Date(primary.startedAt).getTime();
+      // Use completedAt of primary (if available) for gap — long-running pipelines may start hours before completion
+      const primaryRefTime = new Date(primary.completedAt || primary.startedAt).getTime();
+      const gap = new Date(other.startedAt).getTime() - primaryRefTime;
       if (gap > MERGE_WINDOW) continue;
 
       // Merge files

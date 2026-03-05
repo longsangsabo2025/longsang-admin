@@ -12,7 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { VideoPreviewModal } from '@/components/video/VideoPreviewModal';
 
 // Veo 3 API Configuration
-const VEO_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyAEh_hNcNbBHGxgenaNXA_YdF4_Z0w-rJw';
+const VEO_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const VEO_MODELS = {
   'veo-3.0-generate-001': { name: 'Veo 3.0', price: '$0.40/video', desc: 'Latest model with audio' },
   'veo-3.1-generate-preview': { name: 'Veo 3.1 Preview', price: '$0.40/video', desc: 'Enhanced quality' },

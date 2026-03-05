@@ -780,6 +780,15 @@ Maintain visual consistency using these elements as your PALETTE — but VARY th
 Create a visual storyboard for a podcast video.  
 Each scene = ~${duration}s of footage. Create exactly ${scenes} scenes.
 Style: ${style}. ${arBlock}Language: Vietnamese.
+
+## CRITICAL — SCENE-SCRIPT ALIGNMENT
+You MUST divide the script into ${scenes} equal segments and design EACH scene's visual to DIRECTLY ILLUSTRATE the specific content of that script segment.
+- Scene 1 prompt → must visually represent what the FIRST segment of the script is ABOUT (the concept, metaphor, or story being told)
+- Scene 5 prompt → must visually represent what the FIFTH segment is ABOUT
+- If the script talks about "chains" → show chains. If it talks about "waking up" → show eyes opening or someone rising.
+- If the script mentions a specific metaphor (matrix, prison, mirror, fire) → the image MUST depict that metaphor visually
+- The visual prompt is NOT just mood/atmosphere — it must TELL THE SAME STORY as the dialogue in that scene
+- Think: "If someone saw ONLY the images without audio, could they understand the story?" — YES is the goal
 ${viBlock}${sbCustomBlock}
 
 ## OUTPUT FORMAT (JSON only, no markdown)
@@ -807,14 +816,26 @@ ${viBlock}${sbCustomBlock}
 }
 
 ## RULES — CRITICAL
-- Each prompt MUST be a DETAILED image generation prompt (40-80 words minimum)
-- Each prompt MUST include ALL of: subject + specific action + camera angle + lighting + color palette + environment + mood
-${hasVi ? `- VARIETY IS ESSENTIAL: Each scene MUST have a DIFFERENT combination of environment, camera angle, character pose/action, and lighting direction
+
+### 1. CONTENT MATCHING (most important)
+- Each scene prompt MUST visually depict what the script SAYS in that segment
+- Extract the KEY CONCEPT / METAPHOR / STORY ELEMENT from each script segment and make it the SUBJECT of the image
+- Example: Script says "Bạn có bao giờ cảm thấy bị mắc kẹt?" → prompt shows a figure trapped behind glass/bars/walls
+- Example: Script says "Thức tỉnh là bước đầu tiên" → prompt shows eyes snapping open, or a figure breaking free
+- DO NOT create generic "man in dark alley" for every scene — each scene must tell a DIFFERENT visual story
+
+### 2. VISUAL QUALITY
+- Each prompt MUST be 40-80 words minimum
+- Each prompt MUST include: specific subject/action based on script content + camera angle + lighting + color palette + environment + mood
+${hasVi ? `
+### 3. VISUAL IDENTITY & VARIETY
+- VARIETY IS ESSENTIAL: Each scene MUST have a DIFFERENT combination of environment, camera angle, character pose/action
 - ROTATE environments: distribute ALL options (${envList.join(', ')}) across the ${scenes} scenes — never use the same environment 3 times in a row
 - ALTERNATE camera styles: mix ${camList.join(', ')} with other angles like wide shot, overhead, low angle, Dutch angle, over-shoulder
-- VARY character actions: walking, standing still, looking up, turning away, clenching fists, silhouette from afar, reflection in puddle, shadow on wall, etc.
-- Keep the color palette (${palette}) and mood (${moods}) consistent across ALL scenes — this is the visual thread
+- Keep the color palette (${palette}) and mood (${moods}) consistent as the visual thread
 - The character STYLE stays consistent but pose/framing/environment MUST change each scene` : '- prompt must be specific: subject, action, camera angle, lighting, style'}
+
+### 4. OTHER
 - dialogue must be the exact Vietnamese text spoken during that scene
 - motion: slow zoom in, pan left, dolly forward, static, etc.
 - transition: fade, cut, dissolve, zoom transition
@@ -824,7 +845,7 @@ ${hasVi ? `- VARIETY IS ESSENTIAL: Each scene MUST have a DIFFERENT combination 
     const result = await llmChat({
       model: storyboardModel,
       systemPrompt: STORYBOARD_PROMPT,
-      userMessage: `Create a ${scenes}-scene storyboard for this script:\n\nTOPIC: ${topic || 'N/A'}\n\nSCRIPT:\n${script.substring(0, 12000)}`,
+      userMessage: `Create a ${scenes}-scene storyboard for this script. IMPORTANT: Divide the script into ${scenes} segments and create a UNIQUE visual for each segment that ILLUSTRATES its specific content/metaphor/story.\n\nTOPIC: ${topic || 'N/A'}\n\nSCRIPT (divide into ${scenes} equal parts, each part = 1 scene):\n${script.substring(0, 12000)}`,
       temperature: 0.8,
       maxTokens: 8192,
       agentId: 'admin-storyboard-gen',

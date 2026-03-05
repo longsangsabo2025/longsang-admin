@@ -26,7 +26,7 @@ import {
 // Get API key from env
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 
   import.meta.env.GEMINI_API_KEY || 
-  'AIzaSyAEh_hNcNbBHGxgenaNXA_YdF4_Z0w-rJw';
+  '';
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta';
 

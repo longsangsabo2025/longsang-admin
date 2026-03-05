@@ -1,7 +1,7 @@
 /**
  * 🖼️ Image Generation Agent — generates images for each storyboard scene
  * 
- * Uses Gemini's image generation API (gemini-2.0-flash-exp-image-generation)
+ * Uses Gemini's image generation API (gemini-2.5-flash-image / Nano Banana)
  * to generate images client-side from storyboard visual prompts.
  * 
  * Saves results to Supabase storage for persistence.
@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { getRun, startProgressTracker, saveStepResult, failRun, findLatestRunWithFile } from './run-tracker';
 
 const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-const GEMINI_MODEL = 'gemini-2.0-flash-exp-image-generation';
+const GEMINI_MODEL = 'gemini-2.5-flash-image';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 interface StoryboardScene {
@@ -135,53 +135,52 @@ export async function runImageGen(runId: string, req: GenerateRequest): Promise<
   }));
   phases.push({ pct: 95, msg: '💾 Saving images to storage...' });
 
-  const tracker = startProgressTracker(run, phases, totalScenes * 15000, 'imageGen'); // ~15s per image
+  const tracker = startProgressTracker(run, phases, Math.ceil(totalScenes / 3) * 15000, 'imageGen'); // ~15s per batch of 3
 
   const generatedImages: GeneratedImage[] = [];
   let successCount = 0;
   let failCount = 0;
 
+  const BATCH_SIZE = 3; // Process 3 scenes concurrently
+
   try {
-    for (let i = 0; i < scenes.length; i++) {
-      const scene = scenes[i];
-      if (run.status !== 'running') break; // early exit if run was cancelled
+    for (let batchStart = 0; batchStart < scenes.length; batchStart += BATCH_SIZE) {
+      if (run.status !== 'running') break; // early exit if cancelled
 
-      const fullPrompt = buildScenePrompt(scene, req.visualIdentity, req.aspectRatio);
-      run.logs.push({ t: Date.now(), level: 'info', msg: `[${Math.round(((i + 0.5) / totalScenes) * 90) + 5}%] 🖼️ Scene ${scene.scene}: generating image...`, step: 'imageGen' });
+      const batch = scenes.slice(batchStart, batchStart + BATCH_SIZE);
+      const batchLabel = batch.map(s => s.scene).join(', ');
+      run.logs.push({ t: Date.now(), level: 'info', msg: `[${Math.round((batchStart / totalScenes) * 90) + 5}%] 🖼️ Batch generating scenes ${batchLabel}...`, step: 'imageGen' });
 
-      try {
-        const result = await generateSingleImage(fullPrompt, apiKey);
-        if (result) {
-          // Upload to Supabase storage
+      const batchResults = await Promise.allSettled(
+        batch.map(async (scene) => {
+          const fullPrompt = buildScenePrompt(scene, req.visualIdentity, req.aspectRatio);
+          const result = await generateSingleImage(fullPrompt, apiKey);
+          if (!result) return { scene, fullPrompt, success: false as const };
           const publicUrl = await uploadToStorage(result.dataUrl, channelId, scene.scene, runId);
+          return { scene, fullPrompt, success: true as const, url: publicUrl, mimeType: result.mimeType };
+        })
+      );
 
-          generatedImages.push({
-            scene: scene.scene,
-            url: publicUrl,
-            prompt: fullPrompt,
-            mimeType: result.mimeType,
-          });
+      for (const settled of batchResults) {
+        if (settled.status === 'fulfilled' && settled.value.success) {
+          const v = settled.value;
+          generatedImages.push({ scene: v.scene.scene, url: v.url, prompt: v.fullPrompt, mimeType: v.mimeType });
           successCount++;
-          run.logs.push({ t: Date.now(), level: 'info', msg: `[${Math.round(((i + 1) / totalScenes) * 90) + 5}%] ✅ Scene ${scene.scene} done`, step: 'imageGen' });
+          run.logs.push({ t: Date.now(), level: 'info', msg: `✅ Scene ${v.scene.scene} done`, step: 'imageGen' });
         } else {
+          const sceneNum = settled.status === 'fulfilled' ? settled.value.scene.scene : '?';
+          const errMsg = settled.status === 'rejected' ? (settled.reason instanceof Error ? settled.reason.message : String(settled.reason)) : 'no image returned';
           failCount++;
-          run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Scene ${scene.scene}: no image returned`, step: 'imageGen' });
-        }
-      } catch (sceneErr: unknown) {
-        failCount++;
-        const msg = sceneErr instanceof Error ? sceneErr.message : String(sceneErr);
-        run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Scene ${scene.scene} failed: ${msg}`, step: 'imageGen' });
-
-        // If rate limited, wait before next request
-        if (msg.includes('429') || msg.toLowerCase().includes('rate')) {
-          run.logs.push({ t: Date.now(), level: 'info', msg: `⏳ Rate limited — waiting 10s before next scene...`, step: 'imageGen' });
-          await new Promise(r => setTimeout(r, 10000));
+          run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Scene ${sceneNum} failed: ${errMsg}`, step: 'imageGen' });
         }
       }
 
-      // Small delay between requests to avoid rate limiting
-      if (i < scenes.length - 1) {
-        await new Promise(r => setTimeout(r, 2000));
+      const pct = Math.round(((batchStart + batch.length) / totalScenes) * 90) + 5;
+      run.logs.push({ t: Date.now(), level: 'info', msg: `[${pct}%] 📊 Progress: ${successCount}/${totalScenes} images done`, step: 'imageGen' });
+
+      // Small delay between batches to respect rate limits
+      if (batchStart + BATCH_SIZE < scenes.length) {
+        await new Promise(r => setTimeout(r, 1000));
       }
     }
 

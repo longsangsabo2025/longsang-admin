@@ -23,7 +23,7 @@ import {
   Play, BookOpen, Brain, Sparkles, Loader2,
   CheckCircle2, XCircle, Clock, Zap, Eye, FileText,
   Copy, RefreshCw, Search, ChevronRight, ExternalLink,
-  Layers, Key, ArrowLeft, Tv,
+  Layers, Key, ArrowLeft, Tv, ImageIcon,
 } from 'lucide-react';
 import { youtubeChannelsService } from '@/services/youtube-channels.service';
 import type { ChannelPlan, GenerateRequest, GenerationRun } from '@/services/youtube-channels.service';
@@ -192,6 +192,14 @@ export default function YouTubeChannelWorkspace() {
       req.topic = topic.trim();
     } else if (mode === 'transcript' && transcript) {
       req.transcript = transcript;
+    } else if (activeRun?.input?.topic) {
+      req.topic = activeRun.input.topic;
+    } else if (activeRun?.input?.transcript) {
+      req.transcript = activeRun.input.transcript;
+    } else if (channelRuns[0]?.input?.topic) {
+      req.topic = channelRuns[0].input.topic;
+    } else if (channelRuns[0]?.input?.transcript) {
+      req.transcript = channelRuns[0].input.transcript;
     } else {
       toast({ title: 'Missing Input', description: 'Enter a topic or select a transcript', variant: 'destructive' });
       return;
@@ -214,10 +222,10 @@ export default function YouTubeChannelWorkspace() {
       wordTarget: pipelineConfig.scriptWriter.wordTarget,
       aspectRatio: pipelineConfig.storyboard.aspectRatio,
       visualIdentity: pipelineConfig.storyboard.visualIdentity,
-      imageGenEnabled: pipelineConfig.imageGen.enabled,
+      imageGenEnabled: step === 'imageGen' ? true : pipelineConfig.imageGen.enabled,
       imageGenProvider: pipelineConfig.imageGen.provider,
       imageGenQuality: pipelineConfig.imageGen.quality,
-      voiceoverEnabled: pipelineConfig.voiceover.enabled,
+      voiceoverEnabled: step === 'voiceover' ? true : pipelineConfig.voiceover.enabled,
       voiceoverEngine: pipelineConfig.voiceover.engine,
       voiceoverVoice: pipelineConfig.voiceover.voice,
       voiceoverSpeed: pipelineConfig.voiceover.speed,
@@ -226,6 +234,14 @@ export default function YouTubeChannelWorkspace() {
       req.topic = topic.trim();
     } else if (mode === 'transcript' && transcript) {
       req.transcript = transcript;
+    } else if (activeRun?.input?.topic) {
+      req.topic = activeRun.input.topic;
+    } else if (activeRun?.input?.transcript) {
+      req.transcript = activeRun.input.transcript;
+    } else if (channelRuns[0]?.input?.topic) {
+      req.topic = channelRuns[0].input.topic;
+    } else if (channelRuns[0]?.input?.transcript) {
+      req.transcript = channelRuns[0].input.transcript;
     } else {
       toast({ title: 'Missing Input', description: 'Enter a topic or select a transcript', variant: 'destructive' });
       return;
@@ -546,7 +562,15 @@ export default function YouTubeChannelWorkspace() {
             {/* ── Results Tab ── */}
             <TabsContent value="results">
               {activeRun && activeRun.status === 'completed' && activeRun.result ? (
-                <ResultsView run={activeRun} />
+                <ResultsView run={activeRun} onRunImageGen={() => {
+                  handlePipelineStepRun('imageGen', {
+                    scriptWriter: { enabled: true, model: 'gemini-2.0-flash', tone: 'engaging', wordTarget: 600, customPrompt: '' },
+                    storyboard: { enabled: true, model: 'hailuo-2.3', style: 'dark-cinematic', scenes: 5, duration: '10-15min', aspectRatio: '16:9', visualIdentity: {} as never, customPrompt: '' },
+                    imageGen: { enabled: true, provider: 'gemini', quality: 'standard', negativePrompt: 'text, watermark, logo' },
+                    voiceover: { enabled: false, engine: 'gemini-tts', voice: 'Kore', speed: 1.0 },
+                    assembly: { enabled: false, format: 'mp4-1080p', transitions: 'crossfade', bgMusic: true },
+                  });
+                }} isGenerating={stepMut.isPending} />
               ) : (
                 <Card>
                   <CardContent className="py-12 text-center text-muted-foreground">
@@ -663,7 +687,7 @@ function RunCard({ run, onView }: { run: GenerationRun; onView: () => void }) {
 
 // ─── RESULTS VIEW ─────────────────────────────────────────
 
-function ResultsView({ run }: { run: GenerationRun }) {
+function ResultsView({ run, onRunImageGen, isGenerating }: { run: GenerationRun; onRunImageGen?: () => void; isGenerating?: boolean }) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const result = run.result;
   if (!result) return null;
@@ -673,6 +697,11 @@ function ResultsView({ run }: { run: GenerationRun }) {
   const storyboardMd = result.files?.['storyboard.md'] as string | undefined;
   const promptsTxt = result.files?.['prompts.txt'] as string | undefined;
   const storyboardJson = result.files?.['storyboard.json'] as { scenes?: { scene: number; dialogue: string; prompt: string; motion: string; transition: string }[] } | undefined;
+  const imagesJson = result.files?.['images.json'] as { images?: { scene: number; url: string; prompt: string }[]; successCount?: number; totalScenes?: number } | undefined;
+  const imageMap = new Map<number, string>();
+  if (imagesJson?.images) {
+    for (const img of imagesJson.images) imageMap.set(img.scene, img.url);
+  }
 
   const stats = scriptJson?.stats as { totalWords?: number; estimatedMinutes?: string; sections?: number } | undefined;
 
@@ -749,22 +778,50 @@ function ResultsView({ run }: { run: GenerationRun }) {
           <Card>
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle className="text-lg">Hailuo 2.3 Storyboard</CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => storyboardMd && copyToClipboard(storyboardMd, 'storyboard')}
-              >
-                {copiedField === 'storyboard' ? <CheckCircle2 className="h-4 w-4 mr-1 text-green-500" /> : <Copy className="h-4 w-4 mr-1" />}
-                {copiedField === 'storyboard' ? 'Copied!' : 'Copy All'}
-              </Button>
+              <div className="flex items-center gap-2">
+                {imagesJson?.images && imagesJson.images.length > 0 && (
+                  <Badge variant="outline" className="text-xs border-orange-500/30 text-orange-400">
+                    🖼️ {imagesJson.successCount || imagesJson.images.length}/{imagesJson.totalScenes || storyboardJson?.scenes?.length || '?'} ảnh
+                  </Badge>
+                )}
+                {onRunImageGen && storyboardJson?.scenes && storyboardJson.scenes.length > 0 && (
+                  <Button
+                    variant={imagesJson?.images ? 'outline' : 'default'}
+                    size="sm"
+                    onClick={onRunImageGen}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? (
+                      <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Đang tạo...</>
+                    ) : imagesJson?.images ? (
+                      <><RefreshCw className="h-4 w-4 mr-1" /> Re-gen Images</>
+                    ) : (
+                      <><ImageIcon className="h-4 w-4 mr-1" /> Generate Images</>
+                    )}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => storyboardMd && copyToClipboard(storyboardMd, 'storyboard')}
+                >
+                  {copiedField === 'storyboard' ? <CheckCircle2 className="h-4 w-4 mr-1 text-green-500" /> : <Copy className="h-4 w-4 mr-1" />}
+                  {copiedField === 'storyboard' ? 'Copied!' : 'Copy All'}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {storyboardJson?.scenes ? (
                 <div className="space-y-3">
-                  {storyboardJson.scenes.map((scene, i) => (
+                  {storyboardJson.scenes.map((scene, i) => {
+                    const imgUrl = imageMap.get(scene.scene);
+                    return (
                     <div key={i} className="p-3 rounded-lg border hover:bg-muted/30 space-y-2">
                       <div className="flex items-center justify-between">
-                        <Badge variant="outline" className="text-xs">Scene {scene.scene}</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">Scene {scene.scene}</Badge>
+                          {imgUrl && <Badge variant="outline" className="text-[10px] border-green-500/30 text-green-400">✅ Image</Badge>}
+                        </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary" className="text-[10px]">{scene.motion}</Badge>
                           <Badge variant="secondary" className="text-[10px]">{scene.transition}</Badge>
@@ -786,8 +843,18 @@ function ResultsView({ run }: { run: GenerationRun }) {
                           )}
                         </Button>
                       </div>
+                      {imgUrl && (
+                        <div className="mt-2">
+                          <img
+                            src={imgUrl}
+                            alt={`Scene ${scene.scene}`}
+                            className="w-full max-w-[400px] aspect-video object-cover rounded-md border"
+                          />
+                        </div>
+                      )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <ScrollArea className="h-[600px]">

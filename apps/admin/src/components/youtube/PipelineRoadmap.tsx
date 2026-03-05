@@ -288,10 +288,10 @@ const STEPS: StepDef[] = [
     title: 'Image Generation',
     subtitle: 'Tạo hình ảnh cho từng scene',
     color: 'text-orange-500 bg-orange-500/10 border-orange-500/30',
-    estimate: '~2-5min',
+    estimate: '~1-2min',
     status: 'available',
     agentLabel: '🖼️ Image Artist',
-    getModel: (c) => c.imageGen.provider === 'gemini' ? 'gemini-2.0-flash' : c.imageGen.provider,
+    getModel: (c) => c.imageGen.provider === 'gemini' ? 'gemini-2.5-flash' : c.imageGen.provider,
   },
   {
     key: 'voiceover',
@@ -485,7 +485,7 @@ function extractStoryboardResult(run?: ActiveRunInfo & { result?: { files?: Reco
   promptsTxt?: string;
   storyboardMd?: string;
 } | null {
-  if (!run || run.status !== 'completed') return null;
+  if (!run) return null;
   const result = (run as { result?: { files?: Record<string, unknown> } }).result;
   if (!result?.files) return null;
   const sbJson = result.files['storyboard.json'] as { scenes?: { scene: number; dialogue: string; prompt: string; motion: string; transition: string }[] } | undefined;
@@ -690,7 +690,7 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                     !isStepRunning && !isStepDone && !isStepFailed && !isStepInterrupted && stepConfig.enabled && !isComingSoon
                       ? 'border-l-2 border-l-current ' + step.color.split(' ')[0].replace('text-', 'border-l-')
                       : '',
-                    !stepConfig.enabled && 'opacity-60',
+                    !stepConfig.enabled && !isExpanded && 'opacity-60',
                     isExpanded && !isStepRunning && 'ring-1 ring-primary/20',
                   )}
                 >
@@ -823,12 +823,13 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                     </div>
 
                     {/* Expanded Config */}
-                    {isExpanded && stepConfig.enabled && !isComingSoon && (
+                    {isExpanded && !isComingSoon && (
                       <div className="mt-3 pt-3 border-t space-y-3">
                         <StepConfig
                           stepKey={step.key}
                           config={config}
                           channelId={channelId}
+                          activeRun={activeRun}
                           onUpdate={updateStep}
                         />
                         {/* Per-step Run Button */}
@@ -838,7 +839,15 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                             variant={isStepDone ? 'outline' : 'default'}
                             className="w-full"
                             disabled={isRunning}
-                            onClick={() => onRunStep(step.key, config)}
+                            onClick={() => {
+                              if (!stepConfig.enabled) {
+                                updateStep(step.key, { enabled: true } as Partial<PipelineConfig[keyof PipelineConfig]>);
+                              }
+                              onRunStep(step.key, {
+                                ...config,
+                                [step.key]: { ...config[step.key], enabled: true },
+                              });
+                            }}
                           >
                             {isStepDone ? (
                               <><RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Re-run {step.title}</>
@@ -907,6 +916,11 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                     {isStepDone && step.key === 'storyboard' && activeRun && (() => {
                       const sbResult = extractStoryboardResult(activeRun);
                       if (!sbResult) return null;
+                      const imgResult = extractImageGenResult(activeRun);
+                      const imageMap = new Map<number, string>();
+                      if (imgResult?.images) {
+                        for (const img of imgResult.images) imageMap.set(img.scene, img.url);
+                      }
                       return (
                         <div className="mt-3 pt-3 border-t">
                           <div className="rounded bg-purple-950/30 border border-purple-500/20 p-3 space-y-2">
@@ -914,23 +928,40 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                               <span className="text-xs font-semibold text-purple-400">🎬 Storyboard Result</span>
                               <div className="flex gap-2 text-[10px] text-muted-foreground">
                                 {sbResult.sceneCount && <Badge variant="outline" className="text-[10px]">{sbResult.sceneCount} scenes</Badge>}
+                                {imgResult && (
+                                  <Badge variant="outline" className="text-[10px] border-orange-500/30 text-orange-400">
+                                    🖼️ {imgResult.successCount}/{imgResult.totalScenes} ảnh
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                             {sbResult.scenes && sbResult.scenes.length > 0 && (
-                              <ScrollArea className="max-h-40">
-                                <div className="space-y-1.5">
-                                  {sbResult.scenes.slice(0, 4).map((s) => (
-                                    <div key={s.scene} className="text-[11px] space-y-0.5">
-                                      <div className="flex items-center gap-1.5">
-                                        <Badge variant="secondary" className="text-[9px] px-1 py-0 shrink-0">Scene {s.scene}</Badge>
-                                        <span className="text-muted-foreground truncate">{s.dialogue?.slice(0, 80)}{s.dialogue?.length > 80 ? '...' : ''}</span>
+                              <ScrollArea className="max-h-[320px]">
+                                <div className="space-y-2">
+                                  {sbResult.scenes.map((s) => {
+                                    const imgUrl = imageMap.get(s.scene);
+                                    return (
+                                      <div key={s.scene} className="text-[11px] space-y-1">
+                                        <div className="flex items-center gap-1.5">
+                                          <Badge variant="secondary" className="text-[9px] px-1 py-0 shrink-0">Scene {s.scene}</Badge>
+                                          <span className="text-muted-foreground truncate">{s.dialogue?.slice(0, 80)}{s.dialogue?.length > 80 ? '...' : ''}</span>
+                                          {imgResult && !imgUrl && (
+                                            <Badge variant="destructive" className="text-[8px] px-1 py-0 shrink-0">No img</Badge>
+                                          )}
+                                        </div>
+                                        <p className="text-purple-300/70 pl-12 truncate text-[10px]">🎨 {s.prompt?.slice(0, 100)}{s.prompt?.length > 100 ? '...' : ''}</p>
+                                        {imgUrl && (
+                                          <div className="pl-12">
+                                            <img
+                                              src={imgUrl}
+                                              alt={`Scene ${s.scene}`}
+                                              className="w-full max-w-[280px] aspect-video object-cover rounded-md border border-orange-500/20"
+                                            />
+                                          </div>
+                                        )}
                                       </div>
-                                      <p className="text-purple-300/70 pl-12 truncate text-[10px]">🎨 {s.prompt?.slice(0, 100)}{s.prompt?.length > 100 ? '...' : ''}</p>
-                                    </div>
-                                  ))}
-                                  {sbResult.scenes.length > 4 && (
-                                    <p className="text-[10px] text-muted-foreground pl-12">... +{sbResult.scenes.length - 4} more scenes</p>
-                                  )}
+                                    );
+                                  })}
                                 </div>
                               </ScrollArea>
                             )}
@@ -1138,11 +1169,13 @@ function StepConfig({
   stepKey,
   config,
   channelId,
+  activeRun,
   onUpdate,
 }: {
   stepKey: keyof PipelineConfig;
   config: PipelineConfig;
   channelId?: string;
+  activeRun?: ActiveRunInfo;
   onUpdate: <K extends keyof PipelineConfig>(step: K, updates: Partial<PipelineConfig[K]>) => void;
 }) {
   switch (stepKey) {
@@ -1151,7 +1184,7 @@ function StepConfig({
     case 'storyboard':
       return <StoryboardConfig config={config.storyboard} channelId={channelId} onUpdate={(u) => onUpdate('storyboard', u)} />;
     case 'imageGen':
-      return <ImageGenConfig config={config.imageGen} onUpdate={(u) => onUpdate('imageGen', u)} />;
+      return <ImageGenConfig config={config.imageGen} activeRun={activeRun} onUpdate={(u) => onUpdate('imageGen', u)} />;
     case 'voiceover':
       return <VoiceoverConfig config={config.voiceover} onUpdate={(u) => onUpdate('voiceover', u)} />;
     case 'assembly':
@@ -1275,7 +1308,7 @@ function StoryboardConfig({
   const [showFullImage, setShowFullImage] = useState(false);
   const [savedPreviews, setSavedPreviews] = useState<Array<{ id: string; url: string; prompt: string; createdAt: string }>>([]);
 
-  const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyAEh_hNcNbBHGxgenaNXA_YdF4_Z0w-rJw') as string;
+  const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
   const STORAGE_KEY = `storyboard-previews-${channelId || 'default'}`;
 
   // Load saved previews from localStorage on mount
@@ -1359,7 +1392,7 @@ function StoryboardConfig({
       const promptText = parts.join(' ');
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1789,11 +1822,14 @@ function StoryboardConfig({
 
 function ImageGenConfig({
   config,
+  activeRun,
   onUpdate,
 }: {
   config: PipelineConfig['imageGen'];
+  activeRun?: ActiveRunInfo;
   onUpdate: (u: Partial<PipelineConfig['imageGen']>) => void;
 }) {
+  const sbResult = extractStoryboardResult(activeRun);
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
@@ -1804,7 +1840,7 @@ function ImageGenConfig({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
+              <SelectItem value="gemini">Nano Banana (gemini-2.5-flash)</SelectItem>
               <SelectItem value="flux-pro">Flux Pro (coming soon)</SelectItem>
               <SelectItem value="dall-e-3">DALL-E 3 (coming soon)</SelectItem>
             </SelectContent>
@@ -1833,11 +1869,31 @@ function ImageGenConfig({
           placeholder="text, watermark, logo, cartoon..."
         />
       </div>
-      <div className="rounded-md border border-orange-500/20 bg-orange-500/5 px-3 py-2">
-        <p className="text-[10px] text-muted-foreground">
-          💡 Sử dụng visual prompts từ Storyboard (Step 2) + Visual Identity settings để tạo hình ảnh cho từng scene. Hình ảnh được lưu vào Supabase Storage.
-        </p>
-      </div>
+
+      {/* Show storyboard prompts from Step 2 */}
+      {sbResult?.scenes && sbResult.scenes.length > 0 ? (
+        <div className="rounded-md border border-orange-500/20 bg-orange-500/5 p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-orange-400">📋 Prompts từ Storyboard ({sbResult.scenes.length} scenes)</span>
+          </div>
+          <ScrollArea className="max-h-36">
+            <div className="space-y-1.5">
+              {sbResult.scenes.map((s) => (
+                <div key={s.scene} className="flex items-start gap-1.5 text-[10px]">
+                  <Badge variant="secondary" className="text-[9px] px-1 py-0 shrink-0 mt-0.5">S{s.scene}</Badge>
+                  <span className="text-muted-foreground leading-relaxed">{s.prompt}</span>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      ) : (
+        <div className="rounded-md border border-orange-500/20 bg-orange-500/5 px-3 py-2">
+          <p className="text-[10px] text-muted-foreground">
+            💡 Chạy Step 2 (Storyboard) trước để tạo visual prompts cho từng scene. Image Gen sẽ tự động sử dụng các prompts đó.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
