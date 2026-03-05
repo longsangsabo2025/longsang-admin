@@ -10,7 +10,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   FileText, Image, Mic, Film, Sparkles,
-  ChevronDown, ChevronRight, Play,
+  ChevronDown, ChevronRight, Play, Layers,
   Loader2, Zap, CheckCircle2, XCircle, Clock, AlertTriangle,
   RotateCcw, Wand2, Maximize2, X, Trash2, Download,
 } from 'lucide-react';
@@ -562,6 +562,7 @@ interface PipelineRoadmapProps {
   onResume?: () => void;
   isRunning: boolean;
   parallelCount?: number;
+  batchCount?: number;
   activeRun?: ActiveRunInfo;
 }
 
@@ -712,7 +713,7 @@ function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineCon
   };
 }
 
-export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunStep, onResume, isRunning, parallelCount = 0, activeRun }: PipelineRoadmapProps) {
+export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunStep, onResume, isRunning, parallelCount = 0, batchCount = 0, activeRun }: PipelineRoadmapProps) {
   const [config, setConfig] = useState<PipelineConfig>(() => loadSavedConfig(channelId, channelStyle));
   const [expandedStep, setExpandedStep] = useState<string | null>('scriptWriter');
 
@@ -1159,6 +1160,8 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
       >
         {isRunning ? (
           <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Running Pipeline{parallelCount > 1 ? ` (${parallelCount} active)` : ''}...</>
+        ) : batchCount > 0 ? (
+          <><Layers className="h-4 w-4 mr-2" /> Run {batchCount} Topics in Parallel ({enabledCount} steps each)</>
         ) : (
           <><Play className="h-4 w-4 mr-2" /> Run Pipeline ({enabledCount} steps)</>
         )}

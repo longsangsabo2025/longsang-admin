@@ -307,11 +307,27 @@ async function mergeClipsToFullAudio(
   return await uploadAudio(wavBlob, channelId, runId, 'full-audio.wav');
 }
 
-/** Generate a single TTS blob using the chosen engine */
+/** Generate a single TTS blob using the chosen engine, with retry on transient errors */
 async function synthesize(text: string, engine: string, voice: string, speed: number, apiKey: string): Promise<Blob> {
-  if (engine === 'elevenlabs') return elevenLabsTTS(text, voice, speed, apiKey);
-  if (engine === 'google-tts') return googleTTS(text, voice, speed, apiKey);
-  return geminiTTS(text, voice, speed, apiKey);
+  const maxRetries = 3;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      if (engine === 'elevenlabs') return await elevenLabsTTS(text, voice, speed, apiKey);
+      if (engine === 'google-tts') return await googleTTS(text, voice, speed, apiKey);
+      return await geminiTTS(text, voice, speed, apiKey);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      const isRetryable = msg.includes('internal') || msg.includes('500') || msg.includes('503') || msg.includes('retry') || msg.includes('INTERNAL');
+      if (isRetryable && attempt < maxRetries) {
+        const delay = (attempt + 1) * 3000; // 3s, 6s, 9s
+        console.warn(`[TTS] Attempt ${attempt + 1} failed (${msg}), retrying in ${delay / 1000}s...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw new Error('TTS failed after retries');
 }
 
 // ─── Main ──────────────────────────────────────────────────
