@@ -9,8 +9,7 @@
 import type { GenerateRequest, ProgressPhase } from './types';
 import { supabase } from '@/lib/supabase';
 import { getRun, startProgressTracker, saveStepResult, failRun, findLatestRunWithFile } from './run-tracker';
-
-const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
+import { getNextKey, reportError } from './api-key-pool';
 const GEMINI_MODEL = 'gemini-2.5-flash-image';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
@@ -105,16 +104,16 @@ export async function runImageGen(runId: string, req: GenerateRequest): Promise<
   const run = getRun(runId);
   if (!run) return;
 
-  const apiKey = GEMINI_API_KEY;
+  const apiKey = getNextKey('gemini');
   if (!apiKey) {
-    failRun(run, 'Missing VITE_GEMINI_API_KEY. Cần cấu hình Gemini API key trong .env');
+    failRun(run, 'Không có Gemini API key. Thêm key trong API Key Pool hoặc cấu hình VITE_GEMINI_API_KEY');
     return;
   }
 
   // Find storyboard: check current run first, then previous runs
   let storyboardJson = run.result?.files?.['storyboard.json'] as { scenes?: StoryboardScene[] } | undefined;
   if (!storyboardJson?.scenes) {
-    const sbRun = findLatestRunWithFile('storyboard.json', req.channelId);
+    const sbRun = findLatestRunWithFile('storyboard.json', req.channelId, runId);
     storyboardJson = sbRun?.result?.files?.['storyboard.json'] as { scenes?: StoryboardScene[] } | undefined;
   }
 
@@ -172,6 +171,9 @@ export async function runImageGen(runId: string, req: GenerateRequest): Promise<
           const errMsg = settled.status === 'rejected' ? (settled.reason instanceof Error ? settled.reason.message : String(settled.reason)) : 'no image returned';
           failCount++;
           run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Scene ${sceneNum} failed: ${errMsg}`, step: 'imageGen' });
+          if (errMsg.includes('429') || errMsg.toLowerCase().includes('rate') || errMsg.toLowerCase().includes('quota')) {
+            reportError('gemini', apiKey, errMsg);
+          }
         }
       }
 

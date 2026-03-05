@@ -29,7 +29,7 @@ export async function runStoryboard(runId: string, req: GenerateRequest): Promis
   // Find script: first check the current run (for chained pipeline), then look for other completed runs
   let scriptText = run.result?.files?.['script.txt'] as string | undefined;
   if (!scriptText) {
-    const scriptRun = findLatestRunWithFile('script.txt', req.channelId);
+    const scriptRun = findLatestRunWithFile('script.txt', req.channelId, runId);
     scriptText = scriptRun?.result?.files?.['script.txt'] as string | undefined;
   }
 

@@ -93,6 +93,7 @@ export function findReusableRun(channelId?: string | null, topic?: string | null
   const maxAge = 2 * 60 * 60 * 1000; // 2 hours
   for (const run of clientRuns.values()) {
     if (run.channelId !== channelId) continue;
+    // Only reuse completed runs — never grab a currently-running parallel run
     if (run.status !== 'completed') continue;
     const runTopic = run.input?.topic || run.input?.transcript;
     if (runTopic !== topic) continue;
@@ -106,7 +107,12 @@ export function findReusableRun(channelId?: string | null, topic?: string | null
 }
 
 /** Find the latest run that has a specific file (completed or in-progress with result) */
-export function findLatestRunWithFile(fileName: string, channelId?: string | null): GenerationRun | null {
+export function findLatestRunWithFile(fileName: string, channelId?: string | null, scopeRunId?: string): GenerationRun | null {
+  // If scoped to a specific run, check it first
+  if (scopeRunId) {
+    const scoped = clientRuns.get(scopeRunId);
+    if (scoped?.result?.files?.[fileName]) return scoped;
+  }
   let latest: GenerationRun | null = null;
   for (const run of clientRuns.values()) {
     if (run.status === 'failed') continue;
@@ -160,6 +166,8 @@ function mergeRelatedRuns(runs: GenerationRun[]): void {
 
   for (const [, group] of groups) {
     if (group.length <= 1) continue;
+    // Never merge groups where any run is still active
+    if (group.some(r => r.status === 'running')) continue;
     // Sort oldest first
     group.sort((a, b) => a.startedAt.localeCompare(b.startedAt));
     const primary = group[0];

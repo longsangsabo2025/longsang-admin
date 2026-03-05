@@ -558,7 +558,58 @@ interface PipelineRoadmapProps {
   onRunStep?: (step: string, config: PipelineConfig) => void;
   onResume?: () => void;
   isRunning: boolean;
+  parallelCount?: number;
   activeRun?: ActiveRunInfo;
+}
+
+// ─── VOICE CLIPS PREVIEW (proper component so hooks work) ───
+function VoiceClipsPreview({ voResult }: {
+  voResult: {
+    clips: { scene: number; url: string; duration: number; charCount: number }[];
+    totalClips: number;
+    successCount: number;
+    failCount: number;
+    totalDuration: number;
+    engine: string;
+  };
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const displayClips = showAll ? voResult.clips : voResult.clips.slice(0, 6);
+
+  return (
+    <div className="mt-3 pt-3 border-t">
+      <div className="rounded bg-green-950/30 border border-green-500/20 p-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-green-400">🎤 Voice Clips</span>
+          <div className="flex gap-2 text-[10px] text-muted-foreground">
+            <Badge variant="outline" className="text-[10px]">{voResult.successCount}/{voResult.totalClips} clips</Badge>
+            <Badge variant="outline" className="text-[10px]">~{voResult.totalDuration}s</Badge>
+            {voResult.failCount > 0 && (
+              <Badge variant="destructive" className="text-[10px]">{voResult.failCount} failed</Badge>
+            )}
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          {displayClips.map((clip) => (
+            <div key={clip.scene} className="flex items-center gap-2 bg-background/30 rounded px-2 py-1">
+              <span className="text-[10px] text-muted-foreground w-14 shrink-0">Scene {clip.scene}</span>
+              <audio controls src={clip.url} className="h-7 flex-1 min-w-0" preload="metadata" />
+              <span className="text-[9px] text-muted-foreground shrink-0">~{clip.duration}s</span>
+            </div>
+          ))}
+        </div>
+        {voResult.clips.length > 6 && (
+          <button
+            type="button"
+            className="w-full text-[10px] text-purple-400 hover:text-purple-300 text-center py-1 transition-colors"
+            onClick={() => setShowAll(v => !v)}
+          >
+            {showAll ? '▲ Thu gọn' : `▼ Xem thêm ${voResult.clips.length - 6} clips`}
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 const STORAGE_KEY = 'yt-pipeline-config';
@@ -592,7 +643,7 @@ function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineCon
   };
 }
 
-export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunStep, onResume, isRunning, activeRun }: PipelineRoadmapProps) {
+export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunStep, onResume, isRunning, parallelCount = 0, activeRun }: PipelineRoadmapProps) {
   const [config, setConfig] = useState<PipelineConfig>(() => loadSavedConfig(channelId, channelStyle));
   const [expandedStep, setExpandedStep] = useState<string | null>('scriptWriter');
 
@@ -1021,36 +1072,7 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                     {(isStepDone || isStepFailed) && step.key === 'voiceover' && activeRun && (() => {
                       const voResult = extractVoiceoverResult(activeRun);
                       if (!voResult) return null;
-                      return (
-                        <div className="mt-3 pt-3 border-t">
-                          <div className="rounded bg-green-950/30 border border-green-500/20 p-3 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold text-green-400">🎤 Voice Clips</span>
-                              <div className="flex gap-2 text-[10px] text-muted-foreground">
-                                <Badge variant="outline" className="text-[10px]">{voResult.successCount}/{voResult.totalClips} clips</Badge>
-                                <Badge variant="outline" className="text-[10px]">~{voResult.totalDuration}s</Badge>
-                                {voResult.failCount > 0 && (
-                                  <Badge variant="destructive" className="text-[10px]">{voResult.failCount} failed</Badge>
-                                )}
-                              </div>
-                            </div>
-                            <div className="space-y-1.5">
-                              {voResult.clips.slice(0, 6).map((clip) => (
-                                <div key={clip.scene} className="flex items-center gap-2 bg-background/30 rounded px-2 py-1">
-                                  <span className="text-[10px] text-muted-foreground w-14 shrink-0">Scene {clip.scene}</span>
-                                  <audio controls src={clip.url} className="h-7 flex-1 min-w-0" preload="none" />
-                                  <span className="text-[9px] text-muted-foreground shrink-0">~{clip.duration}s</span>
-                                </div>
-                              ))}
-                            </div>
-                            {voResult.clips.length > 6 && (
-                              <p className="text-[10px] text-muted-foreground text-center">
-                                +{voResult.clips.length - 6} more clips
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      );
+                      return <VoiceClipsPreview voResult={voResult} />;
                     })()}
 
                     {isExpanded && isComingSoon && (
@@ -1100,7 +1122,7 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
         onClick={() => onRun(config)}
       >
         {isRunning ? (
-          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Running Pipeline...</>
+          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Running Pipeline{parallelCount > 1 ? ` (${parallelCount} active)` : ''}...</>
         ) : (
           <><Play className="h-4 w-4 mr-2" /> Run Pipeline ({enabledCount} steps)</>
         )}
@@ -1949,14 +1971,15 @@ function VoiceoverConfig({
 NHIỆM VỤ: Nhận script gốc → trả về bản script ĐÃ TỐI ƯU cho giọng đọc AI.
 
 QUY TẮC BIÊN TẬP:
-1. SỐ & KÝ HIỆU → viết thành chữ (100k → một trăm nghìn, 30% → ba mươi phần trăm, $50 → năm mươi đô, AI → A.I., CEO → C.E.O., 2024 → hai nghìn không trăm hai mươi bốn)
-2. CÂU DÀI → tách thành câu ngắn 15-25 từ, thêm dấu phẩy ngắt hơi
-3. VIẾT TẮT → viết đầy đủ hoặc thêm dấu chấm giữa (VD: FOMO → F.O.M.O.)
-4. CẤU TRÚC → chia thành đoạn rõ ràng, mỗi đoạn 3-5 câu, cách nhau bằng dòng trống
-5. LOẠI BỎ → heading (#), markdown (**bold**, *italic*), links, code blocks
-6. GIỮ NGUYÊN → ý nghĩa, phong cách, tone giọng, ngôn ngữ gốc
-7. NHỊP THỞ → thêm "..." hoặc "—" ở chỗ cần dừng nhấn mạnh
-8. MỞ ĐẦU/KẾT → giữ nguyên hook mạnh, không làm nhạt
+1. XÓA TIÊU ĐỀ → dòng đầu tiên nếu là title/heading video thì BỎ HOÀN TOÀN, TTS không cần đọc tiêu đề
+2. SỐ & KÝ HIỆU → viết thành chữ (100k → một trăm nghìn, 30% → ba mươi phần trăm, $50 → năm mươi đô, AI → A.I., CEO → C.E.O., 2024 → hai nghìn không trăm hai mươi bốn)
+3. CÂU DÀI → tách thành câu ngắn 15-25 từ, thêm dấu phẩy ngắt hơi
+4. VIẾT TẮT → viết đầy đủ hoặc thêm dấu chấm giữa (VD: FOMO → F.O.M.O.)
+5. CẤU TRÚC → chia thành đoạn rõ ràng, mỗi đoạn 3-5 câu, cách nhau bằng dòng trống
+6. LOẠI BỎ → heading (#), markdown (**bold**, *italic*), links, code blocks, emoji decorative (🎙️📌🔥)
+7. GIỮ NGUYÊN → ý nghĩa, phong cách, tone giọng, ngôn ngữ gốc
+8. NHỊP THỞ → thêm "..." hoặc "—" ở chỗ cần dừng nhấn mạnh
+9. MỞ ĐẦU → bắt đầu bằng hook hấp dẫn, KHÔNG đọc tên video
 
 ĐỊNH DẠNG OUTPUT:
 - Chỉ trả text thuần (plain text), KHÔNG JSON, KHÔNG markdown
@@ -2321,12 +2344,9 @@ QUY TẮC BIÊN TẬP:
             </button>
 
             {showScriptPreview && (
-              <ScrollArea className="max-h-40">
+              <ScrollArea className="max-h-[300px]">
                 <p className="text-[10px] text-muted-foreground whitespace-pre-wrap leading-relaxed pr-2">
-                  {scriptSource.text.length > 2000
-                    ? scriptSource.text.substring(0, 2000) + '...'
-                    : scriptSource.text
-                  }
+                  {scriptSource.text}
                 </p>
               </ScrollArea>
             )}
@@ -2379,7 +2399,7 @@ QUY TẮC BIÊN TẬP:
 
               {showOptimized && (
                 <div className="px-3 pb-3 space-y-2 border-t border-green-500/20 pt-2">
-                  <ScrollArea className="max-h-60">
+                  <ScrollArea className="max-h-[400px]">
                     <p className="text-[10px] text-foreground/80 whitespace-pre-wrap leading-relaxed pr-2 font-mono">
                       {optimizedScript}
                     </p>

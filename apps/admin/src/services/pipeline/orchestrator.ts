@@ -66,7 +66,7 @@ async function executeStep(step: string, runId: string, req: GenerateRequest): P
 
 /** Run the full pipeline — chains enabled steps sequentially */
 export async function generate(req: GenerateRequest): Promise<{ success: boolean; runId: string; message: string }> {
-  const runId = `gen_${Date.now()}`;
+  const runId = `gen_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
   const run = createRun(runId, req, '🚀 Starting full pipeline...');
   const steps = resolveSteps(req);
 
@@ -110,7 +110,7 @@ export async function generateStep(step: string, req: GenerateRequest): Promise<
     run.logs.push({ t: Date.now(), level: 'info', msg: `🔄 Appending step: ${label}`, step });
     persistUpdate(run).catch(() => {});
   } else {
-    runId = `run_${Date.now()}`;
+    runId = `run_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     run = createRun(runId, req, label);
     run.pipelineSteps = [step];
     run.completedSteps = [];

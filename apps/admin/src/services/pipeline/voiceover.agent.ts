@@ -13,10 +13,7 @@
 import type { GenerateRequest, ProgressPhase } from './types';
 import { supabase } from '@/lib/supabase';
 import { getRun, startProgressTracker, saveStepResult, failRun, findLatestRunWithFile } from './run-tracker';
-
-const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-const GOOGLE_TTS_KEY = (import.meta.env.VITE_GOOGLE_TTS_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-const ELEVENLABS_KEY = (import.meta.env.VITE_ELEVENLABS_API_KEY || '') as string;
+import { getNextKey, reportError } from './api-key-pool';
 
 const GEMINI_TTS_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
 const GOOGLE_TTS_URL = 'https://texttospeech.googleapis.com/v1/text:synthesize';
@@ -186,17 +183,12 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
   const voice = req.voiceoverVoice || 'Kore';
   const speed = req.voiceoverSpeed || 1.0;
 
-  // Validate API key
-  let apiKey: string;
-  if (engine === 'elevenlabs') {
-    apiKey = ELEVENLABS_KEY;
-    if (!apiKey) { failRun(run, 'Missing VITE_ELEVENLABS_API_KEY trong .env'); return; }
-  } else if (engine === 'google-tts') {
-    apiKey = GOOGLE_TTS_KEY;
-    if (!apiKey) { failRun(run, 'Missing VITE_GOOGLE_TTS_API_KEY hoặc VITE_GEMINI_API_KEY trong .env'); return; }
-  } else {
-    apiKey = GEMINI_API_KEY;
-    if (!apiKey) { failRun(run, 'Missing VITE_GEMINI_API_KEY trong .env'); return; }
+  // Get API key from pool (falls back to env vars)
+  const engineKey = engine === 'elevenlabs' ? 'elevenlabs' : engine === 'google-tts' ? 'google-tts' : 'gemini';
+  const apiKey = getNextKey(engineKey);
+  if (!apiKey) {
+    failRun(run, `Không có API key cho ${engine}. Thêm key trong API Key Pool hoặc cấu hình env var.`);
+    return;
   }
 
   const channelId = req.channelId || 'default';
@@ -206,7 +198,7 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
   let scenes: StoryboardScene[] | null = null;
   let storyboardJson = run.result?.files?.['storyboard.json'] as { scenes?: StoryboardScene[] } | undefined;
   if (!storyboardJson?.scenes) {
-    const sbRun = findLatestRunWithFile('storyboard.json', req.channelId);
+    const sbRun = findLatestRunWithFile('storyboard.json', req.channelId, runId);
     storyboardJson = sbRun?.result?.files?.['storyboard.json'] as { scenes?: StoryboardScene[] } | undefined;
   }
   if (storyboardJson?.scenes?.some(s => s.dialogue?.trim())) {
@@ -215,7 +207,7 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
 
   let scriptTxt = run.result?.files?.['script.txt'] as string | undefined;
   if (!scriptTxt) {
-    const scriptRun = findLatestRunWithFile('script.txt', req.channelId);
+    const scriptRun = findLatestRunWithFile('script.txt', req.channelId, runId);
     scriptTxt = scriptRun?.result?.files?.['script.txt'] as string | undefined;
   }
 
@@ -266,6 +258,7 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
           const msg = err instanceof Error ? err.message : String(err);
           run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Scene ${scene.scene} TTS failed: ${msg}` });
           if (msg.includes('429') || msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('quota')) {
+            reportError(engineKey, apiKey, msg);
             run.logs.push({ t: Date.now(), level: 'info', msg: '⏳ Rate limited — waiting 10s...' });
             await new Promise(r => setTimeout(r, 10000));
           }

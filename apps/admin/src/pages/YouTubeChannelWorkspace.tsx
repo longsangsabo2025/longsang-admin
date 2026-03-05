@@ -26,10 +26,12 @@ import {
   CheckCircle2, XCircle, Clock, Zap, Eye, FileText,
   Copy, RefreshCw, Search, ChevronRight, ChevronDown, ExternalLink,
   Layers, Key, ArrowLeft, Tv, ImageIcon, Mic, Volume2, Wand2,
+  Plus, Trash2, ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { youtubeChannelsService } from '@/services/youtube-channels.service';
 import type { ChannelPlan, GenerateRequest, GenerationRun } from '@/services/youtube-channels.service';
 import PipelineRoadmap, { type PipelineConfig } from '@/components/youtube/PipelineRoadmap';
+import { getPool, addKey, removeKey, enableKey, disableKey, resetStats, onPoolChange, type PoolEntry } from '@/services/pipeline/api-key-pool';
 
 // ─── MAIN COMPONENT ────────────────────────────────────────
 
@@ -46,6 +48,7 @@ export default function YouTubeChannelWorkspace() {
   })();
 
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const [runningRunIds, setRunningRunIds] = useState<Set<string>>(new Set());
   const [topic, setTopic] = useState(s.topic || '');
   const [transcript, setTranscript] = useState(s.transcript || '');
   const [transcriptSearch, setTranscriptSearch] = useState('');
@@ -110,7 +113,7 @@ export default function YouTubeChannelWorkspace() {
       if (channelId) await youtubeChannelsService.hydrateChannel(channelId);
       return youtubeChannelsService.getRuns();
     },
-    refetchInterval: activeRunId ? 3000 : false,
+    refetchInterval: activeRunId || runningRunIds.size > 0 ? 3000 : false,
   });
 
   const { data: transcriptsData } = useQuery({
@@ -129,6 +132,12 @@ export default function YouTubeChannelWorkspace() {
 
   useEffect(() => {
     if (activeRun && (activeRun.status === 'completed' || activeRun.status === 'failed' || activeRun.status === 'interrupted')) {
+      // Remove from running set
+      setRunningRunIds(prev => {
+        const next = new Set(prev);
+        next.delete(activeRun.id);
+        return next;
+      });
       if (activeRun.status === 'completed') {
         toast({ title: '✅ Generation Complete', description: 'Script + Storyboard ready!' });
         setActiveTab('results');
@@ -139,13 +148,14 @@ export default function YouTubeChannelWorkspace() {
       }
       queryClient.invalidateQueries({ queryKey: ['youtube-channels', 'runs'] });
     }
-  }, [activeRun?.status, toast, queryClient]);
+  }, [activeRun?.status, activeRun?.id, toast, queryClient]);
 
   // ── Generate Mutation ──
   const generateMut = useMutation({
     mutationFn: (req: GenerateRequest) => youtubeChannelsService.generate(req),
     onSuccess: (data) => {
       setActiveRunId(data.runId);
+      setRunningRunIds(prev => new Set(prev).add(data.runId));
       toast({ title: '🚀 Generation Started', description: data.message });
     },
     onError: (err: Error) => {
@@ -159,6 +169,7 @@ export default function YouTubeChannelWorkspace() {
       youtubeChannelsService.generateStep(step, req),
     onSuccess: (data) => {
       setActiveRunId(data.runId);
+      setRunningRunIds(prev => new Set(prev).add(data.runId));
       toast({ title: '🔧 Step Started', description: data.message });
     },
     onError: (err: Error) => {
@@ -355,29 +366,34 @@ export default function YouTubeChannelWorkspace() {
         </div>
       </div>
 
-      {/* ── Active Run Banner ── */}
-      {activeRun && activeRun.status === 'running' && (
+      {/* ── Active Runs Banner ── */}
+      {runningRunIds.size > 0 && (
         <Card className="border-blue-500/50 bg-blue-500/5">
-          <CardContent className="py-4">
+          <CardContent className="py-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                <div>
-                  <p className="font-medium">Generating: {activeRun.input.topic || activeRun.input.transcript}</p>
-                  <p className="text-sm text-muted-foreground">{activeRun.logs.length} log entries</p>
-                </div>
+                <p className="font-medium">{runningRunIds.size} run{runningRunIds.size > 1 ? 's' : ''} active</p>
               </div>
               <Badge variant="outline" className="animate-pulse">RUNNING</Badge>
             </div>
-            {activeRun.logs.length > 0 && (
-              <div className="mt-3 rounded bg-black/20 p-2 font-mono text-xs max-h-24 overflow-y-auto">
-                {activeRun.logs.slice(-5).map((log, i) => (
-                  <div key={i} className={log.level === 'error' ? 'text-red-400' : 'text-green-400'}>
-                    {log.msg}
-                  </div>
-                ))}
+            {channelRuns.filter(r => runningRunIds.has(r.id) && r.status === 'running').map(run => (
+              <div key={run.id} className="rounded bg-black/20 p-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium truncate max-w-[60%]">{run.input?.topic || run.input?.transcript}</span>
+                  <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setActiveRunId(run.id)}>
+                    Focus
+                  </Button>
+                </div>
+                <div className="font-mono text-[11px] max-h-16 overflow-y-auto">
+                  {run.logs.slice(-3).map((log, i) => (
+                    <div key={i} className={log.level === 'error' ? 'text-red-400' : 'text-green-400'}>
+                      {log.msg}
+                    </div>
+                  ))}
+                </div>
               </div>
-            )}
+            ))}
           </CardContent>
         </Card>
       )}
@@ -528,6 +544,7 @@ export default function YouTubeChannelWorkspace() {
                     onRunStep={handlePipelineStepRun}
                     onResume={() => resumeMut.mutate()}
                     isRunning={generateMut.isPending || stepMut.isPending || resumeMut.isPending}
+                    parallelCount={runningRunIds.size}
                     activeRun={activeRun ? { status: activeRun.status, logs: activeRun.logs, error: activeRun.error, result: activeRun.result, completedSteps: activeRun.completedSteps, pipelineSteps: activeRun.pipelineSteps } : undefined}
                   />
                 </CardContent>
@@ -570,7 +587,7 @@ export default function YouTubeChannelWorkspace() {
                 <ResultsView run={activeRun} onRunImageGen={() => {
                   handlePipelineStepRun('imageGen', {
                     scriptWriter: { enabled: true, model: 'gemini-2.0-flash', tone: 'engaging', wordTarget: 600, customPrompt: '' },
-                    storyboard: { enabled: true, model: 'hailuo-2.3', style: 'dark-cinematic', scenes: 5, duration: '10-15min', aspectRatio: '16:9', visualIdentity: {} as never, customPrompt: '' },
+                    storyboard: { enabled: true, model: 'hailuo-2.3', style: 'dark-cinematic', scenes: 5, duration: 6, aspectRatio: '16:9', visualIdentity: {} as never, customPrompt: '' },
                     imageGen: { enabled: true, provider: 'gemini', quality: 'standard', negativePrompt: 'text, watermark, logo' },
                     voiceover: { enabled: false, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed },
                     assembly: { enabled: false, format: 'mp4-1080p', transitions: 'crossfade', bgMusic: true },
@@ -578,7 +595,7 @@ export default function YouTubeChannelWorkspace() {
                 }} onRunVoiceover={() => {
                   handlePipelineStepRun('voiceover', {
                     scriptWriter: { enabled: true, model: 'gemini-2.0-flash', tone: 'engaging', wordTarget: 600, customPrompt: '' },
-                    storyboard: { enabled: true, model: 'hailuo-2.3', style: 'dark-cinematic', scenes: 5, duration: '10-15min', aspectRatio: '16:9', visualIdentity: {} as never, customPrompt: '' },
+                    storyboard: { enabled: true, model: 'hailuo-2.3', style: 'dark-cinematic', scenes: 5, duration: 6, aspectRatio: '16:9', visualIdentity: {} as never, customPrompt: '' },
                     imageGen: { enabled: false, provider: 'gemini', quality: 'standard', negativePrompt: 'text, watermark, logo' },
                     voiceover: { enabled: true, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed },
                     assembly: { enabled: false, format: 'mp4-1080p', transitions: 'crossfade', bgMusic: true },
@@ -600,69 +617,147 @@ export default function YouTubeChannelWorkspace() {
         </div>
       </div>
 
-      {/* ── API Key Dialog ── */}
+      {/* ── API Key Pool Manager Dialog ── */}
       <Dialog open={showApiKeyDialog} onOpenChange={setShowApiKeyDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Key className="h-5 w-5" />
-              Google AI API Key
+              API Key Pool Manager
             </DialogTitle>
             <DialogDescription>
-              Required for script generation with Gemini. Get your key from{' '}
-              <a
-                href="https://aistudio.google.com/apikey"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline inline-flex items-center gap-1"
-              >
+              Add multiple API keys for round-robin rotation. Keys auto-disable after 3 consecutive errors.
+              Get keys from{' '}
+              <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline inline-flex items-center gap-1">
                 Google AI Studio <ExternalLink className="h-3 w-3" />
               </a>
             </DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 rounded-lg border p-3">
-              <div className={`h-3 w-3 rounded-full ${apiKeyStatus?.hasKey ? 'bg-green-500' : 'bg-red-500'}`} />
-              <div className="flex-1">
-                <p className="text-sm font-medium">
-                  {apiKeyStatus?.hasKey ? 'Key configured' : 'No key configured'}
-                </p>
-                {apiKeyStatus?.maskedKey && (
-                  <p className="text-xs text-muted-foreground font-mono">{apiKeyStatus.maskedKey}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="api-key">New API Key</Label>
-              <Input
-                id="api-key"
-                type="password"
-                placeholder="AIzaSy..."
-                value={newApiKey}
-                onChange={(e) => setNewApiKey(e.target.value)}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowApiKeyDialog(false)}>
-                Cancel
-              </Button>
-              <Button
-                disabled={!newApiKey.trim() || apiKeyMut.isPending}
-                onClick={() => apiKeyMut.mutate(newApiKey)}
-              >
-                {apiKeyMut.isPending ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
-                ) : (
-                  'Save Key'
-                )}
-              </Button>
-            </div>
-          </div>
+          <KeyPoolManager />
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// ─── KEY POOL MANAGER ─────────────────────────────────────
+
+const ENGINE_OPTIONS = [
+  { value: 'gemini', label: '🤖 Gemini', placeholder: 'AIzaSy...' },
+  { value: 'elevenlabs', label: '🎤 ElevenLabs', placeholder: 'sk_...' },
+  { value: 'google-tts', label: '🔊 Google TTS', placeholder: 'AIzaSy...' },
+] as const;
+
+function KeyPoolManager() {
+  const [pool, setPool] = useState<PoolEntry[]>(getPool());
+  const [newEngine, setNewEngine] = useState<string>('gemini');
+  const [newKey, setNewKey] = useState('');
+  const [newLabel, setNewLabel] = useState('');
+
+  useEffect(() => {
+    const unsub = onPoolChange(() => setPool(getPool()));
+    return unsub;
+  }, []);
+
+  const handleAdd = () => {
+    if (!newKey.trim()) return;
+    addKey(newEngine, newKey.trim(), newLabel.trim() || undefined);
+    setNewKey('');
+    setNewLabel('');
+  };
+
+  const mask = (key: string) => key.slice(0, 6) + '...' + key.slice(-4);
+
+  const engineKeys = (engine: string) => pool.filter(e => e.engine === engine);
+  const hasKeys = pool.length > 0;
+
+  return (
+    <div className="space-y-4">
+      {/* Add new key form */}
+      <div className="space-y-2 rounded-lg border p-3">
+        <div className="flex gap-2">
+          <Select value={newEngine} onValueChange={setNewEngine}>
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ENGINE_OPTIONS.map(e => (
+                <SelectItem key={e.value} value={e.value} className="text-xs">{e.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            className="h-8 text-xs flex-1"
+            type="password"
+            placeholder={ENGINE_OPTIONS.find(e => e.value === newEngine)?.placeholder}
+            value={newKey}
+            onChange={e => setNewKey(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Input
+            className="h-8 text-xs flex-1"
+            placeholder="Label (optional, e.g. 'Key #1 - Free tier')"
+            value={newLabel}
+            onChange={e => setNewLabel(e.target.value)}
+          />
+          <Button size="sm" className="h-8" disabled={!newKey.trim()} onClick={handleAdd}>
+            <Plus className="h-3 w-3 mr-1" /> Add
+          </Button>
+        </div>
+      </div>
+
+      {/* Pool keys by engine */}
+      {!hasKeys && (
+        <p className="text-xs text-muted-foreground text-center py-4">
+          No keys in pool. Add keys above, or set env vars (VITE_GEMINI_API_KEY) as fallback.
+        </p>
+      )}
+
+      {ENGINE_OPTIONS.map(eng => {
+        const keys = engineKeys(eng.value);
+        if (keys.length === 0) return null;
+        return (
+          <div key={eng.value} className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">{eng.label} ({keys.length} key{keys.length > 1 ? 's' : ''})</Label>
+            {keys.map(entry => (
+              <div key={entry.key} className={`flex items-center gap-2 rounded border p-2 text-xs ${entry.disabled ? 'opacity-50 bg-red-500/5' : ''}`}>
+                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${entry.disabled ? 'bg-red-500' : 'bg-green-500'}`} />
+                <div className="flex-1 min-w-0">
+                  <span className="font-mono">{mask(entry.key)}</span>
+                  {entry.label && <span className="ml-2 text-muted-foreground">{entry.label}</span>}
+                  <div className="flex gap-3 text-[10px] text-muted-foreground mt-0.5">
+                    <span>Used: {entry.usageCount}x</span>
+                    {entry.lastError && <span className="text-red-400 truncate max-w-[150px]">Err: {entry.lastError}</span>}
+                  </div>
+                </div>
+                <Button
+                  variant="ghost" size="icon" className="h-6 w-6"
+                  onClick={() => entry.disabled ? enableKey(eng.value, entry.key) : disableKey(eng.value, entry.key)}
+                  title={entry.disabled ? 'Enable' : 'Disable'}
+                >
+                  {entry.disabled ? <ToggleLeft className="h-3.5 w-3.5" /> : <ToggleRight className="h-3.5 w-3.5" />}
+                </Button>
+                <Button
+                  variant="ghost" size="icon" className="h-6 w-6 text-red-400 hover:text-red-500"
+                  onClick={() => removeKey(eng.value, entry.key)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        );
+      })}
+
+      {/* Actions */}
+      {hasKeys && (
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" className="text-xs h-7" onClick={resetStats}>
+            <RefreshCw className="h-3 w-3 mr-1" /> Reset Stats
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -750,8 +845,7 @@ function VoiceTabContent({
   useEffect(() => {
     if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
     setPreviewError(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [voiceoverConfig?.engine, voiceoverConfig?.voice, voiceoverConfig?.speed]);
+  }, [voiceoverConfig?.engine, voiceoverConfig?.voice, voiceoverConfig?.speed]); // previewUrl is intentionally excluded
 
   useEffect(() => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
