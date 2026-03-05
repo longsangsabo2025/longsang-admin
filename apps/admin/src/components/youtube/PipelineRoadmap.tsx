@@ -1914,7 +1914,14 @@ function VoiceoverConfig({
   const [previewError, setPreviewError] = useState<string | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Cleanup blob URL on unmount or when url changes
+  // Clear preview when voice or engine changes
+  useEffect(() => {
+    if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
+    setPreviewError(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.engine, config.voice, config.speed]);
+
+  // Cleanup blob URL on unmount
   useEffect(() => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
   }, [previewUrl]);
@@ -1958,7 +1965,32 @@ function VoiceoverConfig({
         const byteChars = atob(b64);
         const byteArr = new Uint8Array(byteChars.length);
         for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
-        blob = new Blob([byteArr], { type: audioPart.inlineData.mimeType as string });
+        const mime = (audioPart.inlineData.mimeType as string) || '';
+        // Gemini returns raw PCM (audio/L16) — browser can't play it, wrap in WAV
+        if (mime.includes('L16') || mime.includes('pcm') || mime.includes('raw')) {
+          const sampleRate = 24000; // Gemini default
+          const numChannels = 1;
+          const bitsPerSample = 16;
+          const wavHeader = new ArrayBuffer(44);
+          const view = new DataView(wavHeader);
+          const writeStr = (off: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+          writeStr(0, 'RIFF');
+          view.setUint32(4, 36 + byteArr.length, true);
+          writeStr(8, 'WAVE');
+          writeStr(12, 'fmt ');
+          view.setUint32(16, 16, true);
+          view.setUint16(20, 1, true);
+          view.setUint16(22, numChannels, true);
+          view.setUint32(24, sampleRate, true);
+          view.setUint32(28, sampleRate * numChannels * bitsPerSample / 8, true);
+          view.setUint16(32, numChannels * bitsPerSample / 8, true);
+          view.setUint16(34, bitsPerSample, true);
+          writeStr(36, 'data');
+          view.setUint32(40, byteArr.length, true);
+          blob = new Blob([wavHeader, byteArr], { type: 'audio/wav' });
+        } else {
+          blob = new Blob([byteArr], { type: mime || 'audio/wav' });
+        }
       } else if (config.engine === 'google-tts') {
         const apiKey = (import.meta.env.VITE_GOOGLE_TTS_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '') as string;
         if (!apiKey) throw new Error('Missing Google TTS API key');
@@ -2040,30 +2072,58 @@ function VoiceoverConfig({
                 <SelectItem value="pNInz6obpgDQGcFmaJgB">Adam (Deep Male)</SelectItem>
                 <SelectItem value="21m00Tcm4TlvDq8ikWAM">Rachel (Narrator)</SelectItem>
                 <SelectItem value="EXAVITQu4vr4xnSDxMaL">Bella (Warm Female)</SelectItem>
+                <SelectItem value="yoZ06aMxZJJ28mfd3POQ">Sam (Authoritative Male)</SelectItem>
+                <SelectItem value="jBpfuIE2acCO8z3wKNLl">Gigi (Animated Female)</SelectItem>
+                <SelectItem value="onwK4e9ZLuTAKqWW03F9">Daniel (British Male)</SelectItem>
+                <SelectItem value="XB0fDUnXU5powFXDhCwa">Charlotte (Calm Female)</SelectItem>
+                <SelectItem value="TX3LPaxmHKxFdv7VOQHJ">Liam (Natural Male)</SelectItem>
               </SelectContent>
             </Select>
           ) : isGoogleTTS ? (
             <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
               <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="vi-VN-Neural2-D">🇻🇳 Nam Neural2</SelectItem>
-                <SelectItem value="vi-VN-Neural2-A">🇻🇳 Nữ Neural2</SelectItem>
-                <SelectItem value="vi-VN-Wavenet-B">🇻🇳 Nam Wavenet</SelectItem>
-                <SelectItem value="vi-VN-Wavenet-A">🇻🇳 Nữ Wavenet</SelectItem>
-                <SelectItem value="en-US-Neural2-D">🇺🇸 Male Neural2</SelectItem>
-                <SelectItem value="en-US-Neural2-F">🇺🇸 Female Neural2</SelectItem>
+                <SelectItem value="vi-VN-Neural2-D">🇻🇳 Nam Neural2-D</SelectItem>
+                <SelectItem value="vi-VN-Neural2-A">🇻🇳 Nữ Neural2-A</SelectItem>
+                <SelectItem value="vi-VN-Wavenet-B">🇻🇳 Nam Wavenet-B</SelectItem>
+                <SelectItem value="vi-VN-Wavenet-A">🇻🇳 Nữ Wavenet-A</SelectItem>
+                <SelectItem value="vi-VN-Wavenet-C">🇻🇳 Nữ Wavenet-C</SelectItem>
+                <SelectItem value="vi-VN-Wavenet-D">🇻🇳 Nam Wavenet-D</SelectItem>
+                <SelectItem value="vi-VN-Standard-A">🇻🇳 Nữ Standard-A</SelectItem>
+                <SelectItem value="vi-VN-Standard-B">🇻🇳 Nam Standard-B</SelectItem>
+                <SelectItem value="en-US-Neural2-D">🇺🇸 Male Neural2-D</SelectItem>
+                <SelectItem value="en-US-Neural2-F">🇺🇸 Female Neural2-F</SelectItem>
+                <SelectItem value="en-US-Neural2-A">🇺🇸 Male Neural2-A</SelectItem>
+                <SelectItem value="en-US-Neural2-C">🇺🇸 Female Neural2-C</SelectItem>
+                <SelectItem value="en-US-Studio-O">🇺🇸 Male Studio-O</SelectItem>
+                <SelectItem value="en-US-Studio-Q">🇺🇸 Female Studio-Q</SelectItem>
               </SelectContent>
             </Select>
           ) : (
             <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
               <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Kore">Kore (Female, expressive)</SelectItem>
-                <SelectItem value="Charon">Charon (Male, deep)</SelectItem>
-                <SelectItem value="Fenrir">Fenrir (Male, narrative)</SelectItem>
-                <SelectItem value="Aoede">Aoede (Female, warm)</SelectItem>
-                <SelectItem value="Puck">Puck (Male, energetic)</SelectItem>
-                <SelectItem value="Leda">Leda (Female, calm)</SelectItem>
+                <SelectItem value="Kore">Kore (Nữ, expressive) ⭐</SelectItem>
+                <SelectItem value="Charon">Charon (Nam, trầm)</SelectItem>
+                <SelectItem value="Fenrir">Fenrir (Nam, narrative)</SelectItem>
+                <SelectItem value="Aoede">Aoede (Nữ, ấm áp)</SelectItem>
+                <SelectItem value="Puck">Puck (Nam, năng động)</SelectItem>
+                <SelectItem value="Leda">Leda (Nữ, nhẹ nhàng)</SelectItem>
+                <SelectItem value="Orus">Orus (Nam, firm)</SelectItem>
+                <SelectItem value="Zephyr">Zephyr (Nữ, bright)</SelectItem>
+                <SelectItem value="Achernar">Achernar (Nữ, soft)</SelectItem>
+                <SelectItem value="Autonoe">Autonoe (Nữ, bright)</SelectItem>
+                <SelectItem value="Callirrhoe">Callirrhoe (Nữ, warm med)</SelectItem>
+                <SelectItem value="Despina">Despina (Nữ, clear)</SelectItem>
+                <SelectItem value="Erinome">Erinome (Nữ, clear gentle)</SelectItem>
+                <SelectItem value="Gacrux">Gacrux (Nam, mature)</SelectItem>
+                <SelectItem value="Iapetus">Iapetus (Nam, clear)</SelectItem>
+                <SelectItem value="Umbriel">Umbriel (Nam, calm)</SelectItem>
+                <SelectItem value="Algenib">Algenib (Nam, gravelly low)</SelectItem>
+                <SelectItem value="Rasalgethi">Rasalgethi (Nam, informative)</SelectItem>
+                <SelectItem value="Laomedeia">Laomedeia (Nữ, upbeat)</SelectItem>
+                <SelectItem value="Sulafat">Sulafat (Nữ, warm breathy)</SelectItem>
+                <SelectItem value="Vindemiatrix">Vindemiatrix (Nữ, gentle low)</SelectItem>
               </SelectContent>
             </Select>
           )}
