@@ -1981,6 +1981,7 @@ function VoiceoverConfig({
   const isElevenLabs = config.engine === 'elevenlabs';
   const isGemini = config.engine === 'gemini-tts';
   const isGoogleTTS = config.engine === 'google-tts';
+  const isEdgeTTS = config.engine === 'edge-tts';
 
   // Extract script source for preview — always use script.txt from Step 1
   const scriptSource = (() => {
@@ -2221,7 +2222,15 @@ Quy tắc:
     try {
       let blob: Blob;
 
-      if (config.engine === 'gemini-tts') {
+      if (config.engine === 'edge-tts') {
+        const res = await fetch('http://localhost:5111/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: sampleText, voice: config.voice || 'vi-VN-HoaiMyNeural', speed: config.speed || 1.0 }),
+        });
+        if (!res.ok) throw new Error(`Edge TTS error ${res.status}`);
+        blob = await res.blob();
+      } else if (config.engine === 'gemini-tts') {
         const apiKey = getNextKey('gemini');
         if (!apiKey) throw new Error('No Gemini key — add keys to Key Pool');
         const res = await fetch(
@@ -2341,13 +2350,15 @@ Quy tắc:
             // Auto-switch voice to sensible default for the engine
             if (v === 'elevenlabs') onUpdate({ engine: v, voice: 'pNInz6obpgDQGcFmaJgB' });
             else if (v === 'google-tts') onUpdate({ engine: v, voice: 'vi-VN-Neural2-D' });
+            else if (v === 'edge-tts') onUpdate({ engine: v, voice: 'vi-VN-HoaiMyNeural' });
             else onUpdate({ engine: v, voice: 'Kore' });
           }}>
             <SelectTrigger className="h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="gemini-tts">Gemini TTS (recommended)</SelectItem>
+              <SelectItem value="edge-tts">Edge TTS (FREE ⭐)</SelectItem>
+              <SelectItem value="gemini-tts">Gemini TTS</SelectItem>
               <SelectItem value="google-tts">Google Cloud TTS</SelectItem>
               <SelectItem value="elevenlabs">ElevenLabs</SelectItem>
             </SelectContent>
@@ -2356,7 +2367,32 @@ Quy tắc:
 
         <div className="space-y-1">
           <Label className="text-xs">Voice</Label>
-          {isElevenLabs ? (
+          {isEdgeTTS ? (
+            <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">🇻🇳 Tiếng Việt</SelectLabel>
+                  <SelectItem value="vi-VN-HoaiMyNeural">Hoài My — Nữ, miền Nam ⭐</SelectItem>
+                  <SelectItem value="vi-VN-NamMinhNeural">Nam Minh — Nam, miền Bắc</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">🇺🇸 English — Male</SelectLabel>
+                  <SelectItem value="en-US-GuyNeural">Guy (natural)</SelectItem>
+                  <SelectItem value="en-US-ChristopherNeural">Christopher (warm)</SelectItem>
+                  <SelectItem value="en-US-DavisNeural">Davis (deep)</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">🇺🇸 English — Female</SelectLabel>
+                  <SelectItem value="en-US-JennyNeural">Jenny (friendly)</SelectItem>
+                  <SelectItem value="en-US-AriaNeural">Aria (professional)</SelectItem>
+                  <SelectItem value="en-US-SaraNeural">Sara (warm)</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          ) : isElevenLabs ? (
             <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
               <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -2681,6 +2717,7 @@ Quy tắc:
           {isGemini && ' Dùng chung Gemini API key — không cần cấu hình thêm.'}
           {isElevenLabs && ' Cần VITE_ELEVENLABS_API_KEY trong .env.'}
           {isGoogleTTS && ' Cần enable Cloud Text-to-Speech API trong GCP Console.'}
+          {isEdgeTTS && ' FREE — Microsoft voices, không cần API key. Cần chạy Edge TTS server (port 5111).'}
         </p>
       </div>
     </div>

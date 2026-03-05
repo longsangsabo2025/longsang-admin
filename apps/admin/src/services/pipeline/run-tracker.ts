@@ -53,6 +53,14 @@ export function saveStepResult(run: GenerationRun, result: GenerationRun['result
   run.hasResult = true;
 }
 
+/** Update a specific file in an existing run's result and persist to DB */
+export function updateRunFile(runId: string, fileName: string, data: unknown) {
+  const run = clientRuns.get(runId);
+  if (!run || !run.result?.files) return;
+  run.result.files[fileName] = data;
+  persistUpdate(run).catch(() => {});
+}
+
 /** Mark a run as completed */
 export function completeRun(run: GenerationRun, result: GenerationRun['result']) {
   run.status = 'completed';

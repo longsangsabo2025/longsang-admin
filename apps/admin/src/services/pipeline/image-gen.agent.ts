@@ -29,7 +29,7 @@ export interface GeneratedImage {
 }
 
 /** Generate a single image from a text prompt via Gemini */
-async function generateSingleImage(prompt: string, apiKey: string): Promise<{ dataUrl: string; mimeType: string } | null> {
+export async function generateSingleImage(prompt: string, apiKey: string): Promise<{ dataUrl: string; mimeType: string } | null> {
   const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -58,7 +58,7 @@ async function generateSingleImage(prompt: string, apiKey: string): Promise<{ da
 }
 
 /** Upload an image to Supabase storage, return public URL */
-async function uploadToStorage(dataUrl: string, channelId: string, sceneNum: number, runId: string): Promise<string> {
+export async function uploadToStorage(dataUrl: string, channelId: string, sceneNum: number, runId: string): Promise<string> {
   const base64Data = dataUrl.split(',')[1];
   if (!base64Data) return dataUrl;
 

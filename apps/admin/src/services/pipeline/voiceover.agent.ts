@@ -2,7 +2,8 @@
  * 🎤 Voiceover Agent — generates TTS audio from script/storyboard
  *
  * Supports:
- * - Gemini TTS (default) — uses VITE_GEMINI_API_KEY, no extra API to enable
+ * - Edge TTS (FREE, recommended) — Microsoft voices, no API key needed, runs via local server
+ * - Gemini TTS — uses VITE_GEMINI_API_KEY, no extra API to enable
  * - Google Cloud TTS — uses same key but requires Cloud TTS API enabled in GCP
  * - ElevenLabs (premium) — uses VITE_ELEVENLABS_API_KEY
  *
@@ -15,6 +16,7 @@ import { supabase } from '@/lib/supabase';
 import { getRun, startProgressTracker, saveStepResult, failRun, findLatestRunWithFile } from './run-tracker';
 import { getNextKey, getPoolForEngine, reportError, disableKey } from './api-key-pool';
 
+const EDGE_TTS_URL = 'http://localhost:5111';
 const GEMINI_TTS_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
 const GOOGLE_TTS_URL = 'https://texttospeech.googleapis.com/v1/text:synthesize';
 const ELEVENLABS_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
@@ -124,6 +126,22 @@ async function googleTTS(text: string, voice: string, speed: number, apiKey: str
   const byteArray = new Uint8Array(byteChars.length);
   for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
   return new Blob([byteArray], { type: 'audio/mpeg' });
+}
+
+/** Edge TTS — FREE Microsoft voices, no API key, runs via local server on port 5111 */
+async function edgeTTS(text: string, voice: string, speed: number): Promise<Blob> {
+  const response = await fetch(`${EDGE_TTS_URL}/synthesize`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, voice: voice || 'vi-VN-HoaiMyNeural', speed }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { error?: string })?.error || `Edge TTS error ${response.status}`);
+  }
+
+  return response.blob();
 }
 
 async function elevenLabsTTS(text: string, voiceId: string, speed: number, apiKey: string): Promise<Blob> {
@@ -445,6 +463,7 @@ async function synthesize(
   const maxRetries = 3;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
+      if (engine === 'edge-tts') return await edgeTTS(text, voice, speed);
       if (engine === 'elevenlabs') return await elevenLabsTTS(text, voice, speed, activeKey);
       if (engine === 'google-tts') return await googleTTS(text, voice, speed, activeKey);
       return await geminiTTS(text, voice, speed, activeKey);
@@ -498,13 +517,13 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
   const run = getRun(runId);
   if (!run) return;
 
-  const engine = req.voiceoverEngine || 'gemini-tts';
-  const voice = req.voiceoverVoice || 'Kore';
+  const engine = req.voiceoverEngine || 'edge-tts';
+  const voice = req.voiceoverVoice || 'vi-VN-HoaiMyNeural';
   const speed = req.voiceoverSpeed || 1.0;
 
-  // Get API key from pool (falls back to env vars)
+  // Get API key from pool (falls back to env vars) — Edge TTS doesn't need a key
   const engineKey = engine === 'elevenlabs' ? 'elevenlabs' : engine === 'google-tts' ? 'google-tts' : 'gemini';
-  const apiKey = getNextKey(engineKey);
+  const apiKey = engine === 'edge-tts' ? 'edge-tts-no-key' : getNextKey(engineKey);
   if (!apiKey) {
     failRun(run, `Không có API key cho ${engine}. Thêm key trong API Key Pool hoặc cấu hình env var.`);
     return;
@@ -553,15 +572,94 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
     // ElevenLabs: gộp nếu tổng text ≤ 5000 chars (API limit an toàn)
     const combinedLength = validScenes.reduce((s, sc) => s + (sc.dialogue?.length || 0), 0);
     const GEMINI_SAFE_LIMIT = 3500; // Gemini TTS often 500s on long text
+    const EDGE_SAFE_LIMIT = 8000; // Edge TTS handles long text very well
     const useSingleNarration = total > 1 && (
+      (engine === 'edge-tts' && combinedLength <= EDGE_SAFE_LIMIT) ||
       (engine === 'gemini-tts' && combinedLength <= GEMINI_SAFE_LIMIT) ||
       (engine === 'elevenlabs' && combinedLength <= 5000)
     );
 
     if (useSingleNarration) {
       run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Single-narration mode: gộp ${total} scenes → 1 API call (${engine}) — giọng nhất quán 100%` });
-    } else if (total > 1 && engine === 'gemini-tts' && combinedLength > GEMINI_SAFE_LIMIT) {
-      run.logs.push({ t: Date.now(), level: 'info', msg: `📏 Combined dialogue ${combinedLength} chars > ${GEMINI_SAFE_LIMIT} limit — using per-scene mode to avoid Gemini 500 errors` });
+    } else if (total > 1 && combinedLength > GEMINI_SAFE_LIMIT) {
+      run.logs.push({ t: Date.now(), level: 'info', msg: `📏 Combined dialogue ${combinedLength} chars > ${GEMINI_SAFE_LIMIT} limit — sẽ chia thành 2-3 phần thay vì ${total} clips riêng` });
+    }
+
+    // ── COMBINED-CHUNKED MODE (text too long for single call, but NOT per-scene) ──
+    // Gộp tất cả dialogue → chia 2-3 chunk lớn → mỗi chunk 1 API call
+    if (!useSingleNarration && total > 1 && combinedLength > 0) {
+      const sceneCleaned = validScenes.map(s => cleanTextForTTS(s.dialogue)).filter(Boolean);
+      const combinedText = sceneCleaned.join('\n\n... \n\n');
+      if (!combinedText.trim()) {
+        failRun(run, 'Tất cả scene dialogues đều trống sau khi clean.');
+        return;
+      }
+
+      const maxChunkLen = engine === 'edge-tts' ? 5000 : engine === 'elevenlabs' ? 5000 : engine === 'gemini-tts' ? 3000 : 1500;
+      const chunks = splitIntoChunks(combinedText, maxChunkLen);
+      const totalChunks = chunks.length;
+      run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Chunked mode: ${combinedText.length} chars → ${totalChunks} phần (max ${maxChunkLen}/chunk, ${engine})` });
+
+      const phases: ProgressPhase[] = chunks.map((_, i) => ({
+        pct: Math.round((i / totalChunks) * 90) + 5,
+        msg: `🎙️ Generating audio part ${i + 1}/${totalChunks}...`,
+      }));
+      phases.push({ pct: 95, msg: '💾 Saving audio...' });
+      const tracker = startProgressTracker(run, phases, totalChunks * 10000);
+
+      const clips: VoiceoverClip[] = [];
+      let totalDuration = 0;
+
+      try {
+        for (let i = 0; i < chunks.length; i++) {
+          if (run.status !== 'running') break;
+          run.logs.push({ t: Date.now(), level: 'info', msg: `[${Math.round(((i + 0.5) / totalChunks) * 90) + 5}%] 🎙️ Part ${i + 1}: generating (${chunks[i].length} chars)...` });
+
+          const logFn = (m: string) => run.logs.push({ t: Date.now(), level: 'info', msg: m });
+          const blob = await synthesize(chunks[i], engine, voice, speed, apiKey, logFn);
+          const ext = audioExt(engine, blob);
+          const filename = totalChunks === 1 ? `narration.${ext}` : `part-${String(i + 1).padStart(2, '0')}.${ext}`;
+          const url = await uploadAudio(blob, channelId, runId, filename);
+          const dur = estimateDuration(chunks[i].length, speed);
+          totalDuration += dur;
+          clips.push({ scene: i + 1, url, duration: dur, charCount: chunks[i].length, engine });
+
+          run.logs.push({ t: Date.now(), level: 'info', msg: `[${Math.round(((i + 1) / totalChunks) * 90) + 5}%] ✅ Part ${i + 1} done (~${dur}s)` });
+          if (i < chunks.length - 1) await new Promise(r => setTimeout(r, 1500));
+        }
+
+        clearInterval(tracker);
+
+        if (clips.length === 0) {
+          failRun(run, `Không tạo được audio nào (${totalChunks} chunks failed)`);
+          return;
+        }
+
+        // Merge all clips into full audio
+        let fullAudioUrl = '';
+        if (clips.length > 0) {
+          try {
+            run.logs.push({ t: Date.now(), level: 'info', msg: '🔗 Merging parts into full audio...' });
+            fullAudioUrl = await mergeClipsToFullAudio(clips, channelId, runId);
+            run.logs.push({ t: Date.now(), level: 'info', msg: '✅ Full audio created' });
+          } catch (err: unknown) {
+            run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Full audio merge failed: ${err instanceof Error ? err.message : String(err)}` });
+          }
+        }
+
+        const existingFiles = run.result?.files || {};
+        saveStepResult(run, {
+          outputDir: 'remote',
+          files: { ...existingFiles, 'voiceover.json': { clips, totalClips: totalChunks, successCount: clips.length, failCount: totalChunks - clips.length, totalDuration, engine, voice, speed, fullAudioUrl } },
+        });
+
+        const elapsed = ((Date.now() - new Date(run.startedAt).getTime()) / 1000).toFixed(1);
+        run.logs.push({ t: Date.now(), level: 'info', msg: `[100%] ✅ Voiceover hoàn thành: ${clips.length} phần, ~${totalDuration}s total (${elapsed}s)` });
+      } catch (err: unknown) {
+        clearInterval(tracker);
+        failRun(run, err instanceof Error ? err.message : String(err));
+      }
+      return;
     }
 
     if (useSingleNarration) {
@@ -633,92 +731,45 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
       } catch (err: unknown) {
         clearInterval(tracker);
         const msg = err instanceof Error ? err.message : String(err);
-        run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Single narration failed: ${msg} — fallback to per-scene mode...` });
-        // Fall through to per-scene mode below
-      }
-    }
+        run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Single narration failed: ${msg} — fallback to chunked mode...` });
+        // Fall through — the chunked mode block above already returned, so we need to re-invoke it
+        // Re-combine and use chunked mode
+        const sceneCleaned2 = validScenes.map(s => cleanTextForTTS(s.dialogue)).filter(Boolean);
+        const combinedText2 = sceneCleaned2.join('\n\n... \n\n');
+        const maxChunkLen2 = engine === 'edge-tts' ? 5000 : engine === 'elevenlabs' ? 5000 : engine === 'gemini-tts' ? 3000 : 1500;
+        const chunks2 = splitIntoChunks(combinedText2, maxChunkLen2);
+        run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Fallback chunked: ${combinedText2.length} chars → ${chunks2.length} phần` });
 
-    // ── PER-SCENE MODE (non-Gemini engines, fallback, or single scene) ─
-    run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Per-scene mode: ${total} scenes (${engine})...` });
-
-    const phases: ProgressPhase[] = validScenes.map((s, i) => ({
-      pct: Math.round((i / total) * 90) + 5,
-      msg: `🎙️ Generating voiceover scene ${s.scene}/${total}...`,
-    }));
-    phases.push({ pct: 95, msg: '💾 Saving audio clips...' });
-    const tracker = startProgressTracker(run, phases, total * 8000);
-
-    const clips: VoiceoverClip[] = [];
-    let successCount = 0;
-    let failCount = 0;
-    let totalDuration = 0;
-
-    try {
-      for (let i = 0; i < validScenes.length; i++) {
-        const scene = validScenes[i];
-        if (run.status !== 'running') break;
-
-        const clean = cleanTextForTTS(scene.dialogue);
-        if (!clean) { failCount++; continue; }
-
-        run.logs.push({ t: Date.now(), level: 'info', msg: `[${Math.round(((i + 0.5) / total) * 90) + 5}%] 🎙️ Scene ${scene.scene}: generating (${clean.length} chars)...` });
-
-        try {
-          const logFn = (m: string) => run.logs.push({ t: Date.now(), level: 'info', msg: m });
-          const blob = await synthesize(clean, engine, voice, speed, apiKey, logFn);
-          const ext = audioExt(engine, blob);
-          const filename = `scene-${String(scene.scene).padStart(2, '0')}.${ext}`;
-          const url = await uploadAudio(blob, channelId, runId, filename);
-          const dur = estimateDuration(clean.length, speed);
-          totalDuration += dur;
-          clips.push({ scene: scene.scene, url, duration: dur, charCount: clean.length, engine });
-          successCount++;
-          run.logs.push({ t: Date.now(), level: 'info', msg: `[${Math.round(((i + 1) / total) * 90) + 5}%] ✅ Scene ${scene.scene} voiceover done (~${dur}s)` });
-        } catch (err: unknown) {
-          failCount++;
-          const msg = err instanceof Error ? err.message : String(err);
-          run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Scene ${scene.scene} TTS failed: ${msg}` });
-          if (msg.includes('429') || msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('quota') || msg.includes('Failed to fetch')) {
-            reportError(engineKey, apiKey, msg);
-            const waitSec = engine === 'elevenlabs' ? 15 : 10;
-            run.logs.push({ t: Date.now(), level: 'info', msg: `⏳ Rate limited — waiting ${waitSec}s...` });
-            await new Promise(r => setTimeout(r, waitSec * 1000));
-          }
+        const clips2: VoiceoverClip[] = [];
+        let totalDur2 = 0;
+        for (let i = 0; i < chunks2.length; i++) {
+          if (run.status !== 'running') break;
+          try {
+            const logFn2 = (m: string) => run.logs.push({ t: Date.now(), level: 'info', msg: m });
+            const blob2 = await synthesize(chunks2[i], engine, voice, speed, apiKey, logFn2);
+            const ext2 = audioExt(engine, blob2);
+            const filename2 = `part-${String(i + 1).padStart(2, '0')}.${ext2}`;
+            const url2 = await uploadAudio(blob2, channelId, runId, filename2);
+            const dur2 = estimateDuration(chunks2[i].length, speed);
+            totalDur2 += dur2;
+            clips2.push({ scene: i + 1, url: url2, duration: dur2, charCount: chunks2[i].length, engine });
+          } catch { /* skip */ }
+          if (i < chunks2.length - 1) await new Promise(r => setTimeout(r, 1500));
         }
-
-        if (i < validScenes.length - 1) await new Promise(r => setTimeout(r, engine === 'elevenlabs' ? 4000 : 1500));
-      }
-
-      clearInterval(tracker);
-
-      if (successCount === 0) {
-        failRun(run, `Không tạo được audio clip nào (${failCount} scenes failed)`);
+        if (clips2.length > 0) {
+          let fullAudio2 = '';
+          try { fullAudio2 = await mergeClipsToFullAudio(clips2, channelId, runId); } catch { /* ignore */ }
+          const existingFiles2 = run.result?.files || {};
+          saveStepResult(run, {
+            outputDir: 'remote',
+            files: { ...existingFiles2, 'voiceover.json': { clips: clips2, totalClips: chunks2.length, successCount: clips2.length, failCount: chunks2.length - clips2.length, totalDuration: totalDur2, engine, voice, speed, fullAudioUrl: fullAudio2 } },
+          });
+          run.logs.push({ t: Date.now(), level: 'info', msg: `[100%] ✅ Fallback chunked hoàn thành: ${clips2.length} phần, ~${totalDur2}s` });
+          return;
+        }
+        failRun(run, 'Single narration + chunked fallback both failed');
         return;
       }
-
-      // Merge all clips into a single full-audio file
-      let fullAudioUrl = '';
-      if (clips.length > 0) {
-        try {
-          run.logs.push({ t: Date.now(), level: 'info', msg: '🔗 Merging clips into full audio...' });
-          fullAudioUrl = await mergeClipsToFullAudio(clips, channelId, runId);
-          run.logs.push({ t: Date.now(), level: 'info', msg: '✅ Full audio created' });
-        } catch (err: unknown) {
-          run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Full audio merge failed: ${err instanceof Error ? err.message : String(err)}` });
-        }
-      }
-
-      const existingFiles = run.result?.files || {};
-      saveStepResult(run, {
-        outputDir: 'remote',
-        files: { ...existingFiles, 'voiceover.json': { clips, totalClips: total, successCount, failCount, totalDuration, engine, voice, speed, fullAudioUrl } },
-      });
-
-      const elapsed = ((Date.now() - new Date(run.startedAt).getTime()) / 1000).toFixed(1);
-      run.logs.push({ t: Date.now(), level: 'info', msg: `[100%] ✅ Voiceover complete: ${successCount}/${total} clips, ~${totalDuration}s total (${elapsed}s)` });
-    } catch (err: unknown) {
-      clearInterval(tracker);
-      failRun(run, err instanceof Error ? err.message : String(err));
     }
     return;
   }
@@ -735,8 +786,8 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
 
   run.logs.push({ t: Date.now(), level: 'info', msg: `📝 Using ${sourceLabel} script (${fullScript.length} chars)` });
 
-  // Engine-specific chunk size: Gemini handles ~3000 chars safely, ElevenLabs ~5000
-  const maxChunkLen = engine === 'elevenlabs' ? 5000 : engine === 'gemini-tts' ? 3000 : 1500;
+  // Engine-specific chunk size: Edge TTS handles long text well, Gemini ~3000, ElevenLabs ~5000
+  const maxChunkLen = engine === 'edge-tts' ? 5000 : engine === 'elevenlabs' ? 5000 : engine === 'gemini-tts' ? 3000 : 1500;
   const chunks = splitIntoChunks(fullScript, maxChunkLen);
   const total = chunks.length;
   run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Full-script mode: ${fullScript.length} chars → ${total} chunk(s) (max ${maxChunkLen}/chunk, ${engine})` });
@@ -812,7 +863,7 @@ export async function regenerateSingleClip(opts: {
 }): Promise<{ url: string; duration: number; charCount: number }> {
   const { text, engine, voice, speed, channelId, runId, sceneNum } = opts;
   const engineKey = engine === 'elevenlabs' ? 'elevenlabs' : engine === 'google-tts' ? 'google-tts' : 'gemini';
-  const apiKey = getNextKey(engineKey);
+  const apiKey = engine === 'edge-tts' ? 'edge-tts-no-key' : getNextKey(engineKey);
   if (!apiKey) throw new Error(`Không có API key cho ${engine}`);
 
   const clean = cleanTextForTTS(text);

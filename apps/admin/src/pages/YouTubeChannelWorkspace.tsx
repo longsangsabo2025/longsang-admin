@@ -20,13 +20,14 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSepa
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
+import { useToast, toast } from '@/hooks/use-toast';
 import {
   Play, BookOpen, Brain, Sparkles, Loader2,
   CheckCircle2, XCircle, Clock, Zap, Eye, FileText,
   Copy, RefreshCw, Search, ChevronRight, ChevronDown, ExternalLink,
   Layers, Key, ArrowLeft, Tv, ImageIcon, Mic, Volume2,
   Plus, Trash2, ToggleLeft, ToggleRight, Film, Download,
+  Pencil, CopyPlus, GripVertical, ArrowUp, ArrowDown,
 } from 'lucide-react';
 import { youtubeChannelsService } from '@/services/youtube-channels.service';
 import type { ChannelPlan, GenerateRequest, GenerationRun } from '@/services/youtube-channels.service';
@@ -36,6 +37,8 @@ import SmartAudio from '@/components/youtube/SmartAudio';
 import { getPool, addKey, removeKey, enableKey, disableKey, resetStats, onPoolChange, hydrateFromDb as hydrateKeyPool, testKey, pinKey, unpinKey, getPinnedKey, getNextKey, type PoolEntry } from '@/services/pipeline/api-key-pool';
 import { getRunningIdsForChannel } from '@/services/pipeline';
 import { regenerateSingleClip } from '@/services/pipeline/voiceover.agent';
+import { updateRunFile } from '@/services/pipeline/run-tracker';
+import { generateSingleImage, uploadToStorage } from '@/services/pipeline/image-gen.agent';
 
 // ─── Read Pipeline config from localStorage (synced with PipelineRoadmap) ──
 const PIPELINE_STORAGE_KEY = 'yt-pipeline-config';
@@ -327,14 +330,16 @@ export default function YouTubeChannelWorkspace() {
       assemblyScenePadding: pipelineConfig.assembly.scenePadding,
       assemblyWatermarkUrl: pipelineConfig.assembly.watermarkUrl || undefined,
     };
-    if (mode === 'topic' && topic.trim()) {
-      req.topic = topic.trim();
-    } else if (mode === 'transcript' && transcript) {
-      req.transcript = transcript;
-    } else if (activeRun?.input?.topic) {
+    // Step re-run: prioritize the activeRun's topic (the run we're re-running)
+    // over the input field which may contain a stale/different topic
+    if (activeRun?.input?.topic) {
       req.topic = activeRun.input.topic;
     } else if (activeRun?.input?.transcript) {
       req.transcript = activeRun.input.transcript;
+    } else if (mode === 'topic' && topic.trim()) {
+      req.topic = topic.trim();
+    } else if (mode === 'transcript' && transcript) {
+      req.transcript = transcript;
     } else if (channelRuns[0]?.input?.topic) {
       req.topic = channelRuns[0].input.topic;
     } else if (channelRuns[0]?.input?.transcript) {
@@ -853,7 +858,7 @@ export default function YouTubeChannelWorkspace() {
                     voiceover: { ...cfg.voiceover, enabled: false, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed },
                     assembly: { ...cfg.assembly, enabled: true },
                   });
-                }} isGenerating={stepMut.isPending}
+                }} isGenerating={stepMut.isPending || activeRun?.status === 'running'}
                   voiceoverConfig={voiceConfig}
                   onVoiceoverConfigChange={(u) => setVoiceConfig(prev => ({ ...prev, ...u }))}
                   onOpenKeyPool={() => setShowApiKeyDialog(true)}
@@ -1148,9 +1153,11 @@ function VoiceTabContent({
 }) {
   const engine = voiceoverConfig?.engine || 'gemini-tts';
   const [regeneratingScene, setRegeneratingScene] = useState<number | null>(null);
+  const [downloadingVoices, setDownloadingVoices] = useState(false);
   const isElevenLabs = engine === 'elevenlabs';
   const isGemini = engine === 'gemini-tts';
   const isGoogleTTS = engine === 'google-tts';
+  const isEdgeTTS = engine === 'edge-tts';
 
   // ── TTS Script Optimizer ──
   const [optimizerLoading, setOptimizerLoading] = useState(false);
@@ -1188,6 +1195,10 @@ function VoiceTabContent({
       if (!text) throw new Error('AI trả về rỗng');
       setOptimizedScript(text);
       setShowOptimized(true);
+      // Auto-apply to voiceConfig so it's saved to localStorage immediately
+      if (onVoiceoverConfigChange) {
+        onVoiceoverConfigChange({ cleanedScript: text } as never);
+      }
     } catch (err) {
       setOptimizerError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -1373,7 +1384,15 @@ function VoiceTabContent({
     try {
       let blob: Blob;
 
-      if (voiceoverConfig.engine === 'gemini-tts') {
+      if (voiceoverConfig.engine === 'edge-tts') {
+        const res = await fetch('http://localhost:5111/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: sampleText, voice: voiceoverConfig.voice || 'vi-VN-HoaiMyNeural', speed: voiceoverConfig.speed || 1.0 }),
+        });
+        if (!res.ok) throw new Error(`Edge TTS error ${res.status}`);
+        blob = await res.blob();
+      } else if (voiceoverConfig.engine === 'gemini-tts') {
         const apiKey = getNextKey('gemini');
         if (!apiKey) throw new Error('No Gemini key — add keys to Key Pool');
         const res = await fetch(
@@ -1510,6 +1529,41 @@ function VoiceTabContent({
               )}
             </Button>
           )}
+          {voiceoverJson?.clips && voiceoverJson.clips.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                if (!voiceoverJson?.clips) return;
+                setDownloadingVoices(true);
+                try {
+                  const channelName = run.channelId ? `ch${run.channelId}` : 'voice';
+                  for (const clip of voiceoverJson.clips) {
+                    try {
+                      const resp = await fetch(clip.url);
+                      const blob = await resp.blob();
+                      const ext = blob.type.includes('mpeg') ? 'mp3' : blob.type.includes('wav') ? 'wav' : blob.type.includes('ogg') ? 'ogg' : 'mp3';
+                      const a = document.createElement('a');
+                      a.href = URL.createObjectURL(blob);
+                      a.download = `${channelName}_scene${String(clip.scene).padStart(2, '0')}.${ext}`;
+                      a.click();
+                      URL.revokeObjectURL(a.href);
+                      await new Promise(r => setTimeout(r, 300));
+                    } catch { /* skip failed */ }
+                  }
+                } finally {
+                  setDownloadingVoices(false);
+                }
+              }}
+              disabled={downloadingVoices}
+            >
+              {downloadingVoices ? (
+                <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Đang tải...</>
+              ) : (
+                <><Download className="h-4 w-4 mr-1" /> Tải hết voice</>
+              )}
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -1525,11 +1579,13 @@ function VoiceTabContent({
                 <Select value={voiceoverConfig.engine} onValueChange={(v) => {
                   if (v === 'elevenlabs') onVoiceoverConfigChange({ engine: v, voice: 'pNInz6obpgDQGcFmaJgB' });
                   else if (v === 'google-tts') onVoiceoverConfigChange({ engine: v, voice: 'vi-VN-Neural2-D' });
+                  else if (v === 'edge-tts') onVoiceoverConfigChange({ engine: v, voice: 'vi-VN-HoaiMyNeural' });
                   else onVoiceoverConfigChange({ engine: v, voice: 'Kore' });
                 }}>
                   <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="gemini-tts">Gemini TTS (recommended)</SelectItem>
+                    <SelectItem value="edge-tts">Edge TTS (FREE ⭐)</SelectItem>
+                    <SelectItem value="gemini-tts">Gemini TTS</SelectItem>
                     <SelectItem value="google-tts">Google Cloud TTS</SelectItem>
                     <SelectItem value="elevenlabs">ElevenLabs</SelectItem>
                   </SelectContent>
@@ -1538,7 +1594,32 @@ function VoiceTabContent({
 
               <div className="space-y-1">
                 <Label className="text-xs">Voice</Label>
-                {isElevenLabs ? (
+                {isEdgeTTS ? (
+                  <Select value={voiceoverConfig.voice} onValueChange={(v) => onVoiceoverConfigChange({ voice: v })}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] text-muted-foreground">🇻🇳 Tiếng Việt</SelectLabel>
+                        <SelectItem value="vi-VN-HoaiMyNeural">Hoài My — Nữ, miền Nam ⭐</SelectItem>
+                        <SelectItem value="vi-VN-NamMinhNeural">Nam Minh — Nam, miền Bắc</SelectItem>
+                      </SelectGroup>
+                      <SelectSeparator />
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] text-muted-foreground">🇺🇸 English — Male</SelectLabel>
+                        <SelectItem value="en-US-GuyNeural">Guy (natural)</SelectItem>
+                        <SelectItem value="en-US-ChristopherNeural">Christopher (warm)</SelectItem>
+                        <SelectItem value="en-US-DavisNeural">Davis (deep)</SelectItem>
+                      </SelectGroup>
+                      <SelectSeparator />
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] text-muted-foreground">🇺🇸 English — Female</SelectLabel>
+                        <SelectItem value="en-US-JennyNeural">Jenny (friendly)</SelectItem>
+                        <SelectItem value="en-US-AriaNeural">Aria (professional)</SelectItem>
+                        <SelectItem value="en-US-SaraNeural">Sara (warm)</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                ) : isElevenLabs ? (
                   <Select value={voiceoverConfig.voice} onValueChange={(v) => onVoiceoverConfigChange({ voice: v })}>
                     <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -1937,6 +2018,416 @@ function VoiceTabContent({
   );
 }
 
+// ─── STORYBOARD EDITOR ────────────────────────────────────
+
+type SceneData = { scene: number; dialogue: string; prompt: string; motion: string; transition: string };
+
+function StoryboardEditor({ scenes: initialScenes, imageMap: initialImageMap, runId, copiedField, copyToClipboard, topic, scriptContext, channelId, existingImages }: {
+  scenes: SceneData[];
+  imageMap: Map<number, string>;
+  runId: string;
+  copiedField: string | null;
+  copyToClipboard: (text: string, field: string) => void;
+  topic?: string;
+  scriptContext?: string;
+  channelId?: string;
+  existingImages?: { scene: number; url: string; prompt: string }[];
+}) {
+  const [scenes, setScenes] = useState<SceneData[]>(initialScenes);
+  const [imageMap, setImageMap] = useState<Map<number, string>>(initialImageMap);
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<SceneData | null>(null);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [addCount, setAddCount] = useState(3);
+  const [addHint, setAddHint] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [imgGenerating, setImgGenerating] = useState(false);
+  const [imgProgress, setImgProgress] = useState('');
+
+  // Sync if parent data changes (e.g. re-generation)
+  useEffect(() => { setScenes(initialScenes); }, [initialScenes]);
+  useEffect(() => { setImageMap(initialImageMap); }, [initialImageMap]);
+
+  const persist = (updated: SceneData[]) => {
+    // Re-number scenes sequentially
+    const renumbered = updated.map((s, i) => ({ ...s, scene: i + 1 }));
+    setScenes(renumbered);
+    updateRunFile(runId, 'storyboard.json', { scenes: renumbered });
+  };
+
+  const handleEdit = (idx: number) => {
+    setEditingIdx(idx);
+    setEditForm({ ...scenes[idx] });
+  };
+
+  const handleSaveEdit = () => {
+    if (editingIdx === null || !editForm) return;
+    const updated = [...scenes];
+    updated[editingIdx] = editForm;
+    persist(updated);
+    setEditingIdx(null);
+    setEditForm(null);
+  };
+
+  const handleCancelEdit = () => { setEditingIdx(null); setEditForm(null); };
+
+  const handleDelete = (idx: number) => {
+    const updated = scenes.filter((_, i) => i !== idx);
+    persist(updated);
+    if (editingIdx === idx) { setEditingIdx(null); setEditForm(null); }
+  };
+
+  const handleDuplicate = (idx: number) => {
+    const dup = { ...scenes[idx] };
+    const updated = [...scenes];
+    updated.splice(idx + 1, 0, dup);
+    persist(updated);
+  };
+
+  const handleMoveUp = (idx: number) => {
+    if (idx === 0) return;
+    const updated = [...scenes];
+    [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
+    persist(updated);
+  };
+
+  const handleMoveDown = (idx: number) => {
+    if (idx >= scenes.length - 1) return;
+    const updated = [...scenes];
+    [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
+    persist(updated);
+  };
+
+  const handleAddBlankScene = () => {
+    const newScene: SceneData = {
+      scene: scenes.length + 1,
+      dialogue: '',
+      prompt: '',
+      motion: 'slow zoom in',
+      transition: 'fade through black',
+    };
+    const updated = [...scenes, newScene];
+    persist(updated);
+    setEditingIdx(updated.length - 1);
+    setEditForm({ ...newScene, scene: updated.length });
+  };
+
+  const missingImageScenes = scenes.filter(s => !imageMap.has(s.scene) && s.prompt.trim());
+
+  const handleGenerateMissingImages = async () => {
+    if (missingImageScenes.length === 0) return;
+    const apiKey = getNextKey('gemini');
+    if (!apiKey) { toast({ title: 'Thiếu API Key', description: 'Thêm Gemini key vào Key Pool', variant: 'destructive' }); return; }
+    setImgGenerating(true);
+    const newImages: { scene: number; url: string; prompt: string; mimeType: string }[] = [];
+    const updatedMap = new Map(imageMap);
+    try {
+      for (let i = 0; i < missingImageScenes.length; i++) {
+        const scene = missingImageScenes[i];
+        setImgProgress(`🖼️ Tạo ảnh scene ${scene.scene} (${i + 1}/${missingImageScenes.length})...`);
+        try {
+          const fullPrompt = `${scene.prompt} 16:9 aspect ratio, photorealistic cinematic quality, film grain.`;
+          const result = await generateSingleImage(fullPrompt, apiKey);
+          if (result) {
+            const publicUrl = await uploadToStorage(result.dataUrl, channelId || 'default', scene.scene, runId);
+            newImages.push({ scene: scene.scene, url: publicUrl, prompt: scene.prompt, mimeType: result.mimeType });
+            updatedMap.set(scene.scene, publicUrl);
+            setImageMap(new Map(updatedMap));
+          }
+        } catch (err) {
+          console.warn(`Scene ${scene.scene} image failed:`, err);
+        }
+        // Rate limit delay
+        if (i < missingImageScenes.length - 1) await new Promise(r => setTimeout(r, 1500));
+      }
+      // Merge with existing images and save
+      const merged = [...(existingImages || []).filter(img => !newImages.find(ni => ni.scene === img.scene)), ...newImages];
+      merged.sort((a, b) => a.scene - b.scene);
+      updateRunFile(runId, 'images.json', { images: merged, totalScenes: scenes.length, successCount: merged.length, failCount: scenes.length - merged.length });
+      toast({ title: `🖼️ Đã tạo ${newImages.length} ảnh mới`, description: `${merged.length}/${scenes.length} scene có ảnh` });
+    } catch (err) {
+      toast({ title: 'Lỗi', description: err instanceof Error ? err.message : 'Tạo ảnh thất bại', variant: 'destructive' });
+    } finally {
+      setImgGenerating(false);
+      setImgProgress('');
+    }
+  };
+
+  const handleAIGenerateScenes = async () => {
+    const apiKey = getNextKey('gemini');
+    if (!apiKey) { toast({ title: 'Thiếu API Key', description: 'Thêm Gemini key vào Key Pool', variant: 'destructive' }); return; }
+    setAiGenerating(true);
+    try {
+      const existingSummary = scenes.slice(-5).map(s => `Scene ${s.scene}: ${s.dialogue.slice(0, 80)}`).join('\n');
+      const contextParts = [
+        topic ? `Chủ đề video: ${topic}` : '',
+        scriptContext ? `Tóm tắt script (500 ký tự đầu): ${scriptContext.slice(0, 500)}` : '',
+        existingSummary ? `Các scene gần nhất:\n${existingSummary}` : '',
+        addHint ? `Yêu cầu thêm từ người dùng: ${addHint}` : '',
+      ].filter(Boolean).join('\n\n');
+
+      const systemPrompt = `Bạn là Visual Director chuyên nghiệp. Tạo ${addCount} scene MỚI tiếp nối storyboard hiện có.
+
+Quy tắc:
+- Mỗi scene có: dialogue (lời thoại narrator), prompt (mô tả hình ảnh chi tiết bằng tiếng Anh cho AI image gen), motion (camera movement), transition
+- Prompt phải rất chi tiết, cinematic, mô tả rõ chủ thể, ánh sáng, góc quay, phong cách
+- Motion options: slow zoom in, slow zoom out, pan left to right, pan right to left, tilt up, tilt down, dolly forward, static wide shot, handheld subtle
+- Transition options: fade through black, cross dissolve, cut, whip pan, fade to white
+- Dialogue bằng tiếng Việt, tự nhiên, phù hợp narration
+- Sáng tạo, đa dạng góc quay và bố cục
+
+Trả về JSON thuần (không markdown): { "scenes": [{ "dialogue": "...", "prompt": "...", "motion": "...", "transition": "..." }] }`;
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ parts: [{ text: contextParts || `Tạo ${addCount} scene cho video YouTube` }] }],
+            generationConfig: { temperature: 0.9 },
+          }),
+        },
+      );
+      if (!res.ok) throw new Error(`Gemini error ${res.status}`);
+      const data = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('AI không trả về JSON hợp lệ');
+      const parsed = JSON.parse(jsonMatch[0]) as { scenes: { dialogue: string; prompt: string; motion: string; transition: string }[] };
+      if (!parsed.scenes?.length) throw new Error('AI trả về 0 scene');
+
+      const newScenes: SceneData[] = parsed.scenes.map((s, i) => ({
+        scene: scenes.length + i + 1,
+        dialogue: s.dialogue || '',
+        prompt: s.prompt || '',
+        motion: s.motion || 'slow zoom in',
+        transition: s.transition || 'fade through black',
+      }));
+      const updated = [...scenes, ...newScenes];
+      persist(updated);
+      setShowAddDialog(false);
+      setAddHint('');
+      toast({ title: `✨ Đã tạo ${newScenes.length} scene mới`, description: 'AI đã viết dialogue + prompt sáng tạo' });
+    } catch (err) {
+      toast({ title: 'Lỗi AI', description: err instanceof Error ? err.message : 'Không tạo được scene', variant: 'destructive' });
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {scenes.map((scene, i) => {
+        const imgUrl = imageMap.get(scene.scene);
+        const isEditing = editingIdx === i;
+
+        if (isEditing && editForm) {
+          return (
+            <div key={i} className="p-3 rounded-lg border-2 border-blue-500/50 bg-blue-500/5 space-y-3">
+              <div className="flex items-center justify-between">
+                <Badge variant="outline" className="text-xs border-blue-500/40 text-blue-400">✏️ Editing Scene {scene.scene}</Badge>
+                <div className="flex gap-1">
+                  <Button size="sm" className="h-7 text-xs" onClick={handleSaveEdit}>💾 Lưu</Button>
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={handleCancelEdit}>Hủy</Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Dialogue (lời thoại)</Label>
+                  <Textarea
+                    className="text-xs min-h-[60px] mt-1"
+                    value={editForm.dialogue}
+                    onChange={e => setEditForm({ ...editForm, dialogue: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Image Prompt</Label>
+                  <Textarea
+                    className="text-xs min-h-[80px] mt-1"
+                    value={editForm.prompt}
+                    onChange={e => setEditForm({ ...editForm, prompt: e.target.value })}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Label className="text-[10px] text-muted-foreground">Motion</Label>
+                    <Input
+                      className="h-7 text-xs mt-1"
+                      value={editForm.motion}
+                      onChange={e => setEditForm({ ...editForm, motion: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label className="text-[10px] text-muted-foreground">Transition</Label>
+                    <Input
+                      className="h-7 text-xs mt-1"
+                      value={editForm.transition}
+                      onChange={e => setEditForm({ ...editForm, transition: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div key={i} className="p-3 rounded-lg border hover:bg-muted/30 space-y-2 group">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">Scene {scene.scene}</Badge>
+                {imgUrl && <Badge variant="outline" className="text-[10px] border-green-500/30 text-green-400">✅ Image</Badge>}
+              </div>
+              <div className="flex items-center gap-1">
+                <Badge variant="secondary" className="text-[10px]">{scene.motion}</Badge>
+                <Badge variant="secondary" className="text-[10px]">{scene.transition}</Badge>
+                <div className="flex items-center gap-0.5 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleMoveUp(i)} disabled={i === 0} title="Di chuyển lên">
+                    <ArrowUp className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleMoveDown(i)} disabled={i === scenes.length - 1} title="Di chuyển xuống">
+                    <ArrowDown className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-blue-400" onClick={() => handleEdit(i)} title="Sửa scene">
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-green-400" onClick={() => handleDuplicate(i)} title="Nhân đôi scene">
+                    <CopyPlus className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-red-400" onClick={() => handleDelete(i)} title="Xóa scene">
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground italic">"{scene.dialogue}"</p>
+            <div className="flex items-start gap-2">
+              <code className="text-xs bg-primary/10 p-2 rounded flex-1">{scene.prompt}</code>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 flex-shrink-0"
+                onClick={() => copyToClipboard(scene.prompt, `scene-${i}`)}
+              >
+                {copiedField === `scene-${i}` ? (
+                  <CheckCircle2 className="h-3 w-3 text-green-500" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+              </Button>
+            </div>
+            {imgUrl && (
+              <div className="mt-2">
+                <img
+                  src={imgUrl}
+                  alt={`Scene ${scene.scene}`}
+                  className="w-full max-w-[400px] aspect-video object-cover rounded-md border"
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Generate missing images */}
+      {missingImageScenes.length > 0 && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+          <ImageIcon className="h-4 w-4 text-amber-400 flex-shrink-0" />
+          <span className="text-xs text-amber-300 flex-1">
+            {imgGenerating ? imgProgress : `${missingImageScenes.length} scene chưa có ảnh (${missingImageScenes.map(s => s.scene).join(', ')})`}
+          </span>
+          <Button
+            size="sm"
+            className="h-7 text-xs bg-amber-600 hover:bg-amber-700"
+            onClick={handleGenerateMissingImages}
+            disabled={imgGenerating}
+          >
+            {imgGenerating ? (
+              <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Đang tạo...</>
+            ) : (
+              <><ImageIcon className="h-3 w-3 mr-1" /> Tạo ảnh ({missingImageScenes.length})</>
+            )}
+          </Button>
+        </div>
+      )}
+
+      {/* Add Scene buttons */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          className="flex-1 border-dashed border-2 text-muted-foreground hover:text-foreground h-12"
+          onClick={handleAddBlankScene}
+        >
+          <Plus className="h-4 w-4 mr-2" /> Thêm scene trống
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1 border-dashed border-2 text-purple-400 border-purple-500/30 hover:bg-purple-500/10 hover:text-purple-300 h-12"
+          onClick={() => setShowAddDialog(true)}
+        >
+          <Sparkles className="h-4 w-4 mr-2" /> AI tạo scene
+        </Button>
+      </div>
+
+      {/* AI Generate Scenes Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-400" /> AI Tạo Scene Mới
+            </DialogTitle>
+            <DialogDescription>
+              Trợ lý AI sẽ viết dialogue + image prompt sáng tạo dựa trên nội dung hiện có
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-sm">Số lượng scene</Label>
+              <div className="flex gap-2 mt-2">
+                {[1, 2, 3, 5, 8].map(n => (
+                  <Button
+                    key={n}
+                    size="sm"
+                    variant={addCount === n ? 'default' : 'outline'}
+                    className="h-9 w-12"
+                    onClick={() => setAddCount(n)}
+                  >
+                    {n}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm">Gợi ý thêm (tùy chọn)</Label>
+              <Textarea
+                className="mt-1.5 text-sm min-h-[70px]"
+                placeholder="VD: Thêm cảnh tâm lý, close-up khuôn mặt, hoặc bối cảnh đường phố ban đêm..."
+                value={addHint}
+                onChange={e => setAddHint(e.target.value)}
+              />
+            </div>
+            {topic && (
+              <p className="text-xs text-muted-foreground">📌 Chủ đề: {topic}</p>
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setShowAddDialog(false)} disabled={aiGenerating}>Hủy</Button>
+            <Button onClick={handleAIGenerateScenes} disabled={aiGenerating} className="bg-purple-600 hover:bg-purple-700">
+              {aiGenerating ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Đang tạo...</>
+              ) : (
+                <><Sparkles className="h-4 w-4 mr-2" /> Tạo {addCount} scene</>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 // ─── RESULTS VIEW ─────────────────────────────────────────
 
 function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGenerating, voiceoverConfig, onVoiceoverConfigChange, onOpenKeyPool }: {
@@ -1950,6 +2441,7 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGene
   onOpenKeyPool?: () => void;
 }) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [downloadingImages, setDownloadingImages] = useState(false);
   const result = run.result;
   if (!result) return null;
 
@@ -1971,6 +2463,30 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGene
     await navigator.clipboard.writeText(text);
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const downloadAllImages = async () => {
+    if (!imagesJson?.images || imagesJson.images.length === 0) return;
+    setDownloadingImages(true);
+    try {
+      const channelName = run.channelId ? `ch${run.channelId}` : 'storyboard';
+      for (const img of imagesJson.images) {
+        try {
+          const resp = await fetch(img.url);
+          const blob = await resp.blob();
+          const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `${channelName}_scene${String(img.scene).padStart(2, '0')}.${ext}`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+          // Small delay between downloads to avoid browser blocking
+          await new Promise(r => setTimeout(r, 300));
+        } catch { /* skip failed */ }
+      }
+    } finally {
+      setDownloadingImages(false);
+    }
   };
 
   return (
@@ -2063,6 +2579,20 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGene
                     )}
                   </Button>
                 )}
+                {imagesJson?.images && imagesJson.images.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={downloadAllImages}
+                    disabled={downloadingImages}
+                  >
+                    {downloadingImages ? (
+                      <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Đang tải...</>
+                    ) : (
+                      <><Download className="h-4 w-4 mr-1" /> Tải hết ảnh</>
+                    )}
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
@@ -2075,50 +2605,17 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGene
             </CardHeader>
             <CardContent>
               {storyboardJson?.scenes ? (
-                <div className="space-y-3">
-                  {storyboardJson.scenes.map((scene, i) => {
-                    const imgUrl = imageMap.get(scene.scene);
-                    return (
-                    <div key={i} className="p-3 rounded-lg border hover:bg-muted/30 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">Scene {scene.scene}</Badge>
-                          {imgUrl && <Badge variant="outline" className="text-[10px] border-green-500/30 text-green-400">✅ Image</Badge>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-[10px]">{scene.motion}</Badge>
-                          <Badge variant="secondary" className="text-[10px]">{scene.transition}</Badge>
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground italic">"{scene.dialogue}"</p>
-                      <div className="flex items-start gap-2">
-                        <code className="text-xs bg-primary/10 p-2 rounded flex-1">{scene.prompt}</code>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 flex-shrink-0"
-                          onClick={() => copyToClipboard(scene.prompt, `scene-${i}`)}
-                        >
-                          {copiedField === `scene-${i}` ? (
-                            <CheckCircle2 className="h-3 w-3 text-green-500" />
-                          ) : (
-                            <Copy className="h-3 w-3" />
-                          )}
-                        </Button>
-                      </div>
-                      {imgUrl && (
-                        <div className="mt-2">
-                          <img
-                            src={imgUrl}
-                            alt={`Scene ${scene.scene}`}
-                            className="w-full max-w-[400px] aspect-video object-cover rounded-md border"
-                          />
-                        </div>
-                      )}
-                    </div>
-                    );
-                  })}
-                </div>
+                <StoryboardEditor
+                  scenes={storyboardJson.scenes}
+                  imageMap={imageMap}
+                  runId={run.id}
+                  copiedField={copiedField}
+                  copyToClipboard={copyToClipboard}
+                  topic={run.input?.topic}
+                  scriptContext={scriptTxt}
+                  channelId={run.channelId}
+                  existingImages={imagesJson?.images}
+                />
               ) : (
                 <ScrollArea className="h-[600px]">
                   <pre className="whitespace-pre-wrap text-sm">{storyboardMd || 'No storyboard generated'}</pre>
