@@ -736,23 +736,43 @@ app.post('/api/admin/generate-storyboard', async (req, res) => {
     const vi = visualIdentity || {};
     const hasVi = vi.colorPalette || vi.lighting || vi.cameraStyle || vi.environment || vi.moodKeywords || vi.characterDesc;
     const viBlock = hasVi ? `
-## VISUAL IDENTITY — MANDATORY FOR EVERY SCENE PROMPT
-You MUST incorporate ALL of these visual elements into EVERY scene prompt. Do NOT simplify or omit any detail.
+## VISUAL IDENTITY — MANDATORY STYLE GUIDE
+Maintain visual consistency using these elements as your PALETTE — but VARY them across scenes for visual diversity.
 - Color Palette: ${vi.colorPalette || 'cinematic tones'}
-- Lighting: ${vi.lighting || 'cinematic'}
-- Camera: ${vi.cameraStyle || 'close-up focus'}
-- Character: ${vi.characterPresence === 'none' ? 'No human characters — focus on environment, objects, symbols' : `${vi.characterPresence}${vi.characterDesc ? ' — ' + vi.characterDesc : ''}`}
-- Environment: ${vi.environment || 'varies per scene'}
+- Lighting Options: ${vi.lighting || 'cinematic'}
+- Camera Options: ${vi.cameraStyle || 'close-up focus'}
+- Character Style: ${vi.characterPresence === 'none' ? 'No human characters — focus on environment, objects, abstract symbols' : `${vi.characterPresence}${vi.characterDesc ? ' — ' + vi.characterDesc : ''}`}
+- Environment Options: ${vi.environment || 'varies per scene'}
 - Mood: ${vi.moodKeywords || 'cinematic, dramatic'}
 - Negative (NEVER include these): ${vi.negativePrompt || 'text, watermark, logo'}
+
+### HOW TO USE THE VISUAL IDENTITY:
+- ROTATE through ALL environment options across scenes (e.g. scene 1: alleyway, scene 2: rainy street, scene 3: rooftop, scene 4: empty room, etc.)
+- ALTERNATE camera angles/movements across scenes — never use the same camera for consecutive scenes
+- VARY the character's pose, framing, and action per scene (e.g. walking, standing still, looking up, back turned, silhouette from afar, extreme close-up of hands)
+- Keep the COLOR PALETTE and MOOD consistent — those are the glue that ties scenes together
+- Each scene MUST feel visually DISTINCT while sharing the same style DNA
 ` : '';
     const sbCustomBlock = sbCustomPrompt ? `\n## CUSTOM STORYBOARD INSTRUCTIONS\n${sbCustomPrompt}\n` : '';
     const arBlock = aspectRatio ? `Aspect ratio: ${aspectRatio}. ` : '';
 
-    // Build a concrete prompt example using the actual VI settings for better AI compliance
-    const examplePrompt = hasVi
-      ? `${vi.characterPresence !== 'none' && vi.characterDesc ? vi.characterDesc : 'Abstract symbolic object'}, ${vi.environment ? vi.environment.split(',')[0].trim() : 'dark environment'}, ${vi.lighting ? vi.lighting.split(',')[0].trim() : 'dramatic lighting'}, ${vi.cameraStyle ? vi.cameraStyle.split(',')[0].trim() : 'close-up'}, ${vi.colorPalette ? vi.colorPalette.split(',').slice(0, 2).join(',').trim() : 'cinematic tones'}, ${vi.moodKeywords ? vi.moodKeywords.split(',').slice(0, 2).join(',').trim() : 'cinematic'}, photorealistic, 4K`
-      : '[Subject] + [Action] + [Camera angle] + [Lighting] + [Color palette] + [Mood] — photorealistic, 4K';
+    // Build 3 different example prompts to show AI how to vary scenes
+    const envList = vi.environment ? vi.environment.split(',').map(e => e.trim()) : ['dark environment'];
+    const camList = vi.cameraStyle ? vi.cameraStyle.split('+').map(c => c.trim()) : ['close-up'];
+    const charDesc = vi.characterPresence !== 'none' && vi.characterDesc ? vi.characterDesc : 'Abstract symbolic object';
+    const palette = vi.colorPalette || 'cinematic tones';
+    const moods = vi.moodKeywords || 'cinematic, dramatic';
+    const lightList = vi.lighting ? vi.lighting.split('+').map(l => l.trim()) : ['dramatic lighting'];
+
+    const examplePrompts = hasVi ? [
+      `${charDesc} walking through ${envList[0] || 'dark environment'}, ${lightList[0] || 'dramatic'} lighting from above, ${camList[0] || 'close-up'} shot tracking forward, ${palette}, ${moods}, photorealistic, 4K`,
+      `${charDesc} standing on ${envList[1] || envList[0] || 'rooftop'}, ${lightList[1] || lightList[0] || 'rim'} light silhouetting the figure, wide establishing shot slowly zooming in, ${palette}, ${moods}, photorealistic, 4K`,
+      `Extreme close-up of clenched fists in ${envList[2] || envList[0] || 'empty room'}, ${lightList[0] || 'dramatic'} single-source light casting long shadows, shallow depth of field, ${palette}, ${moods}, photorealistic, 4K`,
+    ] : null;
+
+    const examplePrompt = examplePrompts
+      ? examplePrompts[0]
+      : '[Subject doing specific action] in [specific environment], [lighting type], [camera angle + movement], [color palette], [mood] — photorealistic, 4K';
 
     const STORYBOARD_PROMPT = `You are a Visual Director — you design the visual layer for podcast-style YouTube videos.
 
@@ -788,10 +808,13 @@ ${viBlock}${sbCustomBlock}
 
 ## RULES — CRITICAL
 - Each prompt MUST be a DETAILED image generation prompt (40-80 words minimum)
-- Each prompt MUST include ALL of: subject + action + camera angle + lighting + color palette + environment + mood
-${hasVi ? `- Each prompt MUST use the Visual Identity settings above — color palette, lighting, camera, character, environment, mood
-- NEVER generate a generic prompt like "cinematic, 4K" without specific Visual Identity details
-- The character description, color palette, and lighting MUST appear in EVERY prompt` : '- prompt must be specific: subject, action, camera angle, lighting, style'}
+- Each prompt MUST include ALL of: subject + specific action + camera angle + lighting + color palette + environment + mood
+${hasVi ? `- VARIETY IS ESSENTIAL: Each scene MUST have a DIFFERENT combination of environment, camera angle, character pose/action, and lighting direction
+- ROTATE environments: distribute ALL options (${envList.join(', ')}) across the ${scenes} scenes — never use the same environment 3 times in a row
+- ALTERNATE camera styles: mix ${camList.join(', ')} with other angles like wide shot, overhead, low angle, Dutch angle, over-shoulder
+- VARY character actions: walking, standing still, looking up, turning away, clenching fists, silhouette from afar, reflection in puddle, shadow on wall, etc.
+- Keep the color palette (${palette}) and mood (${moods}) consistent across ALL scenes — this is the visual thread
+- The character STYLE stays consistent but pose/framing/environment MUST change each scene` : '- prompt must be specific: subject, action, camera angle, lighting, style'}
 - dialogue must be the exact Vietnamese text spoken during that scene
 - motion: slow zoom in, pan left, dolly forward, static, etc.
 - transition: fade, cut, dissolve, zoom transition
