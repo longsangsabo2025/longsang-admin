@@ -807,7 +807,7 @@ function RunCard({ run, onView }: { run: GenerationRun; onView: () => void }) {
 // ─── VOICE TAB (FULL-FEATURED) ────────────────────────────
 
 type VoiceoverClip = { scene: number; url: string; duration: number; charCount: number; engine: string };
-type VoiceoverData = { clips?: VoiceoverClip[]; totalClips?: number; successCount?: number; failCount?: number; totalDuration?: number; engine?: string; voice?: string; speed?: number };
+type VoiceoverData = { clips?: VoiceoverClip[]; totalClips?: number; successCount?: number; failCount?: number; totalDuration?: number; engine?: string; voice?: string; speed?: number; fullAudioUrl?: string };
 type StoryboardData = { scenes?: { scene: number; dialogue: string; prompt: string; motion: string; transition: string }[] };
 
 function VoiceTabContent({
@@ -1382,49 +1382,77 @@ Nếu script tốt, trả issues rỗng và score cao. Tập trung vào các l�
           </p>
         </div>
 
-        {/* ── Voice Clips ── */}
+        {/* ── Voice — Full Audio + Clips ── */}
         {voiceoverJson?.clips && voiceoverJson.clips.length > 0 ? (
-          <div className="space-y-3">
-            {voiceoverJson.clips.map((clip, i) => {
-              const scene = storyboardJson?.scenes?.find(s => s.scene === clip.scene);
-              return (
-                <div key={i} className="p-3 rounded-lg border hover:bg-muted/30 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">Scene {clip.scene}</Badge>
-                      <span className="text-[10px] text-muted-foreground">{clip.duration.toFixed(1)}s • {clip.charCount} chars • {clip.engine}</span>
-                    </div>
-                    <Volume2 className="h-3.5 w-3.5 text-green-400" />
-                  </div>
-                  {scene && <p className="text-xs text-muted-foreground italic truncate">"{scene.dialogue}"</p>}
-                  <SmartAudio
-                    src={clip.url}
-                    regenerating={regeneratingScene === clip.scene}
-                    onRegenerate={scene?.dialogue ? async () => {
-                      setRegeneratingScene(clip.scene);
-                      try {
-                        const result = await regenerateSingleClip({
-                          text: scene.dialogue,
-                          engine: voiceoverConfig?.engine || clip.engine,
-                          voice: voiceoverConfig?.voice || 'Kore',
-                          speed: voiceoverConfig?.speed || 1.0,
-                          channelId: run.input?.channelId || 'default',
-                          runId: run.id,
-                          sceneNum: clip.scene,
-                        });
-                        clip.url = result.url;
-                        clip.duration = result.duration;
-                        clip.charCount = result.charCount;
-                      } catch (err) {
-                        console.error('Regenerate failed:', err);
-                      } finally {
-                        setRegeneratingScene(null);
-                      }
-                    } : undefined}
-                  />
+          <div className="space-y-4">
+            {/* Full combined audio */}
+            <div className="p-4 rounded-lg border-2 border-green-500/30 bg-green-950/20 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-green-400">🎧 Full Audio</span>
+                <span className="text-[10px] text-muted-foreground">
+                  ~{voiceoverJson.totalDuration || 0}s • {voiceoverJson.clips.length} phần
+                </span>
+              </div>
+              {voiceoverJson.fullAudioUrl ? (
+                <SmartAudio src={voiceoverJson.fullAudioUrl} showRegenerate={false} />
+              ) : voiceoverJson.clips.length === 1 ? (
+                <SmartAudio src={voiceoverJson.clips[0].url} showRegenerate={false} />
+              ) : (
+                <p className="text-xs text-muted-foreground italic">Full audio chưa có (run cũ). Chạy lại voiceover để merge.</p>
+              )}
+            </div>
+
+            {/* Individual clips — collapsible */}
+            {voiceoverJson.clips.length > 1 && (
+              <details className="group">
+                <summary className="cursor-pointer text-xs text-purple-400 hover:text-purple-300 text-center py-1 list-none">
+                  <span className="group-open:hidden">▼ Xem {voiceoverJson.clips.length} đoạn riêng</span>
+                  <span className="hidden group-open:inline">▲ Ẩn từng đoạn</span>
+                </summary>
+                <div className="space-y-3 mt-2">
+                  {voiceoverJson.clips.map((clip, i) => {
+                    const scene = storyboardJson?.scenes?.find(s => s.scene === clip.scene);
+                    return (
+                      <div key={i} className="p-3 rounded-lg border hover:bg-muted/30 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">Đoạn {clip.scene}</Badge>
+                            <span className="text-[10px] text-muted-foreground">{clip.duration.toFixed(1)}s • {clip.charCount} chars • {clip.engine}</span>
+                          </div>
+                          <Volume2 className="h-3.5 w-3.5 text-green-400" />
+                        </div>
+                        {scene && <p className="text-xs text-muted-foreground italic truncate">"{scene.dialogue}"</p>}
+                        <SmartAudio
+                          src={clip.url}
+                          regenerating={regeneratingScene === clip.scene}
+                          onRegenerate={scene?.dialogue ? async () => {
+                            setRegeneratingScene(clip.scene);
+                            try {
+                              const result = await regenerateSingleClip({
+                                text: scene.dialogue,
+                                engine: voiceoverConfig?.engine || clip.engine,
+                                voice: voiceoverConfig?.voice || 'Kore',
+                                speed: voiceoverConfig?.speed || 1.0,
+                                channelId: run.input?.channelId || 'default',
+                                runId: run.id,
+                                sceneNum: clip.scene,
+                              });
+                              clip.url = result.url;
+                              clip.duration = result.duration;
+                              clip.charCount = result.charCount;
+                            } catch (err) {
+                              console.error('Regenerate failed:', err);
+                            } finally {
+                              setRegeneratingScene(null);
+                            }
+                          } : undefined}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </details>
+            )}
           </div>
         ) : (
           <div className="text-center py-12 text-muted-foreground">
@@ -1458,7 +1486,7 @@ function ResultsView({ run, onRunImageGen, onRunVoiceover, onRunAssembly, isGene
   const storyboardMd = result.files?.['storyboard.md'] as string | undefined;
   const storyboardJson = result.files?.['storyboard.json'] as { scenes?: { scene: number; dialogue: string; prompt: string; motion: string; transition: string }[] } | undefined;
   const imagesJson = result.files?.['images.json'] as { images?: { scene: number; url: string; prompt: string }[]; successCount?: number; totalScenes?: number } | undefined;
-  const voiceoverJson = result.files?.['voiceover.json'] as { clips?: { scene: number; url: string; duration: number; charCount: number; engine: string }[]; totalClips?: number; successCount?: number; failCount?: number; totalDuration?: number; engine?: string; voice?: string; speed?: number } | undefined;
+  const voiceoverJson = result.files?.['voiceover.json'] as { clips?: { scene: number; url: string; duration: number; charCount: number; engine: string }[]; totalClips?: number; successCount?: number; failCount?: number; totalDuration?: number; engine?: string; voice?: string; speed?: number; fullAudioUrl?: string } | undefined;
   const assemblyJson = result.files?.['assembly.json'] as { videoUrl?: string; format?: string; duration?: number; totalScenes?: number; resolution?: string; fileSize?: number; transitions?: string; bgMusic?: boolean } | undefined;
   const imageMap = new Map<number, string>();
   if (imagesJson?.images) {

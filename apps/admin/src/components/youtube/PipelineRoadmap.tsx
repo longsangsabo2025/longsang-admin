@@ -550,6 +550,7 @@ function extractVoiceoverResult(run?: ActiveRunInfo & { result?: { files?: Recor
     failCount: voJson.failCount || 0,
     totalDuration: voJson.totalDuration || 0,
     engine: voJson.engine || 'unknown',
+    fullAudioUrl: (voJson as Record<string, unknown>).fullAudioUrl as string | undefined,
   };
 }
 
@@ -625,16 +626,17 @@ function VoiceClipsPreview({ voResult }: {
     failCount: number;
     totalDuration: number;
     engine: string;
+    fullAudioUrl?: string;
   };
 }) {
-  const [showAll, setShowAll] = useState(false);
-  const displayClips = showAll ? voResult.clips : voResult.clips.slice(0, 6);
+  const [showClips, setShowClips] = useState(false);
+  const displayClips = voResult.clips;
 
   return (
     <div className="mt-3 pt-3 border-t">
       <div className="rounded bg-green-950/30 border border-green-500/20 p-3 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-green-400">🎤 Voice Clips</span>
+          <span className="text-xs font-semibold text-green-400">🎤 Full Audio</span>
           <div className="flex gap-2 text-[10px] text-muted-foreground">
             <Badge variant="outline" className="text-[10px]">{voResult.successCount}/{voResult.totalClips} clips</Badge>
             <Badge variant="outline" className="text-[10px]">~{voResult.totalDuration}s</Badge>
@@ -643,23 +645,36 @@ function VoiceClipsPreview({ voResult }: {
             )}
           </div>
         </div>
-        <div className="space-y-1.5">
-          {displayClips.map((clip) => (
-            <div key={clip.scene} className="flex items-center gap-2 bg-background/30 rounded px-2 py-1">
-              <span className="text-[10px] text-muted-foreground w-14 shrink-0">Scene {clip.scene}</span>
-              <SmartAudio src={clip.url} showRegenerate={false} />
-              <span className="text-[9px] text-muted-foreground shrink-0">~{clip.duration}s</span>
-            </div>
-          ))}
-        </div>
-        {voResult.clips.length > 6 && (
-          <button
-            type="button"
-            className="w-full text-[10px] text-purple-400 hover:text-purple-300 text-center py-1 transition-colors"
-            onClick={() => setShowAll(v => !v)}
-          >
-            {showAll ? '▲ Thu gọn' : `▼ Xem thêm ${voResult.clips.length - 6} clips`}
-          </button>
+        {/* Full combined audio */}
+        {voResult.fullAudioUrl ? (
+          <SmartAudio src={voResult.fullAudioUrl} showRegenerate={false} />
+        ) : voResult.clips.length === 1 ? (
+          <SmartAudio src={voResult.clips[0].url} showRegenerate={false} />
+        ) : (
+          <p className="text-[10px] text-muted-foreground italic">Full audio chưa merge (old run)</p>
+        )}
+        {/* Individual clips - collapsible */}
+        {voResult.clips.length > 1 && (
+          <>
+            <button
+              type="button"
+              className="w-full text-[10px] text-purple-400 hover:text-purple-300 text-center py-1 transition-colors"
+              onClick={() => setShowClips(v => !v)}
+            >
+              {showClips ? '▲ Ẩn từng đoạn' : `▼ Xem ${voResult.clips.length} đoạn riêng`}
+            </button>
+            {showClips && (
+              <div className="space-y-1.5">
+                {displayClips.map((clip) => (
+                  <div key={clip.scene} className="flex items-center gap-2 bg-background/30 rounded px-2 py-1">
+                    <span className="text-[10px] text-muted-foreground w-14 shrink-0">Scene {clip.scene}</span>
+                    <SmartAudio src={clip.url} showRegenerate={false} />
+                    <span className="text-[9px] text-muted-foreground shrink-0">~{clip.duration}s</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

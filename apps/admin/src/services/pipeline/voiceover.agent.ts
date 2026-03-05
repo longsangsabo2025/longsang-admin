@@ -42,9 +42,15 @@ async function geminiTTS(text: string, voice: string, _speed: number, apiKey: st
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      systemInstruction: {
+        parts: [{
+          text: `You are a single professional narrator named "${voiceName}". CRITICAL: maintain EXACTLY the same vocal identity, tone, pitch, pace, and speaking style for every piece of text you read. You are narrating different parts of the same video — they must all sound like the same person speaking continuously. Do NOT change your voice character between readings.`,
+        }],
+      },
       contents: [{ parts: [{ text }] }],
       generationConfig: {
         responseModalities: ['AUDIO'],
+        temperature: 0.1,
         speechConfig: {
           voiceConfig: { prebuiltVoiceConfig: { voiceName } },
         },
@@ -216,6 +222,91 @@ function audioExt(engine: string): string {
   return engine === 'gemini-tts' ? 'wav' : 'mp3';
 }
 
+/** Merge all clip blobs into a single full-audio WAV file using Web Audio API */
+async function mergeClipsToFullAudio(
+  clips: VoiceoverClip[],
+  channelId: string,
+  runId: string,
+): Promise<string> {
+  // Fetch all clip blobs
+  const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)({ sampleRate: 24000 });
+  const decoded: AudioBuffer[] = [];
+
+  for (const clip of clips) {
+    const res = await fetch(clip.url);
+    const arrBuf = await res.arrayBuffer();
+    const bytes = new Uint8Array(arrBuf);
+    // If raw PCM, wrap in WAV so AudioContext can decode
+    let decodable: ArrayBuffer;
+    if (bytes.length > 4 && bytes[0] === 0x52 && bytes[1] === 0x49) {
+      // Already has RIFF header
+      decodable = arrBuf;
+    } else if (bytes.length > 4 && (bytes[0] === 0xFF || bytes[0] === 0x49 || bytes[0] === 0x4F)) {
+      // MP3/OGG
+      decodable = arrBuf;
+    } else {
+      // Raw PCM → wrap in WAV header for decoding
+      const sr = 24000, ch = 1, bps = 16;
+      const hdr = new ArrayBuffer(44);
+      const v = new DataView(hdr);
+      const w = (off: number, s: string) => { for (let i = 0; i < s.length; i++) v.setUint8(off + i, s.charCodeAt(i)); };
+      w(0, 'RIFF'); v.setUint32(4, 36 + bytes.length, true); w(8, 'WAVE');
+      w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+      v.setUint16(22, ch, true); v.setUint32(24, sr, true);
+      v.setUint32(28, sr * ch * bps / 8, true); v.setUint16(32, ch * bps / 8, true);
+      v.setUint16(34, bps, true); w(36, 'data'); v.setUint32(40, bytes.length, true);
+      const combined = new Uint8Array(44 + bytes.length);
+      combined.set(new Uint8Array(hdr), 0);
+      combined.set(bytes, 44);
+      decodable = combined.buffer;
+    }
+    try {
+      const buf = await audioCtx.decodeAudioData(decodable.slice(0));
+      decoded.push(buf);
+    } catch {
+      // skip undecodable clip
+    }
+  }
+
+  audioCtx.close();
+
+  if (decoded.length === 0) throw new Error('No clips could be decoded for merging');
+
+  // Calculate total length and merge
+  const sampleRate = decoded[0].sampleRate;
+  let totalSamples = 0;
+  for (const buf of decoded) totalSamples += buf.length;
+
+  // Interleave into one PCM buffer
+  const merged = new Float32Array(totalSamples);
+  let offset = 0;
+  for (const buf of decoded) {
+    merged.set(buf.getChannelData(0), offset);
+    offset += buf.length;
+  }
+
+  // Convert Float32 → Int16 PCM
+  const pcm16 = new Int16Array(totalSamples);
+  for (let i = 0; i < totalSamples; i++) {
+    const s = Math.max(-1, Math.min(1, merged[i]));
+    pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+  }
+
+  // Build WAV
+  const pcmBytes = new Uint8Array(pcm16.buffer);
+  const wavHeader = new ArrayBuffer(44);
+  const view = new DataView(wavHeader);
+  const writeStr = (off: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+  writeStr(0, 'RIFF'); view.setUint32(4, 36 + pcmBytes.length, true); writeStr(8, 'WAVE');
+  writeStr(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true); writeStr(36, 'data'); view.setUint32(40, pcmBytes.length, true);
+
+  const wavBlob = new Blob([wavHeader, pcmBytes], { type: 'audio/wav' });
+  return await uploadAudio(wavBlob, channelId, runId, 'full-audio.wav');
+}
+
 /** Generate a single TTS blob using the chosen engine */
 async function synthesize(text: string, engine: string, voice: string, speed: number, apiKey: string): Promise<Blob> {
   if (engine === 'elevenlabs') return elevenLabsTTS(text, voice, speed, apiKey);
@@ -277,7 +368,87 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
   if (scenes && scenes.some(s => s.dialogue?.trim())) {
     const validScenes = scenes.filter(s => s.dialogue?.trim());
     const total = validScenes.length;
-    run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Found ${total} scene dialogues — generating per-scene voiceover (${engine})...` });
+
+    // ── SINGLE-NARRATION MODE (Gemini TTS, >1 scene) ────────
+    // Gộp tất cả dialogue thành 1 text → 1 API call → giọng 100% nhất quán
+    const useSingleNarration = engine === 'gemini-tts' && total > 1;
+
+    if (useSingleNarration) {
+      run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Single-narration mode: gộp ${total} scenes → 1 API call (${engine}) — giọng nhất quán 100%` });
+
+      const phases: ProgressPhase[] = [
+        { pct: 10, msg: '📝 Gộp dialogue các scene...' },
+        { pct: 30, msg: '🎙️ Generating single narration...' },
+        { pct: 80, msg: '✂️ Ước tính timing per scene...' },
+        { pct: 95, msg: '💾 Saving audio...' },
+      ];
+      const tracker = startProgressTracker(run, phases, total * 6000);
+
+      try {
+        // Concatenate all scene dialogues with natural pause markers
+        const sceneCleaned = validScenes.map(s => cleanTextForTTS(s.dialogue)).filter(Boolean);
+        const combinedText = sceneCleaned.join('\n\n... \n\n');
+
+        if (!combinedText.trim()) {
+          clearInterval(tracker);
+          failRun(run, 'Tất cả scene dialogues đều trống sau khi clean.');
+          return;
+        }
+
+        run.logs.push({ t: Date.now(), level: 'info', msg: `[30%] 🎙️ Generating single narration (${combinedText.length} chars, ${total} scenes)...` });
+
+        const blob = await synthesize(combinedText, engine, voice, speed, apiKey);
+        const ext = audioExt(engine);
+        const filename = `full-narration.${ext}`;
+        const url = await uploadAudio(blob, channelId, runId, filename);
+
+        // Estimate per-scene durations proportionally based on char count
+        const sceneLengths = sceneCleaned.map(s => s.length);
+        const totalChars = sceneLengths.reduce((a, b) => a + b, 0);
+        const totalDuration = estimateDuration(totalChars, speed);
+
+        // Create clips — all reference the same full narration URL
+        const clips: VoiceoverClip[] = validScenes.map((s, i) => ({
+          scene: s.scene,
+          url,
+          duration: Math.round(totalDuration * (sceneLengths[i] / totalChars)),
+          charCount: sceneLengths[i],
+          engine,
+        }));
+
+        clearInterval(tracker);
+
+        const existingFiles = run.result?.files || {};
+        saveStepResult(run, {
+          outputDir: 'remote',
+          files: {
+            ...existingFiles,
+            'voiceover.json': {
+              clips,
+              fullNarrationUrl: url,
+              singleNarration: true,
+              totalClips: total,
+              successCount: total,
+              failCount: 0,
+              totalDuration,
+              engine, voice, speed,
+            },
+          },
+        });
+
+        const elapsed = ((Date.now() - new Date(run.startedAt).getTime()) / 1000).toFixed(1);
+        run.logs.push({ t: Date.now(), level: 'info', msg: `[100%] ✅ Single narration hoàn thành: ${total} scenes, ~${totalDuration}s (${elapsed}s) — 1 API call` });
+        return;
+      } catch (err: unknown) {
+        clearInterval(tracker);
+        const msg = err instanceof Error ? err.message : String(err);
+        run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Single narration failed: ${msg} — fallback to per-scene mode...` });
+        // Fall through to per-scene mode below
+      }
+    }
+
+    // ── PER-SCENE MODE (non-Gemini engines, fallback, or single scene) ─
+    run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Per-scene mode: ${total} scenes (${engine})...` });
 
     const phases: ProgressPhase[] = validScenes.map((s, i) => ({
       pct: Math.round((i / total) * 90) + 5,
@@ -332,10 +503,22 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
         return;
       }
 
+      // Merge all clips into a single full-audio file
+      let fullAudioUrl = '';
+      if (clips.length > 0) {
+        try {
+          run.logs.push({ t: Date.now(), level: 'info', msg: '🔗 Merging clips into full audio...' });
+          fullAudioUrl = await mergeClipsToFullAudio(clips, channelId, runId);
+          run.logs.push({ t: Date.now(), level: 'info', msg: '✅ Full audio created' });
+        } catch (err: unknown) {
+          run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Full audio merge failed: ${err instanceof Error ? err.message : String(err)}` });
+        }
+      }
+
       const existingFiles = run.result?.files || {};
       saveStepResult(run, {
         outputDir: 'remote',
-        files: { ...existingFiles, 'voiceover.json': { clips, totalClips: total, successCount, failCount, totalDuration, engine, voice, speed } },
+        files: { ...existingFiles, 'voiceover.json': { clips, totalClips: total, successCount, failCount, totalDuration, engine, voice, speed, fullAudioUrl } },
       });
 
       const elapsed = ((Date.now() - new Date(run.startedAt).getTime()) / 1000).toFixed(1);
@@ -394,10 +577,22 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
 
     clearInterval(tracker);
 
+    // Merge all clips into a single full-audio file
+    let fullAudioUrl = '';
+    if (clips.length > 0) {
+      try {
+        run.logs.push({ t: Date.now(), level: 'info', msg: '🔗 Merging parts into full audio...' });
+        fullAudioUrl = await mergeClipsToFullAudio(clips, channelId, runId);
+        run.logs.push({ t: Date.now(), level: 'info', msg: '✅ Full audio created' });
+      } catch (err: unknown) {
+        run.logs.push({ t: Date.now(), level: 'warn', msg: `⚠️ Full audio merge failed: ${err instanceof Error ? err.message : String(err)}` });
+      }
+    }
+
     const existingFiles = run.result?.files || {};
     saveStepResult(run, {
       outputDir: 'remote',
-      files: { ...existingFiles, 'voiceover.json': { clips, totalClips: total, successCount: clips.length, failCount: total - clips.length, totalDuration, engine, voice, speed } },
+      files: { ...existingFiles, 'voiceover.json': { clips, totalClips: total, successCount: clips.length, failCount: total - clips.length, totalDuration, engine, voice, speed, fullAudioUrl } },
     });
 
     const elapsed = ((Date.now() - new Date(run.startedAt).getTime()) / 1000).toFixed(1);
