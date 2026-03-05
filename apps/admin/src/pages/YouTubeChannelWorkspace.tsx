@@ -31,8 +31,10 @@ import {
 import { youtubeChannelsService } from '@/services/youtube-channels.service';
 import type { ChannelPlan, GenerateRequest, GenerationRun } from '@/services/youtube-channels.service';
 import PipelineRoadmap, { type PipelineConfig } from '@/components/youtube/PipelineRoadmap';
+import SmartAudio from '@/components/youtube/SmartAudio';
 import { getPool, addKey, removeKey, enableKey, disableKey, resetStats, onPoolChange, type PoolEntry } from '@/services/pipeline/api-key-pool';
 import { getRunningIdsForChannel } from '@/services/pipeline';
+import { regenerateSingleClip } from '@/services/pipeline/voiceover.agent';
 
 // ─── MAIN COMPONENT ────────────────────────────────────────
 
@@ -598,6 +600,14 @@ export default function YouTubeChannelWorkspace() {
                     voiceover: { enabled: true, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed },
                     assembly: { enabled: false, format: 'mp4-1080p', transitions: 'crossfade', bgMusic: true },
                   });
+                }} onRunAssembly={() => {
+                  handlePipelineStepRun('assembly', {
+                    scriptWriter: { enabled: true, model: 'gemini-2.0-flash', tone: 'engaging', wordTarget: 600, customPrompt: '' },
+                    storyboard: { enabled: true, model: 'hailuo-2.3', style: 'dark-cinematic', scenes: 5, duration: 6, aspectRatio: '16:9', visualIdentity: {} as never, customPrompt: '' },
+                    imageGen: { enabled: false, provider: 'gemini', quality: 'standard', negativePrompt: 'text, watermark, logo' },
+                    voiceover: { enabled: false, engine: voiceConfig.engine, voice: voiceConfig.voice, speed: voiceConfig.speed },
+                    assembly: { enabled: true, format: 'mp4-1080p', transitions: 'crossfade', bgMusic: true },
+                  });
                 }} isGenerating={stepMut.isPending}
                   voiceoverConfig={voiceConfig}
                   onVoiceoverConfigChange={(u) => setVoiceConfig(prev => ({ ...prev, ...u }))}
@@ -820,6 +830,7 @@ function VoiceTabContent({
   isGenerating?: boolean;
 }) {
   const engine = voiceoverConfig?.engine || 'gemini-tts';
+  const [regeneratingScene, setRegeneratingScene] = useState<number | null>(null);
   const isElevenLabs = engine === 'elevenlabs';
   const isGemini = engine === 'gemini-tts';
   const isGoogleTTS = engine === 'google-tts';
@@ -1386,9 +1397,31 @@ Nếu script tốt, trả issues rỗng và score cao. Tập trung vào các l�
                     <Volume2 className="h-3.5 w-3.5 text-green-400" />
                   </div>
                   {scene && <p className="text-xs text-muted-foreground italic truncate">"{scene.dialogue}"</p>}
-                  <audio controls className="w-full h-8" preload="metadata">
-                    <source src={clip.url} type="audio/wav" />
-                  </audio>
+                  <SmartAudio
+                    src={clip.url}
+                    regenerating={regeneratingScene === clip.scene}
+                    onRegenerate={scene?.dialogue ? async () => {
+                      setRegeneratingScene(clip.scene);
+                      try {
+                        const result = await regenerateSingleClip({
+                          text: scene.dialogue,
+                          engine: voiceoverConfig?.engine || clip.engine,
+                          voice: voiceoverConfig?.voice || 'Kore',
+                          speed: voiceoverConfig?.speed || 1.0,
+                          channelId: run.input?.channelId || 'default',
+                          runId: run.id,
+                          sceneNum: clip.scene,
+                        });
+                        clip.url = result.url;
+                        clip.duration = result.duration;
+                        clip.charCount = result.charCount;
+                      } catch (err) {
+                        console.error('Regenerate failed:', err);
+                      } finally {
+                        setRegeneratingScene(null);
+                      }
+                    } : undefined}
+                  />
                 </div>
               );
             })}

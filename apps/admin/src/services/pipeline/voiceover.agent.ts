@@ -407,3 +407,31 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
     failRun(run, err instanceof Error ? err.message : String(err));
   }
 }
+
+// ─── Single clip regeneration ──────────────────────────────
+
+export async function regenerateSingleClip(opts: {
+  text: string;
+  engine: string;
+  voice: string;
+  speed: number;
+  channelId: string;
+  runId: string;
+  sceneNum: number;
+}): Promise<{ url: string; duration: number; charCount: number }> {
+  const { text, engine, voice, speed, channelId, runId, sceneNum } = opts;
+  const engineKey = engine === 'elevenlabs' ? 'elevenlabs' : engine === 'google-tts' ? 'google-tts' : 'gemini';
+  const apiKey = getNextKey(engineKey);
+  if (!apiKey) throw new Error(`Không có API key cho ${engine}`);
+
+  const clean = cleanTextForTTS(text);
+  if (!clean) throw new Error('Text trống');
+
+  const blob = await synthesize(clean, engine, voice, speed, apiKey);
+  const ext = audioExt(engine);
+  const filename = `scene-${String(sceneNum).padStart(2, '0')}-regen.${ext}`;
+  const url = await uploadAudio(blob, channelId, runId, filename);
+  const duration = estimateDuration(clean.length, speed);
+
+  return { url, duration, charCount: clean.length };
+}

@@ -28,6 +28,7 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
+import SmartAudio from './SmartAudio';
 import { type PipelineConfig, type VisualIdentity, DEFAULT_PIPELINE, DEFAULT_VISUAL_IDENTITY } from './pipeline-types';
 
 export type { PipelineConfig } from './pipeline-types';
@@ -646,7 +647,7 @@ function VoiceClipsPreview({ voResult }: {
           {displayClips.map((clip) => (
             <div key={clip.scene} className="flex items-center gap-2 bg-background/30 rounded px-2 py-1">
               <span className="text-[10px] text-muted-foreground w-14 shrink-0">Scene {clip.scene}</span>
-              <audio controls src={clip.url} className="h-7 flex-1 min-w-0" preload="metadata" />
+              <SmartAudio src={clip.url} showRegenerate={false} />
               <span className="text-[9px] text-muted-foreground shrink-0">~{clip.duration}s</span>
             </div>
           ))}
