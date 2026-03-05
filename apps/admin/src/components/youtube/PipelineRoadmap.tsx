@@ -1908,6 +1908,107 @@ function VoiceoverConfig({
   const isElevenLabs = config.engine === 'elevenlabs';
   const isGemini = config.engine === 'gemini-tts';
   const isGoogleTTS = config.engine === 'google-tts';
+
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Cleanup blob URL on unmount or when url changes
+  useEffect(() => {
+    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
+  }, [previewUrl]);
+
+  const handlePreview = async () => {
+    setPreviewLoading(true);
+    setPreviewError(null);
+    if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
+
+    const sampleText = 'Xin chào, đây là giọng đọc mẫu. Bạn có thể nghe thử trước khi tạo voiceover cho video.';
+
+    try {
+      let blob: Blob;
+
+      if (config.engine === 'gemini-tts') {
+        const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
+        if (!apiKey) throw new Error('Missing VITE_GEMINI_API_KEY');
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: sampleText }] }],
+              generationConfig: {
+                responseModalities: ['AUDIO'],
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: config.voice || 'Kore' } } },
+              },
+            }),
+          },
+        );
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error((err as { error?: { message?: string } })?.error?.message || `Gemini TTS error ${res.status}`);
+        }
+        const data = await res.json();
+        const parts = data.candidates?.[0]?.content?.parts || [];
+        const audioPart = parts.find((p: { inlineData?: { mimeType?: string } }) => p.inlineData?.mimeType?.startsWith('audio/'));
+        if (!audioPart) throw new Error('No audio returned');
+        const b64 = audioPart.inlineData.data as string;
+        const byteChars = atob(b64);
+        const byteArr = new Uint8Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+        blob = new Blob([byteArr], { type: audioPart.inlineData.mimeType as string });
+      } else if (config.engine === 'google-tts') {
+        const apiKey = (import.meta.env.VITE_GOOGLE_TTS_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '') as string;
+        if (!apiKey) throw new Error('Missing Google TTS API key');
+        const langCode = config.voice?.startsWith('en-') ? 'en-US' : 'vi-VN';
+        const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: { text: sampleText },
+            voice: { languageCode: langCode, name: config.voice },
+            audioConfig: { audioEncoding: 'MP3', speakingRate: config.speed || 1.0, pitch: 0 },
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error((err as { error?: { message?: string } })?.error?.message || `Google TTS error ${res.status}`);
+        }
+        const data = await res.json() as { audioContent: string };
+        const byteChars = atob(data.audioContent);
+        const byteArr = new Uint8Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+        blob = new Blob([byteArr], { type: 'audio/mpeg' });
+      } else {
+        // ElevenLabs
+        const apiKey = (import.meta.env.VITE_ELEVENLABS_API_KEY || '') as string;
+        if (!apiKey) throw new Error('Missing VITE_ELEVENLABS_API_KEY');
+        const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${config.voice}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'xi-api-key': apiKey },
+          body: JSON.stringify({
+            text: sampleText,
+            model_id: 'eleven_multilingual_v2',
+            voice_settings: { stability: 0.5, similarity_boost: 0.75, speed: config.speed || 1.0 },
+          }),
+        });
+        if (!res.ok) throw new Error(`ElevenLabs error ${res.status}`);
+        blob = await res.blob();
+      }
+
+      const url = URL.createObjectURL(blob);
+      setPreviewUrl(url);
+      // Auto-play
+      setTimeout(() => previewAudioRef.current?.play(), 100);
+    } catch (err) {
+      setPreviewError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
@@ -1983,6 +2084,37 @@ function VoiceoverConfig({
             <SelectItem value="1.2">1.2x (Nhanh)</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Voice Preview */}
+      <div className="space-y-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full h-8 text-xs gap-2"
+          onClick={handlePreview}
+          disabled={previewLoading}
+        >
+          {previewLoading ? (
+            <><Loader2 className="h-3 w-3 animate-spin" /> Đang tạo mẫu...</>
+          ) : (
+            <><Play className="h-3 w-3" /> Nghe thử giọng đọc</>
+          )}
+        </Button>
+
+        {previewUrl && (
+          <audio
+            ref={previewAudioRef}
+            controls
+            src={previewUrl}
+            className="w-full h-8"
+            preload="auto"
+          />
+        )}
+
+        {previewError && (
+          <p className="text-[10px] text-red-400">⚠️ {previewError}</p>
+        )}
       </div>
 
       <div className="rounded-md border border-green-500/20 bg-green-500/5 px-3 py-2">
