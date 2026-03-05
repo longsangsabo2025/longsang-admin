@@ -81,7 +81,7 @@ export default function YouTubeChannelWorkspace() {
       setRunningRunIds(new Set(ids));
       if (!activeRunId) setActiveRunId(ids[0]);
     }
-  }, [channelId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [channelId]); // activeRunId intentionally excluded to only run on channel change
 
   // ── Debounce transcript search ──
   useEffect(() => {

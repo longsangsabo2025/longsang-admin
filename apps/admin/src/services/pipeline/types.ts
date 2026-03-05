@@ -28,6 +28,10 @@ export interface GenerateRequest {
   voiceoverVoice?: string;
   voiceoverSpeed?: number;
   voiceoverCleanedScript?: string;
+  assemblyEnabled?: boolean;
+  assemblyFormat?: string;
+  assemblyTransitions?: string;
+  assemblyBgMusic?: boolean;
 }
 
 export interface RunLog {

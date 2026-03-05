@@ -79,7 +79,7 @@ export default function YouTubeChannelsDashboard() {
     }
   });
 
-  const activePoolCount = pool.filter(e => e.enabled).length;
+  const activePoolCount = pool.filter(e => !e.disabled).length;
 
   return (
     <div className="flex-1 space-y-6 p-6">
@@ -254,5 +254,108 @@ function ChannelCard({
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+// ─── KEY POOL MANAGER (Dashboard version) ───────────────────
+
+const ENGINE_OPTIONS = [
+  { value: 'gemini', label: 'Gemini', placeholder: 'AIzaSy...' },
+  { value: 'elevenlabs', label: 'ElevenLabs', placeholder: 'sk_...' },
+  { value: 'google-tts', label: 'Google Cloud TTS', placeholder: 'AIzaSy...' },
+] as const;
+
+function DashboardKeyPoolManager({ pool, toast }: { pool: PoolEntry[]; toast: ReturnType<typeof import('@/hooks/use-toast').useToast>['toast'] }) {
+  const [newEngine, setNewEngine] = useState<string>('gemini');
+  const [newKey, setNewKey] = useState('');
+  const [newLabel, setNewLabel] = useState('');
+
+  const handleAdd = () => {
+    const key = newKey.trim();
+    if (!key) return;
+    addKey(newEngine, key, newLabel.trim() || undefined);
+    setNewKey('');
+    setNewLabel('');
+    toast({ title: 'Key added', description: `${newEngine} key added to pool` });
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Add form */}
+      <div className="space-y-2 rounded-lg border p-3">
+        <div className="flex gap-2">
+          <Select value={newEngine} onValueChange={setNewEngine}>
+            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {ENGINE_OPTIONS.map(e => (
+                <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="password"
+            placeholder={ENGINE_OPTIONS.find(e => e.value === newEngine)?.placeholder}
+            value={newKey}
+            onChange={e => setNewKey(e.target.value)}
+            className="flex-1"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Input
+            placeholder="Label (optional)"
+            value={newLabel}
+            onChange={e => setNewLabel(e.target.value)}
+            className="flex-1"
+          />
+          <Button size="sm" onClick={handleAdd} disabled={!newKey.trim()}>
+            <Plus className="h-4 w-4 mr-1" /> Add
+          </Button>
+        </div>
+      </div>
+
+      {/* Key list by engine */}
+      {ENGINE_OPTIONS.map(eng => {
+        const keys = pool.filter(e => e.engine === eng.value);
+        if (!keys.length) return null;
+        return (
+          <div key={eng.value} className="space-y-1">
+            <Label className="text-xs text-muted-foreground">{eng.label} ({keys.length})</Label>
+            {keys.map(entry => (
+              <div key={entry.key} className="flex items-center gap-2 rounded border px-2 py-1 text-xs">
+                <span className={`h-2 w-2 rounded-full ${!entry.disabled ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span className="font-mono flex-1 truncate">
+                  {entry.label || `...${entry.key.slice(-6)}`}
+                </span>
+                <span className="text-muted-foreground">{entry.usageCount}×</span>
+                {entry.lastError && <span className="text-red-500 truncate max-w-[100px]">{entry.lastError}</span>}
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                  if (!entry.disabled) { disableKey(entry.engine, entry.key); } else { enableKey(entry.engine, entry.key); }
+                }}>
+                  {!entry.disabled ? <ToggleRight className="h-3.5 w-3.5 text-green-500" /> : <ToggleLeft className="h-3.5 w-3.5 text-red-500" />}
+                </Button>
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeKey(entry.engine, entry.key)}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        );
+      })}
+
+      {pool.length === 0 && (
+        <p className="text-center text-sm text-muted-foreground py-4">
+          No keys in pool — using .env fallbacks
+        </p>
+      )}
+
+      {pool.length > 0 && (
+        <Button variant="outline" size="sm" className="w-full" onClick={() => {
+          resetStats();
+          toast({ title: 'Stats reset' });
+        }}>
+          Reset All Stats
+        </Button>
+      )}
+    </div>
   );
 }

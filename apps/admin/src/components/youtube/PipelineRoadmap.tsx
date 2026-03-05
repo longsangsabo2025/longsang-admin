@@ -562,6 +562,58 @@ interface PipelineRoadmapProps {
   activeRun?: ActiveRunInfo;
 }
 
+// ─── IMAGE GRID PREVIEW (proper component so hooks work) ───
+function ImageGridPreview({ imgResult }: {
+  imgResult: {
+    images: { scene: number; url: string }[];
+    totalScenes: number;
+    successCount: number;
+    failCount: number;
+  };
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const displayImages = showAll ? imgResult.images : imgResult.images.slice(0, 6);
+
+  return (
+    <div className="mt-3 pt-3 border-t">
+      <div className="rounded bg-orange-950/30 border border-orange-500/20 p-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-orange-400">🖼️ Generated Images</span>
+          <div className="flex gap-2 text-[10px] text-muted-foreground">
+            <Badge variant="outline" className="text-[10px]">{imgResult.successCount}/{imgResult.totalScenes} scenes</Badge>
+            {imgResult.failCount > 0 && (
+              <Badge variant="destructive" className="text-[10px]">{imgResult.failCount} failed</Badge>
+            )}
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-1.5">
+          {displayImages.map((img) => (
+            <div key={img.scene} className="relative group">
+              <img
+                src={img.url}
+                alt={`Scene ${img.scene}`}
+                className="w-full aspect-video object-cover rounded-md border border-border"
+              />
+              <span className="absolute bottom-0.5 left-0.5 text-[8px] bg-black/60 text-white/80 px-1 rounded">
+                Scene {img.scene}
+              </span>
+            </div>
+          ))}
+        </div>
+        {imgResult.images.length > 6 && (
+          <button
+            type="button"
+            className="w-full text-[10px] text-orange-400 hover:text-orange-300 text-center py-1 transition-colors"
+            onClick={() => setShowAll(v => !v)}
+          >
+            {showAll ? '▲ Thu gọn' : `▼ Xem thêm ${imgResult.images.length - 6} ảnh`}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── VOICE CLIPS PREVIEW (proper component so hooks work) ───
 function VoiceClipsPreview({ voResult }: {
   voResult: {
@@ -1032,40 +1084,7 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
                     {(isStepDone || isStepFailed) && step.key === 'imageGen' && activeRun && (() => {
                       const imgResult = extractImageGenResult(activeRun);
                       if (!imgResult) return null;
-                      return (
-                        <div className="mt-3 pt-3 border-t">
-                          <div className="rounded bg-orange-950/30 border border-orange-500/20 p-3 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold text-orange-400">🖼️ Generated Images</span>
-                              <div className="flex gap-2 text-[10px] text-muted-foreground">
-                                <Badge variant="outline" className="text-[10px]">{imgResult.successCount}/{imgResult.totalScenes} scenes</Badge>
-                                {imgResult.failCount > 0 && (
-                                  <Badge variant="destructive" className="text-[10px]">{imgResult.failCount} failed</Badge>
-                                )}
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-1.5">
-                              {imgResult.images.slice(0, 6).map((img) => (
-                                <div key={img.scene} className="relative group">
-                                  <img
-                                    src={img.url}
-                                    alt={`Scene ${img.scene}`}
-                                    className="w-full aspect-video object-cover rounded-md border border-border"
-                                  />
-                                  <span className="absolute bottom-0.5 left-0.5 text-[8px] bg-black/60 text-white/80 px-1 rounded">
-                                    Scene {img.scene}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                            {imgResult.images.length > 6 && (
-                              <p className="text-[10px] text-muted-foreground text-center">
-                                +{imgResult.images.length - 6} more images
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      );
+                      return <ImageGridPreview imgResult={imgResult} />;
                     })()}
 
                     {/* Voiceover Result Preview */}

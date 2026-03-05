@@ -11,6 +11,7 @@ import { runScriptWriter } from './script-writer.agent';
 import { runStoryboard } from './storyboard.agent';
 import { runImageGen } from './image-gen.agent';
 import { runVoiceover } from './voiceover.agent';
+import { runAssembly } from './assembly.agent';
 
 const STEP_LABELS: Record<string, string> = {
   scriptWriter: '✍️ Running Script Writer...',
@@ -27,6 +28,7 @@ function resolveSteps(req: GenerateRequest): string[] {
   if (!req.scriptOnly) steps.push('storyboard');
   if (req.imageGenEnabled) steps.push('imageGen');
   if (req.voiceoverEnabled) steps.push('voiceover');
+  if ((req as Record<string, unknown>).assemblyEnabled) steps.push('assembly');
   return steps;
 }
 
@@ -49,6 +51,9 @@ async function executeStep(step: string, runId: string, req: GenerateRequest): P
       break;
     case 'voiceover':
       await runVoiceover(runId, req);
+      break;
+    case 'assembly':
+      await runAssembly(runId, req);
       break;
     default:
       failRun(run, `Step "${step}" chưa có API endpoint riêng. Cần deploy full pipeline.`);
