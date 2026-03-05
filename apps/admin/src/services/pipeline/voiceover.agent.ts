@@ -13,7 +13,7 @@
 import type { GenerateRequest, ProgressPhase } from './types';
 import { supabase } from '@/lib/supabase';
 import { getRun, startProgressTracker, saveStepResult, failRun, findLatestRunWithFile } from './run-tracker';
-import { getNextKey, reportError } from './api-key-pool';
+import { getNextKey, getPoolForEngine, reportError, disableKey } from './api-key-pool';
 
 const GEMINI_TTS_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
 const GOOGLE_TTS_URL = 'https://texttospeech.googleapis.com/v1/text:synthesize';
@@ -328,23 +328,16 @@ async function mergeClipsToFullAudio(
   return await uploadAudio(wavBlob, channelId, runId, 'full-audio.wav');
 }
 
-/** Track whether Gemini TTS quota is exhausted this session → skip straight to fallback */
-let _geminiQuotaExhausted = false;
+/** Track exhausted Gemini API keys this session → rotate to next key */
+const _exhaustedGeminiKeys = new Set<string>();
 
 /** Generate a single TTS blob using the chosen engine, with retry on transient errors.
- *  Auto-falls back from Gemini → Google Cloud TTS on quota/rate-limit errors. */
+ *  On Gemini quota: tries other Gemini keys from pool → falls back to Google Cloud TTS → clear error. */
 async function synthesize(
   text: string, engine: string, voice: string, speed: number, apiKey: string,
   _logFn?: (msg: string) => void,
 ): Promise<Blob> {
   const log = _logFn || ((m: string) => console.log('[TTS]', m));
-
-  // If Gemini quota already exhausted this session, go straight to Google TTS
-  if (engine === 'gemini-tts' && _geminiQuotaExhausted) {
-    const fbVoice = GEMINI_TO_GOOGLE_VOICE[voice] || 'vi-VN-Neural2-D';
-    log(`⚡ Gemini quota exhausted — using Google TTS (${fbVoice}) directly`);
-    return await googleTTS(text, fbVoice, speed, apiKey);
-  }
 
   const maxRetries = 3;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -355,12 +348,36 @@ async function synthesize(
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
 
-      // Quota/rate-limit → auto-fallback to Google Cloud TTS (same API key works)
+      // ─── Gemini quota/rate-limit handling ───
       if (engine === 'gemini-tts' && isQuotaError(msg)) {
-        _geminiQuotaExhausted = true;
+        _exhaustedGeminiKeys.add(apiKey);
+        disableKey('gemini', apiKey, 'Quota exhausted');
+        reportError('gemini', apiKey, msg);
+
+        // Try another Gemini API key from pool
+        const remaining = getPoolForEngine('gemini').filter(e => !_exhaustedGeminiKeys.has(e.key));
+        if (remaining.length > 0) {
+          const nextKey = remaining[0].key;
+          log(`⚠️ Gemini key quota exceeded — rotating to next key (${remaining.length} remaining)`);
+          return await synthesize(text, engine, voice, speed, nextKey, _logFn);
+        }
+
+        // No more Gemini keys → try Google Cloud TTS fallback
         const fbVoice = GEMINI_TO_GOOGLE_VOICE[voice] || 'vi-VN-Neural2-D';
-        log(`⚠️ Gemini quota exceeded — auto-fallback to Google Cloud TTS (${fbVoice})`);
-        return await googleTTS(text, fbVoice, speed, apiKey);
+        log(`⚠️ All Gemini keys exhausted — trying Google Cloud TTS fallback (${fbVoice})...`);
+        try {
+          return await googleTTS(text, fbVoice, speed, apiKey);
+        } catch (fbErr: unknown) {
+          const fbMsg = fbErr instanceof Error ? fbErr.message : String(fbErr);
+          if (fbMsg.includes('has not been used') || fbMsg.includes('disabled') || fbMsg.includes('PERMISSION_DENIED')) {
+            throw new Error(
+              `Gemini TTS đã hết quota (100 req/ngày). Google Cloud TTS chưa bật.\n` +
+              `→ Bật tại: https://console.developers.google.com/apis/api/texttospeech.googleapis.com/overview\n` +
+              `→ Hoặc thêm Gemini API key mới vào Key Pool, hoặc đợi reset quota (24h).`
+            );
+          }
+          throw fbErr;
+        }
       }
 
       const isRetryable = msg.includes('internal') || msg.includes('500') || msg.includes('503') || msg.includes('retry') || msg.includes('INTERNAL');
