@@ -40,6 +40,13 @@ export function getAllRuns(): GenerationRun[] {
   return Array.from(clientRuns.values());
 }
 
+/** Get IDs of currently-running runs for a specific channel */
+export function getRunningIdsForChannel(channelId: string): string[] {
+  return Array.from(clientRuns.values())
+    .filter(r => r.channelId === channelId && r.status === 'running')
+    .map(r => r.id);
+}
+
 /** Save intermediate step result WITHOUT changing run status (avoids race with polling) */
 export function saveStepResult(run: GenerationRun, result: GenerationRun['result']) {
   run.result = result;

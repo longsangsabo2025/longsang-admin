@@ -65,7 +65,31 @@ async function geminiTTS(text: string, voice: string, _speed: number, apiKey: st
       const byteChars = atob(b64);
       const byteArray = new Uint8Array(byteChars.length);
       for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
-      return new Blob([byteArray], { type: part.inlineData.mimeType as string });
+      const mime = (part.inlineData.mimeType as string) || '';
+      // Gemini returns raw PCM (audio/L16) — browser can't play it, wrap in WAV
+      if (mime.includes('L16') || mime.includes('pcm') || mime.includes('raw')) {
+        const sampleRate = 24000;
+        const numChannels = 1;
+        const bitsPerSample = 16;
+        const wavHeader = new ArrayBuffer(44);
+        const view = new DataView(wavHeader);
+        const writeStr = (off: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+        writeStr(0, 'RIFF');
+        view.setUint32(4, 36 + byteArray.length, true);
+        writeStr(8, 'WAVE');
+        writeStr(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * numChannels * bitsPerSample / 8, true);
+        view.setUint16(32, numChannels * bitsPerSample / 8, true);
+        view.setUint16(34, bitsPerSample, true);
+        writeStr(36, 'data');
+        view.setUint32(40, byteArray.length, true);
+        return new Blob([wavHeader, byteArray], { type: 'audio/wav' });
+      }
+      return new Blob([byteArray], { type: mime || 'audio/wav' });
     }
   }
   throw new Error('Gemini TTS returned no audio data');
@@ -119,9 +143,10 @@ async function elevenLabsTTS(text: string, voiceId: string, speed: number, apiKe
 
 async function uploadAudio(blob: Blob, channelId: string, runId: string, filename: string): Promise<string> {
   const filePath = `pipeline-audio/${channelId}/${runId}/${filename}`;
+  const contentType = blob.type || 'audio/mpeg';
   const { error } = await supabase.storage
     .from('post-images')
-    .upload(filePath, blob, { contentType: 'audio/mpeg', upsert: true });
+    .upload(filePath, blob, { contentType, upsert: true });
 
   if (error) throw new Error(`Storage upload failed: ${error.message}`);
 
@@ -148,22 +173,47 @@ function estimateDuration(charCount: number, speed: number): number {
   return Math.round(charCount / (4.5 * speed));
 }
 
-/** Split long text into ≤4500-char chunks at paragraph boundaries */
-function splitIntoChunks(text: string, maxLen = 4500): string[] {
+/** Split text into ~1500-char chunks at paragraph/sentence boundaries for natural TTS */
+function splitIntoChunks(text: string, maxLen = 1500): string[] {
   if (text.length <= maxLen) return [text];
+
+  // First split by paragraphs
   const paragraphs = text.split(/\n\n+/);
   const chunks: string[] = [];
   let cur = '';
+
   for (const p of paragraphs) {
+    // If adding this paragraph exceeds maxLen, try to flush current
     if ((cur + '\n\n' + p).length > maxLen && cur) {
       chunks.push(cur.trim());
-      cur = p;
+      cur = '';
+    }
+
+    // If a single paragraph is too long, split by sentences
+    if (p.length > maxLen) {
+      if (cur.trim()) { chunks.push(cur.trim()); cur = ''; }
+      const sentences = p.split(/(?<=[.!?。]\s)/);
+      let sentBuf = '';
+      for (const s of sentences) {
+        if ((sentBuf + ' ' + s).length > maxLen && sentBuf) {
+          chunks.push(sentBuf.trim());
+          sentBuf = s;
+        } else {
+          sentBuf = sentBuf ? sentBuf + ' ' + s : s;
+        }
+      }
+      if (sentBuf.trim()) cur = sentBuf;
     } else {
       cur = cur ? cur + '\n\n' + p : p;
     }
   }
   if (cur.trim()) chunks.push(cur.trim());
   return chunks;
+}
+
+/** Get file extension from engine type */
+function audioExt(engine: string): string {
+  return engine === 'gemini-tts' ? 'wav' : 'mp3';
 }
 
 /** Generate a single TTS blob using the chosen engine */
@@ -216,6 +266,13 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
     return;
   }
 
+  // If user applied TTS-optimized cleanedScript → always use full-script mode
+  const hasCleanedScript = !!req.voiceoverCleanedScript?.trim();
+  if (hasCleanedScript && scriptTxt) {
+    run.logs.push({ t: Date.now(), level: 'info', msg: '📝 TTS-optimized script detected — using full-script mode (skipping storyboard scenes)' });
+    scenes = null;
+  }
+
   // ── Per-scene mode (storyboard available) ─────────────────
   if (scenes && scenes.some(s => s.dialogue?.trim())) {
     const validScenes = scenes.filter(s => s.dialogue?.trim());
@@ -246,7 +303,8 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
 
         try {
           const blob = await synthesize(clean, engine, voice, speed, apiKey);
-          const filename = `scene-${String(scene.scene).padStart(2, '0')}.mp3`;
+          const ext = audioExt(engine);
+          const filename = `scene-${String(scene.scene).padStart(2, '0')}.${ext}`;
           const url = await uploadAudio(blob, channelId, runId, filename);
           const dur = estimateDuration(clean.length, speed);
           totalDuration += dur;
@@ -322,7 +380,8 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
       run.logs.push({ t: Date.now(), level: 'info', msg: `[${Math.round(((i + 0.5) / total) * 90) + 5}%] 🎙️ Part ${i + 1}: generating (${chunks[i].length} chars)...` });
 
       const blob = await synthesize(chunks[i], engine, voice, speed, apiKey);
-      const filename = total === 1 ? 'narration.mp3' : `part-${String(i + 1).padStart(2, '0')}.mp3`;
+      const ext = audioExt(engine);
+      const filename = total === 1 ? `narration.${ext}` : `part-${String(i + 1).padStart(2, '0')}.${ext}`;
       const url = await uploadAudio(blob, channelId, runId, filename);
       const dur = estimateDuration(chunks[i].length, speed);
       totalDuration += dur;

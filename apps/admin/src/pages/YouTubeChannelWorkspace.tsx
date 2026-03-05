@@ -32,6 +32,7 @@ import { youtubeChannelsService } from '@/services/youtube-channels.service';
 import type { ChannelPlan, GenerateRequest, GenerationRun } from '@/services/youtube-channels.service';
 import PipelineRoadmap, { type PipelineConfig } from '@/components/youtube/PipelineRoadmap';
 import { getPool, addKey, removeKey, enableKey, disableKey, resetStats, onPoolChange, type PoolEntry } from '@/services/pipeline/api-key-pool';
+import { getRunningIdsForChannel } from '@/services/pipeline';
 
 // ─── MAIN COMPONENT ────────────────────────────────────────
 
@@ -70,6 +71,17 @@ export default function YouTubeChannelWorkspace() {
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify({ topic, transcript, mode, activeTab }));
   }, [topic, transcript, mode, activeTab, storageKey]);
+
+  // ── Re-hydrate runningRunIds from in-memory map on (re-)mount ──
+  // This ensures returning to a channel after navigating away still shows active runs
+  useEffect(() => {
+    if (!channelId) return;
+    const ids = getRunningIdsForChannel(channelId);
+    if (ids.length > 0) {
+      setRunningRunIds(new Set(ids));
+      if (!activeRunId) setActiveRunId(ids[0]);
+    }
+  }, [channelId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Debounce transcript search ──
   useEffect(() => {

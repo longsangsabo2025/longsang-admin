@@ -3,9 +3,9 @@
  * 
  * Click a channel card → navigate to dedicated workspace page
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,15 +13,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import {
   Tv, BookOpen, Brain, Sparkles, Loader2,
-  CheckCircle2, Clock, FileText, ExternalLink,
-  Key, ChevronRight,
+  CheckCircle2, Clock, FileText,
+  Key, ChevronRight, Plus, Trash2, ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { youtubeChannelsService } from '@/services/youtube-channels.service';
 import type { ChannelPlan } from '@/services/youtube-channels.service';
+import { getAllRuns } from '@/services/pipeline';
+import { getPool, addKey, removeKey, enableKey, disableKey, resetStats, onPoolChange, type PoolEntry } from '@/services/pipeline/api-key-pool';
 
 // ─── STATUS CONFIG ─────────────────────────────────────────
 
@@ -36,29 +39,11 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: React.Ele
 export default function YouTubeChannelsDashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
-  const [newApiKey, setNewApiKey] = useState('');
+  const [showKeyPoolDialog, setShowKeyPoolDialog] = useState(false);
+  const [pool, setPool] = useState<PoolEntry[]>(getPool());
 
-  // ── API Key ──
-  const { data: apiKeyStatus, refetch: refetchApiKey } = useQuery({
-    queryKey: ['youtube-channels', 'api-key-status'],
-    queryFn: () => youtubeChannelsService.getApiKeyStatus(),
-    retry: false,
-    meta: { errorMessage: false },
-  });
-
-  const apiKeyMut = useMutation({
-    mutationFn: (key: string) => youtubeChannelsService.updateApiKey(key),
-    onSuccess: (data) => {
-      toast({ title: '✅ API Key Updated', description: data.message });
-      setShowApiKeyDialog(false);
-      setNewApiKey('');
-      refetchApiKey();
-    },
-    onError: (err: Error) => {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    },
-  });
+  // Subscribe to key pool changes
+  useEffect(() => onPoolChange(() => setPool(getPool())), []);
 
   // ── Data Queries ──
   const { data: plansData, isLoading: plansLoading } = useQuery({
@@ -71,18 +56,30 @@ export default function YouTubeChannelsDashboard() {
     queryFn: () => youtubeChannelsService.getKnowledgeStats(),
   });
 
+  // Poll runs to detect running across channels
+  const allRuns = getAllRuns();
+  const runningRuns = allRuns.filter(r => r.status === 'running');
+  const hasAnyRunning = runningRuns.length > 0;
+
   const { data: runsData } = useQuery({
     queryKey: ['youtube-channels', 'runs'],
     queryFn: () => youtubeChannelsService.getRuns(),
+    refetchInterval: hasAnyRunning ? 3000 : false,
   });
 
   const channels = plansData?.channels || [];
 
-  // Count runs per channel
+  // Count total & running runs per channel
   const runsByChannel: Record<string, number> = {};
+  const runningByChannel: Record<string, number> = {};
   runsData?.runs?.forEach(r => {
-    if (r.channelId) runsByChannel[r.channelId] = (runsByChannel[r.channelId] || 0) + 1;
+    if (r.channelId) {
+      runsByChannel[r.channelId] = (runsByChannel[r.channelId] || 0) + 1;
+      if (r.status === 'running') runningByChannel[r.channelId] = (runningByChannel[r.channelId] || 0) + 1;
+    }
   });
+
+  const activePoolCount = pool.filter(e => e.enabled).length;
 
   return (
     <div className="flex-1 space-y-6 p-6">
@@ -105,17 +102,23 @@ export default function YouTubeChannelsDashboard() {
               <span className="flex items-center gap-1"><Brain className="h-4 w-4" /> {knowledgeData.voice ? '✅' : '❌'} Voice DNA</span>
             </div>
           )}
+          {hasAnyRunning && (
+            <Badge variant="outline" className="border-orange-500 text-orange-500 animate-pulse gap-1">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {runningRuns.length} running
+            </Badge>
+          )}
           <Button
             variant="outline"
             size="sm"
             className="gap-2"
-            onClick={() => setShowApiKeyDialog(true)}
+            onClick={() => setShowKeyPoolDialog(true)}
           >
             <Key className="h-4 w-4" />
-            API Key
-            {apiKeyStatus && (
-              <span className={`h-2 w-2 rounded-full ${apiKeyStatus.hasKey ? 'bg-green-500' : 'bg-red-500'}`} />
-            )}
+            Key Pool
+            <Badge variant="secondary" className="text-[10px] px-1.5">
+              {activePoolCount || 'env'}
+            </Badge>
           </Button>
         </div>
       </div>
@@ -134,73 +137,26 @@ export default function YouTubeChannelsDashboard() {
               key={channel.id}
               channel={channel}
               runsCount={runsByChannel[channel.id] || 0}
+              runningCount={runningByChannel[channel.id] || 0}
               onClick={() => navigate(`/admin/youtube-channels/${channel.id}`)}
             />
           ))}
         </div>
       )}
 
-      {/* ── API Key Dialog ── */}
-      <Dialog open={showApiKeyDialog} onOpenChange={setShowApiKeyDialog}>
-        <DialogContent className="sm:max-w-md">
+      {/* ── Key Pool Manager Dialog ── */}
+      <Dialog open={showKeyPoolDialog} onOpenChange={setShowKeyPoolDialog}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Key className="h-5 w-5" />
-              Google AI API Key
+              API Key Pool
             </DialogTitle>
             <DialogDescription>
-              Required for script generation with Gemini. Get your key from{' '}
-              <a
-                href="https://aistudio.google.com/apikey"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline inline-flex items-center gap-1"
-              >
-                Google AI Studio <ExternalLink className="h-3 w-3" />
-              </a>
+              Manage multiple API keys for parallel runs. Keys rotate automatically.
             </DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 rounded-lg border p-3">
-              <div className={`h-3 w-3 rounded-full ${apiKeyStatus?.hasKey ? 'bg-green-500' : 'bg-red-500'}`} />
-              <div className="flex-1">
-                <p className="text-sm font-medium">
-                  {apiKeyStatus?.hasKey ? 'Key configured' : 'No key configured'}
-                </p>
-                {apiKeyStatus?.maskedKey && (
-                  <p className="text-xs text-muted-foreground font-mono">{apiKeyStatus.maskedKey}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="api-key">New API Key</Label>
-              <Input
-                id="api-key"
-                type="password"
-                placeholder="AIzaSy..."
-                value={newApiKey}
-                onChange={(e) => setNewApiKey(e.target.value)}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowApiKeyDialog(false)}>
-                Cancel
-              </Button>
-              <Button
-                disabled={!newApiKey.trim() || apiKeyMut.isPending}
-                onClick={() => apiKeyMut.mutate(newApiKey)}
-              >
-                {apiKeyMut.isPending ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
-                ) : (
-                  'Save Key'
-                )}
-              </Button>
-            </div>
-          </div>
+          <DashboardKeyPoolManager pool={pool} toast={toast} />
         </DialogContent>
       </Dialog>
     </div>
@@ -212,10 +168,12 @@ export default function YouTubeChannelsDashboard() {
 function ChannelCard({
   channel,
   runsCount,
+  runningCount,
   onClick,
 }: {
   channel: ChannelPlan;
   runsCount: number;
+  runningCount: number;
   onClick: () => void;
 }) {
   const status = STATUS_MAP[channel.status] || STATUS_MAP.planned;
@@ -274,7 +232,15 @@ function ChannelCard({
 
         {/* Runs count + categories */}
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{runsCount} generations</span>
+          <span className="flex items-center gap-1">
+            {runsCount} generations
+            {runningCount > 0 && (
+              <Badge variant="outline" className="text-[9px] px-1 py-0 border-orange-500 text-orange-500 animate-pulse">
+                <Loader2 className="h-2.5 w-2.5 animate-spin mr-0.5" />
+                {runningCount}
+              </Badge>
+            )}
+          </span>
           <span>{channel.categories?.length || 0} categories</span>
         </div>
 
