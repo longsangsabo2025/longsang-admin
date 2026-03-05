@@ -566,6 +566,7 @@ interface PipelineRoadmapProps {
   parallelCount?: number;
   batchCount?: number;
   activeRun?: ActiveRunInfo;
+  onVoiceConfigChange?: (u: Partial<{ engine: string; voice: string; speed: number }>) => void;
 }
 
 // ─── IMAGE GRID PREVIEW (proper component so hooks work) ───
@@ -715,7 +716,7 @@ function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineCon
   };
 }
 
-export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunStep, onResume, isRunning, parallelCount = 0, batchCount = 0, activeRun }: PipelineRoadmapProps) {
+export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunStep, onResume, isRunning, parallelCount = 0, batchCount = 0, activeRun, onVoiceConfigChange }: PipelineRoadmapProps) {
   const [config, setConfig] = useState<PipelineConfig>(() => loadSavedConfig(channelId, channelStyle));
   const [expandedStep, setExpandedStep] = useState<string | null>('scriptWriter');
 
@@ -760,6 +761,13 @@ export default function PipelineRoadmap({ channelId, channelStyle, onRun, onRunS
       ...prev,
       [step]: { ...prev[step], ...updates },
     }));
+    // Notify parent when voice config changes so Results tab stays synced
+    if (step === 'voiceover' && onVoiceConfigChange) {
+      const u = updates as Partial<PipelineConfig['voiceover']>;
+      if (u.engine !== undefined || u.voice !== undefined || u.speed !== undefined) {
+        onVoiceConfigChange({ engine: u.engine, voice: u.voice, speed: u.speed } as Partial<{ engine: string; voice: string; speed: number }>);
+      }
+    }
   };
 
   const enabledCount = STEPS.filter(s => config[s.key].enabled).length;

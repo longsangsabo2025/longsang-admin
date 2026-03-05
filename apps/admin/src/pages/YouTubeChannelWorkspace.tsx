@@ -81,9 +81,23 @@ export default function YouTubeChannelWorkspace() {
     return { engine: 'gemini-tts', voice: 'Kore', speed: 1.0 };
   });
 
-  // Persist voiceConfig to localStorage
+  // Persist voiceConfig to localStorage + sync to Pipeline config
   useEffect(() => {
     localStorage.setItem('yt-voice-config', JSON.stringify(voiceConfig));
+    // Sync voice settings to Pipeline config so both tabs stay consistent
+    try {
+      const raw = localStorage.getItem('yt-pipeline-config');
+      if (raw) {
+        const cfg = JSON.parse(raw);
+        if (cfg.voiceover) {
+          cfg.voiceover.engine = voiceConfig.engine;
+          cfg.voiceover.voice = voiceConfig.voice;
+          cfg.voiceover.speed = voiceConfig.speed;
+          if (voiceConfig.cleanedScript) cfg.voiceover.cleanedScript = voiceConfig.cleanedScript;
+          localStorage.setItem('yt-pipeline-config', JSON.stringify(cfg));
+        }
+      }
+    } catch { /* ignore */ }
   }, [voiceConfig]);
 
   // ── Hydrate Key Pool from Supabase on mount ──
@@ -776,6 +790,7 @@ export default function YouTubeChannelWorkspace() {
                     parallelCount={runningRunIds.size}
                     batchCount={batchMode ? batchTopics.split('\n').filter(t => t.trim()).length : 0}
                     activeRun={activeRun ? { status: activeRun.status, logs: activeRun.logs, error: activeRun.error, result: activeRun.result, completedSteps: activeRun.completedSteps, pipelineSteps: activeRun.pipelineSteps } : undefined}
+                    onVoiceConfigChange={(u) => setVoiceConfig(prev => ({ ...prev, ...u }))}
                   />
                 </CardContent>
               </Card>

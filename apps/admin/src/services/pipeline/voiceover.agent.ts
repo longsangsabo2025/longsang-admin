@@ -535,11 +535,12 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
     return;
   }
 
-  // If user applied TTS-optimized cleanedScript → always use full-script mode
+  // If user applied TTS-optimized cleanedScript → always use full-script mode (skip storyboard)
   const hasCleanedScript = !!req.voiceoverCleanedScript?.trim();
-  if (hasCleanedScript && scriptTxt) {
+  if (hasCleanedScript) {
     run.logs.push({ t: Date.now(), level: 'info', msg: '📝 TTS-optimized script detected — using full-script mode (skipping storyboard scenes)' });
     scenes = null;
+    if (!scriptTxt) scriptTxt = req.voiceoverCleanedScript!;
   }
 
   // ── Per-scene mode (storyboard available) ─────────────────
@@ -734,9 +735,11 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
 
   run.logs.push({ t: Date.now(), level: 'info', msg: `📝 Using ${sourceLabel} script (${fullScript.length} chars)` });
 
-  const chunks = splitIntoChunks(fullScript);
+  // Engine-specific chunk size: Gemini handles ~3000 chars safely, ElevenLabs ~5000
+  const maxChunkLen = engine === 'elevenlabs' ? 5000 : engine === 'gemini-tts' ? 3000 : 1500;
+  const chunks = splitIntoChunks(fullScript, maxChunkLen);
   const total = chunks.length;
-  run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Full-script mode: ${fullScript.length} chars, ${total} chunk(s) (${engine})...` });
+  run.logs.push({ t: Date.now(), level: 'info', msg: `🎤 Full-script mode: ${fullScript.length} chars → ${total} chunk(s) (max ${maxChunkLen}/chunk, ${engine})` });
 
   const phases: ProgressPhase[] = chunks.map((_, i) => ({
     pct: Math.round((i / total) * 90) + 5,
