@@ -100,8 +100,8 @@ export function findReusableRun(channelId?: string | null, topic?: string | null
   const maxAge = 2 * 60 * 60 * 1000; // 2 hours
   for (const run of clientRuns.values()) {
     if (run.channelId !== channelId) continue;
-    // Only reuse completed runs — never grab a currently-running parallel run
-    if (run.status !== 'completed') continue;
+    // Reuse completed, failed (with partial results), or interrupted runs — never grab a currently-running run
+    if (run.status === 'running') continue;
     const runTopic = run.input?.topic || run.input?.transcript;
     if (runTopic !== topic) continue;
     // Use completedAt if available (long runs may start hours before finishing)
@@ -113,7 +113,7 @@ export function findReusableRun(channelId?: string | null, topic?: string | null
   return latest;
 }
 
-/** Find the latest run that has a specific file (completed or in-progress with result) */
+/** Find the latest run that has a specific file (any status — failed runs may still have valid data) */
 export function findLatestRunWithFile(fileName: string, channelId?: string | null, scopeRunId?: string): GenerationRun | null {
   // If scoped to a specific run, check it first
   if (scopeRunId) {
@@ -122,7 +122,6 @@ export function findLatestRunWithFile(fileName: string, channelId?: string | nul
   }
   let latest: GenerationRun | null = null;
   for (const run of clientRuns.values()) {
-    if (run.status === 'failed') continue;
     if (channelId && run.channelId !== channelId) continue;
     if (!run.result?.files?.[fileName]) continue;
     if (!latest || run.startedAt > latest.startedAt) latest = run;

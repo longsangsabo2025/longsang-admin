@@ -58,6 +58,9 @@ export default function YouTubeChannelWorkspace() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [mode, setMode] = useState<'topic' | 'transcript'>(s.mode || 'topic');
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
+  const [batchMode, setBatchMode] = useState(false);
+  const [batchTopics, setBatchTopics] = useState('');
+  const [batchLaunching, setBatchLaunching] = useState(false);
   const [activeTab, setActiveTab] = useState(s.activeTab || 'generate');
   const [voiceConfig, setVoiceConfig] = useState({ engine: 'gemini-tts', voice: 'Kore', speed: 1.0 });
 
@@ -114,7 +117,7 @@ export default function YouTubeChannelWorkspace() {
     enabled: mode === 'transcript',
   });
 
-  // ── Poll active run ──
+  // ── Poll active run (for Results tab) ──
   const { data: activeRun } = useQuery({
     queryKey: ['youtube-channels', 'run', activeRunId],
     queryFn: () => activeRunId ? youtubeChannelsService.getRunStatus(activeRunId) : null,
@@ -122,25 +125,36 @@ export default function YouTubeChannelWorkspace() {
     refetchInterval: 2000,
   });
 
+  // ── Poll ALL running runs for completion detection ──
+  const runningIdsArray = Array.from(runningRunIds);
   useEffect(() => {
-    if (activeRun && (activeRun.status === 'completed' || activeRun.status === 'failed' || activeRun.status === 'interrupted')) {
-      // Remove from running set
-      setRunningRunIds(prev => {
-        const next = new Set(prev);
-        next.delete(activeRun.id);
-        return next;
-      });
-      if (activeRun.status === 'completed') {
-        toast({ title: '✅ Generation Complete', description: 'Script + Storyboard ready!' });
-        setActiveTab('results');
-      } else if (activeRun.status === 'interrupted') {
-        toast({ title: '⚠️ Pipeline Interrupted', description: 'Bấm Resume để tiếp tục.', variant: 'destructive' });
-      } else {
-        toast({ title: '❌ Generation Failed', description: activeRun.error || 'Check logs', variant: 'destructive' });
+    if (runningIdsArray.length === 0) return;
+    const interval = setInterval(() => {
+      for (const rid of runningIdsArray) {
+        const run = youtubeChannelsService.getRunStatus(rid).catch(() => null);
+        run.then(r => {
+          if (!r) return;
+          if (r.status === 'completed' || r.status === 'failed' || r.status === 'interrupted') {
+            setRunningRunIds(prev => {
+              const next = new Set(prev);
+              next.delete(rid);
+              return next;
+            });
+            const topicLabel = r.input?.topic?.slice(0, 40) || 'Run';
+            if (r.status === 'completed') {
+              toast({ title: `✅ ${topicLabel}`, description: 'Generation complete!' });
+            } else if (r.status === 'interrupted') {
+              toast({ title: `⚠️ ${topicLabel}`, description: 'Pipeline interrupted', variant: 'destructive' });
+            } else {
+              toast({ title: `❌ ${topicLabel}`, description: r.error || 'Failed', variant: 'destructive' });
+            }
+            queryClient.invalidateQueries({ queryKey: ['youtube-channels', 'runs'] });
+          }
+        });
       }
-      queryClient.invalidateQueries({ queryKey: ['youtube-channels', 'runs'] });
-    }
-  }, [activeRun?.status, activeRun?.id, toast, queryClient]);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [runningIdsArray.join(',')]); // re-subscribe when set changes
 
   // ── Generate Mutation ──
   const generateMut = useMutation({
@@ -171,6 +185,12 @@ export default function YouTubeChannelWorkspace() {
 
   const handlePipelineRun = (pipelineConfig: PipelineConfig) => {
     if (!channel) return;
+    // Batch mode: launch all topics in parallel
+    if (batchMode && batchTopics.split('\n').filter(t => t.trim()).length > 0) {
+      lastPipelineConfigRef.current = pipelineConfig;
+      handleBatchLaunch(pipelineConfig);
+      return;
+    }
     const req: GenerateRequest = {
       channelId: channel.id,
       scenes: pipelineConfig.storyboard.scenes,
@@ -263,6 +283,66 @@ export default function YouTubeChannelWorkspace() {
       return;
     }
     stepMut.mutate({ step, req });
+  };
+
+  // ── Batch Launch: run multiple topics in parallel ──
+  const lastPipelineConfigRef = useRef<PipelineConfig | null>(null);
+
+  const handleBatchLaunch = async (pipelineConfig: PipelineConfig) => {
+    if (!channel) return;
+    const topics = batchTopics
+      .split('\n')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+    if (topics.length === 0) {
+      toast({ title: 'No topics', description: 'Enter one topic per line', variant: 'destructive' });
+      return;
+    }
+    setBatchLaunching(true);
+    toast({ title: `🚀 Launching ${topics.length} topics...`, description: 'Starting parallel generation' });
+    for (let i = 0; i < topics.length; i++) {
+      const req: GenerateRequest = {
+        channelId: channel.id,
+        topic: topics[i],
+        scenes: pipelineConfig.storyboard.scenes,
+        duration: pipelineConfig.storyboard.duration,
+        style: pipelineConfig.storyboard.style,
+        scriptOnly: !pipelineConfig.storyboard.enabled,
+        storyboardOnly: !pipelineConfig.scriptWriter.enabled,
+        model: pipelineConfig.scriptWriter.model,
+        storyboardModel: pipelineConfig.storyboard.model,
+        tone: pipelineConfig.scriptWriter.tone,
+        customPrompt: pipelineConfig.scriptWriter.customPrompt || undefined,
+        storyboardPrompt: pipelineConfig.storyboard.customPrompt || undefined,
+        wordTarget: pipelineConfig.scriptWriter.wordTarget,
+        aspectRatio: pipelineConfig.storyboard.aspectRatio,
+        visualIdentity: pipelineConfig.storyboard.visualIdentity,
+        imageGenEnabled: pipelineConfig.imageGen.enabled,
+        imageGenProvider: pipelineConfig.imageGen.provider,
+        imageGenQuality: pipelineConfig.imageGen.quality,
+        voiceoverEnabled: pipelineConfig.voiceover.enabled,
+        voiceoverEngine: pipelineConfig.voiceover.engine,
+        voiceoverVoice: pipelineConfig.voiceover.voice,
+        voiceoverSpeed: pipelineConfig.voiceover.speed,
+        voiceoverCleanedScript: pipelineConfig.voiceover.cleanedScript || undefined,
+        assemblyEnabled: pipelineConfig.assembly.enabled,
+        assemblyFormat: pipelineConfig.assembly.format,
+        assemblyTransitions: pipelineConfig.assembly.transitions,
+        assemblyBgMusic: pipelineConfig.assembly.bgMusic,
+      };
+      try {
+        const data = await youtubeChannelsService.generate(req);
+        setRunningRunIds(prev => new Set(prev).add(data.runId));
+        if (i === 0) setActiveRunId(data.runId);
+      } catch (err) {
+        toast({ title: `❌ Topic ${i + 1} failed to start`, description: (err as Error).message, variant: 'destructive' });
+      }
+      // Small delay between launches to stagger API calls
+      if (i < topics.length - 1) await new Promise(r => setTimeout(r, 500));
+    }
+    setBatchLaunching(false);
+    setBatchTopics('');
+    setBatchMode(false);
   };
 
   // ── Resume Mutation ──
@@ -375,25 +455,30 @@ export default function YouTubeChannelWorkspace() {
                 <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
                 <p className="font-medium">{runningRunIds.size} run{runningRunIds.size > 1 ? 's' : ''} active</p>
               </div>
-              <Badge variant="outline" className="animate-pulse">RUNNING</Badge>
+              <Badge variant="outline" className="animate-pulse">PARALLEL</Badge>
             </div>
-            {channelRuns.filter(r => runningRunIds.has(r.id) && r.status === 'running').map(run => (
-              <div key={run.id} className="rounded bg-black/20 p-2">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium truncate max-w-[60%]">{run.input?.topic || run.input?.transcript}</span>
-                  <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setActiveRunId(run.id)}>
-                    Focus
-                  </Button>
-                </div>
-                <div className="font-mono text-[11px] max-h-16 overflow-y-auto">
-                  {run.logs.slice(-3).map((log, i) => (
-                    <div key={i} className={log.level === 'error' ? 'text-red-400' : 'text-green-400'}>
-                      {log.msg}
+            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(runningRunIds.size, 3)}, 1fr)` }}>
+              {channelRuns.filter(r => runningRunIds.has(r.id) && r.status === 'running').map(run => {
+                const completedCount = run.completedSteps?.length || 0;
+                const totalSteps = run.pipelineSteps?.length || 4;
+                const pct = Math.round((completedCount / totalSteps) * 100);
+                return (
+                  <div key={run.id} className="rounded-lg border bg-card p-2.5 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium truncate max-w-[70%]">{run.input?.topic || run.input?.transcript || 'Run'}</span>
+                      <Button variant="ghost" size="sm" className="h-5 text-[10px] px-1.5" onClick={() => { setActiveRunId(run.id); setActiveTab('results'); }}>
+                        <Eye className="h-3 w-3 mr-0.5" /> View
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+                    <Progress value={pct || 10} className="h-1.5" />
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>{completedCount}/{totalSteps} steps</span>
+                      <span>{run.logs.slice(-1)[0]?.msg?.slice(0, 30) || '...'}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -432,13 +517,47 @@ export default function YouTubeChannelWorkspace() {
 
               {mode === 'topic' ? (
                 <div className="space-y-2">
-                  <Label className="text-xs">Topic</Label>
-                  <Textarea
-                    placeholder="e.g. Bí mật thẻ tín dụng — đòn bẩy hay bẫy nợ?"
-                    className="resize-none h-28 text-sm"
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                  />
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Topic</Label>
+                    <Button
+                      variant={batchMode ? 'default' : 'ghost'}
+                      size="sm"
+                      className="h-5 text-[10px] px-2 gap-1"
+                      onClick={() => setBatchMode(!batchMode)}
+                    >
+                      <Layers className="h-3 w-3" />
+                      {batchMode ? 'Batch ON' : 'Batch'}
+                    </Button>
+                  </div>
+                  {batchMode ? (
+                    <>
+                      <Textarea
+                        placeholder={"Mỗi dòng = 1 topic chạy song song\n\nVí dụ:\nBí mật thẻ tín dụng\nCách tiết kiệm 50% thu nhập\n10 sai lầm đầu tư chứng khoán"}
+                        className="resize-none h-40 text-sm font-mono"
+                        value={batchTopics}
+                        onChange={(e) => setBatchTopics(e.target.value)}
+                      />
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-muted-foreground">
+                          {batchTopics.split('\n').filter(t => t.trim()).length} topics
+                        </span>
+                        {batchTopics.split('\n').filter(t => t.trim()).length > 0 && (
+                          <Badge variant="outline" className="text-[10px] text-orange-500 border-orange-500">
+                            Sẽ chạy song song
+                          </Badge>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Textarea
+                        placeholder="e.g. Bí mật thẻ tín dụng — đòn bẩy hay bẫy nợ?"
+                        className="resize-none h-28 text-sm"
+                        value={topic}
+                        onChange={(e) => setTopic(e.target.value)}
+                      />
+                    </>
+                  )}
                   <div className="flex flex-wrap gap-1">
                     {channel.sampleTopics.map((t, i) => (
                       <Badge
@@ -543,8 +662,9 @@ export default function YouTubeChannelWorkspace() {
                     onRun={handlePipelineRun}
                     onRunStep={handlePipelineStepRun}
                     onResume={() => resumeMut.mutate()}
-                    isRunning={generateMut.isPending || stepMut.isPending || resumeMut.isPending}
+                    isRunning={generateMut.isPending || stepMut.isPending || resumeMut.isPending || batchLaunching}
                     parallelCount={runningRunIds.size}
+                    batchCount={batchMode ? batchTopics.split('\n').filter(t => t.trim()).length : 0}
                     activeRun={activeRun ? { status: activeRun.status, logs: activeRun.logs, error: activeRun.error, result: activeRun.result, completedSteps: activeRun.completedSteps, pipelineSteps: activeRun.pipelineSteps } : undefined}
                   />
                 </CardContent>
