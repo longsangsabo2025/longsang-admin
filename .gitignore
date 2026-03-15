@@ -83,6 +83,9 @@ services/lyblack-content/fish-speech-tts/
 # ── API Gateway (has own .git — manage separately) ──
 api/
 
+# ── Moltbook Agent (has own .git — github.com/longsang063/moltbook-agent) ──
+services/moltbook-agent/
+
 # ── Archive: old/stale projects ──
 _archive/
 
