@@ -1,0 +1,62 @@
+# Longsang Workspace MCP Server Requirements
+# Install: pip install -r requirements.txt
+
+# MCP SDK (Model Context Protocol)
+mcp[cli]>=1.2.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# HTTP client for API calls
+httpx>=0.25.0
+
+# Async support
+aiofiles>=23.0.0
+
+# JSON handling
+orjson>=3.9.0
+
+# For future Brain integration
+supabase>=2.0.0
+
+# Utilities
+pydantic>=2.0.0
+
+# ════════════════════════════════════════════════════════════
+# GOOGLE AI & SERVICES (Updated Nov 2025)
+# ════════════════════════════════════════════════════════════
+
+# 🆕 NEW Google GenAI SDK (Recommended by Google - Nov 2025)
+# Features: Thinking mode, Google Search grounding, Structured output
+google-genai>=1.0.0
+
+# Legacy Gemini SDK (fallback)
+google-generativeai>=0.8.0
+
+# Vertex AI (for Imagen image generation with billing)
+google-cloud-aiplatform>=1.70.0
+
+# Google API Client (YouTube, Drive, Calendar, Search Console)
+google-api-python-client>=2.100.0
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.1.1
+
+# Image processing for Gemini Vision
+Pillow>=10.0.0
+
+# HTTP REST API for direct access (bypassing MCP protocol)
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# Video processing (Phase 2)
+# Note: FFmpeg needs to be installed separately:
+# Windows: https://ffmpeg.org/download.html
+# Or: choco install ffmpeg
+# Linux: sudo apt-get install ffmpeg
+# macOS: brew install ffmpeg
+
+# A/B Testing (Phase 2)
+scipy>=1.11.0
+numpy>=1.24.0
+pandas>=2.0.0

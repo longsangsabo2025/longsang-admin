@@ -1,0 +1,31 @@
+{
+  "name": "longsang-admin-supabase",
+  "version": "1.0.0",
+  "description": "Email automation system with Supabase",
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/run-migration.js && node scripts/seed-templates-direct.js",
+    "migrate": "node scripts/run-migration.js",
+    "seed": "node scripts/seed-templates-direct.js",
+    "test": "node scripts/test-email.js",
+    "tickets:fetch": "node scripts/fetch-and-create-tickets.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1",
+    "imap": "^0.8.19",
+    "mailparser": "^3.7.1",
+    "nodemailer": "^7.0.10",
+    "pg": "^8.11.3",
+    "resend": "^6.5.2"
+  },
+  "keywords": [
+    "email",
+    "automation",
+    "supabase",
+    "resend",
+    "edge-functions"
+  ],
+  "author": "LongSang",
+  "license": "MIT"
+}

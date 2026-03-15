@@ -1,0 +1,416 @@
+import {
+  ArrowLeft,
+  FileText,
+  Image,
+  Key,
+  LayoutDashboard,
+  Loader2,
+  Megaphone,
+  RefreshCw,
+  Settings,
+  Share2,
+} from 'lucide-react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabaseAdmin } from '@/lib/supabase-admin';
+
+// Lazy-load all tab components for code splitting (~200KB saved)
+const ProjectOverviewTab = lazy(() =>
+  import('@/components/project/ProjectOverviewTab').then((m) => ({ default: m.ProjectOverviewTab }))
+);
+const ProjectCredentialsTab = lazy(() =>
+  import('@/components/project/ProjectCredentialsTab').then((m) => ({
+    default: m.ProjectCredentialsTab,
+  }))
+);
+const ProjectDomainsTab = lazy(() =>
+  import('@/components/project/ProjectDomainsTab').then((m) => ({ default: m.ProjectDomainsTab }))
+);
+const ProjectSocialTab = lazy(() =>
+  import('@/components/project/ProjectSocialTab').then((m) => ({ default: m.ProjectSocialTab }))
+);
+const ProjectAnalyticsTab = lazy(() =>
+  import('@/components/project/ProjectAnalyticsTab').then((m) => ({
+    default: m.ProjectAnalyticsTab,
+  }))
+);
+const ProjectSEOTab = lazy(() =>
+  import('@/components/project/ProjectSEOTab').then((m) => ({ default: m.ProjectSEOTab }))
+);
+const ProjectWorkflowsTab = lazy(() =>
+  import('@/components/project/ProjectWorkflowsTab').then((m) => ({
+    default: m.ProjectWorkflowsTab,
+  }))
+);
+const ProjectContentTab = lazy(() =>
+  import('@/components/project/ProjectContentTab').then((m) => ({ default: m.ProjectContentTab }))
+);
+const ProjectTeamTab = lazy(() =>
+  import('@/components/project/ProjectTeamTab').then((m) => ({ default: m.ProjectTeamTab }))
+);
+const ProjectDocsTab = lazy(() =>
+  import('@/components/project/ProjectDocsTab').then((m) => ({ default: m.ProjectDocsTab }))
+);
+const ProjectIntegrationsTab = lazy(() =>
+  import('@/components/project/ProjectIntegrationsTab').then((m) => ({
+    default: m.ProjectIntegrationsTab,
+  }))
+);
+const ProjectSettingsTab = lazy(() =>
+  import('@/components/project/ProjectSettingsTab').then((m) => ({ default: m.ProjectSettingsTab }))
+);
+const ProjectMarketingTab = lazy(() =>
+  import('@/components/project/ProjectMarketingTab').then((m) => ({
+    default: m.ProjectMarketingTab,
+  }))
+);
+const MediaGallery = lazy(() =>
+  import('@/components/media/MediaGallery').then((m) => ({ default: m.MediaGallery }))
+);
+
+const TabLoader = () => (
+  <div className="flex items-center justify-center min-h-[300px]">
+    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+  </div>
+);
+
+interface Project {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  status: string;
+  icon: string;
+  color: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Fallback projects when not in database
+const FALLBACK_PROJECTS: Record<string, Project> = {
+  'sabo-arena': {
+    id: 'fallback-sabo-arena',
+    name: 'SABO Arena',
+    slug: 'sabo-arena',
+    description: 'Billiards Gaming & Training Platform',
+    status: 'active',
+    icon: '🎱',
+    color: '#22c55e',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  'vungtau-dream-homes': {
+    id: 'fallback-vt-homes',
+    name: 'Vũng Tàu Dream Homes',
+    slug: 'vungtau-dream-homes',
+    description: 'Bất Động Sản Vũng Tàu',
+    status: 'active',
+    icon: '🏡',
+    color: '#f97316',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  'music-video-app': {
+    id: 'fallback-music',
+    name: 'Music Video App',
+    slug: 'music-video-app',
+    description: 'AI Music Generation Platform',
+    status: 'active',
+    icon: '🎵',
+    color: '#a855f7',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  'ai-secretary': {
+    id: 'fallback-ai-sec',
+    name: 'AI Secretary',
+    slug: 'ai-secretary',
+    description: 'Personal AI Assistant',
+    status: 'active',
+    icon: '🤖',
+    color: '#ec4899',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  'ainewbie-web': {
+    id: 'fallback-ainewbie',
+    name: 'AINewbie Web',
+    slug: 'ainewbie-web',
+    description: 'AI Learning Platform',
+    status: 'active',
+    icon: '🎓',
+    color: '#06b6d4',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  'longsang-admin': {
+    id: 'fallback-admin',
+    name: 'LongSang Admin',
+    slug: 'longsang-admin',
+    description: 'Master Control Panel',
+    status: 'active',
+    icon: '🚀',
+    color: '#3b82f6',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+};
+
+// Google Drive folder IDs mapping for each project
+const PROJECT_DRIVE_FOLDERS: Record<string, string> = {
+  'longsang-admin': '18lVYunyFRGyImQDueC4eep-YLMQQG2cF',
+  'ainewbie-web': '1_W717py4DrkqEnGJtN6m9wBJqfAz2CMT',
+  'vungtau-dream-homes': '1sxfRRyty6r0x1SpcXXyRR7OFevkwKuYH',
+  'sabo-hub': '10GotnxoqURPNFmbDoksQTkXX-WKwKT9N',
+  'sabo-arena': '1hw0FjtBfBoh1i963NVYJ10nuNrjT6v__',
+  'music-video-app': '1U1aE_6pYse-_I4hCy12iK743C3v1kuau',
+  'ai-secretary': '1knlWL11y5JNO7Gf6BBvQGUrC0Tr27yeC',
+  'long-sang-forge': '1koFjXhltsuLZNh15pG8CR6R5heXCwuGx',
+};
+
+// Main PROJECTS folder ID on Google Drive
+const PROJECTS_ROOT_FOLDER_ID = '18P5ks7WdlUWjPRuJ2b4BVSBAAe0l9SjL';
+
+const tabs = [
+  { id: 'overview', label: 'Tổng Quan', icon: LayoutDashboard },
+  { id: 'credentials', label: 'Keys & Config', icon: Key },
+  { id: 'social', label: 'Social Media', icon: Share2 },
+  { id: 'marketing', label: 'Marketing', icon: Megaphone },
+  { id: 'media', label: 'Thư Viện', icon: Image },
+  { id: 'content', label: 'Content & SEO', icon: FileText },
+  { id: 'settings', label: 'Cài Đặt', icon: Settings },
+];
+
+export default function ProjectCommandCenter() {
+  const { slug } = useParams<{ slug: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const activeTab = searchParams.get('tab') || 'overview';
+
+  useEffect(() => {
+    if (slug) {
+      fetchProject();
+    }
+  }, [slug]);
+
+  const fetchProject = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabaseAdmin
+        .from('projects')
+        .select('*')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setProject(data);
+      } else if (slug && FALLBACK_PROJECTS[slug]) {
+        setProject(FALLBACK_PROJECTS[slug]);
+      } else {
+        toast.error('Không tìm thấy dự án');
+      }
+    } catch (error: any) {
+      console.error('Supabase error:', error);
+      if (slug && FALLBACK_PROJECTS[slug]) {
+        setProject(FALLBACK_PROJECTS[slug]);
+      } else {
+        toast.error('Không thể tải thông tin dự án');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+  };
+
+  // Check if using fallback
+  const isFallback = project?.id.startsWith('fallback-');
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center">
+          <p className="text-muted-foreground">Không tìm thấy dự án</p>
+          <Button onClick={() => navigate('/admin/projects')} className="mt-4">
+            Quay lại danh sách
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Fallback Mode Banner */}
+      {isFallback && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 flex items-center gap-3">
+          <span className="text-2xl">⚠️</span>
+          <div className="flex-1">
+            <p className="font-medium text-amber-600 dark:text-amber-400">Chế độ Demo</p>
+            <p className="text-sm text-muted-foreground">
+              Dự án chưa được setup trong database. Một số tính năng sẽ không hoạt động đầy đủ.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" className="border-amber-500/30">
+            Setup Project
+          </Button>
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/admin/projects')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+
+          <div className="flex items-center gap-3">
+            <div
+              className="text-4xl p-3 rounded-xl"
+              style={{ backgroundColor: `${project.color}20` }}
+            >
+              {project.icon}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">{project.name}</h1>
+              <p className="text-muted-foreground">{project.description}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {isFallback && (
+            <Badge variant="outline" className="border-amber-500/50 text-amber-600">
+              Demo Mode
+            </Badge>
+          )}
+          <Badge
+            variant={project.status === 'active' ? 'default' : 'secondary'}
+            className="capitalize"
+          >
+            {project.status}
+          </Badge>
+          <Button variant="outline" size="sm" onClick={fetchProject}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Tabs Navigation */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+        <div className="overflow-x-auto">
+          <TabsList className="inline-flex h-auto p-1 bg-muted/50">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className="flex items-center gap-2 px-4 py-2 data-[state=active]:bg-background"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+        </div>
+
+        {/* Tab Contents */}
+        <TabsContent value="overview">
+          <Suspense fallback={<TabLoader />}>
+            <ProjectOverviewTab project={project} projectId={project.id} onRefresh={fetchProject} />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="credentials">
+          <Suspense fallback={<TabLoader />}>
+            <div className="space-y-8">
+              <ProjectCredentialsTab projectId={project.id} projectSlug={project.slug} />
+              <ProjectDomainsTab projectId={project.id} />
+              <ProjectIntegrationsTab projectId={project.id} />
+            </div>
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="social">
+          <Suspense fallback={<TabLoader />}>
+            <div className="space-y-8">
+              <ProjectSocialTab projectId={project.id} projectName={project.name} />
+              <ProjectAnalyticsTab projectId={project.id} />
+            </div>
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="marketing">
+          <Suspense fallback={<TabLoader />}>
+            <ProjectMarketingTab
+              projectId={project.id}
+              projectName={project.name}
+              projectSlug={project.slug}
+            />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="media" className="h-[calc(100vh-280px)] min-h-[500px]">
+          <Card className="h-full">
+            <CardContent className="p-6 h-full">
+              <Suspense fallback={<TabLoader />}>
+                <MediaGallery
+                  projectSlug={project.slug}
+                  projectFolderId={PROJECT_DRIVE_FOLDERS[project.slug]}
+                  onSelectMedia={(files) => {
+                    console.log('Selected media:', files);
+                    toast.success(`Đã chọn ${files.length} files - Sẵn sàng để sử dụng!`);
+                  }}
+                />
+              </Suspense>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="content">
+          <Suspense fallback={<TabLoader />}>
+            <div className="space-y-8">
+              <ProjectContentTab projectId={project.id} />
+              <ProjectSEOTab projectId={project.id} />
+              <ProjectDocsTab projectId={project.id} />
+              <ProjectWorkflowsTab projectId={project.id} projectSlug={project.slug} />
+            </div>
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <Suspense fallback={<TabLoader />}>
+            <div className="space-y-8">
+              <ProjectSettingsTab project={project} onRefresh={fetchProject} />
+              <ProjectTeamTab projectId={project.id} />
+            </div>
+          </Suspense>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
