@@ -4,6 +4,7 @@ import {
   Download,
   ExternalLink,
   FolderOpen,
+  History,
   Info,
   Loader2,
   Monitor,
@@ -15,7 +16,7 @@ import {
   Wand2,
   XCircle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +33,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { type SoraVideoResponse, soraVideoService } from '@/lib/api/sora-video-service';
 
 const SoraVideoGenerator = () => {
@@ -48,13 +50,61 @@ const SoraVideoGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<SoraVideoResponse | null>(null);
 
+  // History state
+  interface HistoryEntry {
+    id: string;
+    prompt: string;
+    aspect_ratio: string;
+    duration: number;
+    video_url?: string;
+    drive_link?: string;
+    success: boolean;
+    created_at: string;
+  }
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  // Load history from Supabase on mount
+  useEffect(() => {
+    supabase
+      .from('sora_video_history')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50)
+      .then(({ data }) => {
+        if (data) setHistory(data as HistoryEntry[]);
+      })
+      .catch(() => {});
+  }, []);
+
+  const saveToHistory = useCallback(
+    (promptText: string, response: SoraVideoResponse) => {
+      const entry: HistoryEntry = {
+        id: crypto.randomUUID(),
+        prompt: promptText,
+        aspect_ratio: aspectRatio,
+        duration,
+        video_url: response.data?.video_url,
+        drive_link: response.data?.google_drive?.view_link,
+        success: !!response.success,
+        created_at: new Date().toISOString(),
+      };
+      setHistory((prev) => [entry, ...prev]);
+      supabase
+        .from('sora_video_history')
+        .insert(entry)
+        .then(() => {})
+        .catch(() => {});
+    },
+    [aspectRatio, duration]
+  );
+
   // Quick prompts for testing
   const quickPrompts = [
-    'A flying pig in the sunset sky',
-    'Robot dancing in a neon city',
-    'Ocean waves crashing on rocks',
-    'Fireworks exploding over a city skyline',
-    'Cat playing piano in a concert hall',
+    'Drone bay qua rừng tràm Bến Tre lúc hoàng hôn',
+    'Logo công ty hiện lên từ hiệu ứng hạt vàng 3D',
+    'Phố cổ Hội An về đêm với đèn lồng lung linh',
+    'Sản phẩm xoay 360 độ trên nền trắng sang trọng',
+    'Nhân viên làm việc chuyên nghiệp trong văn phòng hiện đại',
   ];
 
   const handleGenerate = async () => {
@@ -89,6 +139,7 @@ const SoraVideoGenerator = () => {
       setResult(response);
 
       if (response.success) {
+        saveToHistory(prompt, response);
         toast({
           title: '✅ Video đã tạo thành công!',
           description: response.data?.google_drive
@@ -124,6 +175,7 @@ const SoraVideoGenerator = () => {
       setResult(response);
 
       if (response.success) {
+        saveToHistory(quickPrompt, response);
         toast({
           title: '✅ Video đã tạo thành công!',
           description: 'Video đã được upload lên Google Drive',
@@ -422,6 +474,50 @@ const SoraVideoGenerator = () => {
                 <p className="text-red-600">{result.error || result.message}</p>
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* History Section */}
+      {history.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Lịch sử tạo video ({history.length})
+            </CardTitle>
+            <CardDescription>Các video đã tạo gần đây</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {history.map((entry) => (
+                <Card key={entry.id} className={entry.success ? 'border-green-500/30' : 'border-red-500/30'}>
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Badge variant={entry.success ? 'default' : 'destructive'}>
+                        {entry.success ? '✅ Thành công' : '❌ Lỗi'}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(entry.created_at).toLocaleDateString('vi-VN')}
+                      </span>
+                    </div>
+                    <p className="text-sm line-clamp-2">{entry.prompt}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{entry.aspect_ratio}</span>
+                      <span>•</span>
+                      <span>{entry.duration}s</span>
+                    </div>
+                    {entry.drive_link && (
+                      <Button variant="outline" size="sm" className="w-full" asChild>
+                        <a href={entry.drive_link} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="w-3 h-3 mr-1" /> Google Drive
+                        </a>
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

@@ -13,10 +13,17 @@ import {
   Send,
   Trash2,
 } from 'lucide-react';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
@@ -30,6 +37,7 @@ const AdminContentQueue = () => {
   useScrollRestore('admin-content-queue');
   const [activeTab, setActiveTab] = usePersistedState('admin-content-queue-tab', 'all');
   const { toast } = useToast();
+  const [previewItem, setPreviewItem] = useState<ContentItem | null>(null);
 
   // 📊 Load real data from Supabase
   const {
@@ -151,7 +159,7 @@ const AdminContentQueue = () => {
 
           {/* Actions */}
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" className="gap-2">
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => setPreviewItem(item)}>
               <Eye className="h-3 w-3" />
               Xem
             </Button>
@@ -322,6 +330,41 @@ const AdminContentQueue = () => {
           </>
         )}
       </Tabs>
+      {/* Content Preview Dialog */}
+      <Dialog open={!!previewItem} onOpenChange={(open) => !open && setPreviewItem(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          {previewItem && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{previewItem.title || 'Không có tiêu đề'}</DialogTitle>
+                <DialogDescription className="flex items-center gap-2">
+                  {previewItem.content_type || 'post'}
+                  {' • '}
+                  {format(new Date(previewItem.created_at), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                {getStatusBadge(previewItem.status)}
+                {previewItem.content && typeof previewItem.content === 'string' && (
+                  <div className="prose prose-sm max-w-none whitespace-pre-wrap">
+                    {previewItem.content}
+                  </div>
+                )}
+                {previewItem.scheduled_for && (
+                  <p className="text-sm text-muted-foreground">
+                    Lên lịch: {format(new Date(previewItem.scheduled_for), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                  </p>
+                )}
+                {previewItem.metadata && (
+                  <pre className="text-xs bg-muted p-3 rounded-lg overflow-auto max-h-48">
+                    {JSON.stringify(previewItem.metadata, null, 2)}
+                  </pre>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

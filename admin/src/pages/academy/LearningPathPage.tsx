@@ -180,7 +180,7 @@ export default function LearningPathPage() {
                 <Button size="lg" onClick={() => navigate('/academy')}>
                   Browse All Courses
                 </Button>
-                <Button size="lg" variant="outline">
+                <Button size="lg" variant="outline" onClick={() => window.open('https://zalo.me/longsang', '_blank', 'noopener')}>
                   Talk to Advisor
                 </Button>
               </div>

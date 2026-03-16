@@ -91,6 +91,39 @@ const CHANNEL_VISUAL_PRESETS: Record<string, VisualIdentity> = {
   },
 };
 
+// ─── VISUAL STYLE → DEFAULT STYLE PROMPT MAP ───────────────
+
+const STYLE_PROMPT_MAP: Record<string, { stylePrompt: string; negativePrompt: string }> = {
+  'dark-cinematic': {
+    stylePrompt: 'Dark cinematic style. Deep blacks, dark blues, golden highlights. Low-key dramatic lighting with single spotlight. Slow zoom in, close-up focus. Silhouette figures in dark urban, moody interiors. Cinematic, dramatic, mysterious, powerful mood.',
+    negativePrompt: 'text, watermark, logo, cartoon, anime, bright colors, cheerful',
+  },
+  'modern-minimal': {
+    stylePrompt: 'Modern minimal style. Clean white backgrounds, muted pastels, subtle gradients. Soft even lighting, no harsh shadows. Static wide shots, gentle zoom. Simple geometric shapes, clean typography, minimalist objects. Calm, clean, professional, elegant mood.',
+    negativePrompt: 'text, watermark, logo, clutter, busy backgrounds, dark moody',
+  },
+  'bright-modern': {
+    stylePrompt: 'Bright modern tech style. Electric blue, white, neon green accents, clean gradients. Bright studio lighting with even light and soft shadows. Eye-level static camera, gentle zoom. Modern workspace, dual monitors, code on screen, clean desk setup. Tech, modern, clean, futuristic, productive mood.',
+    negativePrompt: 'text, watermark, logo, old-fashioned, rustic, dark moody',
+  },
+  'storytelling': {
+    stylePrompt: 'Warm storytelling illustration style. Earth tones — cream, dark brown, amber, soft gold. Warm ambient lighting with soft window light and golden hour glow. Medium shot, gentle pan. Cozy library, coffee shop, reading nook, book-filled rooms. Warm, intellectual, inviting, cozy, thoughtful mood.',
+    negativePrompt: 'text, watermark, logo, neon, cyberpunk, dark horror, violence',
+  },
+  'anime-style': {
+    stylePrompt: 'Anime illustration style. Vibrant saturated colors, bold outlines, cel-shading. Dramatic anime lighting with rim light and bloom effects. Dynamic angles, speed lines, expressive poses. Urban Japanese settings, school, city streets, cherry blossoms. Energetic, emotional, expressive, dramatic mood.',
+    negativePrompt: 'text, watermark, logo, photorealistic, 3D render, western cartoon',
+  },
+  'documentary': {
+    stylePrompt: 'Documentary photography style. Natural muted colors, desaturated tones, film grain. Natural daylight, available light only, no artificial lighting. Handheld camera feel, observational angles, wide establishing shots. Real-world locations, streets, offices, nature. Authentic, raw, honest, journalistic mood.',
+    negativePrompt: 'text, watermark, logo, fantasy, sci-fi, cartoon, anime, neon',
+  },
+  'neon-cyberpunk': {
+    stylePrompt: 'Neon cyberpunk style. Deep black, neon purple, electric pink, holographic blue. Neon glow lighting with volumetric light, lens flare, bioluminescent effects. Slow zoom in, static portrait camera. Digital void, abstract data streams, futuristic city, rain-soaked streets. Mysterious, ethereal, digital, noir mood.',
+    negativePrompt: 'text, watermark, logo, bright daylight, nature, pastoral, cartoon',
+  },
+};
+
 // ─── STYLE PREVIEW VISUAL DATA ──────────────────────────────
 
 interface StylePreviewMeta {
@@ -765,15 +798,20 @@ function VoiceClipsPreview({
   );
 }
 
-const STORAGE_KEY = 'yt-pipeline-config';
+/** Per-channel storage key — each channel keeps its own pipeline config */
+function getStorageKey(channelId?: string): string {
+  return channelId ? `yt-pipeline-config-${channelId}` : 'yt-pipeline-config';
+}
 
 function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineConfig {
   const visualPreset = channelId ? CHANNEL_VISUAL_PRESETS[channelId] : undefined;
+  const promptPresets = channelId ? CHANNEL_PROMPT_PRESETS[channelId] : undefined;
+  const key = getStorageKey(channelId);
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    // Try per-channel key first, then fall back to legacy global key for migration
+    const raw = localStorage.getItem(key) || (channelId ? localStorage.getItem('yt-pipeline-config') : null);
     if (raw) {
       const parsed = JSON.parse(raw) as PipelineConfig;
-      // Ensure all keys exist (in case we add new steps later)
       const merged = { ...DEFAULT_PIPELINE, ...parsed };
       // Migrate old 9-field VI → new 2-field VI if needed
       if (merged.storyboard.visualIdentity && !merged.storyboard.visualIdentity.stylePrompt) {
@@ -787,13 +825,27 @@ function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineCon
           visualIdentity: { ...visualPreset },
         };
       }
+      // If loaded from legacy global key, apply channel-specific defaults
+      if (!localStorage.getItem(key) && channelId) {
+        if (visualPreset) merged.storyboard.visualIdentity = { ...visualPreset };
+        if (promptPresets?.[0]) {
+          merged.scriptWriter.customPrompt = promptPresets[0].prompt;
+          merged.scriptWriter.tone = promptPresets[0].tone;
+        }
+      }
       return merged;
     }
   } catch {
     /* ignore corrupt data */
   }
+  // Fresh config for this channel — apply channel-specific defaults
+  const defaultPrompt = promptPresets?.[0];
   return {
     ...DEFAULT_PIPELINE,
+    scriptWriter: {
+      ...DEFAULT_PIPELINE.scriptWriter,
+      ...(defaultPrompt ? { customPrompt: defaultPrompt.prompt, tone: defaultPrompt.tone } : {}),
+    },
     storyboard: {
       ...DEFAULT_PIPELINE.storyboard,
       style: channelStyle || DEFAULT_PIPELINE.storyboard.style,
@@ -834,10 +886,10 @@ export default function PipelineRoadmap({
     }
   }, [channelId]);
 
-  // ── Persist config to localStorage on change ──
+  // ── Persist config to localStorage on change (per-channel) ──
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-  }, [config]);
+    localStorage.setItem(getStorageKey(channelId), JSON.stringify(config));
+  }, [config, channelId]);
 
   // ── Derive per-step statuses from active run ──
   const stepStatuses = deriveStepStatuses(config, activeRun);
@@ -1899,7 +1951,13 @@ function StoryboardConfig({
           <Label className="text-xs">Visual Style</Label>
           <Select
             value={config.style}
-            onValueChange={(v) => onUpdate({ style: v })}
+            onValueChange={(v) => {
+              const preset = STYLE_PROMPT_MAP[v];
+              onUpdate(preset
+                ? { style: v, visualIdentity: { ...preset } }
+                : { style: v }
+              );
+            }}
           >
             <SelectTrigger className="h-8 text-xs">
               <SelectValue />

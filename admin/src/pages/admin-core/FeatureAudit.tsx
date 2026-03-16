@@ -5,10 +5,11 @@ import {
   ExternalLink,
   EyeOff,
   FileSearch,
+  Menu,
   Trash2,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -459,6 +460,7 @@ const statusConfig = {
 
 const FeatureAudit = () => {
   const navigate = useNavigate();
+  const [features, setFeatures] = useState<FeatureItem[]>(allFeatures);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
@@ -475,12 +477,48 @@ const FeatureAudit = () => {
   };
 
   const selectAllByStatus = (status: string) => {
-    const items = allFeatures.filter((f) => f.status === status);
+    const items = features.filter((f) => f.status === status);
     setSelectedItems(new Set(items.map((i) => i.id)));
   };
 
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedItems.size === 0) return;
+    const names = features
+      .filter((f) => selectedItems.has(f.id))
+      .map((f) => f.name)
+      .join(', ');
+    if (!window.confirm(`Xóa ${selectedItems.size} tính năng khỏi danh sách?\n${names}`)) return;
+    setFeatures((prev) => prev.filter((f) => !selectedItems.has(f.id)));
+    toast.success(`Đã xóa ${selectedItems.size} tính năng khỏi audit`);
+    setSelectedItems(new Set());
+  }, [selectedItems, features]);
+
+  const handleAddToMenu = useCallback(
+    (id: string) => {
+      setFeatures((prev) =>
+        prev.map((f) => (f.id === id ? { ...f, status: 'in-menu' as const } : f))
+      );
+      const item = features.find((f) => f.id === id);
+      toast.success(`Đã thêm "${item?.name}" vào menu`);
+    },
+    [features]
+  );
+
+  const handleBulkAddToMenu = useCallback(() => {
+    if (selectedItems.size === 0) return;
+    setFeatures((prev) =>
+      prev.map((f) =>
+        selectedItems.has(f.id) && f.status !== 'in-menu'
+          ? { ...f, status: 'in-menu' as const }
+          : f
+      )
+    );
+    toast.success(`Đã thêm ${selectedItems.size} tính năng vào menu`);
+    setSelectedItems(new Set());
+  }, [selectedItems]);
+
   const filteredFeatures =
-    filterStatus === 'all' ? allFeatures : allFeatures.filter((f) => f.status === filterStatus);
+    filterStatus === 'all' ? features : features.filter((f) => f.status === filterStatus);
 
   const groupedFeatures = filteredFeatures.reduce(
     (acc, feature) => {
@@ -494,20 +532,20 @@ const FeatureAudit = () => {
   );
 
   const stats = {
-    total: allFeatures.length,
-    inMenu: allFeatures.filter((f) => f.status === 'in-menu').length,
-    hidden: allFeatures.filter((f) => f.status === 'hidden').length,
-    duplicate: allFeatures.filter((f) => f.status === 'duplicate').length,
-    orphan: allFeatures.filter((f) => f.status === 'orphan').length,
+    total: features.length,
+    inMenu: features.filter((f) => f.status === 'in-menu').length,
+    hidden: features.filter((f) => f.status === 'hidden').length,
+    duplicate: features.filter((f) => f.status === 'duplicate').length,
+    orphan: features.filter((f) => f.status === 'orphan').length,
   };
 
   const exportReport = () => {
     const report = {
       generatedAt: new Date().toISOString(),
       stats,
-      features: allFeatures,
+      features,
       selectedForRemoval: Array.from(selectedItems).map((id) =>
-        allFeatures.find((f) => f.id === id)
+        features.find((f) => f.id === id)
       ),
     };
 
@@ -602,7 +640,11 @@ const FeatureAudit = () => {
               <Button variant="outline" size="sm" onClick={() => setSelectedItems(new Set())}>
                 Bỏ chọn tất cả
               </Button>
-              <Button variant="destructive" size="sm">
+              <Button variant="outline" size="sm" onClick={handleBulkAddToMenu}>
+                <Menu className="w-4 h-4 mr-2" />
+                Thêm vào menu
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
                 <Trash2 className="w-4 h-4 mr-2" />
                 Xóa {selectedItems.size} file
               </Button>
@@ -694,6 +736,16 @@ const FeatureAudit = () => {
                               <span className="text-slate-500">{feature.page}</span>
                             </div>
                           </div>
+                          {(feature.status === 'hidden' || feature.status === 'orphan') && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Thêm vào menu"
+                              onClick={() => handleAddToMenu(feature.id)}
+                            >
+                              <Menu className="w-4 h-4" />
+                            </Button>
+                          )}
                           {feature.route !== 'N/A' && (
                             <Button
                               variant="ghost"

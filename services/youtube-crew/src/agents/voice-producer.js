@@ -1,8 +1,9 @@
 /**
  * AGENT 4: Voice Producer
  * 
- * Mission: Convert script to natural-sounding Vietnamese audio via VoxCPM-1.5-VN
- * - Self-hosted VoxCPM-1.5-VN (800M params) on RTX 4090
+ * Mission: Convert script to natural-sounding Vietnamese audio
+ * - Primary: Fish Audio S2-Pro (4B Dual-AR) on RTX 4090
+ * - Fallback: VoxCPM-1.5-VN (800M params) for Vietnamese-specific needs
  * - Voice cloning with 10s reference audio
  * - TTS Preprocessor: foreign name transliteration, breathing pauses, text normalization
  * - Smart text chunking (no LLM needed — deterministic split)
@@ -60,43 +61,87 @@ export class VoiceProducerAgent extends BaseAgent {
     super({
       id: 'voice-producer',
       name: '🎙️ Voice Producer',
-      role: 'TTS Audio Production via VoxCPM-1.5-VN',
+      role: 'TTS Audio Production via Fish Audio S2 + VoxCPM fallback',
       model: process.env.DEFAULT_MODEL || 'gpt-4o-mini',
       systemPrompt: 'You are a voice production assistant.',
       temperature: 0.3,
       maxTokens: 1024,
     });
-    this.ttsUrl = process.env.VOXCPM_API_URL || 'http://localhost:8100';
+    this.fishUrl = process.env.FISH_AUDIO_S2_URL || 'http://localhost:8200';
+    this.voxcpmUrl = process.env.VOXCPM_API_URL || 'http://localhost:8100';
+    this.ttsUrl = null;   // resolved at runtime by selectEngine()
+    this.engine = null;   // 'fish-s2' or 'voxcpm'
     this.outputDir = process.env.OUTPUT_DIR || './output';
   }
 
   /**
-   * Check if VoxCPM TTS API is running
+   * Select TTS engine: Fish Audio S2 (primary) → VoxCPM (fallback)
    */
-  async healthCheck() {
+  async selectEngine() {
     try {
-      const res = await fetch(`${this.ttsUrl}/v1/health`);
-      return res.ok;
-    } catch {
-      return false;
-    }
+      const res = await fetch(`${this.fishUrl}/v1/health`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        this.ttsUrl = this.fishUrl;
+        this.engine = 'fish-s2';
+        return true;
+      }
+    } catch { /* S2 not available */ }
+
+    try {
+      const res = await fetch(`${this.voxcpmUrl}/v1/health`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        this.ttsUrl = this.voxcpmUrl;
+        this.engine = 'voxcpm';
+        return true;
+      }
+    } catch { /* VoxCPM not available */ }
+
+    return false;
   }
 
   /**
-   * Generate audio for a single text chunk using VoxCPM-1.5-VN TTS
-   * Returns the output path on success
+   * Check if selected TTS engine is running
    */
-  async generateChunk(text, outputPath, retries = 2) {
-    const body = JSON.stringify({
+  async healthCheck() {
+    return this.selectEngine();
+  }
+
+  /**
+   * Build engine-specific request body
+   */
+  _buildTTSBody(text) {
+    if (this.engine === 'fish-s2') {
+      return JSON.stringify({
+        text,
+        chunk_length: 200,
+        format: 'wav',
+        normalize: true,
+        streaming: false,
+        max_new_tokens: 1024,
+        top_p: 0.8,
+        repetition_penalty: 1.1,
+        temperature: 0.8,
+      });
+    }
+    // VoxCPM fallback
+    return JSON.stringify({
       text,
       voice_clone: true,
       cfg_value: 2.0,
-      inference_timesteps: 25,   // higher = better quality
+      inference_timesteps: 25,
       max_len: 2000,
       min_len: 50,
       normalize: false,
-      speed: 0.92,               // slightly slower for podcast pacing
+      speed: 0.92,
     });
+  }
+
+  /**
+   * Generate audio for a single text chunk
+   * Returns the output path on success
+   */
+  async generateChunk(text, outputPath, retries = 2) {
+    const body = this._buildTTSBody(text);
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
@@ -228,13 +273,13 @@ export class VoiceProducerAgent extends BaseAgent {
     // ─── GATE 0: Health check ───
     const healthy = await this.healthCheck();
     if (!healthy) {
-      this.log('❌ VoxCPM TTS API not reachable at ' + this.ttsUrl, 'error');
+      this.log('❌ No TTS engine available (tried Fish S2 @ ' + this.fishUrl + ', VoxCPM @ ' + this.voxcpmUrl + ')', 'error');
       return JSON.stringify({
-        error: 'VoxCPM TTS API not running',
-        hint: 'Start server: cd voxcpm-tts && .venv/Scripts/python server.py --port 8100',
+        error: 'No TTS engine running',
+        hint: 'Start Fish Audio S2: start-s2-server.bat (port 8200) or VoxCPM: cd voxcpm-tts && .venv/Scripts/python server.py --port 8100',
       });
     }
-    this.log('✅ VoxCPM TTS API healthy', 'success');
+    this.log(`✅ TTS engine: ${this.engine} @ ${this.ttsUrl}`, 'success');
 
     // ─── GATE 1: Probe test — 1 sentence, validate before batch ───
     this.log('🧪 PROBE TEST — testing TTS with 1 sentence...', 'info');

@@ -111,12 +111,12 @@ export const COST_RATES: Record<string, CostRate> = {
     note: 'FREE — Microsoft Edge TTS, runs locally',
   },
   'fish-speech': {
-    model: 'fish-speech',
+    model: 'fish-audio-s2-pro',
     engine: 'local',
     type: 'tts',
     costPerUnit: 0,
     unit: '1K chars',
-    note: 'FREE — Local GPU (electricity cost only)',
+    note: 'FREE — Fish Audio S2-Pro 4B, local GPU',
   },
 
   // ── Video ──

@@ -7,6 +7,7 @@ export interface GenerateRequest {
   channelId?: string;
   topic?: string;
   transcript?: string;
+  playlist?: string;
   scenes?: number;
   style?: string;
   duration?: number;

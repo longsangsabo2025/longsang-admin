@@ -21,7 +21,7 @@ import {
   Users,
   Video,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -76,6 +77,10 @@ interface AdsInsight {
 }
 
 const FacebookMarketingDashboard: React.FC = () => {
+  const { toast } = useToast();
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+
   // State
   const [connectionStatus, setConnectionStatus] = useState<
     'checking' | 'connected' | 'not_configured' | 'error'
@@ -87,6 +92,8 @@ const FacebookMarketingDashboard: React.FC = () => {
   const [adsInsights, setAdsInsights] = useState<AdsInsight | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedPage, setSelectedPage] = useState<string>('');
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaType, setMediaType] = useState<'photo' | 'video' | null>(null);
 
   // Post Form
   const [postMessage, setPostMessage] = useState('');
@@ -209,15 +216,26 @@ const FacebookMarketingDashboard: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert(isScheduled ? 'Post scheduled successfully!' : 'Post published successfully!');
+        toast({
+          title: isScheduled ? '✅ Post scheduled successfully!' : '✅ Post published successfully!',
+        });
         setPostMessage('');
         setPostLink('');
         setScheduleTime('');
+        setMediaFile(null);
+        setMediaType(null);
       } else {
-        alert(`Error: ${data.error}`);
+        toast({
+          title: '❌ Error',
+          description: data.error,
+          variant: 'destructive',
+        });
       }
     } catch (error) {
-      alert('Failed to create post');
+      toast({
+        title: '❌ Failed to create post',
+        variant: 'destructive',
+      });
     }
     setLoading(false);
   };
@@ -241,15 +259,24 @@ const FacebookMarketingDashboard: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert('Campaign created successfully!');
+        toast({
+          title: '✅ Campaign created successfully!',
+        });
         setCampaignName('');
         setCampaignBudget('');
         loadCampaigns();
       } else {
-        alert(`Error: ${data.error}`);
+        toast({
+          title: '❌ Error',
+          description: data.error,
+          variant: 'destructive',
+        });
       }
     } catch (error) {
-      alert('Failed to create campaign');
+      toast({
+        title: '❌ Failed to create campaign',
+        variant: 'destructive',
+      });
     }
     setLoading(false);
   };
@@ -633,14 +660,50 @@ FACEBOOK_PIXEL_ID=your_pixel_id`}
                     Publish Now
                   </Button>
 
-                  <Button variant="outline" className="flex-1" disabled>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setMediaFile(file);
+                        setMediaType('photo');
+                        toast({ title: `🖼️ Photo selected: ${file.name}` });
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => photoInputRef.current?.click()}
+                  >
                     <Image className="h-4 w-4 mr-2" />
-                    Add Photo
+                    {mediaType === 'photo' && mediaFile ? mediaFile.name : 'Add Photo'}
                   </Button>
 
-                  <Button variant="outline" className="flex-1" disabled>
+                  <input
+                    ref={videoInputRef}
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setMediaFile(file);
+                        setMediaType('video');
+                        toast({ title: `🎥 Video selected: ${file.name}` });
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => videoInputRef.current?.click()}
+                  >
                     <Video className="h-4 w-4 mr-2" />
-                    Add Video
+                    {mediaType === 'video' && mediaFile ? mediaFile.name : 'Add Video'}
                   </Button>
                 </div>
               </CardContent>

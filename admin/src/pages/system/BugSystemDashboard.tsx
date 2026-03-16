@@ -155,6 +155,8 @@ export default function BugSystemDashboard() {
   const [selectedAction, setSelectedAction] = useState<HealingAction | null>(null);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [actionModalOpen, setActionModalOpen] = useState(false);
+  const [errorPage, setErrorPage] = useState(0);
+  const ERRORS_PER_PAGE = 20;
 
   // Fetch errors
   const fetchErrors = async () => {
@@ -633,7 +635,7 @@ export default function BugSystemDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Error Logs ({errors.length})</CardTitle>
-              <CardDescription>Recent errors from the application</CardDescription>
+              <CardDescription>Recent errors from the application — Page {errorPage + 1} of {Math.max(1, Math.ceil(errors.length / ERRORS_PER_PAGE))}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border">
@@ -656,7 +658,7 @@ export default function BugSystemDashboard() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      errors.map((error) => (
+                      errors.slice(errorPage * ERRORS_PER_PAGE, (errorPage + 1) * ERRORS_PER_PAGE).map((error) => (
                         <TableRow key={error.id}>
                           <TableCell className="font-medium">{error.error_type}</TableCell>
                           <TableCell className="max-w-md truncate">{error.error_message}</TableCell>
@@ -687,6 +689,29 @@ export default function BugSystemDashboard() {
                   </TableBody>
                 </Table>
               </div>
+              {errors.length > ERRORS_PER_PAGE && (
+                <div className="flex items-center justify-between mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={errorPage === 0}
+                    onClick={() => setErrorPage((p) => p - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {errorPage * ERRORS_PER_PAGE + 1}–{Math.min((errorPage + 1) * ERRORS_PER_PAGE, errors.length)} of {errors.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={(errorPage + 1) * ERRORS_PER_PAGE >= errors.length}
+                    onClick={() => setErrorPage((p) => p + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -851,12 +876,13 @@ export default function BugSystemDashboard() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
+                  onClick={() => {
+                    const basePath = import.meta.env.VITE_PROJECT_ROOT || '.';
                     window.open(
-                      'vscode://file/D:/0.PROJECTS/.copilot-errors/fix-history.json',
+                      `vscode://file/${basePath}/.copilot-errors/fix-history.json`,
                       '_blank'
-                    )
-                  }
+                    );
+                  }}
                 >
                   Open in VS Code
                 </Button>
@@ -1109,10 +1135,17 @@ export default function BugSystemDashboard() {
         />
       )}
 
-      {/* Action Details Modal - Similar to ErrorDetailsModal */}
+      {/* Action Details Modal — renders healing action as error-like shape */}
       {selectedAction && (
         <ErrorDetailsModal
-          error={selectedAction as any}
+          error={{
+            id: selectedAction.id,
+            error_type: selectedAction.action_type,
+            error_message: `Result: ${selectedAction.action_result} | Retries: ${selectedAction.retry_count}`,
+            severity: selectedAction.action_result === 'success' ? 'low' : 'high',
+            created_at: selectedAction.created_at,
+            context: selectedAction.details,
+          }}
           open={actionModalOpen}
           onOpenChange={setActionModalOpen}
         />

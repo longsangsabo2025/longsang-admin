@@ -6,7 +6,7 @@
  */
 
 import { Activity, Loader2, MessageSquare, Settings, TrendingUp } from 'lucide-react';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { AutoPublishSettings } from '@/components/automation/AutoPublishSettings';
 import { AutoPostScheduler } from '@/components/social/AutoPostScheduler';
 import { PlatformConnectionCard } from '@/components/social/PlatformConnectionCard';
@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePersistedState, useScrollRestore } from '@/hooks/usePersistedState';
+import { supabase } from '@/integrations/supabase/client';
 import { getSocialMediaManager } from '@/lib/social';
 import type { BulkPostResponse, SocialPlatform } from '@/types/social-media';
 
@@ -36,6 +37,25 @@ export const SocialMediaManagement = () => {
     total: 0,
   });
   const [recentPosts, setRecentPosts] = useState<BulkPostResponse[]>([]);
+
+  // Load persisted post history from Supabase on mount
+  useEffect(() => {
+    const loadPostHistory = async () => {
+      try {
+        const { data } = await supabase
+          .from('social_post_history')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (data && data.length > 0) {
+          setRecentPosts(data.map((row: any) => row.payload as BulkPostResponse));
+        }
+      } catch {
+        // Table may not exist yet — fall back to in-memory only
+      }
+    };
+    loadPostHistory();
+  }, []);
 
   const allPlatforms: SocialPlatform[] = [
     'linkedin',
@@ -60,10 +80,15 @@ export const SocialMediaManagement = () => {
     }
   };
 
-  const handlePostSuccess = (result: BulkPostResponse) => {
+  const handlePostSuccess = useCallback((result: BulkPostResponse) => {
     setRecentPosts((prev) => [result, ...prev].slice(0, 10));
     checkHealth(); // Refresh health status
-  };
+    // Persist to Supabase (best-effort)
+    supabase
+      .from('social_post_history')
+      .insert({ payload: result as any, created_at: new Date().toISOString() })
+      .then();
+  }, []);
 
   const handleConnectionChange = () => {
     checkHealth(); // Refresh health status
@@ -276,7 +301,7 @@ export const SocialMediaManagement = () => {
               </div>
 
               <Button variant="link" className="p-0 h-auto" asChild>
-                <a href="/docs/social-media-setup" target="_blank" rel="noopener">
+                <a href="/admin/social-media" target="_blank" rel="noopener">
                   View Complete Setup Guide →
                 </a>
               </Button>

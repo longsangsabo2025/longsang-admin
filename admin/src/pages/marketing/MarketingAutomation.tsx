@@ -3,6 +3,7 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
+  ExternalLink,
   Mail,
   Rocket,
   Settings,
@@ -15,6 +16,13 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -36,6 +44,7 @@ interface Campaign {
 export function MarketingAutomation() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const { toast } = useToast();
 
   // Form state for social media campaign
@@ -188,7 +197,7 @@ export function MarketingAutomation() {
             <BarChart3 className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => window.open('http://localhost:5678', '_blank', 'noopener')}>
             <Settings className="h-4 w-4 mr-2" />
             Settings
           </Button>
@@ -219,8 +228,10 @@ export function MarketingAutomation() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Coming soon</p>
+            <div className="text-2xl font-bold">
+              {campaigns.filter((c) => c.status === 'completed').length * campaigns.length || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">Based on completed campaigns</p>
           </CardContent>
         </Card>
 
@@ -232,8 +243,12 @@ export function MarketingAutomation() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0%</div>
-            <p className="text-xs text-muted-foreground">Coming soon</p>
+            <div className="text-2xl font-bold">
+              {campaigns.length > 0
+                ? `${Math.round((campaigns.filter((c) => c.status === 'completed').length / campaigns.length) * 100)}%`
+                : '0%'}
+            </div>
+            <p className="text-xs text-muted-foreground">Completion rate</p>
           </CardContent>
         </Card>
 
@@ -343,8 +358,11 @@ export function MarketingAutomation() {
                 <p className="text-sm text-muted-foreground">
                   Send targeted emails with Mautic integration
                 </p>
-                <Button variant="outline" size="sm" className="mt-3 w-full">
-                  Coming Soon
+                <Button variant="outline" size="sm" className="mt-3 w-full" asChild>
+                  <a href="http://localhost:5678" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-3 w-3 mr-2" />
+                    Open n8n
+                  </a>
                 </Button>
               </CardContent>
             </Card>
@@ -358,8 +376,11 @@ export function MarketingAutomation() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">Turn one post into multiple formats</p>
-                <Button variant="outline" size="sm" className="mt-3 w-full">
-                  Coming Soon
+                <Button variant="outline" size="sm" className="mt-3 w-full" asChild>
+                  <a href="http://localhost:5678" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-3 w-3 mr-2" />
+                    Open n8n
+                  </a>
                 </Button>
               </CardContent>
             </Card>
@@ -373,8 +394,11 @@ export function MarketingAutomation() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">Automated drip campaigns for leads</p>
-                <Button variant="outline" size="sm" className="mt-3 w-full">
-                  Coming Soon
+                <Button variant="outline" size="sm" className="mt-3 w-full" asChild>
+                  <a href="http://localhost:5678" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-3 w-3 mr-2" />
+                    Open n8n
+                  </a>
                 </Button>
               </CardContent>
             </Card>
@@ -416,7 +440,7 @@ export function MarketingAutomation() {
                           Created: {new Date(campaign.created_at).toLocaleString()}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => setSelectedCampaign(campaign)}>
                         View Details
                       </Button>
                     </div>
@@ -438,19 +462,38 @@ export function MarketingAutomation() {
               <CardDescription>Track your marketing performance</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Analytics dashboard coming soon. Will include:
-                </p>
-                <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                  <li>• Reach and impressions across all platforms</li>
-                  <li>• Engagement rates and trends</li>
-                  <li>• Best performing content</li>
-                  <li>• Optimal posting times</li>
-                  <li>• ROI tracking</li>
-                </ul>
-              </div>
+              {campaigns.length === 0 ? (
+                <div className="text-center py-12">
+                  <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    No campaigns to analyze yet. Create your first campaign to see analytics.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-4 bg-muted rounded-lg">
+                      <div className="text-sm text-muted-foreground">Total Campaigns</div>
+                      <div className="text-2xl font-bold">{campaigns.length}</div>
+                    </div>
+                    <div className="p-4 bg-muted rounded-lg">
+                      <div className="text-sm text-muted-foreground">Completed</div>
+                      <div className="text-2xl font-bold text-green-600">{campaigns.filter((c) => c.status === 'completed').length}</div>
+                    </div>
+                    <div className="p-4 bg-muted rounded-lg">
+                      <div className="text-sm text-muted-foreground">Running</div>
+                      <div className="text-2xl font-bold text-yellow-600">{campaigns.filter((c) => c.status === 'running').length}</div>
+                    </div>
+                    <div className="p-4 bg-muted rounded-lg">
+                      <div className="text-sm text-muted-foreground">Failed</div>
+                      <div className="text-2xl font-bold text-red-600">{campaigns.filter((c) => c.status === 'failed').length}</div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Platforms used: {[...new Set(campaigns.flatMap((c) => c.platforms))].join(', ') || 'None'}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -486,7 +529,7 @@ export function MarketingAutomation() {
                       5-email drip campaign for new leads
                     </p>
                   </div>
-                  <Badge variant="secondary">Coming Soon</Badge>
+                  <Badge variant="secondary">Planned</Badge>
                 </div>
 
                 <div className="flex items-center justify-between p-4 border rounded-lg opacity-50">
@@ -496,7 +539,7 @@ export function MarketingAutomation() {
                       Turn blog posts into social content
                     </p>
                   </div>
-                  <Badge variant="secondary">Coming Soon</Badge>
+                  <Badge variant="secondary">Planned</Badge>
                 </div>
               </div>
 
@@ -510,6 +553,51 @@ export function MarketingAutomation() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Campaign Detail Dialog */}
+      <Dialog open={!!selectedCampaign} onOpenChange={(open) => !open && setSelectedCampaign(null)}>
+        <DialogContent className="max-w-lg">
+          {selectedCampaign && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  {getStatusIcon(selectedCampaign.status)}
+                  {selectedCampaign.name}
+                </DialogTitle>
+                <DialogDescription>Campaign Details</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="text-xs text-muted-foreground">Type</div>
+                    <div className="font-medium">{selectedCampaign.type}</div>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="text-xs text-muted-foreground">Status</div>
+                    <Badge variant="secondary" className={getStatusColor(selectedCampaign.status)}>
+                      {selectedCampaign.status}
+                    </Badge>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="text-xs text-muted-foreground">Platforms</div>
+                    <div className="font-medium">{selectedCampaign.platforms.join(', ')}</div>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="text-xs text-muted-foreground">Created</div>
+                    <div className="font-medium">{new Date(selectedCampaign.created_at).toLocaleString('vi-VN')}</div>
+                  </div>
+                </div>
+                {selectedCampaign.scheduled_at && (
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="text-xs text-muted-foreground">Scheduled For</div>
+                    <div className="font-medium">{new Date(selectedCampaign.scheduled_at).toLocaleString('vi-VN')}</div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 /**
  * GPU Services Manager
  * 
- * Auto-start/stop TTS (VoxCPM) and ComfyUI servers for the pipeline.
+ * Auto-start/stop TTS (Fish Audio S2 + VoxCPM fallback) and ComfyUI servers for the pipeline.
  * Tracks spawned processes and cleans up on exit.
  * 
  * Usage:
@@ -15,12 +15,23 @@ import { join } from 'path';
 
 // ── Configuration (all env-overridable) ─────────────────────────────────
 
+// Fish Audio S2-Pro (primary TTS — 4B Dual-AR, port 8200)
+const FISH_PYTHON = process.env.FISH_PYTHON
+  || 'D:/0.PROJECTS/00-MASTER-ADMIN/services/fish-speech-venv/Scripts/python.exe';
+const FISH_SCRIPT = process.env.FISH_SCRIPT
+  || 'D:/0.PROJECTS/00-MASTER-ADMIN/services/fish-speech/tools/api_server.py';
+const FISH_CWD = process.env.FISH_CWD
+  || 'D:/0.PROJECTS/00-MASTER-ADMIN/services/fish-speech';
+const FISH_PORT = process.env.FISH_PORT || '8200';
+const FISH_URL = process.env.FISH_AUDIO_S2_URL || `http://localhost:${FISH_PORT}`;
+
+// VoxCPM-1.5-VN (Vietnamese fallback TTS — port 8100)
 const TTS_PYTHON = process.env.VOXCPM_PYTHON
-  || 'D:/0.PROJECTS/00-MASTER-ADMIN/voxcpm-tts/.venv/Scripts/python.exe';
+  || 'D:/0.PROJECTS/00-MASTER-ADMIN/services/voxcpm-tts/.venv/Scripts/python.exe';
 const TTS_SCRIPT = process.env.VOXCPM_SCRIPT
-  || 'D:/0.PROJECTS/00-MASTER-ADMIN/voxcpm-tts/server.py';
+  || 'D:/0.PROJECTS/00-MASTER-ADMIN/services/voxcpm-tts/server.py';
 const TTS_CWD = process.env.VOXCPM_CWD
-  || 'D:/0.PROJECTS/00-MASTER-ADMIN/voxcpm-tts';
+  || 'D:/0.PROJECTS/00-MASTER-ADMIN/services/voxcpm-tts';
 const TTS_PORT = process.env.VOXCPM_PORT || '8100';
 const TTS_URL = process.env.VOXCPM_API_URL || `http://localhost:${TTS_PORT}`;
 
@@ -30,9 +41,9 @@ const COMFYUI_MAIN = join(COMFYUI_DIR, 'main.py').replace(/\\/g, '/');
 const COMFYUI_PORT = process.env.COMFYUI_PORT || '8188';
 const COMFYUI_URL = process.env.COMFYUI_URL || `http://127.0.0.1:${COMFYUI_PORT}`;
 
-export { TTS_PYTHON };
+export { TTS_PYTHON, FISH_URL };
 
-const tracked = { tts: null, comfyui: null };
+const tracked = { fish_s2: null, tts: null, comfyui: null };
 
 // ── Health-check primitives ─────────────────────────────────────────────
 
@@ -61,6 +72,38 @@ async function pollReady(url, endpoint, maxWaitMs, label, intervalMs = 2000) {
 }
 
 // ── Start individual services ───────────────────────────────────────────
+
+export async function startFishS2() {
+  if (await isUp(FISH_URL, '/v1/health')) {
+    log('Fish Audio S2 already running');
+    return true;
+  }
+
+  if (!existsSync(FISH_PYTHON)) {
+    log(`⚠️  Fish S2 Python not found: ${FISH_PYTHON}`);
+    return false;
+  }
+
+  log('Starting Fish Audio S2-Pro (4B Dual-AR)...');
+  const child = spawn(FISH_PYTHON, [
+    FISH_SCRIPT,
+    '--llama-checkpoint-path', 'checkpoints/s2-pro',
+    '--decoder-checkpoint-path', 'checkpoints/s2-pro/codec.pth',
+    '--device', 'cuda',
+    '--half',
+    '--listen', `127.0.0.1:${FISH_PORT}`,
+  ], {
+    cwd: FISH_CWD,
+    stdio: 'ignore',
+    detached: true,
+    env: { ...process.env, PYTORCH_CUDA_ALLOC_CONF: 'max_split_size_mb:512' },
+  });
+  child.unref();
+  tracked.fish_s2 = child;
+
+  // S2-Pro 4B model loading takes 30–120s depending on GPU
+  return pollReady(FISH_URL, '/v1/health', 150_000, 'Fish Audio S2');
+}
 
 export async function startTTS() {
   if (await isUp(TTS_URL, '/v1/health')) {
@@ -131,11 +174,15 @@ export async function startAll() {
   log('Starting GPU services...');
   log('══════════════════════════════════════');
 
-  // Start both in parallel — they use different GPU memory pools initially
-  const [tts, comfyui] = await Promise.all([startTTS(), startComfyUI()]);
+  // Start all in parallel — Fish S2 + VoxCPM + ComfyUI
+  const [fish_s2, tts, comfyui] = await Promise.all([
+    startFishS2(),
+    startTTS(),
+    startComfyUI(),
+  ]);
 
-  log(`Services: TTS=${tts ? '✅' : '❌'}  ComfyUI=${comfyui ? '✅' : '❌'}`);
-  return { tts, comfyui };
+  log(`Services: FishS2=${fish_s2 ? '✅' : '❌'}  VoxCPM=${tts ? '✅' : '❌'}  ComfyUI=${comfyui ? '✅' : '❌'}`);
+  return { fish_s2, tts, comfyui };
 }
 
 function killTree(child, label) {
@@ -159,8 +206,10 @@ export async function stopAll() {
   log('══════════════════════════════════════');
   log('Stopping GPU services...');
   log('══════════════════════════════════════');
-  killTree(tracked.tts, 'TTS');
+  killTree(tracked.fish_s2, 'Fish Audio S2');
+  killTree(tracked.tts, 'VoxCPM TTS');
   killTree(tracked.comfyui, 'ComfyUI');
+  tracked.fish_s2 = null;
   tracked.tts = null;
   tracked.comfyui = null;
 }
@@ -168,7 +217,8 @@ export async function stopAll() {
 // ── Auto-cleanup on unexpected exit ─────────────────────────────────────
 
 function cleanup() {
-  killTree(tracked.tts, 'TTS');
+  killTree(tracked.fish_s2, 'Fish Audio S2');
+  killTree(tracked.tts, 'VoxCPM TTS');
   killTree(tracked.comfyui, 'ComfyUI');
 }
 

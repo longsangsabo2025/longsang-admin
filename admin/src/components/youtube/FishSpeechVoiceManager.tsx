@@ -1,7 +1,7 @@
 /**
- * 🐟 Fish Speech Voice Manager
+ * 🐟 Fish Audio S2 Voice Manager
  * Upload audio mẫu để clone voice, quản lý danh sách voices đã tạo.
- * Fish Speech server chạy local trên port 8200.
+ * Fish Audio S2-Pro server chạy local trên port 8200.
  */
 
 import { Loader2, Mic, Play, Plus, RefreshCw, Square, Trash2, Upload } from 'lucide-react';
@@ -62,7 +62,7 @@ export function FishSpeechVoiceManager({
       setVoices(data.reference_ids || []);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Không kết nối được Fish Speech server (port 8200)'
+        err instanceof Error ? err.message : 'Không kết nối được Fish Audio S2 server (port 8200)'
       );
       setVoices([]);
     } finally {
@@ -141,7 +141,7 @@ export function FishSpeechVoiceManager({
     setPreviewingId(id);
     try {
       const body: Record<string, unknown> = {
-        text: 'Xin chào, đây là giọng đọc mẫu từ Fish Speech.',
+        text: 'Xin chào, đây là giọng đọc mẫu từ Fish Audio S2.',
         format: 'wav',
         chunk_length: 200,
         top_p: 0.8,
@@ -212,7 +212,7 @@ export function FishSpeechVoiceManager({
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-orange-400">🐟 Fish Speech Voice Manager</span>
+        <span className="text-xs font-semibold text-orange-400">🐟 Fish Audio S2 Voice Manager</span>
         <div className="flex gap-1">
           <Button
             variant="ghost"
@@ -417,7 +417,7 @@ export function FishSpeechVoiceManager({
       )}
 
       <p className="text-[9px] text-muted-foreground">
-        💡 Upload file audio 5-30 giây (giọng rõ ràng, ít noise) + text tương ứng. Fish Speech sẽ
+        💡 Upload file audio 5-30 giây (giọng rõ ràng, ít noise) + text tương ứng. Fish Audio S2 sẽ
         clone giọng đó cho voiceover.
       </p>
     </div>

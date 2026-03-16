@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -89,6 +90,7 @@ const learningPaths: PathStep[] = [
 ];
 
 export function LearningPath() {
+  const navigate = useNavigate();
   const completedSteps = learningPaths.filter((step) => step.isCompleted).length;
   const totalSteps = learningPaths.length;
   const overallProgress = (completedSteps / totalSteps) * 100;
@@ -222,6 +224,7 @@ export function LearningPath() {
                       className="w-full"
                       variant={step.isCurrent ? 'default' : 'outline'}
                       disabled={!step.isUnlocked}
+                      onClick={() => navigate('/academy')}
                     >
                       {step.isCompleted ? 'Review' : step.isCurrent ? 'Continue Learning' : 'Start'}
                       <ArrowRight className="h-4 w-4 ml-2" />

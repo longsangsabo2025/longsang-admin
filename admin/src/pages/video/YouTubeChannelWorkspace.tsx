@@ -73,7 +73,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import PipelineRoadmap, { type PipelineConfig } from '@/components/youtube/PipelineRoadmap';
-import { DEFAULT_PIPELINE } from '@/components/youtube/pipeline-types';
+import { DEFAULT_PIPELINE, DEFAULT_VISUAL_IDENTITY, type VisualIdentity } from '@/components/youtube/pipeline-types';
 import SmartAudio from '@/components/youtube/SmartAudio';
 import { toast, useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -114,10 +114,10 @@ import type { GenerateRequest, GenerationRun } from '@/services/youtube-channels
 import { youtubeChannelsService } from '@/services/youtube-channels.service';
 
 // ─── Read Pipeline config from localStorage (synced with PipelineRoadmap) ──
-const PIPELINE_STORAGE_KEY = 'yt-pipeline-config';
-function getSavedPipelineConfig(): PipelineConfig {
+function getSavedPipelineConfig(chId?: string): PipelineConfig {
+  const key = chId ? `yt-pipeline-config-${chId}` : 'yt-pipeline-config';
   try {
-    const raw = localStorage.getItem(PIPELINE_STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     if (raw) return { ...DEFAULT_PIPELINE, ...JSON.parse(raw) };
   } catch {
     /* ignore corrupt data */
@@ -153,6 +153,7 @@ export default function YouTubeChannelWorkspace() {
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
   const [batchMode, setBatchMode] = useState(false);
   const [batchTopics, setBatchTopics] = useState('');
+  const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
   const [batchLaunching, setBatchLaunching] = useState(false);
   const [activeTab, setActiveTab] = useState(s.activeTab || 'generate');
   const [voiceConfig, setVoiceConfig] = useState<{
@@ -174,8 +175,9 @@ export default function YouTubeChannelWorkspace() {
   useEffect(() => {
     localStorage.setItem('yt-voice-config', JSON.stringify(voiceConfig));
     // Sync voice settings to Pipeline config so both tabs stay consistent
+    const pipeKey = channelId ? `yt-pipeline-config-${channelId}` : 'yt-pipeline-config';
     try {
-      const raw = localStorage.getItem('yt-pipeline-config');
+      const raw = localStorage.getItem(pipeKey);
       if (raw) {
         const cfg = JSON.parse(raw);
         if (cfg.voiceover) {
@@ -183,13 +185,13 @@ export default function YouTubeChannelWorkspace() {
           cfg.voiceover.voice = voiceConfig.voice;
           cfg.voiceover.speed = voiceConfig.speed;
           if (voiceConfig.cleanedScript) cfg.voiceover.cleanedScript = voiceConfig.cleanedScript;
-          localStorage.setItem('yt-pipeline-config', JSON.stringify(cfg));
+          localStorage.setItem(pipeKey, JSON.stringify(cfg));
         }
       }
     } catch {
       /* ignore */
     }
-  }, [voiceConfig]);
+  }, [voiceConfig, channelId]);
 
   // ── Hydrate Key Pool from Supabase on mount ──
   useEffect(() => {
@@ -377,6 +379,7 @@ export default function YouTubeChannelWorkspace() {
       assemblyScenePadding: pipelineConfig.assembly.scenePadding,
       assemblyWatermarkUrl: pipelineConfig.assembly.watermarkUrl || undefined,
     };
+    if (selectedPlaylist) req.playlist = selectedPlaylist;
     if (mode === 'topic' && topic.trim()) {
       req.topic = topic.trim();
     } else if (mode === 'transcript' && transcript) {
@@ -431,6 +434,7 @@ export default function YouTubeChannelWorkspace() {
       assemblyScenePadding: pipelineConfig.assembly.scenePadding,
       assemblyWatermarkUrl: pipelineConfig.assembly.watermarkUrl || undefined,
     };
+    if (selectedPlaylist) req.playlist = selectedPlaylist;
     // Step re-run: prioritize the activeRun's topic (the run we're re-running)
     // over the input field which may contain a stale/different topic
     if (activeRun?.input?.topic) {
@@ -510,6 +514,7 @@ export default function YouTubeChannelWorkspace() {
         assemblyTransitionDuration: pipelineConfig.assembly.transitionDuration,
         assemblyScenePadding: pipelineConfig.assembly.scenePadding,
         assemblyWatermarkUrl: pipelineConfig.assembly.watermarkUrl || undefined,
+        playlist: selectedPlaylist || undefined,
       };
       try {
         const data = await youtubeChannelsService.generate(req);
@@ -757,7 +762,18 @@ export default function YouTubeChannelWorkspace() {
               {mode === 'topic' ? (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Topic</Label>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs">Topic</Label>
+                      {selectedPlaylist && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] text-primary border-primary/40 cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40 transition-colors"
+                          onClick={() => setSelectedPlaylist(null)}
+                        >
+                          📂 {selectedPlaylist} ✕
+                        </Badge>
+                      )}
+                    </div>
                     <Button
                       variant={batchMode ? 'default' : 'ghost'}
                       size="sm"
@@ -860,12 +876,22 @@ export default function YouTubeChannelWorkspace() {
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Playlists</Label>
                     {channel.playlists.map((pl, i) => (
-                      <div key={i} className="flex items-center justify-between text-xs">
+                      <div
+                        key={i}
+                        className={`flex items-center justify-between text-xs px-2 py-1 rounded cursor-pointer transition-colors ${
+                          selectedPlaylist === pl.name
+                            ? 'bg-primary/15 border border-primary/40 ring-1 ring-primary/20'
+                            : 'hover:bg-muted/80'
+                        }`}
+                        onClick={() =>
+                          setSelectedPlaylist(selectedPlaylist === pl.name ? null : pl.name)
+                        }
+                      >
                         <span>
                           {pl.icon} {pl.name}
                         </span>
                         <Badge variant="secondary" className="text-[10px]">
-                          {pl.episodes} ep
+                          {channelRuns.filter((r) => r.input?.playlist === pl.name && r.status === 'completed').length} ep
                         </Badge>
                       </div>
                     ))}
@@ -909,6 +935,14 @@ export default function YouTubeChannelWorkspace() {
                             className="text-[10px] font-normal max-w-[260px] truncate"
                           >
                             {activeRun.episodeNumber ? `Tập ${activeRun.episodeNumber} — ` : ''}{activeRun.input.topic}
+                          </Badge>
+                        )}
+                        {(activeRun?.input?.playlist || (!activeRunId && selectedPlaylist)) && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-normal border-primary/40 text-primary"
+                          >
+                            📂 {activeRun?.input?.playlist || selectedPlaylist}
                           </Badge>
                         )}
                         {!activeRunId && topic.trim() && (
@@ -1139,6 +1173,11 @@ export default function YouTubeChannelWorkspace() {
                               <span className="text-[10px] text-muted-foreground/60 shrink-0">
                                 {new Date(runs[0].startedAt).toLocaleDateString('vi-VN')}
                               </span>
+                              {runs[0].input?.playlist && (
+                                <Badge variant="outline" className="text-[10px] shrink-0 border-primary/40 text-primary">
+                                  📂 {runs[0].input.playlist}
+                                </Badge>
+                              )}
                               <Badge variant="secondary" className="text-[10px] shrink-0">
                                 {runs.length} run{runs.length > 1 ? 's' : ''}
                               </Badge>
@@ -1181,7 +1220,7 @@ export default function YouTubeChannelWorkspace() {
                 <ResultsView
                   run={activeRun}
                   onRunImageGen={() => {
-                    const cfg = getSavedPipelineConfig();
+                    const cfg = getSavedPipelineConfig(channelId);
                     handlePipelineStepRun('imageGen', {
                       ...cfg,
                       imageGen: { ...cfg.imageGen, enabled: true },
@@ -1196,7 +1235,7 @@ export default function YouTubeChannelWorkspace() {
                     });
                   }}
                   onRunVoiceover={() => {
-                    const cfg = getSavedPipelineConfig();
+                    const cfg = getSavedPipelineConfig(channelId);
                     handlePipelineStepRun('voiceover', {
                       ...cfg,
                       imageGen: { ...cfg.imageGen, enabled: false },
@@ -1212,7 +1251,7 @@ export default function YouTubeChannelWorkspace() {
                     });
                   }}
                   onRunAssembly={() => {
-                    const cfg = getSavedPipelineConfig();
+                    const cfg = getSavedPipelineConfig(channelId);
                     handlePipelineStepRun('assembly', {
                       ...cfg,
                       imageGen: { ...cfg.imageGen, enabled: false },
@@ -3163,6 +3202,7 @@ function StoryboardEditor({
   scriptContext,
   channelId,
   existingImages,
+  visualIdentity,
 }: {
   scenes: SceneData[];
   imageMap: Map<number, string>;
@@ -3173,7 +3213,9 @@ function StoryboardEditor({
   scriptContext?: string;
   channelId?: string;
   existingImages?: { scene: number; url: string; prompt: string }[];
+  visualIdentity?: VisualIdentity;
 }) {
+  const vi = visualIdentity || DEFAULT_VISUAL_IDENTITY;
   const [scenes, setScenes] = useState<SceneData[]>(initialScenes);
   const [imageMap, setImageMap] = useState<Map<number, string>>(initialImageMap);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
@@ -3333,7 +3375,9 @@ function StoryboardEditor({
         const scene = missingImageScenes[i];
         setImgProgress(`🖼️ Tạo ảnh scene ${scene.scene} (${i + 1}/${missingImageScenes.length})...`);
         try {
-          const fullPrompt = `${scene.prompt} 16:9 aspect ratio, photorealistic cinematic quality, film grain.`;
+          const styleTag = vi.stylePrompt ? ` ${vi.stylePrompt.slice(0, 200)}` : '';
+          const negTag = vi.negativePrompt ? ` Avoid: ${vi.negativePrompt}` : '';
+          const fullPrompt = `${scene.prompt} 16:9 aspect ratio.${styleTag}${negTag}`;
           const result = await generateSingleImage(fullPrompt, apiKey);
           if (result) {
             const publicUrl = await uploadToStorage(
@@ -3444,9 +3488,14 @@ function StoryboardEditor({
 
       const systemPrompt = `Bạn là Visual Director chuyên nghiệp. Tạo ${addCount} scene MỚI tiếp nối storyboard hiện có.
 
+## VISUAL STYLE (BẮT BUỘC tuân theo cho TẤT CẢ scene prompts):
+${vi.stylePrompt}
+${vi.negativePrompt ? `Avoid: ${vi.negativePrompt}` : ''}
+
 Quy tắc:
 - Mỗi scene có: dialogue (lời thoại narrator), prompt (mô tả hình ảnh chi tiết bằng tiếng Anh cho AI image gen), motion (camera movement), transition
-- Prompt phải rất chi tiết, cinematic, mô tả rõ chủ thể, ánh sáng, góc quay, phong cách
+- Prompt PHẢI phản ánh đúng visual style ở trên: ánh sáng, màu sắc, mood, phong cách nhất quán
+- Prompt phải rất chi tiết, mô tả rõ chủ thể, ánh sáng, góc quay theo style đã định
 - Motion options: slow zoom in, slow zoom out, pan left to right, pan right to left, tilt up, tilt down, dolly forward, static wide shot, handheld subtle
 - Transition options: fade through black, cross dissolve, cut, whip pan, fade to white
 - Dialogue bằng tiếng Việt, tự nhiên, phù hợp narration
@@ -4154,6 +4203,7 @@ function ResultsView({
                   scriptContext={scriptTxt}
                   channelId={run.channelId}
                   existingImages={imagesJson?.images}
+                  visualIdentity={getSavedPipelineConfig(channelId).storyboard.visualIdentity}
                 />
               ) : (
                 <ScrollArea className="h-[600px]">
