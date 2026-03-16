@@ -70,61 +70,24 @@ export type { PipelineConfig } from './pipeline-types';
 
 const CHANNEL_VISUAL_PRESETS: Record<string, VisualIdentity> = {
   'dung-day-di': {
-    style: 'dark-cinematic',
-    colorPalette: 'deep blacks, dark blues, blood red accents, golden highlights',
-    lighting: 'low-key dramatic, single spotlight, rim lighting',
-    cameraStyle: 'slow zoom in, extreme close-up, dolly forward',
-    characterPresence: 'silhouette',
-    characterDesc: 'lone masculine silhouette, strong posture, wearing dark clothing',
-    environment: 'dark alleyways, rainy streets, empty rooms, rooftops at night',
-    moodKeywords: 'cinematic, dramatic, mysterious, powerful, dark philosophy, warrior',
+    stylePrompt: 'Dark cinematic style. Deep blacks, dark blues, blood red accents, golden highlights. Low-key dramatic lighting with single spotlight and rim lighting. Slow zoom in, extreme close-up, dolly forward camera. Lone masculine silhouette with strong posture in dark clothing. Dark alleyways, rainy streets, empty rooms, rooftops at night. Cinematic, dramatic, mysterious, powerful, dark philosophy, warrior mood.',
     negativePrompt: 'text, watermark, logo, cartoon, anime, bright cheerful colors, smiling faces',
   },
   'sach-15-phut': {
-    style: 'storytelling',
-    colorPalette: 'warm earth tones, cream, dark brown, amber, soft gold',
-    lighting: 'warm ambient, soft window light, golden hour',
-    cameraStyle: 'medium shot, gentle pan, static wide',
-    characterPresence: 'none',
-    characterDesc: '',
-    environment: 'cozy library, coffee shop, reading nook, book-filled rooms',
-    moodKeywords: 'warm, intellectual, inviting, cozy, thoughtful, wisdom',
+    stylePrompt: 'Warm storytelling illustration style. Earth tones — cream, dark brown, amber, soft gold. Warm ambient lighting with soft window light and golden hour glow. Medium shot, gentle pan. No human characters — focus on environment and objects. Cozy library, coffee shop, reading nook, book-filled rooms. Warm, intellectual, inviting, cozy, thoughtful, wisdom mood.',
     negativePrompt: 'text, watermark, logo, neon, cyberpunk, dark horror, violence',
   },
   'ai-builder-vn': {
-    style: 'bright-modern',
-    colorPalette: 'electric blue, white, neon green accents, clean gradients',
-    lighting: 'bright studio, even lighting, soft shadows, screen glow',
-    cameraStyle: 'eye-level static, gentle zoom, over-shoulder screen view',
-    characterPresence: 'faceless',
-    characterDesc: 'hands typing on keyboard, person at desk with multiple monitors',
-    environment: 'modern workspace, dual monitors, code on screen, clean desk setup',
-    moodKeywords: 'tech, modern, clean, futuristic, productive, innovative',
+    stylePrompt: 'Bright modern tech style. Electric blue, white, neon green accents, clean gradients. Bright studio lighting with even light and soft shadows. Eye-level static camera, gentle zoom. Faceless person — hands typing on keyboard, person at desk with multiple monitors. Modern workspace, dual monitors, code on screen, clean desk setup. Tech, modern, clean, futuristic, productive, innovative mood.',
     negativePrompt: 'text, watermark, logo, old-fashioned, rustic, dark moody',
   },
   'tien-thong-minh': {
-    style: 'dark-cinematic',
-    colorPalette: 'dark emerald green, gold, black, silver metallic',
-    lighting: 'dramatic side lighting, spotlight on subject, dark background',
-    cameraStyle: 'slow dolly forward, close-up on details, wide establishing',
-    characterPresence: 'silhouette',
-    characterDesc: 'business person silhouette, suit, looking at financial data',
-    environment: 'stock market screens, money imagery, dark office, city skyline at night',
-    moodKeywords: 'financial, serious, powerful, data-driven, wealth, strategic',
+    stylePrompt: 'Dark cinematic finance style. Dark emerald green, gold, black, silver metallic. Dramatic side lighting with spotlight on subject and dark background. Slow dolly forward camera, close-up on details. Business person silhouette in suit looking at financial data. Stock market screens, money imagery, dark office, city skyline at night. Financial, serious, powerful, data-driven, wealth, strategic mood.',
     negativePrompt: 'text, watermark, logo, cartoon, anime, bright playful colors',
   },
   'ly-black': {
-    style: 'neon-cyberpunk',
-    colorPalette: 'deep black, neon purple, electric pink, holographic blue',
-    lighting: 'neon glow, volumetric light, lens flare, bioluminescent',
-    cameraStyle: 'slow zoom in, static portrait, fade through black',
-    characterPresence: 'consistent-character',
-    characterDesc:
-      'Ly Black: Vietnamese AI virtual woman, short black hair, glowing purple eyes, minimalist black outfit, ethereal digital aura',
-    environment: 'digital void, abstract data streams, futuristic city, mirror reflections',
-    moodKeywords: 'mysterious, ethereal, digital, noir, philosophical, AI consciousness',
-    negativePrompt:
-      'text, watermark, logo, realistic human faces, bright daylight, nature, cartoon',
+    stylePrompt: 'Neon cyberpunk style. Deep black, neon purple, electric pink, holographic blue. Neon glow lighting with volumetric light, lens flare, bioluminescent effects. Slow zoom in, static portrait camera. Consistent character: Ly Black — Vietnamese AI virtual woman, short black hair, glowing purple eyes, minimalist black outfit, ethereal digital aura. Digital void, abstract data streams, futuristic city, mirror reflections. Mysterious, ethereal, digital, noir, philosophical, AI consciousness mood.',
+    negativePrompt: 'text, watermark, logo, realistic human faces, bright daylight, nature, cartoon',
   },
 };
 
@@ -812,11 +775,15 @@ function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineCon
       const parsed = JSON.parse(raw) as PipelineConfig;
       // Ensure all keys exist (in case we add new steps later)
       const merged = { ...DEFAULT_PIPELINE, ...parsed };
+      // Migrate old 9-field VI → new 2-field VI if needed
+      if (merged.storyboard.visualIdentity && !merged.storyboard.visualIdentity.stylePrompt) {
+        merged.storyboard.visualIdentity = visualPreset || DEFAULT_VISUAL_IDENTITY;
+      }
       // Apply channel visual identity if available and storyboard doesn't have one yet
-      if (visualPreset && !merged.storyboard.visualIdentity?.colorPalette) {
+      if (visualPreset && !merged.storyboard.visualIdentity?.stylePrompt) {
         merged.storyboard = {
           ...merged.storyboard,
-          style: channelStyle || visualPreset.style || merged.storyboard.style,
+          style: channelStyle || merged.storyboard.style,
           visualIdentity: { ...visualPreset },
         };
       }
@@ -829,7 +796,7 @@ function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineCon
     ...DEFAULT_PIPELINE,
     storyboard: {
       ...DEFAULT_PIPELINE.storyboard,
-      style: channelStyle || visualPreset?.style || DEFAULT_PIPELINE.storyboard.style,
+      style: channelStyle || DEFAULT_PIPELINE.storyboard.style,
       visualIdentity: visualPreset || DEFAULT_VISUAL_IDENTITY,
     },
   };
@@ -861,7 +828,6 @@ export default function PipelineRoadmap({
         ...prev,
         storyboard: {
           ...prev.storyboard,
-          style: preset.style,
           visualIdentity: { ...preset },
         },
       }));
@@ -1658,7 +1624,7 @@ function StoryboardConfig({
   wordTarget?: number;
   onUpdate: (u: Partial<PipelineConfig['storyboard']>) => void;
 }) {
-  const vi = config.visualIdentity;
+  const vi = config.visualIdentity || DEFAULT_VISUAL_IDENTITY;
   const channelPreset = channelId ? CHANNEL_VISUAL_PRESETS[channelId] : undefined;
   const [showVisualId, setShowVisualId] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -1684,7 +1650,6 @@ function StoryboardConfig({
   const applyChannelPreset = () => {
     if (channelPreset) {
       onUpdate({
-        style: channelPreset.style,
         visualIdentity: { ...channelPreset },
       });
       setPreviewImage(null); // clear old preview
@@ -1744,20 +1709,10 @@ function StoryboardConfig({
   const generatePreview = async () => {
     setIsGeneratingPreview(true);
     try {
-      // Build comprehensive prompt from visual identity
+      // Build prompt from simplified visual identity
       const parts: string[] = [];
       parts.push(`A cinematic still frame for a YouTube video thumbnail.`);
-      parts.push(`Visual style: ${vi.style.replace(/-/g, ' ')}.`);
-      if (vi.colorPalette) parts.push(`Color palette: ${vi.colorPalette}.`);
-      if (vi.lighting) parts.push(`Lighting: ${vi.lighting}.`);
-      if (vi.cameraStyle) parts.push(`Camera: ${vi.cameraStyle}.`);
-      if (vi.characterPresence !== 'none' && vi.characterDesc) {
-        parts.push(`Character: ${vi.characterDesc}.`);
-      } else if (vi.characterPresence === 'none') {
-        parts.push(`No human characters, focus on environment and objects.`);
-      }
-      if (vi.environment) parts.push(`Environment: ${vi.environment}.`);
-      if (vi.moodKeywords) parts.push(`Mood: ${vi.moodKeywords}.`);
+      parts.push(vi.stylePrompt);
       parts.push(`16:9 aspect ratio, photorealistic cinematic quality, film grain.`);
       if (vi.negativePrompt) parts.push(`Do NOT include: ${vi.negativePrompt}.`);
 
@@ -1944,7 +1899,7 @@ function StoryboardConfig({
           <Label className="text-xs">Visual Style</Label>
           <Select
             value={config.style}
-            onValueChange={(v) => onUpdate({ style: v, visualIdentity: { ...vi, style: v } })}
+            onValueChange={(v) => onUpdate({ style: v })}
           >
             <SelectTrigger className="h-8 text-xs">
               <SelectValue />
@@ -1982,7 +1937,7 @@ function StoryboardConfig({
                 {currentPreview.moodShort}
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground">{vi.lighting.split(',')[0]}</span>
+            <span className="text-[10px] text-muted-foreground">{vi.stylePrompt?.slice(0, 40) || 'No style'}</span>
           </div>
         )}
 
@@ -2166,137 +2121,20 @@ function StoryboardConfig({
 
         {showVisualId && (
           <div className="px-3 pb-3 space-y-3 border-t border-purple-500/20 pt-3">
-            {/* Character Presence */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Character Presence</Label>
-                <Select
-                  value={vi.characterPresence}
-                  onValueChange={(v: VisualIdentity['characterPresence']) =>
-                    updateVi({ characterPresence: v })
-                  }
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">🚫 No Character</SelectItem>
-                    <SelectItem value="silhouette">👤 Silhouette Only</SelectItem>
-                    <SelectItem value="faceless">🧑 Faceless (body only)</SelectItem>
-                    <SelectItem value="consistent-character">🎭 Consistent Character</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Lighting</Label>
-                <Select value={vi.lighting} onValueChange={(v) => updateVi({ lighting: v })}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low-key dramatic, single spotlight">
-                      Low-key Dramatic
-                    </SelectItem>
-                    <SelectItem value="low-key dramatic, single spotlight, rim lighting">
-                      Dramatic + Rim Light
-                    </SelectItem>
-                    <SelectItem value="warm ambient, soft window light, golden hour">
-                      Warm Ambient
-                    </SelectItem>
-                    <SelectItem value="bright studio, even lighting, soft shadows">
-                      Bright Studio
-                    </SelectItem>
-                    <SelectItem value="neon glow, volumetric light, lens flare">
-                      Neon Glow
-                    </SelectItem>
-                    <SelectItem value="natural daylight, soft shadows">Natural Daylight</SelectItem>
-                    <SelectItem value="dramatic side lighting, spotlight on subject">
-                      Side Spotlight
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Camera + Color */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Camera Style</Label>
-                <Select value={vi.cameraStyle} onValueChange={(v) => updateVi({ cameraStyle: v })}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="slow zoom in, close-up focus">
-                      Slow Zoom + Close-up
-                    </SelectItem>
-                    <SelectItem value="slow zoom in, extreme close-up, dolly forward">
-                      Extreme Close-up + Dolly
-                    </SelectItem>
-                    <SelectItem value="medium shot, gentle pan, static wide">
-                      Medium Pan + Wide
-                    </SelectItem>
-                    <SelectItem value="eye-level static, gentle zoom, over-shoulder">
-                      Eye-level + Over-shoulder
-                    </SelectItem>
-                    <SelectItem value="slow dolly forward, close-up on details, wide establishing">
-                      Dolly + Wide Establishing
-                    </SelectItem>
-                    <SelectItem value="slow zoom in, static portrait, fade through black">
-                      Portrait + Fade
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Color Palette</Label>
-                <Input
-                  className="h-8 text-xs"
-                  placeholder="e.g. deep blacks, golden highlights"
-                  value={vi.colorPalette}
-                  onChange={(e) => updateVi({ colorPalette: e.target.value })}
-                />
-              </div>
-            </div>
-
-            {/* Character Description (only shown if character is present) */}
-            {vi.characterPresence !== 'none' && (
-              <div className="space-y-1">
-                <Label className="text-xs">Character Description</Label>
-                <Input
-                  className="h-8 text-xs"
-                  placeholder="e.g. Vietnamese man, 30s, dark hoodie, strong posture"
-                  value={vi.characterDesc}
-                  onChange={(e) => updateVi({ characterDesc: e.target.value })}
-                />
-              </div>
-            )}
-
-            {/* Environment + Mood */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Environment / Backdrop</Label>
-                <Input
-                  className="h-8 text-xs"
-                  placeholder="e.g. dark alleyways, rainy streets"
-                  value={vi.environment}
-                  onChange={(e) => updateVi({ environment: e.target.value })}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Mood Keywords</Label>
-                <Input
-                  className="h-8 text-xs"
-                  placeholder="cinematic, dramatic, mysterious"
-                  value={vi.moodKeywords}
-                  onChange={(e) => updateVi({ moodKeywords: e.target.value })}
-                />
-              </div>
+            {/* Style Prompt */}
+            <div className="space-y-1">
+              <Label className="text-xs">Style Prompt (mô tả phong cách kênh)</Label>
+              <textarea
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs min-h-[80px] resize-y focus:outline-none focus:ring-1 focus:ring-purple-500/50"
+                placeholder="VD: Phong cách người que đơn giản, nền trắng, nét vẽ đen, hài hước..."
+                value={vi.stylePrompt}
+                onChange={(e) => updateVi({ stylePrompt: e.target.value })}
+              />
             </div>
 
             {/* Negative prompt */}
             <div className="space-y-1">
-              <Label className="text-xs">Negative Prompt (avoid in images)</Label>
+              <Label className="text-xs">Negative Prompt (tránh trong ảnh)</Label>
               <Input
                 className="h-8 text-xs"
                 placeholder="text, watermark, logo, cartoon..."
@@ -2729,7 +2567,7 @@ Quy tắc:
             ...(config.voice && config.voice !== 'default' ? { reference_id: config.voice } : {}),
           }),
         });
-        if (!res.ok) throw new Error(`Fish Speech error ${res.status}`);
+        if (!res.ok) throw new Error(`Fish Audio S2 error ${res.status}`);
         blob = await res.blob();
       } else if (config.engine === 'gemini-tts') {
         const apiKey = getNextKey('gemini');

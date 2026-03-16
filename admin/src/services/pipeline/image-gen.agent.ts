@@ -174,7 +174,7 @@ export async function scanStorageForImages(
   return results;
 }
 
-/** Build a rich visual prompt for a scene using visual identity + scene prompt */
+/** Build a visual prompt for a scene — style is already baked into scene.prompt by storyboard */
 function buildScenePrompt(
   scene: StoryboardScene,
   vi?: GenerateRequest['visualIdentity'],
@@ -184,18 +184,10 @@ function buildScenePrompt(
 
   parts.push(scene.prompt);
 
-  if (vi) {
-    if (vi.style) parts.push(`Visual style: ${vi.style.replace(/-/g, ' ')}.`);
-    if (vi.colorPalette) parts.push(`Color palette: ${vi.colorPalette}.`);
-    if (vi.lighting) parts.push(`Lighting: ${vi.lighting}.`);
-    if (vi.cameraStyle) parts.push(`Camera: ${vi.cameraStyle}.`);
-    if (vi.environment) parts.push(`Environment: ${vi.environment}.`);
-    if (vi.moodKeywords) parts.push(`Mood: ${vi.moodKeywords}.`);
-    if (vi.negativePrompt) parts.push(`Do NOT include: ${vi.negativePrompt}.`);
-  }
-
   const ratio = aspectRatio || '16:9';
   parts.push(`${ratio} aspect ratio, photorealistic cinematic quality, film grain.`);
+
+  if (vi?.negativePrompt) parts.push(`Do NOT include: ${vi.negativePrompt}.`);
 
   return parts.join(' ');
 }

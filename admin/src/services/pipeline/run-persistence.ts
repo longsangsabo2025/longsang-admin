@@ -26,6 +26,7 @@ interface DbRow {
     result?: unknown;
     pipelineSteps?: string[];
     completedSteps?: string[];
+    episodeNumber?: number;
   };
   error_message: string | null;
   total_duration_ms: number;
@@ -45,6 +46,7 @@ function toRow(run: GenerationRun): Omit<DbRow, never> {
       result: run.result,
       pipelineSteps: run.pipelineSteps,
       completedSteps: run.completedSteps,
+      episodeNumber: run.episodeNumber,
     },
     error_message: run.error || null,
     total_duration_ms: run.durationMs || 0,
@@ -61,6 +63,7 @@ function fromRow(row: DbRow): GenerationRun {
     result?: { outputDir: string; files: Record<string, unknown> };
     pipelineSteps?: string[];
     completedSteps?: string[];
+    episodeNumber?: number;
   };
   return {
     id: row.pipeline_id,
@@ -75,6 +78,7 @@ function fromRow(row: DbRow): GenerationRun {
     result: stages.result as GenerationRun['result'],
     hasResult: !!stages.result,
     error: row.error_message || undefined,
+    episodeNumber: stages.episodeNumber,
     pipelineSteps: stages.pipelineSteps,
     completedSteps: stages.completedSteps,
   };

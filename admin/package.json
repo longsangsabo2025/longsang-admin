@@ -43,7 +43,7 @@
     "desktop:build:win": "npm run build && electron-builder --win",
     "desktop:dev": "cross-env NODE_ENV=development electron .",
     "dev": "concurrently -n \"VITE,API\" -c \"cyan,green\" \"npm run dev:frontend\" \"npm run dev:api\"",
-    "dev:api": "cd api && node server.js",
+    "dev:api": "cd ../api && node server.js",
     "dev:frontend": "vite",
     "dev:kb-api": "node kb-api-server.mjs",
     "fix:auto": "node scripts/auto-fix-errors-from-db.mjs",

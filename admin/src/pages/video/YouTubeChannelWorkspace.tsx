@@ -908,7 +908,7 @@ export default function YouTubeChannelWorkspace() {
                             variant="secondary"
                             className="text-[10px] font-normal max-w-[260px] truncate"
                           >
-                            {activeRun.input.topic}
+                            {activeRun.episodeNumber ? `Tập ${activeRun.episodeNumber} — ` : ''}{activeRun.input.topic}
                           </Badge>
                         )}
                         {!activeRunId && topic.trim() && (
@@ -940,10 +940,11 @@ export default function YouTubeChannelWorkspace() {
                       {channelRuns.slice(0, 4).map((run) => {
                         const isActive = activeRunId === run.id;
                         const isRunning = runningRunIds.has(run.id);
+                        const epPrefix = run.episodeNumber ? `T${run.episodeNumber}. ` : '';
                         const label =
-                          run.input?.topic?.slice(0, 28) ||
-                          run.input?.transcript?.slice(0, 20) ||
-                          run.id.slice(0, 8);
+                          epPrefix + (run.input?.topic?.slice(0, 24) ||
+                          run.input?.transcript?.slice(0, 18) ||
+                          run.id.slice(0, 8));
                         return (
                           <Button
                             key={run.id}
@@ -1006,7 +1007,7 @@ export default function YouTubeChannelWorkspace() {
                                   : run.status === 'failed'
                                     ? '❌'
                                     : '⏳'}{' '}
-                                {run.input?.topic?.slice(0, 40) || run.id.slice(0, 8)}
+                                {run.episodeNumber ? `T${run.episodeNumber}. ` : ''}{run.input?.topic?.slice(0, 35) || run.id.slice(0, 8)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -1056,7 +1057,11 @@ export default function YouTubeChannelWorkspace() {
                 <CardHeader className="flex-row items-center justify-between">
                   <div>
                     <CardTitle>Generation History</CardTitle>
-                    <CardDescription>{channelRuns.length} runs for this channel</CardDescription>
+                    <CardDescription>
+                      {new Set(channelRuns.map((r) => r.input?.topic || r.input?.transcript)).size} tập
+                      {' • '}
+                      {channelRuns.length} runs for this channel
+                    </CardDescription>
                   </div>
                   <Button
                     variant="outline"
@@ -1094,14 +1099,41 @@ export default function YouTubeChannelWorkspace() {
                           if (!groups.has(key)) groups.set(key, []);
                           groups.get(key)!.push(run);
                         }
-                        return Array.from(groups.entries()).map(([topicKey, runs]) => (
+
+                        // Sort by episode number (or first creation time), assign fallback numbers
+                        const sorted = Array.from(groups.entries())
+                          .map(([topicKey, topicRuns]) => {
+                            const ep = topicRuns[0].episodeNumber;
+                            const oldest = topicRuns.reduce(
+                              (min, r) => (r.startedAt < min ? r.startedAt : min),
+                              topicRuns[0].startedAt
+                            );
+                            return { topicKey, runs: topicRuns, ep, firstCreated: oldest };
+                          })
+                          .sort((a, b) => a.firstCreated.localeCompare(b.firstCreated));
+
+                        // Assign fallback episode numbers for runs without one
+                        let nextFallback = 1;
+                        const numbered = sorted.map((g) => {
+                          const epNum = g.ep || nextFallback;
+                          nextFallback = Math.max(nextFallback, epNum) + 1;
+                          return { ...g, ep: epNum };
+                        });
+
+                        // Display newest first (but episode numbers stay chronological)
+                        numbered.reverse();
+
+                        return numbered.map(({ topicKey, runs, ep }) => (
                           <div key={topicKey} className="space-y-1.5">
                             <div className="flex items-center gap-2 px-1">
+                              <Badge className="text-[10px] shrink-0 bg-purple-600/80 hover:bg-purple-600 text-white font-mono px-1.5">
+                                Tập {ep}
+                              </Badge>
                               <span
-                                className="text-xs font-semibold text-muted-foreground truncate max-w-[60%]"
+                                className="text-xs font-semibold text-muted-foreground truncate max-w-[50%]"
                                 title={topicKey}
                               >
-                                📌 {topicKey.length > 60 ? topicKey.slice(0, 57) + '...' : topicKey}
+                                📌 {topicKey.length > 55 ? topicKey.slice(0, 52) + '...' : topicKey}
                               </span>
                               <Separator className="flex-1" />
                               <span className="text-[10px] text-muted-foreground/60 shrink-0">
@@ -2330,7 +2362,7 @@ function VoiceTabContent({
               : {}),
           }),
         });
-        if (!res.ok) throw new Error(`Fish Speech error ${res.status}`);
+        if (!res.ok) throw new Error(`Fish Audio S2 error ${res.status}`);
         blob = await res.blob();
       } else if (voiceoverConfig.engine === 'gemini-tts') {
         const apiKey = getNextKey('gemini');

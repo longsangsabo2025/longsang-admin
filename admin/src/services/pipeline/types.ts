@@ -65,6 +65,8 @@ export interface GenerationRun {
   };
   hasResult?: boolean;
   error?: string;
+  /** Auto-incremented episode number per channel (Tập 1, 2, 3...) */
+  episodeNumber?: number;
   /** Steps this pipeline run should execute (for full pipeline runs) */
   pipelineSteps?: string[];
   /** Steps that completed successfully before interruption */

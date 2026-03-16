@@ -1,15 +1,15 @@
 // ─── Pipeline types & defaults (extracted for Fast Refresh) ──
 
+/**
+ * Channel visual style — a single free-text prompt that defines the visual identity.
+ * Injected into storyboard system prompt so ALL scene prompts inherit the style.
+ * No duplicate wrapping at image-gen step.
+ */
 export interface VisualIdentity {
-  style: string; // e.g. 'dark-cinematic'
-  colorPalette: string; // dominant colors for consistent look
-  lighting: string; // e.g. 'low-key dramatic', 'soft natural'
-  cameraStyle: string; // e.g. 'close-up focus', 'wide establishing'
-  characterPresence: 'none' | 'silhouette' | 'faceless' | 'consistent-character';
-  characterDesc: string; // e.g. 'Vietnamese man, 30s, dark hoodie'
-  environment: string; // recurring setting/backdrop
-  moodKeywords: string; // comma-separated mood tags
-  negativePrompt: string; // what to avoid
+  /** Free-text style description for the channel (1-3 sentences) */
+  stylePrompt: string;
+  /** Optional: what to avoid in images */
+  negativePrompt: string;
 }
 
 export interface PipelineConfig {
@@ -59,14 +59,7 @@ export interface PipelineConfig {
 }
 
 export const DEFAULT_VISUAL_IDENTITY: VisualIdentity = {
-  style: 'dark-cinematic',
-  colorPalette: 'deep blacks, dark blues, golden highlights',
-  lighting: 'low-key dramatic, single spotlight',
-  cameraStyle: 'slow zoom in, close-up focus',
-  characterPresence: 'silhouette',
-  characterDesc: '',
-  environment: 'dark urban, moody interiors',
-  moodKeywords: 'cinematic, dramatic, mysterious, powerful',
+  stylePrompt: 'Dark cinematic style. Deep blacks, dark blues, golden highlights. Low-key dramatic lighting with single spotlight. Slow zoom in, close-up focus. Silhouette figures in dark urban, moody interiors. Cinematic, dramatic, mysterious, powerful mood.',
   negativePrompt: 'text, watermark, logo, cartoon, anime, bright colors, cheerful',
 };
 

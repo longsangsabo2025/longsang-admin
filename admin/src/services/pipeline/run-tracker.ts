@@ -20,6 +20,18 @@ import type { GenerateRequest, GenerationRun, ProgressPhase } from './types';
 const clientRuns = new Map<string, GenerationRun>();
 const hydratedChannels = new Set<string>();
 
+/** Get the next episode number for a channel (max existing + 1) */
+function getNextEpisodeNumber(channelId: string | null | undefined): number {
+  if (!channelId) return 1;
+  let max = 0;
+  for (const run of clientRuns.values()) {
+    if (run.channelId === channelId && run.episodeNumber && run.episodeNumber > max) {
+      max = run.episodeNumber;
+    }
+  }
+  return max + 1;
+}
+
 /** Create a new run and store it in the client-side Map */
 export function createRun(runId: string, req: GenerateRequest, stepLabel?: string): GenerationRun {
   const run: GenerationRun = {
@@ -30,6 +42,7 @@ export function createRun(runId: string, req: GenerateRequest, stepLabel?: strin
     startedAt: new Date().toISOString(),
     input: req,
     logs: [{ t: Date.now(), level: 'info', msg: stepLabel || '🚀 Starting generation...' }],
+    episodeNumber: getNextEpisodeNumber(req.channelId),
   };
   clientRuns.set(runId, run);
   // Fire-and-forget persist (don't block the UI)
@@ -179,11 +192,23 @@ export function findLatestRunWithFile(
 export function fixOrphanedRun(run: GenerationRun): void {
   if (run.status !== 'running') return;
   const ageMs = Date.now() - new Date(run.startedAt).getTime();
-  if (ageMs > 5 * 60 * 1000) {
+
+  // Determine which step is currently running
+  const completedCount = run.completedSteps?.length || 0;
+  const currentStep = run.pipelineSteps?.[completedCount];
+
+  // Assembly renders in real-time (video duration = render time).
+  // A 20-minute video needs 20+ minutes → use 45 min timeout.
+  // Storyboard with many scenes (30-60) can take 10+ minutes on large models.
+  // Other steps are fast (API calls) → 5 min timeout is fine.
+  const isLongStep = currentStep === 'assembly' || currentStep === 'storyboard';
+  const timeoutMs = isLongStep ? 45 * 60 * 1000 : 5 * 60 * 1000;
+
+  if (ageMs > timeoutMs) {
     const hasPartialResult = run.hasResult || !!run.result?.files;
-    const hasCompletedSteps = (run.completedSteps?.length || 0) > 0;
+    const hasCompletedSteps = completedCount > 0;
     const hasPendingSteps =
-      run.pipelineSteps && run.pipelineSteps.length > (run.completedSteps?.length || 0);
+      run.pipelineSteps && run.pipelineSteps.length > completedCount;
 
     if ((hasPartialResult || hasCompletedSteps) && hasPendingSteps) {
       // Has partial progress — mark as interrupted (resumable)
@@ -241,6 +266,11 @@ export function mergeRelatedRuns(runs?: GenerationRun[]): void {
     for (let i = 1; i < group.length; i++) {
       const other = group[i];
 
+      // Keep the lowest episode number
+      if (other.episodeNumber && (!primary.episodeNumber || other.episodeNumber < primary.episodeNumber)) {
+        primary.episodeNumber = other.episodeNumber;
+      }
+
       // Merge files
       if (other.result?.files) {
         if (!primary.result) primary.result = { outputDir: 'remote', files: {} };
@@ -292,7 +322,42 @@ export async function hydrateRunsForChannel(channelId: string): Promise<Generati
   }
   // Merge old separate runs with the same topic into single entries
   mergeRelatedRuns(saved);
+  // Backfill episode numbers for runs that don't have one yet
+  backfillEpisodeNumbers(channelId);
   return getAllRuns();
+}
+
+/** Backfill episode numbers for existing runs in a channel (sorted by creation time) */
+function backfillEpisodeNumbers(channelId: string): void {
+  const channelRunsList = Array.from(clientRuns.values())
+    .filter((r) => r.channelId === channelId)
+    .sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+
+  // Track which topics already have an episode number
+  const topicEpisode = new Map<string, number>();
+  let maxEp = 0;
+
+  // First pass: collect existing episode numbers
+  for (const run of channelRunsList) {
+    const topic = run.input?.topic || run.input?.transcript || '';
+    if (run.episodeNumber) {
+      if (!topicEpisode.has(topic)) topicEpisode.set(topic, run.episodeNumber);
+      maxEp = Math.max(maxEp, run.episodeNumber);
+    }
+  }
+
+  // Second pass: assign missing episode numbers (chronological order)
+  let nextEp = maxEp + 1;
+  for (const run of channelRunsList) {
+    if (run.episodeNumber) continue;
+    const topic = run.input?.topic || run.input?.transcript || '';
+    if (!topicEpisode.has(topic)) {
+      topicEpisode.set(topic, nextEp);
+      nextEp++;
+    }
+    run.episodeNumber = topicEpisode.get(topic)!;
+    persistUpdate(run).catch(() => {});
+  }
 }
 
 /** Load all saved runs from Supabase */

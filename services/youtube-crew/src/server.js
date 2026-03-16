@@ -818,19 +818,13 @@ app.post('/api/admin/generate-full-pipeline', async (req, res) => {
     } catch {}
     console.log(`[FullPipeline] Knowledge loaded in ${Date.now() - t1}ms`);
 
-    // Build visual identity block
+    // Build visual identity block (simplified: single stylePrompt)
     const vi = visualIdentity || {};
-    const hasVi = vi.colorPalette || vi.lighting || vi.cameraStyle || vi.environment || vi.moodKeywords || vi.characterDesc;
-    const viBlock = hasVi ? `
-## VISUAL IDENTITY
-- Color Palette: ${vi.colorPalette || 'cinematic tones'}
-- Lighting: ${vi.lighting || 'cinematic'}
-- Camera: ${vi.cameraStyle || 'close-up focus'}
-- Character: ${vi.characterPresence === 'none' ? 'No human characters' : `${vi.characterPresence}${vi.characterDesc ? ' — ' + vi.characterDesc : ''}`}
-- Environment: ${vi.environment || 'varies per scene'}
-- Mood: ${vi.moodKeywords || 'cinematic, dramatic'}
-- NEVER include: ${vi.negativePrompt || 'text, watermark, logo'}
-ROTATE environments, ALTERNATE camera angles, VARY character poses. Keep color palette + mood consistent.` : '';
+    const viBlock = vi.stylePrompt ? `
+## CHANNEL VISUAL STYLE
+${vi.stylePrompt}
+${vi.negativePrompt ? `NEVER include: ${vi.negativePrompt}` : ''}
+ROTATE environments, ALTERNATE camera angles, VARY character poses. Keep overall style consistent across all scenes.` : '';
 
     const sbCustomBlock = storyboardPrompt ? `\nSTORYBOARD INSTRUCTIONS: ${storyboardPrompt}` : '';
 
@@ -1016,46 +1010,25 @@ app.post('/api/admin/generate-storyboard', async (req, res) => {
 
     const storyboardModel = reqModel || process.env.DEFAULT_MODEL || 'gpt-4o-mini';
 
-    // Build visual identity block from UI config — ALWAYS include if any VI field exists
+    // Build visual identity block (simplified: single stylePrompt)
     const vi = visualIdentity || {};
-    const hasVi = vi.colorPalette || vi.lighting || vi.cameraStyle || vi.environment || vi.moodKeywords || vi.characterDesc;
-    const viBlock = hasVi ? `
-## VISUAL IDENTITY — MANDATORY STYLE GUIDE
-Maintain visual consistency using these elements as your PALETTE — but VARY them across scenes for visual diversity.
-- Color Palette: ${vi.colorPalette || 'cinematic tones'}
-- Lighting Options: ${vi.lighting || 'cinematic'}
-- Camera Options: ${vi.cameraStyle || 'close-up focus'}
-- Character Style: ${vi.characterPresence === 'none' ? 'No human characters — focus on environment, objects, abstract symbols' : `${vi.characterPresence}${vi.characterDesc ? ' — ' + vi.characterDesc : ''}`}
-- Environment Options: ${vi.environment || 'varies per scene'}
-- Mood: ${vi.moodKeywords || 'cinematic, dramatic'}
-- Negative (NEVER include these): ${vi.negativePrompt || 'text, watermark, logo'}
+    const viBlock = vi.stylePrompt ? `
+## CHANNEL VISUAL STYLE — MANDATORY
+${vi.stylePrompt}
+${vi.negativePrompt ? `NEVER include: ${vi.negativePrompt}` : ''}
 
-### HOW TO USE THE VISUAL IDENTITY:
-- ROTATE through ALL environment options across scenes (e.g. scene 1: alleyway, scene 2: rainy street, scene 3: rooftop, scene 4: empty room, etc.)
-- ALTERNATE camera angles/movements across scenes — never use the same camera for consecutive scenes
-- VARY the character's pose, framing, and action per scene (e.g. walking, standing still, looking up, back turned, silhouette from afar, extreme close-up of hands)
-- Keep the COLOR PALETTE and MOOD consistent — those are the glue that ties scenes together
+### HOW TO USE THE STYLE:
+- ROTATE environments across scenes — never use the same environment 3 times in a row
+- ALTERNATE camera angles — never repeat the same camera for consecutive scenes
+- VARY character poses, framing, and actions per scene
+- Keep the OVERALL STYLE and MOOD consistent — that's the glue across all scenes
 - Each scene MUST feel visually DISTINCT while sharing the same style DNA
 ` : '';
     const sbCustomBlock = sbCustomPrompt ? `\n## CUSTOM STORYBOARD INSTRUCTIONS\n${sbCustomPrompt}\n` : '';
     const arBlock = aspectRatio ? `Aspect ratio: ${aspectRatio}. ` : '';
 
-    // Build 3 different example prompts to show AI how to vary scenes
-    const envList = vi.environment ? vi.environment.split(',').map(e => e.trim()) : ['dark environment'];
-    const camList = vi.cameraStyle ? vi.cameraStyle.split('+').map(c => c.trim()) : ['close-up'];
-    const charDesc = vi.characterPresence !== 'none' && vi.characterDesc ? vi.characterDesc : 'Abstract symbolic object';
-    const palette = vi.colorPalette || 'cinematic tones';
-    const moods = vi.moodKeywords || 'cinematic, dramatic';
-    const lightList = vi.lighting ? vi.lighting.split('+').map(l => l.trim()) : ['dramatic lighting'];
-
-    const examplePrompts = hasVi ? [
-      `${charDesc} walking through ${envList[0] || 'dark environment'}, ${lightList[0] || 'dramatic'} lighting from above, ${camList[0] || 'close-up'} shot tracking forward, ${palette}, ${moods}, photorealistic, 4K`,
-      `${charDesc} standing on ${envList[1] || envList[0] || 'rooftop'}, ${lightList[1] || lightList[0] || 'rim'} light silhouetting the figure, wide establishing shot slowly zooming in, ${palette}, ${moods}, photorealistic, 4K`,
-      `Extreme close-up of clenched fists in ${envList[2] || envList[0] || 'empty room'}, ${lightList[0] || 'dramatic'} single-source light casting long shadows, shallow depth of field, ${palette}, ${moods}, photorealistic, 4K`,
-    ] : null;
-
-    const examplePrompt = examplePrompts
-      ? examplePrompts[0]
+    const examplePrompt = vi.stylePrompt
+      ? `[Subject doing specific action matching script content], [specific environment from style], [lighting from style], [camera angle], [mood from style] — photorealistic, 4K`
       : '[Subject doing specific action] in [specific environment], [lighting type], [camera angle + movement], [color palette], [mood] — photorealistic, 4K';
 
     const STORYBOARD_PROMPT = `You are a Visual Director — you design the visual layer for podcast-style YouTube videos.
@@ -1111,15 +1084,9 @@ ${viBlock}${sbCustomBlock}
 ### 2. VISUAL QUALITY
 - Each prompt MUST be 40-80 words minimum
 - Each prompt MUST include: specific subject/action based on script content + camera angle + lighting + color palette + environment + mood
-${hasVi ? `
-### 3. VISUAL IDENTITY & VARIETY
-- VARIETY IS ESSENTIAL: Each scene MUST have a DIFFERENT combination of environment, camera angle, character pose/action
-- ROTATE environments: distribute ALL options (${envList.join(', ')}) across the ${scenes} scenes — never use the same environment 3 times in a row
-- ALTERNATE camera styles: mix ${camList.join(', ')} with other angles like wide shot, overhead, low angle, Dutch angle, over-shoulder
-- Keep the color palette (${palette}) and mood (${moods}) consistent as the visual thread
-- The character STYLE stays consistent but pose/framing/environment MUST change each scene` : '- prompt must be specific: subject, action, camera angle, lighting, style'}
+${vi.stylePrompt ? `- Each prompt MUST embed the channel style described above — bake style elements into every prompt` : '- prompt must be specific: subject, action, camera angle, lighting, style'}
 
-### 4. OTHER
+### 3. OTHER
 - dialogue must be the exact Vietnamese text spoken during that scene
 - motion: slow zoom in, pan left, dolly forward, static, etc.
 - transition: fade, cut, dissolve, zoom transition
@@ -1131,20 +1098,40 @@ ${hasVi ? `
       systemPrompt: STORYBOARD_PROMPT,
       userMessage: `Create a ${scenes}-scene storyboard for this script. IMPORTANT: Divide the script into ${scenes} segments and create a UNIQUE visual for each segment that ILLUSTRATES its specific content/metaphor/story.\n\nTOPIC: ${topic || 'N/A'}\n\nSCRIPT (divide into ${scenes} equal parts, each part = 1 scene):\n${script.substring(0, 12000)}`,
       temperature: 0.8,
-      maxTokens: 8192,
+      maxTokens: Math.max(8192, scenes * 350),
       agentId: 'admin-storyboard-gen',
     });
 
-    // Parse JSON from response
+    // Parse JSON from response — handle truncated output for large scene counts
     let storyboard;
     try {
       const cleaned = result.content.replace(/```json\n?/g, '').replace(/```/g, '').trim();
       storyboard = JSON.parse(cleaned);
-    } catch {
+    } catch (parseErr) {
       // Try to extract JSON from response
       const jsonMatch = result.content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        storyboard = JSON.parse(jsonMatch[0]);
+        try {
+          storyboard = JSON.parse(jsonMatch[0]);
+        } catch {
+          // JSON truncated mid-array — try to repair by closing open brackets
+          let text = jsonMatch[0];
+          // Remove trailing incomplete object (e.g. `{ "scene": 15, "prompt": "...` )
+          text = text.replace(/,\s*\{[^}]*$/s, '');
+          // Close any open arrays/objects
+          const opens = (text.match(/\[/g) || []).length;
+          const closes = (text.match(/\]/g) || []).length;
+          for (let i = 0; i < opens - closes; i++) text += ']';
+          const openBraces = (text.match(/\{/g) || []).length;
+          const closeBraces = (text.match(/\}/g) || []).length;
+          for (let i = 0; i < openBraces - closeBraces; i++) text += '}';
+          try {
+            storyboard = JSON.parse(text);
+            console.warn(`[Storyboard] Repaired truncated JSON — recovered ${storyboard.scenes?.length || 0}/${scenes} scenes`);
+          } catch {
+            throw new Error(`Failed to parse storyboard JSON: ${parseErr.message}`);
+          }
+        }
       } else {
         throw new Error('Failed to parse storyboard JSON from AI response');
       }
