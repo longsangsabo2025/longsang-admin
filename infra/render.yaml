@@ -1,10 +1,27 @@
 # ═══════════════════════════════════════════════
 # RENDER BLUEPRINT — LongSang Phase 1
-# 1 service only: YouTube Video Factory
-# Cost: $7/month — always on
+# Services: Admin Frontend (static) + YouTube Video Factory
+# Cost: $7/month (frontend free, backend $7/mo starter)
 # ═══════════════════════════════════════════════
 
 services:
+  # ── Admin Frontend (Static Site — Free) ──────
+  - type: web
+    name: longsang-admin
+    runtime: static
+    buildCommand: cd admin && npm install --legacy-peer-deps && npm run build
+    staticPublishPath: ./admin/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://youtube-pipeline-bgey.onrender.com
+      - key: YOUTUBE_CREW_URL
+        value: https://youtube-pipeline-bgey.onrender.com
+    autoDeploy: true
+
   # ── YouTube Video Factory ─────────────────────
   # Input: topic/transcript → Output: script + storyboard
   - type: web
