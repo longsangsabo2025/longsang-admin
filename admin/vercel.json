@@ -7,7 +7,15 @@
   "alias": ["admin.longsang.org"],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/youtube-channels",
+      "destination": "/api/youtube-channels.js"
+    },
+    {
+      "source": "/api/youtube-channels/(.*)",
+      "destination": "/api/youtube-channels.js?path=$1"
+    },
+    {
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],

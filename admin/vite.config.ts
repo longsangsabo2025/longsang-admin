@@ -198,73 +198,9 @@ export default defineConfig(({ mode }) => {
         "@google-analytics/data",
         "google-spreadsheet",
       ],
-      output: {
-        // AGGRESSIVE CODE SPLITTING: Split each page individually for faster initial load
-        manualChunks(id) {
-          // Split heavy vendor libraries
-          if (id.includes('node_modules')) {
-            // Prism syntax highlighting - very large, lazy load
-            if (id.includes('prismjs') || id.includes('prism-')) {
-              return 'vendor-prism';
-            }
-            // React core - always needed (react + react-dom + scheduler in same chunk)
-            if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/scheduler/')) {
-              return 'vendor-react';
-            }
-            // UI components
-            if (id.includes('@radix-ui') || id.includes('lucide-react')) {
-              return 'vendor-ui';
-            }
-            // Charts
-            if (id.includes('recharts') || id.includes('d3')) {
-              return 'vendor-charts';
-            }
-            // Tanstack/React Query
-            if (id.includes('@tanstack')) {
-              return 'vendor-query';
-            }
-            // Supabase
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase';
-            }
-            // Monaco/Code editor
-            if (id.includes('monaco') || id.includes('@monaco-editor')) {
-              return 'vendor-editor';
-            }
-          }
-          
-          // Split pages individually - NO bundling all admin together
-          if (id.includes("/pages/")) {
-            // Extract filename for chunk name
-            const match = id.match(/\/pages\/([^/]+)\.(tsx|ts)/);
-            if (match) {
-              const pageName = match[1];
-              // Heavy pages get their own chunk
-              if (['AIWorkspace', 'VisualWorkspace', 'BrainDashboard', 
-                   'AutomationDashboard', 'UnifiedAICommandCenter', 
-                   'AICommandCenter', 'SystemMap', 'Academy'].includes(pageName)) {
-                return `page-${pageName}`;
-              }
-            }
-            
-            // Group smaller pages
-            if (id.includes("/pages/Admin")) return "pages-admin-core";
-            if (id.includes("/pages/Agent")) return "pages-agent";
-            if (id.includes("/pages/Investment")) return "pages-investment";
-            if (id.includes("Showcase")) return "pages-showcase";
-            if (id.includes("/pages/mobile/")) return "pages-mobile";
-          }
-          
-          // Components splitting
-          if (id.includes("/components/")) {
-            if (id.includes("/components/admin/")) return "comp-admin";
-            if (id.includes("/components/ai-workspace/")) return "comp-ai";
-            if (id.includes("/components/brain/")) return "comp-brain";
-          }
-          
-          return undefined;
-        },
-      },
+      // Let Vite/Rollup auto-split chunks to avoid circular chunk dependencies
+      // that can break React module initialization at runtime.
+      output: {},
     },
   },
 };

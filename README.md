@@ -58,3 +58,18 @@ cd infra; .\stop-all.ps1
 # Render (youtube-crew only)
 # Push to GitHub → Render auto-deploys from infra/render.yaml
 ```
+
+## API References
+
+- SABOHUB Backend API Reference:
+	- `../_DOCS/07-API/SABOHUB_BACKEND_API_REFERENCE.md`
+- Postman Collection:
+	- `../_DOCS/07-API/SABOHUB_BACKEND.postman_collection.json`
+- Postman Environment (local):
+	- `../_DOCS/07-API/SABOHUB_LOCAL.postman_environment.json`
+- Postman Environment (staging):
+	- `../_DOCS/07-API/SABOHUB_STAGING.postman_environment.json`
+- Postman Environment (production):
+	- `../_DOCS/07-API/SABOHUB_PRODUCTION.postman_environment.json`
+- Live Swagger (local):
+	- `http://localhost:3001/api-docs/`

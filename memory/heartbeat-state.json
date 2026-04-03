@@ -1,0 +1,10 @@
+{
+  "lastChecks": {
+    "services": "partially_recovered",
+    "cron": "errors_persisting",
+    "memory_maintenance": null
+  },
+  "api_gateway_status": "online",
+  "n8n_status": "offline",
+  "brain_services_status": "errors_persisting"
+}
