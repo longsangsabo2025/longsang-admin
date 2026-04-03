@@ -15,8 +15,8 @@ module.exports = {
   apps: [
     {
       name: 'brain-telegram-bot',
-      script: '../api/integrations/telegram-brain-unified.js',
-      cwd: __dirname + '/..',
+      script: 'D:/0.PROJECTS/00-MASTER-ADMIN/api/integrations/telegram-brain-unified.js',
+      cwd: __dirname + '/../api/integrations',
       watch: false,
       autorestart: true,
       max_restarts: 10,
@@ -78,6 +78,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3001,
+        JWT_SECRET: 'your_super_secret_jwt_key_here',
       },
       error_file: './logs/api-server-error.log',
       out_file: './logs/api-server-out.log',

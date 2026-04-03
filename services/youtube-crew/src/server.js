@@ -16,6 +16,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { Conductor } from './core/conductor.js';
+import { memory } from './core/memory.js';
 import { HarvesterAgent } from './agents/harvester.js';
 import { BrainCuratorAgent } from './agents/brain-curator.js';
 import { ScriptWriterAgent } from './agents/script-writer.js';
@@ -27,6 +28,7 @@ import { ShortsScriptWriterAgent } from './agents/shorts-script-writer.js';
 import { youtubePodcastPipeline } from './pipelines/youtube-podcast.js';
 import { youtubeShortsPipeline } from './pipelines/youtube-shorts.js';
 import { readFileSync, readdirSync, statSync, existsSync, writeFileSync, mkdirSync } from 'fs';
+import { spawn } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -112,19 +114,26 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Auth middleware for /api/admin/* routes
+// Auth middleware for /api/* routes
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
 if (!ADMIN_API_KEY && process.env.NODE_ENV === 'production') {
   console.warn('⚠️  WARNING: ADMIN_API_KEY not set — admin routes are unprotected in production!');
 }
-app.use('/api/admin', (req, res, next) => {
+function requireApiKey(req, res, next) {
   if (!ADMIN_API_KEY) return next(); // Skip auth if no key configured (dev mode)
   const provided = req.headers['x-api-key'];
   if (provided !== ADMIN_API_KEY) {
     return res.status(401).json({ error: 'Unauthorized — invalid or missing X-API-Key header' });
   }
   next();
-});
+}
+app.use('/api/admin', requireApiKey);
+app.use('/api/youtube-crew', requireApiKey);
+app.use('/api/ebook', requireApiKey);
+
+// ─── Ebook Tool Router ──────────────────────────
+import { ebookRouter } from './ebook-tool/api/routes.js';
+app.use('/api/ebook', ebookRouter);
 
 // ─── Routes ──────────────────────────────────────
 
@@ -138,6 +147,27 @@ app.get('/health', (_req, res) => {
     version: PKG_VERSION,
     activeRuns: conductor.activeRuns.size,
   });
+});
+
+/**
+ * GET /api/ping — Fast liveness check for StatusBar
+ */
+app.get('/api/ping', (_req, res) => {
+  res.json({ pong: true, uptime: Math.round((Date.now() - startedAt) / 1000) });
+});
+
+/**
+ * GET /api/mcp/status — MCP server status (stub — not yet integrated)
+ */
+app.get('/api/mcp/status', (_req, res) => {
+  res.json({ status: 'offline', message: 'MCP server not configured' });
+});
+
+/**
+ * GET /api/system/n8n/health — n8n health proxy (stub)
+ */
+app.get('/api/system/n8n/health', (_req, res) => {
+  res.json({ healthy: false, message: 'n8n not configured' });
 });
 
 /**
@@ -236,6 +266,40 @@ app.get('/api/youtube-crew/status/:id', (req, res) => {
     totalCost: run.totalCost ?? null,
     stageResults: run.stageResults,
     errors: run.errors,
+  });
+});
+
+/**
+ * GET /api/youtube-crew/results/:id — Get full pipeline results (untruncated)
+ *
+ * Returns all data from SharedMemory for the pipeline run.
+ * Unlike /status (which stores 200-char truncated previews), this returns full output.
+ */
+app.get('/api/youtube-crew/results/:id', (req, res) => {
+  const { id } = req.params;
+
+  // Find run by runId or pipelineId
+  let run = conductor.activeRuns.get(id);
+  if (!run) {
+    for (const r of conductor.activeRuns.values()) {
+      if (r.pipelineId === id) { run = r; break; }
+    }
+  }
+  if (!run) {
+    return res.status(404).json({ error: `Run not found: ${id}` });
+  }
+  if (run.status !== 'completed') {
+    return res.status(202).json({ status: run.status, message: 'Pipeline still running' });
+  }
+
+  const results = memory.getAll(run.pipelineId);
+  res.json({
+    runId: run.id,
+    pipelineId: run.pipelineId,
+    status: run.status,
+    durationMs: run.durationMs,
+    totalCost: run.totalCost ?? null,
+    results,
   });
 });
 
@@ -923,17 +987,19 @@ Trả về ĐÚNG format sau (không markdown code block):
         const cleaned = sbMatch[1].replace(/```json\n?/g, '').replace(/```/g, '').trim();
         storyboard = JSON.parse(cleaned);
       } catch {
-        const jsonMatch = sbMatch[1].match(/\{[\s\S]*\}/);
-        if (jsonMatch) storyboard = JSON.parse(jsonMatch[0]);
+        try {
+          const jsonMatch = sbMatch[1].match(/\{[\s\S]*\}/);
+          if (jsonMatch) storyboard = JSON.parse(jsonMatch[0]);
+        } catch { /* storyboard parse failed — continue with script only */ }
       }
     }
 
     // Fallback: try finding JSON in the full content
     if (!storyboard) {
-      const jsonMatch = content.match(/\{[\s\S]*?"scenes"\s*:\s*\[[\s\S]*?\]\s*\}/);
-      if (jsonMatch) {
-        try { storyboard = JSON.parse(jsonMatch[0]); } catch { /* ignore */ }
-      }
+      try {
+        const jsonMatch = content.match(/\{[\s\S]*?"scenes"\s*:\s*\[[\s\S]*?\]\s*\}/);
+        if (jsonMatch) storyboard = JSON.parse(jsonMatch[0]);
+      } catch { /* ignore */ }
     }
 
     const wordCount = scriptText.split(/\s+/).filter(Boolean).length;
@@ -968,6 +1034,16 @@ Trả về ĐÚNG format sau (không markdown code block):
     const outDir = join(__dirname, '..', 'output', '_video-factory', `${slug}_${Date.now()}`);
     mkdirSync(outDir, { recursive: true });
     writeFileSync(join(outDir, 'script.txt'), scriptText, 'utf-8');
+    const scriptTTS = scriptText
+      .replace(/===SCRIPT_START===|===SCRIPT_END===/g, '')
+      .replace(/^---\s*\[.*?\]\s*.*?---$/gm, '')
+      .replace(/^---\s+\S+.*$/gm, '')
+      .replace(/^\[\d+:\d+(?::\d+)?\]\s*/gm, '')
+      .replace(/^#+\s+.*$/gm, '')
+      .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    writeFileSync(join(outDir, 'script-tts.txt'), scriptTTS, 'utf-8');
     writeFileSync(join(outDir, 'script.json'), JSON.stringify({
       title: topic, model: pipelineModel, wordCount,
       tokens: result.tokens, cost, generatedAt: new Date().toISOString(),
@@ -982,6 +1058,7 @@ Trả về ĐÚNG format sau (không markdown code block):
       success: true,
       title: topic,
       script: scriptText,
+      scriptTTS: scriptTTS,
       wordCount,
       tokens: result.tokens,
       cost,
@@ -1199,7 +1276,14 @@ app.post('/api/admin/proxy/image-gen', async (req, res) => {
       return res.status(400).json({ error: 'prompt is required' });
     }
 
-    const apiKey = process.env.GOOGLE_AI_API_KEY;
+    // Use rotated key from pool
+    let apiKey;
+    try {
+      const { getRotatedGeminiKey } = await import('./core/llm.js');
+      apiKey = getRotatedGeminiKey();
+    } catch {
+      apiKey = process.env.GOOGLE_AI_API_KEY;
+    }
     if (!apiKey) {
       return res.status(500).json({ error: 'Server GOOGLE_AI_API_KEY not configured' });
     }
@@ -1246,7 +1330,7 @@ app.post('/api/admin/proxy/image-gen', async (req, res) => {
  */
 app.post('/api/admin/proxy/tts', async (req, res) => {
   try {
-    const { text, engine, voice, speed } = req.body;
+    const { text, engine, voice, speed, apiKey: reqApiKey, apiKeys: reqApiKeys } = req.body;
     if (!text || typeof text !== 'string') {
       return res.status(400).json({ error: 'text is required' });
     }
@@ -1282,49 +1366,96 @@ app.post('/api/admin/proxy/tts', async (req, res) => {
     }
 
     // Default: Gemini TTS
-    const apiKey = process.env.GOOGLE_AI_API_KEY;
-    if (!apiKey) {
+    const parseKeyPool = () => {
+      const requestKeys = [
+        typeof reqApiKey === 'string' ? reqApiKey : '',
+        ...(Array.isArray(reqApiKeys)
+          ? reqApiKeys.map((k) => (typeof k === 'string' ? k : '')).filter(Boolean)
+          : []),
+      ];
+
+      const raw = [
+        requestKeys.join(','),
+        process.env.GOOGLE_AI_API_KEYS,
+        process.env.GEMINI_API_KEYS,
+        process.env.VITE_GEMINI_API_KEYS,
+        process.env.GOOGLE_AI_API_KEY,
+      ]
+        .filter(Boolean)
+        .join(',');
+
+      return Array.from(
+        new Set(
+          raw
+            .split(/[\n,;|]/)
+            .map((k) => k.trim())
+            .filter(Boolean)
+        )
+      );
+    };
+
+    const apiKeys = parseKeyPool();
+    if (!apiKeys.length) {
       return res.status(500).json({ error: 'Server GOOGLE_AI_API_KEY not configured' });
     }
 
     const voiceName = voice || 'Kore';
-    const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-    const response = await fetch(ttsUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{
-            text: `You are a single professional narrator named "${voiceName}". CRITICAL: maintain EXACTLY the same vocal identity, tone, pitch, pace, and speaking style for every piece of text you read.`,
-          }],
-        },
-        contents: [{ parts: [{ text }] }],
-        generationConfig: {
-          responseModalities: ['AUDIO'],
-          temperature: 0.1,
-          speechConfig: {
-            voiceConfig: { prebuiltVoiceConfig: { voiceName } },
+    let lastStatus = 500;
+    let lastMessage = 'Gemini TTS failed';
+
+    for (const apiKey of apiKeys) {
+      const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+      const response = await fetch(ttsUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{
+              text: `You are a single professional narrator named "${voiceName}". CRITICAL: maintain EXACTLY the same vocal identity, tone, pitch, pace, and speaking style for every piece of text you read.`,
+            }],
           },
-        },
-      }),
-    });
+          contents: [{ parts: [{ text }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            temperature: 0.1,
+            speechConfig: {
+              voiceConfig: { prebuiltVoiceConfig: { voiceName } },
+            },
+          },
+        }),
+      });
 
-    if (!response.ok) {
-      const errBody = await response.json().catch(() => ({}));
-      return res.status(response.status).json({ error: errBody.error?.message || `Gemini TTS error ${response.status}` });
-    }
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}));
+        const msg = errBody.error?.message || `Gemini TTS error ${response.status}`;
+        lastStatus = response.status;
+        lastMessage = msg;
 
-    const data = await response.json();
-    const parts = data.candidates?.[0]?.content?.parts || [];
-    for (const part of parts) {
-      if (part.inlineData?.data) {
-        return res.json({
-          audioBase64: part.inlineData.data,
-          mimeType: part.inlineData.mimeType || 'audio/L16;rate=24000',
-        });
+        // Quota/rate/internal failures: rotate to next key.
+        if (response.status === 429 || response.status >= 500) {
+          continue;
+        }
+
+        // Non-retryable request errors should return immediately.
+        return res.status(response.status).json({ error: msg });
       }
+
+      const data = await response.json();
+      const parts = data.candidates?.[0]?.content?.parts || [];
+      for (const part of parts) {
+        if (part.inlineData?.data) {
+          return res.json({
+            audioBase64: part.inlineData.data,
+            mimeType: part.inlineData.mimeType || 'audio/L16;rate=24000',
+          });
+        }
+      }
+
+      lastStatus = 502;
+      lastMessage = 'No audio returned from model';
     }
-    res.json({ error: 'No audio returned from model' });
+
+    res.status(lastStatus).json({ error: `${lastMessage} (all Gemini keys failed)` });
   } catch (err) {
     console.error('[TTS Proxy Error]', err);
     res.status(500).json({ error: err.message });
@@ -1544,6 +1675,183 @@ app.get('/api/admin/script/:outputId(*)', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ─── Analytics Collector ─────────────────────────
+
+/**
+ * GET /api/analytics/collect — Scrape competitor YouTube channels & build training CSV
+ *
+ * Query params:
+ *   channels  comma-separated list of @handles (optional, uses defaults)
+ *   limit     videos per channel (default: 20)
+ *
+ * Used by OpenClaw cron: lyblack-data-refresh (weekly)
+ */
+app.get('/api/analytics/collect', async (req, res) => {
+  try {
+    const channels = req.query.channels
+      ? req.query.channels.split(',').map(c => c.trim()).filter(Boolean)
+      : undefined;
+    const limit = req.query.limit ? Math.min(parseInt(req.query.limit) || 20, 50) : 20;
+
+    // Dynamic import to avoid loading youtubei.js until needed
+    const { collectAnalytics } = await import('./scripts/analytics-collector.js');
+    const result = await collectAnalytics({ channels, limit });
+
+    res.json(result);
+  } catch (err) {
+    console.error('[Analytics Collect Error]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Channel Scraping API (Travis AI integration) ────────────
+
+const activeScrapeJobs = new Map();
+
+/**
+ * POST /api/admin/scrape-channel — Start channel transcript crawling
+ * Body: { channel, maxVideos?, platform?, resume? }
+ * Returns jobId for status tracking. Pipeline runs in background.
+ */
+app.post('/api/admin/scrape-channel', (req, res) => {
+  try {
+    const { channel, maxVideos = 50, platform = 'youtube', resume = true } = req.body || {};
+
+    if (!channel || typeof channel !== 'string') {
+      return res.status(400).json({ error: 'Missing or invalid "channel" parameter' });
+    }
+
+    // Sanitize channel handle — only allow @handles, /channel/ URLs, and alphanumeric
+    const sanitized = channel.trim();
+    if (!/^[@a-zA-Z0-9_\-./: ]+$/.test(sanitized)) {
+      return res.status(400).json({ error: 'Invalid channel format' });
+    }
+
+    const cappedMax = Math.min(Math.max(1, parseInt(maxVideos) || 50), 500);
+    const jobId = `scrape_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const toolsDir = join(__dirname, '..', 'tools');
+
+    // Determine which script to run
+    const isYoutube = platform !== 'tiktok';
+    const script = isYoutube ? 'crawl-channel.js' : 'crawl-tiktok.js';
+    const scriptPath = join(toolsDir, script);
+
+    if (!existsSync(scriptPath)) {
+      return res.status(500).json({ error: `Script not found: ${script}` });
+    }
+
+    // Build safe output filename from channel handle
+    const slug = sanitized.replace(/^@/, '').replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
+    const outputFile = `${slug}-transcripts.json`;
+
+    // Build CLI args
+    const args = [scriptPath, '--channel', sanitized, '--max', String(cappedMax), '--output', outputFile];
+    if (resume) args.push('--resume');
+    if (isYoutube) args.push('--sort-by-views');
+
+    console.log(`[Scrape] Starting ${script} for ${sanitized} (max ${cappedMax}, job ${jobId})`);
+
+    const proc = spawn('node', args, {
+      cwd: join(__dirname, '..'),
+      env: { ...process.env },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    const job = {
+      id: jobId,
+      channel: sanitized,
+      platform,
+      maxVideos: cappedMax,
+      status: 'running',
+      startedAt: new Date().toISOString(),
+      completedAt: null,
+      pid: proc.pid,
+      logs: [],
+      outputFile,
+    };
+    activeScrapeJobs.set(jobId, job);
+
+    proc.stdout.on('data', (d) => {
+      const line = d.toString().trim();
+      if (line) job.logs.push({ t: Date.now(), l: 'info', m: line });
+      if (job.logs.length > 200) job.logs = job.logs.slice(-100);
+    });
+
+    proc.stderr.on('data', (d) => {
+      const line = d.toString().trim();
+      if (line) job.logs.push({ t: Date.now(), l: 'error', m: line });
+    });
+
+    proc.on('exit', (code) => {
+      job.status = code === 0 ? 'completed' : 'failed';
+      job.completedAt = new Date().toISOString();
+      console.log(`[Scrape] Job ${jobId} ${job.status} (exit code ${code})`);
+    });
+
+    res.json({
+      jobId,
+      status: 'started',
+      channel: sanitized,
+      platform,
+      maxVideos: cappedMax,
+      message: `Crawling ${sanitized} — ${cappedMax} videos max. Use /api/admin/scrape-channel/status/${jobId} to check progress.`,
+    });
+  } catch (err) {
+    console.error('[Scrape Channel] Error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/admin/scrape-channel/status/:jobId — Check scrape job status
+ */
+app.get('/api/admin/scrape-channel/status/:jobId', (req, res) => {
+  const job = activeScrapeJobs.get(req.params.jobId);
+  if (!job) {
+    return res.status(404).json({ error: `Job not found: ${req.params.jobId}` });
+  }
+
+  let progress = null;
+  try {
+    const outputPath = join(__dirname, '..', 'data', job.outputFile);
+    if (existsSync(outputPath)) {
+      const data = JSON.parse(readFileSync(outputPath, 'utf-8'));
+      progress = {
+        videosInFile: data.videos?.length || 0,
+        totalOnChannel: data.totalVideos || null,
+        withTranscript: data.stats?.withTranscript || 0,
+        totalChars: data.stats?.totalChars || 0,
+      };
+    }
+  } catch { /* file may still be writing */ }
+
+  res.json({
+    jobId: job.id,
+    channel: job.channel,
+    platform: job.platform,
+    status: job.status,
+    startedAt: job.startedAt,
+    completedAt: job.completedAt,
+    progress,
+    recentLogs: job.logs.slice(-10).map(l => l.m),
+  });
+});
+
+/**
+ * GET /api/admin/scrape-channel/jobs — List all scrape jobs
+ */
+app.get('/api/admin/scrape-channel/jobs', (_req, res) => {
+  const jobs = [...activeScrapeJobs.values()].map(j => ({
+    jobId: j.id,
+    channel: j.channel,
+    platform: j.platform,
+    status: j.status,
+    startedAt: j.startedAt,
+    completedAt: j.completedAt,
+  }));
+  res.json({ jobs, total: jobs.length });
 });
 
 // ─── Error handling middleware ────────────────────

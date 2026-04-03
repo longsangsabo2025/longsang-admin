@@ -31,12 +31,12 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
-// Try to load brainRAG service from main api
+// Load the local Brain RAG core so this service can run outside the monorepo api.
 let brainRAG = null;
 try {
-  const brainRAGModule = require('../../api/services/brainRAG');
+  const brainRAGModule = require('./lib/standalone-brain-rag');
   brainRAG = brainRAGModule.brainRAG;
-  console.log('[Brain] ✅ Loaded brainRAG service');
+  console.log('[Brain] ✅ Loaded standalone brainRAG service');
 } catch (e) {
   console.warn('[Brain] ⚠️ brainRAG service not available:', e.message);
 }
@@ -244,6 +244,31 @@ app.post('/api/brain/rag/smart-chat', async (req, res) => {
   }
 });
 
+// Check relevance
+app.post('/api/brain/rag/check-relevance', async (req, res) => {
+  try {
+    if (!brainRAG || typeof brainRAG.isQueryRelevant !== 'function') {
+      return res.status(503).json({ error: 'brainRAG service not available in standalone mode' });
+    }
+
+    const { query } = req.body;
+    if (!query) {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+
+    const isRelevant = brainRAG.isQueryRelevant(query);
+    res.json({
+      success: true,
+      query,
+      isRelevant,
+      willTriggerRAG: isRelevant,
+    });
+  } catch (error) {
+    console.error('[Brain] Check relevance error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Health check for brainRAG
 app.get('/api/brain/rag/health', async (req, res) => {
   try {
@@ -285,6 +310,7 @@ app.listen(PORT, () => {
   console.log('   - POST /api/brain/rag/context');
   console.log('   - POST /api/brain/rag/chat');
   console.log('   - POST /api/brain/rag/smart-chat');
+  console.log('   - POST /api/brain/rag/check-relevance');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('');
 });

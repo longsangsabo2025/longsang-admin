@@ -48,11 +48,45 @@ function getOpenAI() {
   return providers.openai;
 }
 
-function getGemini() {
-  if (!providers.gemini) {
-    providers.gemini = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+// ─── Gemini Key Pool (round-robin rotation) ───────────────
+let _geminiKeys = null;
+let _geminiKeyIndex = 0;
+
+function getGeminiKeys() {
+  if (_geminiKeys) return _geminiKeys;
+  const multiKeys = process.env.GOOGLE_AI_API_KEYS;
+  if (multiKeys) {
+    _geminiKeys = multiKeys.split(',').map(k => k.trim()).filter(Boolean);
   }
-  return providers.gemini;
+  if (!_geminiKeys || _geminiKeys.length === 0) {
+    const single = process.env.GOOGLE_AI_API_KEY;
+    _geminiKeys = single ? [single] : [];
+  }
+  if (_geminiKeys.length > 1) {
+    console.log(`[LLM] Gemini key pool: ${_geminiKeys.length} keys loaded`);
+  }
+  return _geminiKeys;
+}
+
+function getNextGeminiKey() {
+  const keys = getGeminiKeys();
+  if (keys.length === 0) throw new Error('No Gemini API keys configured');
+  const key = keys[_geminiKeyIndex % keys.length];
+  _geminiKeyIndex++;
+  return key;
+}
+
+function getGemini(apiKey) {
+  // If specific key provided, create new instance
+  if (apiKey) return new GoogleGenerativeAI(apiKey);
+  // Default: use pool rotation
+  const key = getNextGeminiKey();
+  return new GoogleGenerativeAI(key);
+}
+
+/** Get a rotated key for raw API calls (e.g. image gen) */
+export function getRotatedGeminiKey() {
+  return getNextGeminiKey();
 }
 
 /**
@@ -73,12 +107,10 @@ getLangfuse();
 const GEMINI_FALLBACK_CHAIN = [
   'gemini-2.5-pro',
   'gemini-2.5-flash',
-  'gemini-2.0-flash',
   'gemini-2.0-flash-lite',
-  'gemini-1.5-flash',
 ];
 
-async function withRetry(fn, { maxRetries = 3, baseDelayMs = 2000, label = 'LLM' } = {}) {
+async function withRetry(fn, { maxRetries = 3, baseDelayMs = 5000, label = 'LLM' } = {}) {
   let lastError;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -88,7 +120,7 @@ async function withRetry(fn, { maxRetries = 3, baseDelayMs = 2000, label = 'LLM'
       const is429 = err.status === 429 || err.message?.includes('429') || err.message?.includes('Resource exhausted');
       const is503 = err.status === 503 || err.message?.includes('503') || err.message?.includes('overloaded');
       if ((is429 || is503) && attempt < maxRetries) {
-        const delay = baseDelayMs * Math.pow(2, attempt) + Math.random() * 1000;
+        const delay = baseDelayMs * Math.pow(2, attempt) + Math.random() * 2000;
         console.log(`[${label}] ${is429 ? '429 Rate Limited' : '503 Overloaded'} — retry ${attempt + 1}/${maxRetries} in ${(delay / 1000).toFixed(1)}s`);
         await new Promise(r => setTimeout(r, delay));
         continue;
@@ -143,14 +175,13 @@ export async function chat({
 
   // --- Gemini models (with fallback chain) ---
   else if (model.startsWith('gemini')) {
-    const genai = getGemini();
-
     // Build fallback order: requested model first, then others in chain
     const modelsToTry = [model, ...GEMINI_FALLBACK_CHAIN.filter(m => m !== model)];
 
     for (const tryModel of modelsToTry) {
       try {
         result = await withRetry(async () => {
+          const genai = getGemini(); // rotates key each attempt
           const genModel = genai.getGenerativeModel({
             model: tryModel,
             systemInstruction: systemPrompt || undefined,
@@ -171,15 +202,16 @@ export async function chat({
             model: tryModel,
             durationMs: Date.now() - startTime,
           };
-        }, { maxRetries: 2, label: `Gemini:${tryModel}` });
+        }, { maxRetries: 4, label: `Gemini:${tryModel}` });
         if (tryModel !== model) {
           console.log(`[LLM] ⚡ Fallback: ${model} → ${tryModel} succeeded`);
         }
         break; // success — exit fallback loop
       } catch (err) {
         const is429 = err.status === 429 || err.message?.includes('429') || err.message?.includes('Resource exhausted');
-        if (is429 && tryModel !== modelsToTry[modelsToTry.length - 1]) {
-          console.log(`[LLM] ${tryModel} exhausted — trying next fallback model...`);
+        const is404 = err.status === 404 || err.message?.includes('404') || err.message?.includes('no longer available');
+        if ((is429 || is404) && tryModel !== modelsToTry[modelsToTry.length - 1]) {
+          console.log(`[LLM] ${tryModel} ${is404 ? 'deprecated/unavailable' : 'exhausted'} — trying next fallback model...`);
           continue;
         }
         throw err;

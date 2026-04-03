@@ -13,6 +13,7 @@ RUN npm install --production
 
 # Copy source
 COPY src/ ./src/
+COPY tools/ ./tools/
 
 # Runtime
 ENV NODE_ENV=production

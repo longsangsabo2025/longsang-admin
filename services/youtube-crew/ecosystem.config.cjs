@@ -18,8 +18,8 @@ module.exports = {
       
       // Environment
       env: {
-        NODE_ENV: 'production',
-        PORT: 3099,
+        NODE_ENV: 'development',
+        PORT: 3001,
       },
       
       // Process management
