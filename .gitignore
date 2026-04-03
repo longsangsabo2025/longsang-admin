@@ -32,14 +32,22 @@ Thumbs.db
 .vscode/
 .dev-pids
 .copilot*
+.claude/
+.openclaw/
+.vercel/
+.vite/
 
 # ── Logs & Temp ──
 logs/
 *.log
 npm-debug.log*
 .tmp/
+tmp/
 temp/
 output/
+tmp-*.mjs
+tmp-*.txt
+admin/tmp-*
 
 # ── Media assets (large, generated) ──
 *.mp4
