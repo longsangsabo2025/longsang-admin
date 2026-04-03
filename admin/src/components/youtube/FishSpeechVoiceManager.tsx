@@ -212,7 +212,9 @@ export function FishSpeechVoiceManager({
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-orange-400">🐟 Fish Audio S2 Voice Manager</span>
+        <span className="text-xs font-semibold text-orange-400">
+          🐟 Fish Audio S2 Voice Manager
+        </span>
         <div className="flex gap-1">
           <Button
             variant="ghost"

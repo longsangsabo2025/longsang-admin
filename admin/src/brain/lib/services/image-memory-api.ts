@@ -23,23 +23,17 @@ import type {
   UploadImageRequest,
   UploadImageResponse,
 } from '@/brain/types/image-memory.types';
-import { API_URL } from '@/config/api';
+import { BRAIN_API_URL, requireBrainUserId } from '../brain-config';
 
 // =============================================================================
 // CONSTANTS
 // =============================================================================
 
-const DEFAULT_USER_ID = '89917901-cf15-45c4-a7ad-8c4c9513347e';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB - compress if larger
 const TARGET_FILE_SIZE = 2 * 1024 * 1024; // 2MB target after compression
 
 function getUserId(): string {
-  if (typeof window !== 'undefined') {
-    const stored = window.localStorage.getItem('userId');
-    if (stored) return stored;
-    window.localStorage.setItem('userId', DEFAULT_USER_ID);
-  }
-  return DEFAULT_USER_ID;
+  return requireBrainUserId();
 }
 
 /**
@@ -129,7 +123,7 @@ async function compressImage(file: File): Promise<File> {
 export class ImageMemoryAPI {
   private readonly baseUrl: string;
 
-  constructor(baseUrl: string = API_URL) {
+  constructor(baseUrl: string = BRAIN_API_URL) {
     this.baseUrl = baseUrl;
   }
 

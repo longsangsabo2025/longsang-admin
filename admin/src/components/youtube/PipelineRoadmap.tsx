@@ -56,6 +56,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { getNextKey } from '@/services/pipeline/api-key-pool';
+import { updateRunFile } from '@/services/pipeline/run-tracker';
 import {
   DEFAULT_PIPELINE,
   DEFAULT_VISUAL_IDENTITY,
@@ -70,24 +71,30 @@ export type { PipelineConfig } from './pipeline-types';
 
 const CHANNEL_VISUAL_PRESETS: Record<string, VisualIdentity> = {
   'dung-day-di': {
-    stylePrompt: 'Dark cinematic style. Deep blacks, dark blues, blood red accents, golden highlights. Low-key dramatic lighting with single spotlight and rim lighting. Slow zoom in, extreme close-up, dolly forward camera. Lone masculine silhouette with strong posture in dark clothing. Dark alleyways, rainy streets, empty rooms, rooftops at night. Cinematic, dramatic, mysterious, powerful, dark philosophy, warrior mood.',
+    stylePrompt:
+      'Dark cinematic style. Deep blacks, dark blues, blood red accents, golden highlights. Low-key dramatic lighting with single spotlight and rim lighting. Slow zoom in, extreme close-up, dolly forward camera. Lone masculine silhouette with strong posture in dark clothing. Dark alleyways, rainy streets, empty rooms, rooftops at night. Cinematic, dramatic, mysterious, powerful, dark philosophy, warrior mood.',
     negativePrompt: 'text, watermark, logo, cartoon, anime, bright cheerful colors, smiling faces',
   },
   'sach-15-phut': {
-    stylePrompt: 'Warm storytelling illustration style. Earth tones — cream, dark brown, amber, soft gold. Warm ambient lighting with soft window light and golden hour glow. Medium shot, gentle pan. No human characters — focus on environment and objects. Cozy library, coffee shop, reading nook, book-filled rooms. Warm, intellectual, inviting, cozy, thoughtful, wisdom mood.',
+    stylePrompt:
+      'Warm storytelling illustration style. Earth tones — cream, dark brown, amber, soft gold. Warm ambient lighting with soft window light and golden hour glow. Medium shot, gentle pan. No human characters — focus on environment and objects. Cozy library, coffee shop, reading nook, book-filled rooms. Warm, intellectual, inviting, cozy, thoughtful, wisdom mood.',
     negativePrompt: 'text, watermark, logo, neon, cyberpunk, dark horror, violence',
   },
   'ai-builder-vn': {
-    stylePrompt: 'Bright modern tech style. Electric blue, white, neon green accents, clean gradients. Bright studio lighting with even light and soft shadows. Eye-level static camera, gentle zoom. Faceless person — hands typing on keyboard, person at desk with multiple monitors. Modern workspace, dual monitors, code on screen, clean desk setup. Tech, modern, clean, futuristic, productive, innovative mood.',
+    stylePrompt:
+      'Bright modern tech style. Electric blue, white, neon green accents, clean gradients. Bright studio lighting with even light and soft shadows. Eye-level static camera, gentle zoom. Faceless person — hands typing on keyboard, person at desk with multiple monitors. Modern workspace, dual monitors, code on screen, clean desk setup. Tech, modern, clean, futuristic, productive, innovative mood.',
     negativePrompt: 'text, watermark, logo, old-fashioned, rustic, dark moody',
   },
   'tien-thong-minh': {
-    stylePrompt: 'Dark cinematic finance style. Dark emerald green, gold, black, silver metallic. Dramatic side lighting with spotlight on subject and dark background. Slow dolly forward camera, close-up on details. Business person silhouette in suit looking at financial data. Stock market screens, money imagery, dark office, city skyline at night. Financial, serious, powerful, data-driven, wealth, strategic mood.',
+    stylePrompt:
+      'Dark cinematic finance style. Dark emerald green, gold, black, silver metallic. Dramatic side lighting with spotlight on subject and dark background. Slow dolly forward camera, close-up on details. Business person silhouette in suit looking at financial data. Stock market screens, money imagery, dark office, city skyline at night. Financial, serious, powerful, data-driven, wealth, strategic mood.',
     negativePrompt: 'text, watermark, logo, cartoon, anime, bright playful colors',
   },
   'ly-black': {
-    stylePrompt: 'Neon cyberpunk style. Deep black, neon purple, electric pink, holographic blue. Neon glow lighting with volumetric light, lens flare, bioluminescent effects. Slow zoom in, static portrait camera. Consistent character: Ly Black — Vietnamese AI virtual woman, short black hair, glowing purple eyes, minimalist black outfit, ethereal digital aura. Digital void, abstract data streams, futuristic city, mirror reflections. Mysterious, ethereal, digital, noir, philosophical, AI consciousness mood.',
-    negativePrompt: 'text, watermark, logo, realistic human faces, bright daylight, nature, cartoon',
+    stylePrompt:
+      'Neon cyberpunk style. Deep black, neon purple, electric pink, holographic blue. Neon glow lighting with volumetric light, lens flare, bioluminescent effects. Slow zoom in, static portrait camera. Consistent character: Ly Black — Vietnamese AI virtual woman, short black hair, glowing purple eyes, minimalist black outfit, ethereal digital aura. Digital void, abstract data streams, futuristic city, mirror reflections. Mysterious, ethereal, digital, noir, philosophical, AI consciousness mood.',
+    negativePrompt:
+      'text, watermark, logo, realistic human faces, bright daylight, nature, cartoon',
   },
 };
 
@@ -95,31 +102,38 @@ const CHANNEL_VISUAL_PRESETS: Record<string, VisualIdentity> = {
 
 const STYLE_PROMPT_MAP: Record<string, { stylePrompt: string; negativePrompt: string }> = {
   'dark-cinematic': {
-    stylePrompt: 'Dark cinematic style. Deep blacks, dark blues, golden highlights. Low-key dramatic lighting with single spotlight. Slow zoom in, close-up focus. Silhouette figures in dark urban, moody interiors. Cinematic, dramatic, mysterious, powerful mood.',
+    stylePrompt:
+      'Dark cinematic style. Deep blacks, dark blues, golden highlights. Low-key dramatic lighting with single spotlight. Slow zoom in, close-up focus. Silhouette figures in dark urban, moody interiors. Cinematic, dramatic, mysterious, powerful mood.',
     negativePrompt: 'text, watermark, logo, cartoon, anime, bright colors, cheerful',
   },
   'modern-minimal': {
-    stylePrompt: 'Modern minimal style. Clean white backgrounds, muted pastels, subtle gradients. Soft even lighting, no harsh shadows. Static wide shots, gentle zoom. Simple geometric shapes, clean typography, minimalist objects. Calm, clean, professional, elegant mood.',
+    stylePrompt:
+      'Modern minimal style. Clean white backgrounds, muted pastels, subtle gradients. Soft even lighting, no harsh shadows. Static wide shots, gentle zoom. Simple geometric shapes, clean typography, minimalist objects. Calm, clean, professional, elegant mood.',
     negativePrompt: 'text, watermark, logo, clutter, busy backgrounds, dark moody',
   },
   'bright-modern': {
-    stylePrompt: 'Bright modern tech style. Electric blue, white, neon green accents, clean gradients. Bright studio lighting with even light and soft shadows. Eye-level static camera, gentle zoom. Modern workspace, dual monitors, code on screen, clean desk setup. Tech, modern, clean, futuristic, productive mood.',
+    stylePrompt:
+      'Bright modern tech style. Electric blue, white, neon green accents, clean gradients. Bright studio lighting with even light and soft shadows. Eye-level static camera, gentle zoom. Modern workspace, dual monitors, code on screen, clean desk setup. Tech, modern, clean, futuristic, productive mood.',
     negativePrompt: 'text, watermark, logo, old-fashioned, rustic, dark moody',
   },
-  'storytelling': {
-    stylePrompt: 'Warm storytelling illustration style. Earth tones — cream, dark brown, amber, soft gold. Warm ambient lighting with soft window light and golden hour glow. Medium shot, gentle pan. Cozy library, coffee shop, reading nook, book-filled rooms. Warm, intellectual, inviting, cozy, thoughtful mood.',
+  storytelling: {
+    stylePrompt:
+      'Warm storytelling illustration style. Earth tones — cream, dark brown, amber, soft gold. Warm ambient lighting with soft window light and golden hour glow. Medium shot, gentle pan. Cozy library, coffee shop, reading nook, book-filled rooms. Warm, intellectual, inviting, cozy, thoughtful mood.',
     negativePrompt: 'text, watermark, logo, neon, cyberpunk, dark horror, violence',
   },
   'anime-style': {
-    stylePrompt: 'Anime illustration style. Vibrant saturated colors, bold outlines, cel-shading. Dramatic anime lighting with rim light and bloom effects. Dynamic angles, speed lines, expressive poses. Urban Japanese settings, school, city streets, cherry blossoms. Energetic, emotional, expressive, dramatic mood.',
+    stylePrompt:
+      'Anime illustration style. Vibrant saturated colors, bold outlines, cel-shading. Dramatic anime lighting with rim light and bloom effects. Dynamic angles, speed lines, expressive poses. Urban Japanese settings, school, city streets, cherry blossoms. Energetic, emotional, expressive, dramatic mood.',
     negativePrompt: 'text, watermark, logo, photorealistic, 3D render, western cartoon',
   },
-  'documentary': {
-    stylePrompt: 'Documentary photography style. Natural muted colors, desaturated tones, film grain. Natural daylight, available light only, no artificial lighting. Handheld camera feel, observational angles, wide establishing shots. Real-world locations, streets, offices, nature. Authentic, raw, honest, journalistic mood.',
+  documentary: {
+    stylePrompt:
+      'Documentary photography style. Natural muted colors, desaturated tones, film grain. Natural daylight, available light only, no artificial lighting. Handheld camera feel, observational angles, wide establishing shots. Real-world locations, streets, offices, nature. Authentic, raw, honest, journalistic mood.',
     negativePrompt: 'text, watermark, logo, fantasy, sci-fi, cartoon, anime, neon',
   },
   'neon-cyberpunk': {
-    stylePrompt: 'Neon cyberpunk style. Deep black, neon purple, electric pink, holographic blue. Neon glow lighting with volumetric light, lens flare, bioluminescent effects. Slow zoom in, static portrait camera. Digital void, abstract data streams, futuristic city, rain-soaked streets. Mysterious, ethereal, digital, noir mood.',
+    stylePrompt:
+      'Neon cyberpunk style. Deep black, neon purple, electric pink, holographic blue. Neon glow lighting with volumetric light, lens flare, bioluminescent effects. Slow zoom in, static portrait camera. Digital void, abstract data streams, futuristic city, rain-soaked streets. Mysterious, ethereal, digital, noir mood.',
     negativePrompt: 'text, watermark, logo, bright daylight, nature, pastoral, cartoon',
   },
 };
@@ -277,6 +291,10 @@ const CHANNEL_PROMPT_PRESETS: Record<string, { label: string; prompt: string; to
   ],
 };
 
+const CHANNEL_VOICE_PRESETS: Record<string, { engine: string; voice: string; speed: number }> = {
+  'dung-day-di': { engine: 'gemini-tts', voice: 'Algenib', speed: 1.0 },
+};
+
 // Fallback presets for unknown channels
 const DEFAULT_PRESETS: { label: string; prompt: string; tone: string }[] = [
   {
@@ -378,6 +396,7 @@ export interface RunLog {
 }
 
 export interface ActiveRunInfo {
+  runId?: string;
   status: 'running' | 'completed' | 'failed' | 'interrupted';
   logs: RunLog[];
   error?: string;
@@ -387,6 +406,8 @@ export interface ActiveRunInfo {
   };
   completedSteps?: string[];
   pipelineSteps?: string[];
+  /** cleanedScript (TTS-optimized) saved in the run's input — used to restore UI on reload */
+  cleanedScriptFromRun?: string;
 }
 
 // Map log messages to pipeline steps by keyword matching
@@ -806,10 +827,12 @@ function getStorageKey(channelId?: string): string {
 function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineConfig {
   const visualPreset = channelId ? CHANNEL_VISUAL_PRESETS[channelId] : undefined;
   const promptPresets = channelId ? CHANNEL_PROMPT_PRESETS[channelId] : undefined;
+  const voicePreset = channelId ? CHANNEL_VOICE_PRESETS[channelId] : undefined;
   const key = getStorageKey(channelId);
   try {
     // Try per-channel key first, then fall back to legacy global key for migration
-    const raw = localStorage.getItem(key) || (channelId ? localStorage.getItem('yt-pipeline-config') : null);
+    const raw =
+      localStorage.getItem(key) || (channelId ? localStorage.getItem('yt-pipeline-config') : null);
     if (raw) {
       const parsed = JSON.parse(raw) as PipelineConfig;
       const merged = { ...DEFAULT_PIPELINE, ...parsed };
@@ -833,6 +856,17 @@ function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineCon
           merged.scriptWriter.tone = promptPresets[0].tone;
         }
       }
+
+      // Migrate old default voice for ĐỨNG DẬY ĐI from Kore -> Algenib, keep user custom voices.
+      if (voicePreset && (!merged.voiceover.voice || merged.voiceover.voice === 'Kore')) {
+        merged.voiceover.engine = voicePreset.engine;
+        merged.voiceover.voice = voicePreset.voice;
+        merged.voiceover.speed = voicePreset.speed;
+      }
+
+      // cleanedScript belongs to a specific run/episode, not channel-level config.
+      delete merged.voiceover.cleanedScript;
+
       return merged;
     }
   } catch {
@@ -850,6 +884,10 @@ function loadSavedConfig(channelId?: string, channelStyle?: string): PipelineCon
       ...DEFAULT_PIPELINE.storyboard,
       style: channelStyle || DEFAULT_PIPELINE.storyboard.style,
       visualIdentity: visualPreset || DEFAULT_VISUAL_IDENTITY,
+    },
+    voiceover: {
+      ...DEFAULT_PIPELINE.voiceover,
+      ...(voicePreset || {}),
     },
   };
 }
@@ -888,8 +926,34 @@ export default function PipelineRoadmap({
 
   // ── Persist config to localStorage on change (per-channel) ──
   useEffect(() => {
-    localStorage.setItem(getStorageKey(channelId), JSON.stringify(config));
+    const persisted = {
+      ...config,
+      voiceover: {
+        ...config.voiceover,
+      },
+    };
+    delete persisted.voiceover.cleanedScript;
+    localStorage.setItem(getStorageKey(channelId), JSON.stringify(persisted));
   }, [config, channelId]);
+
+  // Restore cleanedScript from localStorage (primary) or run input (fallback) when switching runs.
+  useEffect(() => {
+    if (!activeRun?.runId) return;
+    const runConfig = activeRun.result?.files?.['voiceover-config.json'] as
+      | { cleanedScript?: string }
+      | undefined;
+    const runSavedScript = runConfig?.cleanedScript?.trim() || undefined;
+    const localScript = localStorage.getItem('yt-tts-script-' + activeRun.runId) || undefined;
+    const savedScript =
+      runSavedScript || localScript || activeRun.cleanedScriptFromRun || undefined;
+    setConfig((prev) => ({
+      ...prev,
+      voiceover: {
+        ...prev.voiceover,
+        cleanedScript: savedScript,
+      },
+    }));
+  }, [activeRun?.runId]);
 
   // ── Derive per-step statuses from active run ──
   const stepStatuses = deriveStepStatuses(config, activeRun);
@@ -1953,10 +2017,7 @@ function StoryboardConfig({
             value={config.style}
             onValueChange={(v) => {
               const preset = STYLE_PROMPT_MAP[v];
-              onUpdate(preset
-                ? { style: v, visualIdentity: { ...preset } }
-                : { style: v }
-              );
+              onUpdate(preset ? { style: v, visualIdentity: { ...preset } } : { style: v });
             }}
           >
             <SelectTrigger className="h-8 text-xs">
@@ -1995,7 +2056,9 @@ function StoryboardConfig({
                 {currentPreview.moodShort}
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground">{vi.stylePrompt?.slice(0, 40) || 'No style'}</span>
+            <span className="text-[10px] text-muted-foreground">
+              {vi.stylePrompt?.slice(0, 40) || 'No style'}
+            </span>
           </div>
         )}
 
@@ -2338,6 +2401,18 @@ function VoiceoverConfig({
   const [optimizerError, setOptimizerError] = useState<string | null>(null);
   const [showOptimized, setShowOptimized] = useState(!!config.cleanedScript);
 
+  // Sync optimizedScript when cleanedScript is restored from a loaded run.
+  useEffect(() => {
+    if (config.cleanedScript && config.cleanedScript !== optimizedScript) {
+      setOptimizedScript(config.cleanedScript);
+      setShowOptimized(true);
+    } else if (!config.cleanedScript && optimizedScript) {
+      setOptimizedScript(null);
+      setShowOptimized(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.cleanedScript]);
+
   const handleOptimizeForTTS = async () => {
     if (!scriptSource?.text) return;
     setOptimizerLoading(true);
@@ -2390,6 +2465,14 @@ Quy tắc:
   const handleApplyOptimized = () => {
     if (optimizedScript) {
       onUpdate({ cleanedScript: optimizedScript });
+      // Persist to localStorage keyed by runId so it survives page reload
+      if (activeRun?.runId) {
+        localStorage.setItem('yt-tts-script-' + activeRun.runId, optimizedScript);
+        updateRunFile(activeRun.runId, 'voiceover-config.json', {
+          cleanedScript: optimizedScript,
+          updatedAt: new Date().toISOString(),
+        });
+      }
     }
   };
 
@@ -2397,6 +2480,13 @@ Quy tắc:
     setOptimizedScript(null);
     setShowOptimized(false);
     onUpdate({ cleanedScript: '' });
+    if (activeRun?.runId) {
+      localStorage.removeItem('yt-tts-script-' + activeRun.runId);
+      updateRunFile(activeRun.runId, 'voiceover-config.json', {
+        cleanedScript: '',
+        updatedAt: new Date().toISOString(),
+      });
+    }
   };
 
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -2768,6 +2858,8 @@ Quy tắc:
             value={config.engine}
             onValueChange={(v) => {
               if (v === 'elevenlabs') onUpdate({ engine: v, voice: 'pNInz6obpgDQGcFmaJgB' });
+              else if (v === 'google-tts')
+                onUpdate({ engine: v, voice: 'vi-VN-Chirp3-HD-Umbriel', speed: 0.9 });
               else onUpdate({ engine: v, voice: 'Kore' });
             }}
           >
@@ -2776,6 +2868,7 @@ Quy tắc:
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="gemini-tts">Gemini TTS</SelectItem>
+              <SelectItem value="google-tts">Google TTS</SelectItem>
               <SelectItem value="elevenlabs">ElevenLabs</SelectItem>
             </SelectContent>
           </Select>
@@ -2836,6 +2929,39 @@ Quy tắc:
                     🌐 Trung tính
                   </SelectLabel>
                   <SelectItem value="SAz9YHcvj6GT2YYXdXww">River (Neutral)</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          ) : config.engine === 'google-tts' ? (
+            <Select value={config.voice} onValueChange={(v) => onUpdate({ voice: v })}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">
+                    🌑 Dark DNA (Khuyến nghị)
+                  </SelectLabel>
+                  <SelectItem value="vi-VN-Chirp3-HD-Umbriel">
+                    vi-VN-Chirp3-HD-Umbriel ⭐
+                  </SelectItem>
+                  <SelectItem value="vi-VN-Chirp3-HD-Orus">vi-VN-Chirp3-HD-Orus</SelectItem>
+                  <SelectItem value="vi-VN-Chirp3-HD-Fenrir">vi-VN-Chirp3-HD-Fenrir</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">
+                    👨 Nam (legacy)
+                  </SelectLabel>
+                  <SelectItem value="vi-VN-Neural2-D">vi-VN-Neural2-D ⭐</SelectItem>
+                  <SelectItem value="vi-VN-Wavenet-B">vi-VN-Wavenet-B</SelectItem>
+                  <SelectItem value="vi-VN-Standard-B">vi-VN-Standard-B</SelectItem>
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] text-muted-foreground">👩 Nữ</SelectLabel>
+                  <SelectItem value="vi-VN-Neural2-A">vi-VN-Neural2-A</SelectItem>
+                  <SelectItem value="vi-VN-Wavenet-A">vi-VN-Wavenet-A</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>

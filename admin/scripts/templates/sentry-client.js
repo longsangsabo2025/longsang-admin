@@ -5,7 +5,7 @@
 // which then triggers GitHub Auto-Fix workflow
 // ================================================
 
-const LONGSANG_ADMIN_URL = 'https://longsang-admin.vercel.app';
+const LONGSANG_ADMIN_URL = 'https://admin.longsang.org';
 const PROJECT_NAME = '{{PROJECT_NAME}}'; // Will be replaced by setup script
 
 class SentryClient {
@@ -90,12 +90,21 @@ class SentryClient {
 
     // Send to longsang-admin
     try {
-      const response = await fetch(`${LONGSANG_ADMIN_URL}/api/errors`, {
+      const response = await fetch(`${LONGSANG_ADMIN_URL}/api/errors/report`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(errorData)
+        body: JSON.stringify({
+          error_title: errorData.type || 'ClientError',
+          error_message: errorData.message || 'Unknown error',
+          file_path: errorData.filename || 'unknown',
+          line_number: errorData.lineno || 0,
+          project: PROJECT_NAME,
+          stack_trace: errorData.stack || '',
+          user_agent: errorData.userAgent || navigator.userAgent,
+          url: errorData.url || window.location.href,
+        })
       });
 
       if (!response.ok) {

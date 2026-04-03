@@ -13,6 +13,24 @@ import { fetchWithRetry } from './fetch-with-retry';
 import { failRun, getRun, saveStepResult, startProgressTracker } from './run-tracker';
 import type { GenerateRequest, ProgressPhase } from './types';
 
+/** Strip section markers, timestamps, emojis → clean text for TTS */
+function cleanScriptForTTS(script: string): string {
+  return script
+    .replace(/===SCRIPT_START===|===SCRIPT_END===/g, '')
+    .replace(/^---\s*\[.*?\]\s*.*?---$/gm, '')
+    .replace(/^---\s+\S+.*$/gm, '')
+    .replace(/^\[\d+:\d+(?::\d+)?\]\s*/gm, '')
+    .replace(/^#+\s+.*$/gm, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(
+      /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{200D}\u{FE0F}]/gu,
+      ''
+    )
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 const SCRIPT_PHASES: ProgressPhase[] = [
   { pct: 3, msg: '🔌 Connecting to pipeline server...' },
   { pct: 8, msg: '📤 Sending request to AI Director...' },
@@ -86,6 +104,7 @@ export async function runScriptWriter(runId: string, req: GenerateRequest): Prom
 
     const data = (await res.json()) as {
       script?: string;
+      scriptTTS?: string;
       title?: string;
       model?: string;
       wordCount?: number;
@@ -118,6 +137,7 @@ export async function runScriptWriter(runId: string, req: GenerateRequest): Prom
     const files: Record<string, unknown> = {
       ...existingFiles,
       'script.txt': data.script,
+      'script-tts.txt': data.scriptTTS || cleanScriptForTTS(data.script || ''),
       'script.json': {
         title: data.title,
         model: data.model,

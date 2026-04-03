@@ -85,7 +85,10 @@ function getMaxChunkLen(engine: string): number {
     case 'elevenlabs':
       return 5000;
     case 'gemini-tts':
-      return 3000;
+      // Gemini TTS docs: session context window is 32k tokens.
+      // Use a conservative chunk (~8k chars) to reduce voice drift caused by over-chunking
+      // while still staying comfortably below practical request limits.
+      return 8000;
     default:
       return 3000;
   }
@@ -100,13 +103,79 @@ async function geminiTTS(
   _speed: number,
   _apiKey: string
 ): Promise<Blob> {
+  const decodeGeminiAudio = (data: unknown): Blob => {
+    const obj = data as {
+      candidates?: Array<{
+        content?: { parts?: Array<{ inlineData?: { data?: string; mimeType?: string } }> };
+      }>;
+    };
+    const parts = obj.candidates?.[0]?.content?.parts || [];
+    const audioPart = parts.find((p) => p.inlineData?.data);
+    if (!audioPart?.inlineData?.data) throw new Error('No audio returned from Gemini');
+    const byteArray = base64ToBytes(audioPart.inlineData.data);
+    const mime = audioPart.inlineData.mimeType || '';
+    if (mime.includes('L16') || mime.includes('pcm') || mime.includes('raw')) {
+      return new Blob([buildWavHeader(byteArray.length), byteArray], { type: 'audio/wav' });
+    }
+    return new Blob([byteArray], { type: mime || 'audio/wav' });
+  };
+
+  const directGeminiTTS = async (): Promise<Blob> => {
+    const apiKey = _apiKey || ((import.meta.env.VITE_GEMINI_API_KEY || '') as string);
+    if (!apiKey) throw new Error('No Gemini API key for direct TTS fallback');
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [
+              {
+                text: `You are a single professional narrator named "${voice || 'Kore'}". CRITICAL: maintain EXACTLY the same vocal identity, tone, pitch, pace, and speaking style for every piece of text you read.`,
+              },
+            ],
+          },
+          contents: [{ parts: [{ text }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            temperature: 0.1,
+            speechConfig: {
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: voice || 'Kore' } },
+            },
+          },
+        }),
+      }
+    );
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(
+        (err as { error?: { message?: string } })?.error?.message ||
+          `Gemini direct TTS error ${response.status}`
+      );
+    }
+    const data = await response.json();
+    return decodeGeminiAudio(data);
+  };
+
   const response = await fetch(`${PIPELINE_BASE}/api/admin/proxy/tts`, {
     method: 'POST',
     headers: pipelineHeaders(),
-    body: JSON.stringify({ text, engine: 'gemini-tts', voice: voice || 'Kore' }),
+    body: JSON.stringify({
+      text,
+      engine: 'gemini-tts',
+      voice: voice || 'Kore',
+      // Send client key pool to backend proxy so rotation works instantly
+      // without requiring server env changes/redeploy.
+      apiKey: _apiKey || undefined,
+      apiKeys: getPoolForEngine('gemini').map((e) => e.key),
+    }),
   });
 
   if (!response.ok) {
+    if (response.status === 404 || response.status === 503) {
+      return directGeminiTTS();
+    }
     const err = await response.json().catch(() => ({}));
     throw new Error((err as { error?: string })?.error || `TTS proxy error ${response.status}`);
   }
@@ -120,7 +189,6 @@ async function geminiTTS(
 
   const byteArray = base64ToBytes(data.audioBase64);
   const mime = data.mimeType || '';
-  // Gemini returns raw PCM (audio/L16) — browser can't play it, wrap in WAV
   if (mime.includes('L16') || mime.includes('pcm') || mime.includes('raw')) {
     return new Blob([buildWavHeader(byteArray.length), byteArray], { type: 'audio/wav' });
   }
@@ -155,6 +223,48 @@ async function elevenLabsTTS(
   return new Blob([byteArray], { type: data.mimeType || 'audio/mpeg' });
 }
 
+async function googleTTS(
+  text: string,
+  voiceName: string,
+  speed: number,
+  apiKey: string
+): Promise<Blob> {
+  const voice = voiceName || 'vi-VN-Neural2-D';
+  const langMatch = voice.match(/^([a-z]{2}-[A-Z]{2})-/);
+  const languageCode = langMatch?.[1] || 'vi-VN';
+
+  const response = await fetch(
+    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(apiKey)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        input: { text },
+        voice: { languageCode, name: voice },
+        audioConfig: {
+          audioEncoding: 'MP3',
+          speakingRate: speed || 1.0,
+          pitch: 0,
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(
+      (err as { error?: { message?: string } })?.error?.message ||
+        `Google TTS error ${response.status}`
+    );
+  }
+
+  const data = (await response.json()) as { audioContent?: string };
+  if (!data.audioContent) throw new Error('Google TTS returned no audio');
+
+  const byteArray = base64ToBytes(data.audioContent);
+  return new Blob([byteArray], { type: 'audio/mpeg' });
+}
+
 // ─── Helpers ───────────────────────────────────────────────
 
 async function uploadAudio(
@@ -177,6 +287,10 @@ async function uploadAudio(
 
 function cleanTextForTTS(text: string): string {
   return text
+    .replace(/===SCRIPT_START===|===SCRIPT_END===/g, '') // pipeline delimiters
+    .replace(/^---\s*\[.*?\]\s*.*?---$/gm, '') // section markers: --- [0:00] HOOK ---
+    .replace(/^---\s+\S+.*$/gm, '') // alt section markers: --- HOOK ---
+    .replace(/^\[\d+:\d+(?::\d+)?\]\s*/gm, '') // timestamps: [0:00] or [0:00:00]
     .replace(/^#+\s+.*$/gm, '') // headings
     .replace(/\*\*(.*?)\*\*/g, '$1') // bold
     .replace(/\*(.*?)\*/g, '$1') // italic
@@ -185,6 +299,10 @@ function cleanTextForTTS(text: string): string {
     .replace(/`[^`]*`/g, '') // inline code
     .replace(/^\s*[-*]\s+/gm, '') // bullets
     .replace(/^\s*\d+\.\s+/gm, '') // numbered lists
+    .replace(
+      /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{200D}\u{FE0F}]/gu,
+      ''
+    ) // emojis
     .replace(/\n{3,}/g, '\n\n') // collapse newlines
     .trim();
 }
@@ -192,6 +310,24 @@ function cleanTextForTTS(text: string): string {
 /** Estimate audio duration from character count (~4.5 chars/sec for Vietnamese) */
 function estimateDuration(charCount: number, speed: number): number {
   return Math.round(charCount / (4.5 * speed));
+}
+
+/** Rough token estimate for planning chunk sizes safely. */
+function estimateTokens(text: string): number {
+  // Vietnamese prose is commonly around 3-4 chars/token.
+  return Math.ceil(text.length / 3.2);
+}
+
+/** Adaptive chunk size to reduce voice drift while staying under model limits. */
+function getAdaptiveChunkLen(engine: string, text: string): number {
+  if (engine !== 'gemini-tts') return getMaxChunkLen(engine);
+
+  const tokens = estimateTokens(text);
+  // Gemini TTS context window is 32k tokens (official docs).
+  // Keep conservative headroom for prompt wrappers/system instructions.
+  if (tokens <= 7000) return 20000; // one-shot for typical scripts
+  if (tokens <= 14000) return 12000;
+  return 9000;
 }
 
 /** Split text into ~1500-char chunks at paragraph/sentence boundaries for natural TTS */
@@ -253,6 +389,17 @@ function isQuotaError(msg: string): boolean {
     lower.includes('rate') ||
     msg.includes('429') ||
     lower.includes('resource_exhausted')
+  );
+}
+
+function isGoogleUnavailableError(msg: string): boolean {
+  const lower = msg.toLowerCase();
+  return (
+    lower.includes('cloud text-to-speech api has not been used') ||
+    lower.includes('texttospeech.googleapis.com') ||
+    lower.includes('api disabled') ||
+    lower.includes('permission denied') ||
+    msg.includes('403')
   );
 }
 
@@ -370,16 +517,38 @@ function exhaustedGeminiKeyCount(): number {
   return _exhaustedGeminiKeys.size;
 }
 
+function getGeminiEnvPoolKeys(): string[] {
+  const raw = [
+    (import.meta.env.VITE_GEMINI_API_KEYS || '') as string,
+    (import.meta.env.VITE_GEMINI_KEY_POOL || '') as string,
+  ]
+    .filter(Boolean)
+    .join(',');
+
+  if (!raw.trim()) return [];
+  return raw
+    .split(/[\n,;|]/)
+    .map((k) => k.trim())
+    .filter(Boolean);
+}
+
+function getAllGeminiCandidates(currentKey?: string): string[] {
+  const poolKeys = getPoolForEngine('gemini').map((e) => e.key);
+  const envSingle = ((import.meta.env.VITE_GEMINI_API_KEY || '') as string).trim();
+  const envPool = getGeminiEnvPoolKeys();
+  const ordered = [currentKey || '', ...poolKeys, envSingle, ...envPool].filter(Boolean);
+  return Array.from(new Set(ordered));
+}
+
 /** Default ElevenLabs voice for Vietnamese narration fallback */
 const ELEVENLABS_DEFAULT_VOICE = 'pNInz6obpgDQGcFmaJgB'; // Adam — multilingual
 
 /** Find a working Gemini key — skip exhausted ones, try pool then env fallback */
 function getWorkingGeminiKey(currentKey: string): string | null {
-  if (!isGeminiKeyExhausted(currentKey)) return currentKey;
-  const remaining = getPoolForEngine('gemini').filter((e) => !isGeminiKeyExhausted(e.key));
-  if (remaining.length > 0) return remaining[0].key;
-  const envKey = (import.meta.env.VITE_GEMINI_API_KEY || '') as string;
-  if (envKey && !isGeminiKeyExhausted(envKey)) return envKey;
+  const candidates = getAllGeminiCandidates(currentKey);
+  for (const key of candidates) {
+    if (!isGeminiKeyExhausted(key)) return key;
+  }
   return null;
 }
 
@@ -390,8 +559,16 @@ async function fallbackTTS(
   speed: number,
   _geminiKey: string,
   _exhaustedCount: number,
-  log: (msg: string) => void
+  log: (msg: string) => void,
+  allowEngineFallback = true
 ): Promise<Blob> {
+  if (!allowEngineFallback) {
+    throw new Error(
+      `Gemini TTS lỗi sau nhiều lần thử và đang ở chế độ Gemini-only (không fallback engine).` +
+        `\n→ Kiểm tra quota/key pool Gemini.`
+    );
+  }
+
   const elKey = (import.meta.env.VITE_ELEVENLABS_API_KEY || '') as string;
   if (elKey) {
     log(`🔄 Fallback → ElevenLabs TTS...`);
@@ -419,9 +596,11 @@ async function synthesize(
   voice: string,
   speed: number,
   apiKey: string,
-  _logFn?: (msg: string) => void
+  _logFn?: (msg: string) => void,
+  options?: { allowEngineFallback?: boolean }
 ): Promise<Blob> {
   const log = _logFn || ((m: string) => console.log('[TTS]', m));
+  const allowEngineFallback = options?.allowEngineFallback !== false;
 
   // Early check: if this Gemini key is already exhausted, find a working one immediately
   let activeKey = apiKey;
@@ -446,11 +625,27 @@ async function synthesize(
           activeKey = recovered;
         } else {
           log(`⚠️ All Gemini keys still exhausted after cooldown`);
-          return await fallbackTTS(text, voice, speed, apiKey, exhaustedGeminiKeyCount(), log);
+          return await fallbackTTS(
+            text,
+            voice,
+            speed,
+            apiKey,
+            exhaustedGeminiKeyCount(),
+            log,
+            allowEngineFallback
+          );
         }
       } else {
         log(`⚠️ All ${exhaustedGeminiKeyCount()} Gemini keys exhausted`);
-        return await fallbackTTS(text, voice, speed, apiKey, exhaustedGeminiKeyCount(), log);
+        return await fallbackTTS(
+          text,
+          voice,
+          speed,
+          apiKey,
+          exhaustedGeminiKeyCount(),
+          log,
+          allowEngineFallback
+        );
       }
     }
   }
@@ -460,6 +655,7 @@ async function synthesize(
     try {
       let blob: Blob;
       if (engine === 'elevenlabs') blob = await elevenLabsTTS(text, voice, speed, activeKey);
+      else if (engine === 'google-tts') blob = await googleTTS(text, voice, speed, activeKey);
       else blob = await geminiTTS(text, voice, speed, activeKey);
       trackCost({
         step: 'voiceover',
@@ -471,15 +667,33 @@ async function synthesize(
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
 
+      if (engine === 'google-tts' && isGoogleUnavailableError(msg)) {
+        const geminiKey = getNextKey('gemini');
+        if (geminiKey) {
+          const fallbackVoice = voice?.startsWith('vi-') ? 'Algenib' : 'Kore';
+          log('⚠️ Google TTS unavailable/disabled for current key — fallback to Gemini TTS...');
+          return await synthesize(
+            text,
+            'gemini-tts',
+            fallbackVoice,
+            speed,
+            geminiKey,
+            _logFn,
+            options
+          );
+        }
+      }
+
       // ─── Gemini quota/rate-limit handling with smart backoff ───
       if (engine === 'gemini-tts' && isQuotaError(msg)) {
         reportError('gemini', activeKey, msg);
 
-        // Smart backoff: on 429, wait 30s and retry SAME key before marking exhausted
-        if (attempt < maxRetries) {
-          const waitSec = 30;
+        // Fast failover on quota: more retries in gemini-only mode before giving up.
+        const maxQuotaRetries = !allowEngineFallback ? 3 : 1;
+        const waitSec = !allowEngineFallback ? 15 : 8;
+        if (attempt < maxQuotaRetries) {
           log(
-            `⏳ Gemini rate limited (attempt ${attempt + 1}/${maxRetries}) — waiting ${waitSec}s before retry...`
+            `⏳ Gemini rate limited (attempt ${attempt + 1}/${maxQuotaRetries}) — waiting ${waitSec}s before retry...`
           );
           await new Promise((r) => setTimeout(r, waitSec * 1000));
           continue;
@@ -489,18 +703,39 @@ async function synthesize(
         markGeminiKeyExhausted(activeKey);
         disableKey('gemini', activeKey, 'Quota exhausted');
         log(
-          `⚠️ Gemini key quota exceeded after ${maxRetries} retries (${exhaustedGeminiKeyCount()} key(s) exhausted, auto-recover in ${GEMINI_KEY_COOLDOWN_MS / 1000}s)`
+          `⚠️ Gemini key quota exceeded; key marked exhausted (${exhaustedGeminiKeyCount()} key(s) exhausted, auto-recover in ${GEMINI_KEY_COOLDOWN_MS / 1000}s)`
         );
 
         // Try another Gemini API key
         const nextKey = getWorkingGeminiKey(activeKey);
         if (nextKey) {
           log(`🔄 Rotating to next Gemini key...`);
-          return await synthesize(text, engine, voice, speed, nextKey, _logFn);
+          return await synthesize(text, engine, voice, speed, nextKey, _logFn, options);
+        }
+
+        // gemini-only mode: wait full cooldown and retry before hard failing
+        if (!allowEngineFallback) {
+          log(
+            `⏳ Gemini-only: tất cả key đang bị quota. Chờ ${GEMINI_KEY_COOLDOWN_MS / 1000}s rồi tự động thử lại...`
+          );
+          await new Promise((r) => setTimeout(r, GEMINI_KEY_COOLDOWN_MS + 2000));
+          const recovered = getWorkingGeminiKey('');
+          if (recovered) {
+            log(`✅ Gemini key phục hồi sau cooldown, thử lại...`);
+            return await synthesize(text, engine, voice, speed, recovered, _logFn, options);
+          }
         }
 
         // No more Gemini keys → fallback to ElevenLabs
-        return await fallbackTTS(text, voice, speed, activeKey, exhaustedGeminiKeyCount(), log);
+        return await fallbackTTS(
+          text,
+          voice,
+          speed,
+          activeKey,
+          exhaustedGeminiKeyCount(),
+          log,
+          allowEngineFallback
+        );
       }
 
       const isRetryable =
@@ -521,7 +756,15 @@ async function synthesize(
       // ─── Gemini persistent internal errors → fallback chain (preserves voice gender) ───
       if (engine === 'gemini-tts' && isRetryable) {
         log(`⚠️ Gemini TTS internal error after ${maxRetries} retries — falling back...`);
-        return await fallbackTTS(text, voice, speed, activeKey, 0, log);
+        // gemini-only mode: try rotating to another key before hard failing
+        if (!allowEngineFallback) {
+          const altKey = getWorkingGeminiKey(activeKey);
+          if (altKey) {
+            log(`🔄 Gemini key rotation after retryable error...`);
+            return await synthesize(text, engine, voice, speed, altKey, _logFn, options);
+          }
+        }
+        return await fallbackTTS(text, voice, speed, activeKey, 0, log, allowEngineFallback);
       }
 
       throw err;
@@ -537,12 +780,14 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
   if (!run) return;
 
   const engine = req.voiceoverEngine || 'gemini-tts';
-  const voice = req.voiceoverVoice || 'Kore';
+  const voice = req.voiceoverVoice || (req.channelId === 'dung-day-di' ? 'Algenib' : 'Kore');
   const speed = req.voiceoverSpeed || 1.0;
+  const geminiOnlyMode = engine === 'gemini-tts' && req.channelId === 'dung-day-di';
 
   // Get API key from pool (falls back to env vars)
-  const engineKey = engine === 'elevenlabs' ? 'elevenlabs' : 'gemini';
-  const apiKey = getNextKey(engineKey);
+  const engineKey =
+    engine === 'elevenlabs' ? 'elevenlabs' : engine === 'google-tts' ? 'google-tts' : 'gemini';
+  const apiKey = getNextKey(engineKey) || (engine === 'google-tts' ? getNextKey('gemini') : null);
   if (!apiKey) {
     failRun(
       run,
@@ -570,10 +815,17 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
     scenes = storyboardJson.scenes;
   }
 
-  let scriptTxt = run.result?.files?.['script.txt'] as string | undefined;
+  // Prefer script-tts.txt (TTS-ready) → fall back to script.txt (raw with markers)
+  let scriptTxt =
+    (run.result?.files?.['script-tts.txt'] as string | undefined) ||
+    (run.result?.files?.['script.txt'] as string | undefined);
   if (!scriptTxt) {
-    const scriptRun = findLatestRunWithFile('script.txt', req.channelId, runId, runTopic);
-    scriptTxt = scriptRun?.result?.files?.['script.txt'] as string | undefined;
+    const scriptRun =
+      findLatestRunWithFile('script-tts.txt', req.channelId, runId, runTopic) ||
+      findLatestRunWithFile('script.txt', req.channelId, runId, runTopic);
+    scriptTxt =
+      (scriptRun?.result?.files?.['script-tts.txt'] as string | undefined) ||
+      (scriptRun?.result?.files?.['script.txt'] as string | undefined);
   }
 
   if (!scenes && !scriptTxt) {
@@ -605,14 +857,20 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
     // Gộp tất cả dialogue thành 1 text → 1 API call → giọng 100% nhất quán
     // ElevenLabs: gộp nếu tổng text ≤ 5000 chars (API limit an toàn)
     const combinedLength = validScenes.reduce((s, sc) => s + (sc.dialogue?.length || 0), 0);
-    const GEMINI_SAFE_LIMIT = 3500; // Gemini TTS often 500s on long text
+    const combinedTextForPlan = validScenes
+      .map((s) => cleanTextForTTS(s.dialogue))
+      .join('\n\n... \n\n');
+    const combinedTokens = estimateTokens(combinedTextForPlan);
+    const GEMINI_SAFE_LIMIT = 20000; // aggressively prefer one-shot for consistency/cost
     const EDGE_SAFE_LIMIT = 8000; // Edge TTS handles long text very well
     const FISH_SAFE_LIMIT = 5000; // Fish Speech handles medium-length text well
     const useSingleNarration =
       total > 1 &&
       ((engine === 'edge-tts' && combinedLength <= EDGE_SAFE_LIMIT) ||
         (engine === 'fish-speech' && combinedLength <= FISH_SAFE_LIMIT) ||
-        (engine === 'gemini-tts' && combinedLength <= GEMINI_SAFE_LIMIT) ||
+        (engine === 'gemini-tts' &&
+          combinedLength <= GEMINI_SAFE_LIMIT &&
+          combinedTokens <= 7000) ||
         (engine === 'elevenlabs' && combinedLength <= 5000));
 
     if (useSingleNarration) {
@@ -639,13 +897,14 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
         return;
       }
 
-      const maxChunkLen = getMaxChunkLen(engine);
+      const maxChunkLen = getAdaptiveChunkLen(engine, combinedText);
       const chunks = splitIntoChunks(combinedText, maxChunkLen);
       const totalChunks = chunks.length;
+      const tokenEstimate = estimateTokens(combinedText);
       run.logs.push({
         t: Date.now(),
         level: 'info',
-        msg: `🎤 Chunked mode: ${combinedText.length} chars → ${totalChunks} phần (max ${maxChunkLen}/chunk, ${engine})`,
+        msg: `🎤 Chunked mode: ${combinedText.length} chars (~${tokenEstimate} tok) → ${totalChunks} phần (max ${maxChunkLen}/chunk, ${engine})`,
       });
 
       const phases: ProgressPhase[] = chunks.map((_, i) => ({
@@ -668,7 +927,9 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
           });
 
           const logFn = (m: string) => run.logs.push({ t: Date.now(), level: 'info', msg: m });
-          const blob = await synthesize(chunks[i], engine, voice, speed, apiKey, logFn);
+          const blob = await synthesize(chunks[i], engine, voice, speed, apiKey, logFn, {
+            allowEngineFallback: !geminiOnlyMode,
+          });
           const ext = audioExt(engine, blob);
           const filename =
             totalChunks === 1
@@ -793,7 +1054,9 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
         });
 
         const logFn = (m: string) => run.logs.push({ t: Date.now(), level: 'info', msg: m });
-        const blob = await synthesize(combinedText, engine, voice, speed, apiKey, logFn);
+        const blob = await synthesize(combinedText, engine, voice, speed, apiKey, logFn, {
+          allowEngineFallback: !geminiOnlyMode,
+        });
         const ext = audioExt(engine, blob);
         const filename = `full-narration.${ext}`;
         const url = await uploadAudio(blob, channelId, runId, filename);
@@ -854,12 +1117,13 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
         // Re-combine and use chunked mode
         const sceneCleaned2 = validScenes.map((s) => cleanTextForTTS(s.dialogue)).filter(Boolean);
         const combinedText2 = sceneCleaned2.join('\n\n... \n\n');
-        const maxChunkLen2 = getMaxChunkLen(engine);
+        const maxChunkLen2 = getAdaptiveChunkLen(engine, combinedText2);
         const chunks2 = splitIntoChunks(combinedText2, maxChunkLen2);
+        const tokenEstimate2 = estimateTokens(combinedText2);
         run.logs.push({
           t: Date.now(),
           level: 'info',
-          msg: `🎤 Fallback chunked: ${combinedText2.length} chars → ${chunks2.length} phần`,
+          msg: `🎤 Fallback chunked: ${combinedText2.length} chars (~${tokenEstimate2} tok) → ${chunks2.length} phần (max ${maxChunkLen2})`,
         });
 
         const clips2: VoiceoverClip[] = [];
@@ -868,7 +1132,9 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
           if (run.status !== 'running') break;
           try {
             const logFn2 = (m: string) => run.logs.push({ t: Date.now(), level: 'info', msg: m });
-            const blob2 = await synthesize(chunks2[i], engine, voice, speed, apiKey, logFn2);
+            const blob2 = await synthesize(chunks2[i], engine, voice, speed, apiKey, logFn2, {
+              allowEngineFallback: !geminiOnlyMode,
+            });
             const ext2 = audioExt(engine, blob2);
             const filename2 = `part-${String(i + 1).padStart(2, '0')}.${ext2}`;
             const url2 = await uploadAudio(blob2, channelId, runId, filename2);
@@ -960,14 +1226,14 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
     msg: `📝 Using ${sourceLabel} script (${fullScript.length} chars)`,
   });
 
-  // Engine-specific chunk size: Edge TTS handles long text well, Fish Speech ~4000, Gemini ~3000, ElevenLabs ~5000
-  const maxChunkLen = getMaxChunkLen(engine);
+  const maxChunkLen = getAdaptiveChunkLen(engine, fullScript);
   const chunks = splitIntoChunks(fullScript, maxChunkLen);
   const total = chunks.length;
+  const tokenEstimate = estimateTokens(fullScript);
   run.logs.push({
     t: Date.now(),
     level: 'info',
-    msg: `🎤 Full-script mode: ${fullScript.length} chars → ${total} chunk(s) (max ${maxChunkLen}/chunk, ${engine})`,
+    msg: `🎤 Full-script mode: ${fullScript.length} chars (~${tokenEstimate} tok) → ${total} chunk(s) (max ${maxChunkLen}/chunk, ${engine})`,
   });
 
   const phases: ProgressPhase[] = chunks.map((_, i) => ({
@@ -991,7 +1257,9 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
       });
 
       const logFn = (m: string) => run.logs.push({ t: Date.now(), level: 'info', msg: m });
-      const blob = await synthesize(chunks[i], engine, voice, speed, apiKey, logFn);
+      const blob = await synthesize(chunks[i], engine, voice, speed, apiKey, logFn, {
+        allowEngineFallback: !geminiOnlyMode,
+      });
       const ext = audioExt(engine, blob);
       const filename =
         total === 1 ? `narration.${ext}` : `part-${String(i + 1).padStart(2, '0')}.${ext}`;
@@ -1007,6 +1275,26 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
       });
 
       if (i < chunks.length - 1) await new Promise((r) => setTimeout(r, 1500));
+
+      // Progressive save after each clip — data is never lost if merge hangs later
+      const existingFilesPartial = run.result?.files || {};
+      saveStepResult(run, {
+        outputDir: 'remote',
+        files: {
+          ...existingFilesPartial,
+          'voiceover.json': {
+            clips: [...clips],
+            totalClips: total,
+            successCount: clips.length,
+            failCount: total - clips.length,
+            totalDuration,
+            engine,
+            voice,
+            speed,
+            partial: clips.length < total,
+          },
+        },
+      });
     }
 
     clearInterval(tracker);
@@ -1016,13 +1304,19 @@ export async function runVoiceover(runId: string, req: GenerateRequest): Promise
     if (clips.length > 0) {
       try {
         run.logs.push({ t: Date.now(), level: 'info', msg: '🔗 Merging parts into full audio...' });
-        fullAudioUrl = await mergeClipsToFullAudio(clips, channelId, runId);
+        const MERGE_TIMEOUT_MS = 90_000;
+        fullAudioUrl = await Promise.race([
+          mergeClipsToFullAudio(clips, channelId, runId),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Merge timeout after 90s')), MERGE_TIMEOUT_MS)
+          ),
+        ]);
         run.logs.push({ t: Date.now(), level: 'info', msg: '✅ Full audio created' });
       } catch (err: unknown) {
         run.logs.push({
           t: Date.now(),
           level: 'warn',
-          msg: `⚠️ Full audio merge failed: ${err instanceof Error ? err.message : String(err)}`,
+          msg: `⚠️ Full audio merge skipped: ${err instanceof Error ? err.message : String(err)}`,
         });
       }
     }

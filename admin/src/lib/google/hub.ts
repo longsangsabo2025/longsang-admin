@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { API_URL, API_ENDPOINTS } from '@/config/api';
 import {
   type AnalyticsMetrics,
   comparePerformance,
@@ -283,7 +284,7 @@ export async function syncToGoogleSheets(): Promise<{
     throw new Error('Google Sheets not configured. Please set up a reporting spreadsheet first.');
   }
 
-  const response = await fetch('http://localhost:3001/api/google/sheets/sync', {
+  const response = await fetch(`${API_ENDPOINTS.SHEETS}/sync`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -311,7 +312,7 @@ export async function generateDashboardReport(): Promise<{ spreadsheetUrl: strin
 
   // First create a new spreadsheet if no reporting spreadsheet exists
   if (!config.reporting_spreadsheet_id) {
-    const createResponse = await fetch('http://localhost:3001/api/google/sheets/create', {
+    const createResponse = await fetch(`${API_ENDPOINTS.SHEETS}/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: 'LongSang Admin Dashboard Report' }),
@@ -401,7 +402,7 @@ export async function getSyncLogs(limit = 50): Promise<SyncLog[]> {
  * Setup wizard - Tạo spreadsheet và config ban đầu
  */
 export async function setupGoogleServices(analyticsPropertyId: string) {
-  const response = await fetch('http://localhost:3001/api/google/setup', {
+  const response = await fetch(`${API_URL}/google/setup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ propertyId: analyticsPropertyId }),
@@ -420,7 +421,7 @@ export async function setupGoogleServices(analyticsPropertyId: string) {
  */
 export async function testGoogleConnection(analyticsPropertyId: string) {
   try {
-    const response = await fetch('http://localhost:3001/api/google/analytics/overview', {
+    const response = await fetch(`${API_URL}/google/analytics/overview`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

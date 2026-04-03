@@ -15,6 +15,7 @@ import {
   persistDelete,
   persistUpdate,
 } from './run-persistence';
+import { deleteRunStorageFiles } from './storage-cleanup';
 import type { GenerateRequest, GenerationRun, ProgressPhase } from './types';
 
 const clientRuns = new Map<string, GenerationRun>();
@@ -71,6 +72,8 @@ export function getRunningIdsForChannel(channelId: string): string[] {
 export function saveStepResult(run: GenerationRun, result: GenerationRun['result']) {
   run.result = result;
   run.hasResult = true;
+  // Persist partial progress so reload does not lose generated artifacts.
+  persistUpdate(run).catch(() => {});
 }
 
 /** Update a specific file in an existing run's result and persist to DB */
@@ -105,12 +108,17 @@ export function failRun(run: GenerationRun, error: string) {
   persistUpdate(run).catch(() => {});
 }
 
-/** Delete a run from memory and Supabase */
+/** Delete a run from memory, Supabase, and its storage files */
 export function deleteRun(runId: string): void {
   const run = clientRuns.get(runId);
   if (run?.status === 'running') return; // never delete active runs
+  const channelId = run?.channelId || run?.input?.channelId;
   clientRuns.delete(runId);
   persistDelete(runId).catch(() => {});
+  // Also clean up storage files (images + audio) — fire-and-forget
+  if (channelId) {
+    deleteRunStorageFiles(channelId, runId).catch(() => {});
+  }
 }
 
 /** Simulate progress phases while waiting for an API call */
@@ -200,15 +208,19 @@ export function fixOrphanedRun(run: GenerationRun): void {
   // Assembly renders in real-time (video duration = render time).
   // A 20-minute video needs 20+ minutes → use 45 min timeout.
   // Storyboard with many scenes (30-60) can take 10+ minutes on large models.
+  // Voiceover with long scripts + multi-key rotation can take 60+ minutes.
   // Other steps are fast (API calls) → 5 min timeout is fine.
-  const isLongStep = currentStep === 'assembly' || currentStep === 'storyboard';
-  const timeoutMs = isLongStep ? 45 * 60 * 1000 : 5 * 60 * 1000;
+  const timeoutMs =
+    currentStep === 'assembly'
+      ? 45 * 60 * 1000
+      : currentStep === 'voiceover' || currentStep === 'storyboard'
+        ? 90 * 60 * 1000
+        : 5 * 60 * 1000;
 
   if (ageMs > timeoutMs) {
     const hasPartialResult = run.hasResult || !!run.result?.files;
     const hasCompletedSteps = completedCount > 0;
-    const hasPendingSteps =
-      run.pipelineSteps && run.pipelineSteps.length > completedCount;
+    const hasPendingSteps = run.pipelineSteps && run.pipelineSteps.length > completedCount;
 
     if ((hasPartialResult || hasCompletedSteps) && hasPendingSteps) {
       // Has partial progress — mark as interrupted (resumable)
@@ -267,7 +279,10 @@ export function mergeRelatedRuns(runs?: GenerationRun[]): void {
       const other = group[i];
 
       // Keep the lowest episode number
-      if (other.episodeNumber && (!primary.episodeNumber || other.episodeNumber < primary.episodeNumber)) {
+      if (
+        other.episodeNumber &&
+        (!primary.episodeNumber || other.episodeNumber < primary.episodeNumber)
+      ) {
         primary.episodeNumber = other.episodeNumber;
       }
 
@@ -309,9 +324,15 @@ export function mergeRelatedRuns(runs?: GenerationRun[]): void {
   }
 }
 
-/** Load saved runs from Supabase into the in-memory Map (call once per channel) */
-export async function hydrateRunsForChannel(channelId: string): Promise<GenerationRun[]> {
-  if (hydratedChannels.has(channelId)) return getAllRuns();
+/**
+ * Load saved runs from Supabase into the in-memory Map.
+ * Use force=true to refresh from DB even if this channel was already hydrated.
+ */
+export async function hydrateRunsForChannel(
+  channelId: string,
+  force = false
+): Promise<GenerationRun[]> {
+  if (!force && hydratedChannels.has(channelId)) return getAllRuns();
   hydratedChannels.add(channelId);
   const saved = await loadRunsByChannel(channelId);
   for (const run of saved) {

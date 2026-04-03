@@ -5,6 +5,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { BRAIN_API_BASE, BRAIN_API_URL, requireBrainUserId } from '@/brain/lib/brain-config';
 import { brainAPI } from '@/brain/lib/services/brain-api';
 import type {
   IngestKnowledgeInput,
@@ -42,13 +43,7 @@ export function useAllKnowledge(options: ListKnowledgeOptions = {}) {
   return useQuery({
     queryKey: [...QUERY_KEY, 'list', options],
     queryFn: async () => {
-      // Single user: longsangsabo@gmail.com
-      const DEFAULT_USER_ID = '89917901-cf15-45c4-a7ad-8c4c9513347e';
-      let userId = localStorage.getItem('userId');
-      if (!userId) {
-        userId = DEFAULT_USER_ID;
-        localStorage.setItem('userId', userId);
-      }
+      const userId = requireBrainUserId();
 
       const params = new URLSearchParams();
       params.append('userId', userId);
@@ -60,8 +55,7 @@ export function useAllKnowledge(options: ListKnowledgeOptions = {}) {
       if (options.sortBy) params.append('sortBy', options.sortBy);
       if (options.sortOrder) params.append('sortOrder', options.sortOrder);
 
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const url = `${baseUrl}/api/brain/knowledge?${params}`;
+      const url = `${BRAIN_API_BASE}/api/brain/knowledge?${params}`;
 
       console.log('[useAllKnowledge] Fetching:', url);
 
@@ -150,8 +144,8 @@ export function useUpdateKnowledge() {
       content?: string;
       tags?: string[];
     }) => {
-      const userId = localStorage.getItem('userId') || '89917901-cf15-45c4-a7ad-8c4c9513347e';
-      const response = await fetch(`${API_URL}/brain/knowledge/${input.id}`, {
+      const userId = requireBrainUserId();
+      const response = await fetch(`${BRAIN_API_URL}/brain/knowledge/${input.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -185,8 +179,8 @@ export function useDeleteKnowledge() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const userId = localStorage.getItem('userId') || '89917901-cf15-45c4-a7ad-8c4c9513347e';
-      const response = await fetch(`${API_URL}/brain/knowledge/${id}`, {
+      const userId = requireBrainUserId();
+      const response = await fetch(`${BRAIN_API_URL}/brain/knowledge/${id}`, {
         method: 'DELETE',
         headers: {
           'x-user-id': userId,

@@ -118,7 +118,7 @@ import sys
 import os
 from datetime import datetime
 
-LONGSANG_ADMIN_URL = 'https://longsang-admin.vercel.app'
+LONGSANG_ADMIN_URL = 'https://admin.longsang.org'
 PROJECT_NAME = '${project.name}'
 
 def capture_exception(exc_info=None):
@@ -140,7 +140,7 @@ def capture_exception(exc_info=None):
     
     try:
         response = requests.post(
-            f'{LONGSANG_ADMIN_URL}/api/errors',
+          f'{LONGSANG_ADMIN_URL}/api/errors/report',
             json=error_data,
             timeout=5
         )
@@ -187,7 +187,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 
-const String longsangAdminUrl = 'https://longsang-admin.vercel.app';
+const String longsangAdminUrl = 'https://admin.longsang.org';
 const String projectName = '${project.name}';
 
 class SentryClient {
@@ -229,7 +229,7 @@ class SentryClient {
 
     try {
       final response = await http.post(
-        Uri.parse('\$longsangAdminUrl/api/errors'),
+        Uri.parse('\$longsangAdminUrl/api/errors/report'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(errorData),
       );
@@ -338,6 +338,6 @@ if (success > 0) {
 3. Errors will auto-send to longsang-admin
 4. GitHub Auto-Fix will trigger automatically!
 
-🔗 Error Dashboard: https://longsang-admin.vercel.app/api/errors/stats
+🔗 Error Dashboard: https://admin.longsang.org/api/errors/stats
 `);
 }

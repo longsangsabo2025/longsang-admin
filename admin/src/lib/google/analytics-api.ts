@@ -3,7 +3,9 @@
  * Browser-safe version - Calls API server for all Google API operations
  */
 
-const API_BASE = 'http://localhost:3001/api/google/analytics';
+import { API_ENDPOINTS } from '@/config/api';
+
+const API_BASE = API_ENDPOINTS.ANALYTICS;
 
 export interface AnalyticsMetrics {
   sessions: number;

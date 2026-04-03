@@ -14,6 +14,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { GlobalQuickCommands } from './components/GlobalQuickCommands';
 import { StatusBar } from './components/StatusBar';
 import { ThemeProvider } from './components/theme/ThemeProvider';
+import { YouTubeLayout } from './components/youtube/YouTubeLayout';
 import { useAnalytics } from './lib/analytics';
 
 // Route modules
@@ -24,6 +25,7 @@ import {
   managerRoutes,
   mobileRoutes,
   publicRoutes,
+  youtubeRoutes,
 } from './routes';
 
 // Manager Layout (lazy)
@@ -88,6 +90,11 @@ const App = () => {
                         }
                       >
                         {adminRoutes}
+                      </Route>
+
+                      {/* YouTube Studio — focused layout, no sidebar */}
+                      <Route path="/youtube" element={<YouTubeLayout />}>
+                        {youtubeRoutes}
                       </Route>
 
                       {/* Mobile routes */}

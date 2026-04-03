@@ -217,7 +217,9 @@ const FacebookMarketingDashboard: React.FC = () => {
 
       if (data.success) {
         toast({
-          title: isScheduled ? '✅ Post scheduled successfully!' : '✅ Post published successfully!',
+          title: isScheduled
+            ? '✅ Post scheduled successfully!'
+            : '✅ Post published successfully!',
         });
         setPostMessage('');
         setPostLink('');

@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+import { API_URL } from '@/config/api';
+
+const API_BASE_URL = API_URL;
 
 export interface EncryptedCredential {
   name: string;

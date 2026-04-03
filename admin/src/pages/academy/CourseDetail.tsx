@@ -14,6 +14,7 @@ import {
   Download,
   FileText,
   Heart,
+  Loader2,
   Lock,
   MessageSquare,
   PlayCircle,
@@ -23,12 +24,19 @@ import {
   Video,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { useCourse, useEnrollCourse, useUserEnrollments } from '@/hooks/useAcademy';
+import { supabase } from '@/integrations/supabase/client';
+import { PaymentService } from '@/lib/academy/payment.service';
+import { redirectToCheckout } from '@/lib/stripe/api';
+import { redirectToVNPay } from '@/lib/vnpay/api';
 
 interface Lesson {
   id: string;
@@ -56,54 +64,178 @@ interface Review {
   helpful: number;
 }
 
+const fallbackCourseData = {
+  id: '1',
+  title: 'Xây dựng AI Agent với Model Context Protocol (MCP)',
+  subtitle: 'Master modern AI agent development với cutting-edge MCP protocol',
+  instructor: {
+    name: 'Dr. Nguyễn Văn A',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=instructor',
+    title: 'Senior AI Architect',
+    students: 50000,
+    courses: 12,
+    rating: 4.9,
+  },
+  rating: 4.9,
+  reviews: 2847,
+  students: 12450,
+  lastUpdated: 'Tháng 11/2025',
+  duration: '8 giờ',
+  level: 'Advanced',
+  language: 'Tiếng Việt',
+  price: 1990000,
+  originalPrice: 2990000,
+  thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200',
+  whatYouLearn: [
+    'Hiểu sâu về Model Context Protocol và kiến trúc của nó',
+    'Xây dựng custom MCP servers với 6+ automation tools',
+    'Tích hợp MCP với existing AI workflows (N8N, LangChain)',
+    'Implement tool calling và resource management',
+    'Best practices cho production deployment',
+    'Debugging và monitoring MCP agents',
+  ],
+  requirements: [
+    'Kiến thức cơ bản về TypeScript/JavaScript',
+    'Hiểu về REST APIs và async programming',
+    'Đã làm việc với OpenAI API hoặc tương tự',
+    'Có máy tính với Node.js 18+ installed',
+  ],
+  features: [
+    '24 video lectures với HD quality',
+    '12 coding exercises',
+    '3 real-world projects',
+    'Certificate of completion',
+    'Lifetime access',
+    'Q&A support',
+  ],
+};
+
 export default function CourseDetail() {
+  const { courseId } = useParams<{ courseId: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [expandedSections, setExpandedSections] = useState<string[]>(['1']);
   const [currentLesson, setCurrentLesson] = useState<string>('1-1');
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'vnpay'>('vnpay');
+  const [purchasing, setPurchasing] = useState(false);
+
+  const { data: courseFromDb, isLoading: courseLoading } = useCourse(courseId || '');
+  const { data: enrollments } = useUserEnrollments();
+  const enrollMutation = useEnrollCourse();
+
+  const isEnrolled = enrollments?.some((e) => e.course_id === (courseId || fallbackCourseData.id));
+
+  // Use DB data if available, fallback to hardcoded
+  const course = courseFromDb;
+  const courseTitle = course?.title || fallbackCourseData.title;
+  const courseSubtitle = course?.subtitle || fallbackCourseData.subtitle;
+  const courseInstructor = course?.instructor
+    ? {
+        name: course.instructor.name,
+        avatar: course.instructor.avatar_url || fallbackCourseData.instructor.avatar,
+        title: course.instructor.title || '',
+        students: course.instructor.total_students,
+        courses: course.instructor.total_courses,
+        rating: course.instructor.average_rating,
+      }
+    : fallbackCourseData.instructor;
+  const courseRating = course?.average_rating ?? fallbackCourseData.rating;
+  const courseReviewsCount = course?.total_reviews ?? fallbackCourseData.reviews;
+  const courseStudents = course?.total_students ?? fallbackCourseData.students;
+  const courseLevel = course?.level || fallbackCourseData.level;
+  const courseDuration = course ? `${course.duration_hours} giờ` : fallbackCourseData.duration;
+  const coursePrice = course?.price ?? fallbackCourseData.price;
+  const courseOriginalPrice = course?.original_price ?? fallbackCourseData.originalPrice;
+  const courseIsFree = course?.is_free ?? coursePrice === 0;
+  const courseThumbnail = course?.thumbnail_url || fallbackCourseData.thumbnail;
+  const courseLastUpdated = course?.last_updated
+    ? new Date(course.last_updated).toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })
+    : fallbackCourseData.lastUpdated;
+  const courseWhatYouLearn = course?.what_you_learn?.length
+    ? course.what_you_learn
+    : fallbackCourseData.whatYouLearn;
+  const courseRequirements = course?.requirements?.length
+    ? course.requirements
+    : fallbackCourseData.requirements;
+  const courseFeatures = course?.features?.length ? course.features : fallbackCourseData.features;
+
+  const handlePurchase = async () => {
+    try {
+      setPurchasing(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: 'Yêu cầu đăng nhập',
+          description: 'Vui lòng đăng nhập để đăng ký khóa học',
+          variant: 'destructive',
+        });
+        navigate('/admin/login');
+        return;
+      }
+
+      const resolvedCourseId = courseId || fallbackCourseData.id;
+
+      // Free course — enroll directly
+      if (courseIsFree) {
+        enrollMutation.mutate({ course_id: resolvedCourseId });
+        return;
+      }
+
+      // Paid course — create order then redirect to payment
+      const order = await PaymentService.createOrder({
+        orderType: 'course',
+        courseId: resolvedCourseId,
+      });
+
+      if (!order) {
+        throw new Error('Không thể tạo đơn hàng');
+      }
+
+      if (paymentMethod === 'vnpay') {
+        await redirectToVNPay(order.id, user.id, order.final_amount, `Khóa học: ${courseTitle}`);
+      } else {
+        await redirectToCheckout(order.id, user.id);
+      }
+    } catch (error) {
+      toast({
+        title: 'Thanh toán thất bại',
+        description: error instanceof Error ? error.message : 'Vui lòng thử lại',
+        variant: 'destructive',
+      });
+    } finally {
+      setPurchasing(false);
+    }
+  };
+
+  const handleContinueLearning = () => {
+    navigate(`/academy/courses/${courseId || fallbackCourseData.id}/learn`);
+  };
+
+  const discountPercent =
+    courseOriginalPrice && courseOriginalPrice > coursePrice
+      ? Math.round(((courseOriginalPrice - coursePrice) / courseOriginalPrice) * 100)
+      : 0;
 
   const courseData = {
-    id: '1',
-    title: 'Xây dựng AI Agent với Model Context Protocol (MCP)',
-    subtitle: 'Master modern AI agent development với cutting-edge MCP protocol',
-    instructor: {
-      name: 'Dr. Nguyễn Văn A',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=instructor',
-      title: 'Senior AI Architect',
-      students: 50000,
-      courses: 12,
-      rating: 4.9,
-    },
-    rating: 4.9,
-    reviews: 2847,
-    students: 12450,
-    lastUpdated: 'Tháng 11/2025',
-    duration: '8 giờ',
-    level: 'Advanced',
-    language: 'Tiếng Việt',
-    price: 1990000,
-    originalPrice: 2990000,
-    thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200',
-    whatYouLearn: [
-      'Hiểu sâu về Model Context Protocol và kiến trúc của nó',
-      'Xây dựng custom MCP servers với 6+ automation tools',
-      'Tích hợp MCP với existing AI workflows (N8N, LangChain)',
-      'Implement tool calling và resource management',
-      'Best practices cho production deployment',
-      'Debugging và monitoring MCP agents',
-    ],
-    requirements: [
-      'Kiến thức cơ bản về TypeScript/JavaScript',
-      'Hiểu về REST APIs và async programming',
-      'Đã làm việc với OpenAI API hoặc tương tự',
-      'Có máy tính với Node.js 18+ installed',
-    ],
-    features: [
-      '24 video lectures với HD quality',
-      '12 coding exercises',
-      '3 real-world projects',
-      'Certificate of completion',
-      'Lifetime access',
-      'Q&A support',
-    ],
+    ...fallbackCourseData,
+    title: courseTitle,
+    subtitle: courseSubtitle,
+    instructor: courseInstructor,
+    rating: courseRating,
+    reviews: courseReviewsCount,
+    students: courseStudents,
+    level: courseLevel,
+    duration: courseDuration,
+    price: coursePrice,
+    originalPrice: courseOriginalPrice,
+    thumbnail: courseThumbnail,
+    lastUpdated: courseLastUpdated,
+    whatYouLearn: courseWhatYouLearn,
+    requirements: courseRequirements,
+    features: courseFeatures,
   };
 
   const curriculum: Section[] = [
@@ -316,6 +448,14 @@ export default function CourseDetail() {
   );
   const progressPercent = Math.round((completedLessons / totalLessons) * 100);
 
+  if (courseLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Video Section */}
@@ -503,7 +643,17 @@ export default function CourseDetail() {
                               <div
                                 key={lesson.id}
                                 className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                                onClick={() => setCurrentLesson(lesson.id)}
+                                onClick={() => {
+                                  if (!isEnrolled && !lesson.isFree) {
+                                    toast({
+                                      title: 'Bài học bị khóa',
+                                      description:
+                                        'Vui lòng đăng ký khóa học để mở khóa nội dung này.',
+                                    });
+                                    return;
+                                  }
+                                  setCurrentLesson(lesson.id);
+                                }}
                               >
                                 <div className="flex items-center gap-3">
                                   {lesson.isCompleted ? (
@@ -635,26 +785,71 @@ export default function CourseDetail() {
                 <CardContent className="pt-6">
                   {/* Price */}
                   <div className="mb-6">
-                    <div className="flex items-baseline gap-3 mb-2">
-                      <span className="text-4xl font-bold">
-                        {courseData.price.toLocaleString()}đ
-                      </span>
-                      <span className="text-xl text-muted-foreground line-through">
-                        {courseData.originalPrice.toLocaleString()}đ
-                      </span>
-                    </div>
-                    <Badge variant="destructive">-33% OFF</Badge>
+                    {courseIsFree ? (
+                      <span className="text-4xl font-bold text-green-600">Miễn phí</span>
+                    ) : (
+                      <>
+                        <div className="flex items-baseline gap-3 mb-2">
+                          <span className="text-4xl font-bold">
+                            {courseData.price.toLocaleString()}đ
+                          </span>
+                          {courseData.originalPrice > courseData.price && (
+                            <span className="text-xl text-muted-foreground line-through">
+                              {courseData.originalPrice.toLocaleString()}đ
+                            </span>
+                          )}
+                        </div>
+                        {discountPercent > 0 && (
+                          <Badge variant="destructive">-{discountPercent}% OFF</Badge>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   {/* CTA Buttons */}
                   <div className="space-y-3 mb-6">
-                    <Button className="w-full" size="lg">
-                      Đăng ký ngay
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      Thêm vào giỏ hàng
-                    </Button>
+                    {isEnrolled ? (
+                      <Button className="w-full" size="lg" onClick={handleContinueLearning}>
+                        Tiếp tục học
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          className="w-full"
+                          size="lg"
+                          onClick={handlePurchase}
+                          disabled={purchasing || enrollMutation.isPending}
+                        >
+                          {(purchasing || enrollMutation.isPending) && (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          )}
+                          {courseIsFree
+                            ? 'Đăng ký miễn phí'
+                            : `Mua ngay - ${courseData.price.toLocaleString()}đ`}
+                        </Button>
+                        {!courseIsFree && (
+                          <Button variant="outline" className="w-full">
+                            Thêm vào giỏ hàng
+                          </Button>
+                        )}
+                      </>
+                    )}
                   </div>
+
+                  {/* Payment method selector for paid courses */}
+                  {!courseIsFree && !isEnrolled && (
+                    <div className="border-t pt-4 mb-6">
+                      <Tabs
+                        value={paymentMethod}
+                        onValueChange={(v) => setPaymentMethod(v as 'stripe' | 'vnpay')}
+                      >
+                        <TabsList className="grid w-full grid-cols-2">
+                          <TabsTrigger value="vnpay">🇻🇳 VNPay</TabsTrigger>
+                          <TabsTrigger value="stripe">💳 Stripe</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </div>
+                  )}
 
                   {/* Progress (if enrolled) */}
                   <div className="border-t pt-6 mb-6">

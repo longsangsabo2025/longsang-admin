@@ -491,7 +491,10 @@ const SoraVideoGenerator = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {history.map((entry) => (
-                <Card key={entry.id} className={entry.success ? 'border-green-500/30' : 'border-red-500/30'}>
+                <Card
+                  key={entry.id}
+                  className={entry.success ? 'border-green-500/30' : 'border-red-500/30'}
+                >
                   <CardContent className="p-4 space-y-2">
                     <div className="flex items-center justify-between">
                       <Badge variant={entry.success ? 'default' : 'destructive'}>

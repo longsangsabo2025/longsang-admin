@@ -2,7 +2,9 @@
  * 🔌 Pipeline API Client — base fetch helpers & URL config
  */
 
-const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_URL || '' : '';
+// Use same-origin API by default so Vercel serverless proxy can handle auth/origin.
+// Override with VITE_YOUTUBE_API_URL only when explicitly needed.
+const API_BASE = import.meta.env.VITE_YOUTUBE_API_URL || '';
 const API_KEY = import.meta.env.VITE_ADMIN_API_KEY || '';
 
 export const PIPELINE_BASE = import.meta.env.PROD

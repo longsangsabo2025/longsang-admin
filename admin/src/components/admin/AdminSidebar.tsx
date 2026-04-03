@@ -106,7 +106,11 @@ export const AdminSidebar = ({
                             active ? 'bg-secondary' : group.bgColor
                           } ${collapsed ? 'lg:justify-center lg:px-2' : 'justify-start'}`}
                           onClick={() => {
-                            navigate(item.href);
+                            if (item.external) {
+                              window.open(item.href, '_blank', 'noopener,noreferrer');
+                            } else {
+                              navigate(item.href);
+                            }
                             onClose();
                           }}
                           title={collapsed ? item.title : undefined}

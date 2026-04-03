@@ -508,9 +508,7 @@ const FeatureAudit = () => {
     if (selectedItems.size === 0) return;
     setFeatures((prev) =>
       prev.map((f) =>
-        selectedItems.has(f.id) && f.status !== 'in-menu'
-          ? { ...f, status: 'in-menu' as const }
-          : f
+        selectedItems.has(f.id) && f.status !== 'in-menu' ? { ...f, status: 'in-menu' as const } : f
       )
     );
     toast.success(`Đã thêm ${selectedItems.size} tính năng vào menu`);
@@ -544,9 +542,7 @@ const FeatureAudit = () => {
       generatedAt: new Date().toISOString(),
       stats,
       features,
-      selectedForRemoval: Array.from(selectedItems).map((id) =>
-        features.find((f) => f.id === id)
-      ),
+      selectedForRemoval: Array.from(selectedItems).map((id) => features.find((f) => f.id === id)),
     };
 
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });

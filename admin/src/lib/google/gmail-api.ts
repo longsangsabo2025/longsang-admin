@@ -4,8 +4,9 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { API_ENDPOINTS } from '@/config/api';
 
-const API_BASE = 'http://localhost:3001/api/google/gmail';
+const API_BASE = API_ENDPOINTS.GMAIL;
 
 export interface EmailOptions {
   to: string | string[];

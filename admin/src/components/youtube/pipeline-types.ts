@@ -59,14 +59,15 @@ export interface PipelineConfig {
 }
 
 export const DEFAULT_VISUAL_IDENTITY: VisualIdentity = {
-  stylePrompt: 'Dark cinematic style. Deep blacks, dark blues, golden highlights. Low-key dramatic lighting with single spotlight. Slow zoom in, close-up focus. Silhouette figures in dark urban, moody interiors. Cinematic, dramatic, mysterious, powerful mood.',
+  stylePrompt:
+    'Dark cinematic style. Deep blacks, dark blues, golden highlights. Low-key dramatic lighting with single spotlight. Slow zoom in, close-up focus. Silhouette figures in dark urban, moody interiors. Cinematic, dramatic, mysterious, powerful mood.',
   negativePrompt: 'text, watermark, logo, cartoon, anime, bright colors, cheerful',
 };
 
 export const DEFAULT_PIPELINE: PipelineConfig = {
   scriptWriter: {
     enabled: true,
-    model: 'gemini-2.0-flash',
+    model: 'gemini-2.5-flash',
     tone: 'dark-philosophical',
     wordTarget: 2500,
     customPrompt: '',

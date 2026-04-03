@@ -2,7 +2,9 @@
  * YouTube Harvester — Constants
  */
 
-export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { BRAIN_API_BASE } from '@/brain/lib/brain-config';
+
+export const API_BASE = BRAIN_API_BASE;
 
 /** LocalStorage key for saving harvester state */
 export const STORAGE_KEY = 'youtube-harvester-state';

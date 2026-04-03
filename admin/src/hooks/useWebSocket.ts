@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3003';
+const WS_URL = import.meta.env.VITE_WS_URL || (import.meta.env.DEV ? 'ws://localhost:3003' : '');
 
 export interface WSMessage {
   type: string;
@@ -81,6 +81,12 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
   // Connect to WebSocket
   const connect = useCallback(() => {
+    if (!WS_URL) {
+      setConnectionState('disconnected');
+      setIsConnected(false);
+      return;
+    }
+
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       return;
     }

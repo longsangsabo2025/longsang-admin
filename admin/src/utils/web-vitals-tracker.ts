@@ -55,6 +55,12 @@ async function sendToCustomEndpoint(metric: WebVitalMetric) {
     return;
   }
 
+  // If API base is not configured in production, skip endpoint calls
+  // to avoid 405 noise from static hosts.
+  if (!import.meta.env.VITE_API_URL) {
+    return;
+  }
+
   try {
     const response = await fetch('/api/analytics/web-vitals', {
       method: 'POST',
@@ -136,17 +142,6 @@ export function initWebVitals() {
       id: metric.id,
     });
   });
-
-  // Interaction to Next Paint (replaces FID)
-  onINP((metric) => {
-    sendToAnalytics({
-      name: 'INP',
-      value: metric.value,
-      rating: getRating('INP', metric.value),
-      delta: metric.delta,
-      id: metric.id,
-    });
-  });
 }
 
 /**
@@ -156,7 +151,7 @@ export async function getWebVitalsStatus() {
   return new Promise((resolve) => {
     const metrics: Record<string, WebVitalMetric> = {};
     let collected = 0;
-    const expected = 6;
+    const expected = 5;
 
     const checkComplete = () => {
       if (collected >= expected) {

@@ -13,7 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class LongSangErrorReporter {
-  static const String _adminUrl = 'https://longsang-admin.vercel.app';
+  static const String _adminUrl = 'https://admin.longsang.org';
   static String _appName = 'flutter-app';
   static final List<Map<String, dynamic>> _errorQueue = [];
   static bool _isProcessing = false;

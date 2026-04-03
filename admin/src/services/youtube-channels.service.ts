@@ -83,8 +83,18 @@ export const youtubeChannelsService = {
 
   async getRunStatus(runId: string): Promise<GenerationRun> {
     const local = getRun(runId);
-    if (local) return local;
-    return apiFetch<GenerationRun>(`/generate/${runId}`);
+    // For active/running runs, prefer remote status to avoid stale local cache.
+    if (local?.status !== 'running') {
+      if (local) return local;
+      return apiFetch<GenerationRun>(`/generate/${runId}`);
+    }
+
+    try {
+      return await apiFetch<GenerationRun>(`/generate/${runId}`);
+    } catch {
+      // Keep UI usable if backend is temporarily unreachable.
+      return local;
+    }
   },
 
   // ─── Data queries ──────────────────────────────────────
@@ -97,9 +107,12 @@ export const youtubeChannelsService = {
     return { runs, total: runs.length };
   },
 
-  /** Load saved runs from Supabase for a channel (call once on mount) */
-  async hydrateChannel(channelId: string): Promise<{ runs: GenerationRun[]; total: number }> {
-    const runs = await hydrateRunsForChannel(channelId);
+  /** Load saved runs from Supabase for a channel; pass force=true to bypass hydration cache. */
+  async hydrateChannel(
+    channelId: string,
+    force = false
+  ): Promise<{ runs: GenerationRun[]; total: number }> {
+    const runs = await hydrateRunsForChannel(channelId, force);
     return { runs, total: runs.length };
   },
 

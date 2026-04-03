@@ -22,9 +22,6 @@ interface LoginModalProps {
 
 const isDev = import.meta.env.DEV;
 
-// Check if running locally (dev OR local preview)
-const isLocal = isDev || window.location.hostname === 'localhost';
-
 // Password strength calculator
 const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
   if (!password) return { score: 0, label: '', color: '' };
@@ -58,10 +55,8 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [authMethod, setAuthMethod] = useState<'magiclink' | 'password'>(
-    isLocal ? 'password' : 'magiclink'
-  );
+  const [mode] = useState('signin' as const);
+  const authMethod = 'password' as const;
 
   const passwordStrength =
     authMethod === 'password' && mode === 'signup' ? getPasswordStrength(password) : null;
@@ -78,28 +73,14 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
   // Validate password on change
   const handlePasswordChange = (value: string) => {
     setPassword(value);
-    if (mode === 'signup' && value && value.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
-    } else {
-      setPasswordError('');
-    }
-
-    // Check confirm password match if it's been filled
-    if (mode === 'signup' && confirmPassword && value !== confirmPassword) {
-      setConfirmPasswordError('Passwords do not match');
-    } else {
-      setConfirmPasswordError('');
-    }
+    setPasswordError('');
+    setConfirmPasswordError('');
   };
 
   // Validate confirm password
   const handleConfirmPasswordChange = (value: string) => {
     setConfirmPassword(value);
-    if (mode === 'signup' && value && value !== password) {
-      setConfirmPasswordError('Passwords do not match');
-    } else {
-      setConfirmPasswordError('');
-    }
+    setConfirmPasswordError('');
   };
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -111,88 +92,29 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
       return;
     }
 
-    if (authMethod === 'password' && mode === 'signup' && password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
-      return;
-    }
-
-    if (authMethod === 'password' && mode === 'signup' && password !== confirmPassword) {
-      setConfirmPasswordError('Passwords do not match');
+    if (!password) {
+      setPasswordError('Please enter your password');
       return;
     }
 
     setLoading(true);
 
     try {
-      if (authMethod === 'password') {
-        // Password-based authentication (dev mode)
-        if (mode === 'signin') {
-          const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-          if (error) throw error;
+      if (error) throw error;
 
-          toast.success('Welcome back!', {
-            description: `Signed in as ${email}`,
-          });
+      toast.success('Welcome back!', {
+        description: `Signed in as ${email}`,
+      });
 
-          onOpenChange(false);
-          onSuccess?.();
-        } else {
-          const { error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              emailRedirectTo: globalThis.location.origin,
-            },
-          });
-
-          if (error) throw error;
-
-          toast.success('Account created!', {
-            description: 'Please check your email to verify your account.',
-          });
-
-          setMode('signin');
-        }
-      } else if (mode === 'signin') {
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            emailRedirectTo: globalThis.location.origin,
-          },
-        });
-
-        if (error) throw error;
-
-        toast.success('Check your email!', {
-          description: `Magic link sent to ${email}`,
-        });
-
-        setEmail('');
-        onOpenChange(false);
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password: 'magic-link-signup', // Required by Supabase but not used for OTP
-          options: {
-            emailRedirectTo: globalThis.location.origin,
-          },
-        });
-
-        if (error) throw error;
-
-        toast.success('Check your email!', {
-          description: 'Confirmation link sent successfully.',
-        });
-
-        setEmail('');
-        onOpenChange(false);
-      }
-    } catch (error: any) {
-      const errorMessage = error.message || 'Something went wrong';
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
       toast.error('Authentication failed', {
         description: errorMessage,
         duration: 5000,
@@ -209,22 +131,16 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
           <DialogTitle>
             {mode === 'signin' ? 'Sign in to your account' : 'Create an account'}
           </DialogTitle>
-          <DialogDescription>
-            {(() => {
-              if (authMethod === 'password') return 'Enter your email and password';
-              if (mode === 'signin') return 'Enter your email to receive a magic link';
-              return 'Sign up to access the automation dashboard';
-            })()}
-          </DialogDescription>
+          <DialogDescription>Enter your admin account and password</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleAuth} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Admin account</Label>
             <Input
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="admin@example.com"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -388,46 +304,8 @@ export function LoginModal({ open, onOpenChange, onSuccess }: LoginModalProps) {
             )}
           </Button>
 
-          <div className="space-y-2">
-            <div className="text-center text-sm">
-              {mode === 'signin' ? (
-                <>
-                  Don't have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setMode('signup')}
-                    className="text-primary hover:underline"
-                  >
-                    Sign up
-                  </button>
-                </>
-              ) : (
-                <>
-                  Already have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setMode('signin')}
-                    className="text-primary hover:underline"
-                  >
-                    Sign in
-                  </button>
-                </>
-              )}
-            </div>
-
-            {isLocal && (
-              <div className="text-center text-sm">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setAuthMethod(authMethod === 'password' ? 'magiclink' : 'password')
-                  }
-                  className="text-muted-foreground hover:text-primary hover:underline"
-                >
-                  {authMethod === 'password' ? 'Use magic link instead' : 'Use password instead'}
-                </button>
-              </div>
-            )}
+          <div className="text-center text-sm text-muted-foreground">
+            Admin-only login uses password authentication.
           </div>
         </form>
       </DialogContent>

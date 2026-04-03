@@ -113,6 +113,7 @@ export async function generate(
     lockedRuns.add(runId);
     run = reusable;
     run.status = 'running';
+    run.startedAt = new Date().toISOString();
     run.error = undefined;
     run.completedAt = undefined;
     run.durationMs = undefined;
@@ -166,6 +167,7 @@ export async function generateStep(
     lockedRuns.add(runId);
     run = reusable;
     run.status = 'running';
+    run.startedAt = new Date().toISOString();
     run.error = undefined;
     run.completedAt = undefined;
     run.durationMs = undefined;
@@ -229,7 +231,10 @@ export async function resumeRun(
 
   // Reset run state for resumption
   run.status = 'running';
+  run.startedAt = new Date().toISOString();
   run.error = undefined;
+  run.completedAt = undefined;
+  run.durationMs = undefined;
   run.logs.push({
     t: Date.now(),
     level: 'info',

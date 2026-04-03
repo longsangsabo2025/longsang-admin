@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react';
+import { API_URL } from '@/config/api';
 
 // Check if we should enable Sentry (production OR local preview with DSN)
 const shouldEnableSentry = () => {
@@ -83,7 +84,7 @@ async function sendToLocalCopilotBridge(event: Sentry.Event, hint: Sentry.EventH
     };
 
     // Send to local API
-    await fetch('http://localhost:3001/api/fix-request', {
+    await fetch(`${API_URL}/fix-request`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

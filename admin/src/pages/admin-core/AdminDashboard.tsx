@@ -33,6 +33,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDashboardStats } from '@/hooks';
+import { API_URL } from '@/config/api';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -257,7 +258,7 @@ const AdminDashboard = () => {
   const startProject = async (project: (typeof projects)[0]) => {
     try {
       // Try to start via API first
-      const response = await fetch(`http://localhost:3001/api/projects/start/${project.id}`, {
+      const response = await fetch(`${API_URL}/projects/start/${project.id}`, {
         method: 'POST',
       });
 

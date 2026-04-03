@@ -22,7 +22,7 @@ import {
   Tv,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -71,6 +71,10 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: React.Ele
 
 export default function YouTubeChannelsDashboard() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const channelBase = pathname.startsWith('/youtube')
+    ? '/youtube/channels'
+    : '/admin/youtube-channels';
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [showKeyPoolDialog, setShowKeyPoolDialog] = useState(false);
@@ -218,7 +222,7 @@ export default function YouTubeChannelsDashboard() {
               channel={channel}
               runsCount={runsByChannel[channel.id] || 0}
               runningCount={runningByChannel[channel.id] || 0}
-              onClick={() => navigate(`/admin/youtube-channels/${channel.id}`)}
+              onClick={() => navigate(`${channelBase}/${channel.id}`)}
             />
           ))}
         </div>

@@ -63,8 +63,9 @@ const checkServiceHealth = async (
 };
 
 export function StatusBar() {
-  // Always perform health checks - services should be running
-  const skipHealthChecks = false; // Don't skip - we want to see real status
+  // In production, skip localhost health checks unless explicitly enabled.
+  const skipHealthChecks =
+    import.meta.env.PROD && import.meta.env.VITE_ENABLE_PROD_HEALTHCHECKS !== 'true';
   const [mcpLoading, setMcpLoading] = useState(false);
 
   const [services, setServices] = useState<ServiceStatus[]>([
@@ -187,6 +188,18 @@ export function StatusBar() {
 
   // Check all services
   const checkAllServices = async () => {
+    if (skipHealthChecks) {
+      setServices((prev) =>
+        prev.map((service) => ({
+          ...service,
+          status: service.name === 'Supabase' ? 'online' : 'warning',
+          message: service.name === 'Supabase' ? 'Connected' : 'Disabled in production',
+        }))
+      );
+      setLastUpdate(new Date());
+      return;
+    }
+
     const updatedServices = await Promise.all(
       services.map(async (service) => {
         if (service.url) {
@@ -257,19 +270,16 @@ export function StatusBar() {
 
   // WebSocket connection check - only connect if server is likely running
   useEffect(() => {
-    // Skip WebSocket in development to avoid console errors
-    if (skipHealthChecks) {
+    // Skip WebSocket if not configured or in production without flag
+    const wsUrl = import.meta.env.VITE_WS_URL;
+    if (skipHealthChecks || !wsUrl) {
       setWsStatus('disconnected');
       return;
     }
 
     let ws: WebSocket | null = null;
-    let reconnectTimeout: ReturnType<typeof setTimeout>;
 
     const connectWs = () => {
-      // Don't attempt WebSocket in development if server isn't running
-      const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3003';
-
       try {
         ws = new WebSocket(wsUrl);
 
@@ -292,7 +302,7 @@ export function StatusBar() {
     };
 
     // Delay initial connection to avoid startup errors
-    reconnectTimeout = setTimeout(connectWs, 2000);
+    const reconnectTimeout = setTimeout(connectWs, 2000);
 
     return () => {
       clearTimeout(reconnectTimeout);
@@ -305,6 +315,9 @@ export function StatusBar() {
   // Periodic health checks
   useEffect(() => {
     checkAllServices();
+    if (skipHealthChecks) {
+      return;
+    }
     const interval = setInterval(checkAllServices, 30000); // Every 30s
     return () => clearInterval(interval);
   }, []);

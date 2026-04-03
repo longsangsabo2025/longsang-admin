@@ -280,15 +280,30 @@ export const GoogleAutomationActions = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('seo', 'auto-index')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('seo', 'auto-index')}
+            >
               <TrendingUp className="h-4 w-4 mr-2" />
               Auto-index new posts
             </Button>
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('seo', 're-crawl')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('seo', 're-crawl')}
+            >
               <TrendingUp className="h-4 w-4 mr-2" />
               Re-crawl updated pages
             </Button>
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('seo', 'sitemap')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('seo', 'sitemap')}
+            >
               <TrendingUp className="h-4 w-4 mr-2" />
               Submit sitemap
             </Button>
@@ -305,15 +320,30 @@ export const GoogleAutomationActions = () => {
             <CardDescription>Send emails via Gmail API to customers</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('email', 'confirmations')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('email', 'confirmations')}
+            >
               <Mail className="h-4 w-4 mr-2" />
               Send consultation confirmations
             </Button>
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('email', 'welcome')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('email', 'welcome')}
+            >
               <Mail className="h-4 w-4 mr-2" />
               Send welcome emails
             </Button>
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('email', 'newsletter')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('email', 'newsletter')}
+            >
               <Mail className="h-4 w-4 mr-2" />
               Send newsletters
             </Button>
@@ -330,15 +360,30 @@ export const GoogleAutomationActions = () => {
             <CardDescription>Create events, send invites to customers</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('calendar', 'create-events')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('calendar', 'create-events')}
+            >
               <Calendar className="h-4 w-4 mr-2" />
               Auto-create consultation events
             </Button>
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('calendar', 'sync')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('calendar', 'sync')}
+            >
               <Calendar className="h-4 w-4 mr-2" />
               Sync reschedules
             </Button>
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('calendar', 'availability')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('calendar', 'availability')}
+            >
               <Calendar className="h-4 w-4 mr-2" />
               Check availability
             </Button>
@@ -355,15 +400,30 @@ export const GoogleAutomationActions = () => {
             <CardDescription>Upload files, create shareable links</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('drive', 'upload-contracts')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('drive', 'upload-contracts')}
+            >
               <FolderOpen className="h-4 w-4 mr-2" />
               Auto-upload contracts
             </Button>
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('drive', 'organize')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('drive', 'organize')}
+            >
               <FolderOpen className="h-4 w-4 mr-2" />
               Organize files by date
             </Button>
-            <Button variant="outline" className="w-full justify-start" disabled={running} onClick={() => runService('drive', 'share')}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={running}
+              onClick={() => runService('drive', 'share')}
+            >
               <FolderOpen className="h-4 w-4 mr-2" />
               Share files
             </Button>

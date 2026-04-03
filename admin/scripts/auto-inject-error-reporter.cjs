@@ -12,7 +12,7 @@ const path = require('path');
 // ============================================
 // CONFIG
 // ============================================
-const LONGSANG_ADMIN_URL = 'https://longsang-admin.vercel.app';
+const LONGSANG_ADMIN_URL = 'https://admin.longsang.org';
 const PROJECTS_ROOT = 'D:\\0.PROJECTS';
 
 const TARGET_PROJECTS = [

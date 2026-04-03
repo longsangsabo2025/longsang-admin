@@ -193,6 +193,13 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     group: 'Marketing',
+    title: 'Content OS',
+    href: '/admin/content-os',
+    icon: '🎯',
+    keywords: ['content', 'os', 'pipeline', 'kanban', 'calendar', 'quản lý nội dung'],
+  },
+  {
+    group: 'Marketing',
     title: 'Content & SEO',
     href: '/admin/content-queue',
     icon: '📝',

@@ -11,7 +11,16 @@ interface RetryOptions {
   onRetry?: (attempt: number, errMsg: string, delayMs: number) => void;
 }
 
-const RETRYABLE_PATTERNS = ['internal', 'INTERNAL', '500', '503', 'retry'];
+const RETRYABLE_PATTERNS = [
+  'internal',
+  'INTERNAL',
+  '500',
+  '503',
+  '429',
+  'quota',
+  'rate limit',
+  'retry',
+];
 
 function isRetryable(msg: string): boolean {
   return RETRYABLE_PATTERNS.some((p) => msg.includes(p));
@@ -27,7 +36,7 @@ export async function fetchWithRetry(
   body: unknown,
   opts: RetryOptions = {}
 ): Promise<Response> {
-  const { maxRetries = 3, baseDelayMs = 5000, onRetry } = opts;
+  const { maxRetries = 4, baseDelayMs = 8000, onRetry } = opts;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const res = await fetch(url, {

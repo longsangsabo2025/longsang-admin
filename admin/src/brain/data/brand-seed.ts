@@ -6,15 +6,15 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { getBrainUserId } from '@/brain/lib/brain-config';
 
 // Supabase connection
-const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://eiomyfznqctrequrfnmu.supabase.co';
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://eiomyfznqctrequrfnmu.supabase.co';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// User ID (from your system)
-const USER_ID = '89917901-cf15-45c4-a7ad-8c4c9513347e';
+const USER_ID = getBrainUserId();
 
 /**
  * Owner Character Profile - Long Sang

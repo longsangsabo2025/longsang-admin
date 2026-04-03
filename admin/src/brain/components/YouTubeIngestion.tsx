@@ -28,6 +28,7 @@ import {
 import { useState } from 'react';
 import { useDomains } from '@/brain/hooks/useDomains';
 import { useIngestKnowledge } from '@/brain/hooks/useKnowledge';
+import { BRAIN_API_BASE } from '@/brain/lib/brain-config';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -44,7 +45,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = BRAIN_API_BASE;
 
 interface VideoMetadata {
   id: string;

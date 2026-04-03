@@ -4,3 +4,4 @@ export { legacyRedirects } from './legacyRedirects';
 export { managerRoutes } from './managerRoutes';
 export { mobileRoutes } from './mobileRoutes';
 export { publicRoutes } from './publicRoutes';
+export { youtubeRoutes } from './youtubeRoutes';

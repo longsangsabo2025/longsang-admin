@@ -197,7 +197,10 @@ export function MarketingAutomation() {
             <BarChart3 className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button variant="outline" onClick={() => window.open('http://localhost:5678', '_blank', 'noopener')}>
+          <Button
+            variant="outline"
+            onClick={() => window.open('http://localhost:5678', '_blank', 'noopener')}
+          >
             <Settings className="h-4 w-4 mr-2" />
             Settings
           </Button>
@@ -440,7 +443,11 @@ export function MarketingAutomation() {
                           Created: {new Date(campaign.created_at).toLocaleString()}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => setSelectedCampaign(campaign)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedCampaign(campaign)}
+                      >
                         View Details
                       </Button>
                     </div>
@@ -478,19 +485,26 @@ export function MarketingAutomation() {
                     </div>
                     <div className="p-4 bg-muted rounded-lg">
                       <div className="text-sm text-muted-foreground">Completed</div>
-                      <div className="text-2xl font-bold text-green-600">{campaigns.filter((c) => c.status === 'completed').length}</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {campaigns.filter((c) => c.status === 'completed').length}
+                      </div>
                     </div>
                     <div className="p-4 bg-muted rounded-lg">
                       <div className="text-sm text-muted-foreground">Running</div>
-                      <div className="text-2xl font-bold text-yellow-600">{campaigns.filter((c) => c.status === 'running').length}</div>
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {campaigns.filter((c) => c.status === 'running').length}
+                      </div>
                     </div>
                     <div className="p-4 bg-muted rounded-lg">
                       <div className="text-sm text-muted-foreground">Failed</div>
-                      <div className="text-2xl font-bold text-red-600">{campaigns.filter((c) => c.status === 'failed').length}</div>
+                      <div className="text-2xl font-bold text-red-600">
+                        {campaigns.filter((c) => c.status === 'failed').length}
+                      </div>
                     </div>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Platforms used: {[...new Set(campaigns.flatMap((c) => c.platforms))].join(', ') || 'None'}
+                    Platforms used:{' '}
+                    {[...new Set(campaigns.flatMap((c) => c.platforms))].join(', ') || 'None'}
                   </div>
                 </div>
               )}
@@ -584,13 +598,17 @@ export function MarketingAutomation() {
                   </div>
                   <div className="p-3 bg-muted rounded-lg">
                     <div className="text-xs text-muted-foreground">Created</div>
-                    <div className="font-medium">{new Date(selectedCampaign.created_at).toLocaleString('vi-VN')}</div>
+                    <div className="font-medium">
+                      {new Date(selectedCampaign.created_at).toLocaleString('vi-VN')}
+                    </div>
                   </div>
                 </div>
                 {selectedCampaign.scheduled_at && (
                   <div className="p-3 bg-muted rounded-lg">
                     <div className="text-xs text-muted-foreground">Scheduled For</div>
-                    <div className="font-medium">{new Date(selectedCampaign.scheduled_at).toLocaleString('vi-VN')}</div>
+                    <div className="font-medium">
+                      {new Date(selectedCampaign.scheduled_at).toLocaleString('vi-VN')}
+                    </div>
                   </div>
                 )}
               </div>

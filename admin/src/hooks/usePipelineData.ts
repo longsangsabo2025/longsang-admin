@@ -201,13 +201,13 @@ export function usePipelineAgentConfigs() {
 
 function getDefaultConfigs(): AgentConfig[] {
   return [
-    { agentId: 'harvester', model: 'gemini-2.0-flash', temperature: 0.3, maxTokens: 4096 },
-    { agentId: 'brain-curator', model: 'gemini-2.0-flash', temperature: 0.5, maxTokens: 4096 },
-    { agentId: 'script-writer', model: 'gemini-2.0-flash', temperature: 0.85, maxTokens: 16384 },
-    { agentId: 'voice-producer', model: 'gemini-2.0-flash', temperature: 0.3, maxTokens: 1024 },
-    { agentId: 'visual-director', model: 'gemini-2.0-flash', temperature: 0.7, maxTokens: 4096 },
-    { agentId: 'video-assembler', model: 'gemini-2.0-flash', temperature: 0.3, maxTokens: 1024 },
-    { agentId: 'publisher', model: 'gemini-2.0-flash', temperature: 0.5, maxTokens: 4096 },
+    { agentId: 'harvester', model: 'gemini-2.5-flash', temperature: 0.3, maxTokens: 4096 },
+    { agentId: 'brain-curator', model: 'gemini-2.5-flash', temperature: 0.5, maxTokens: 4096 },
+    { agentId: 'script-writer', model: 'gemini-2.5-flash', temperature: 0.85, maxTokens: 16384 },
+    { agentId: 'voice-producer', model: 'gemini-2.5-flash', temperature: 0.3, maxTokens: 1024 },
+    { agentId: 'visual-director', model: 'gemini-2.5-flash', temperature: 0.7, maxTokens: 4096 },
+    { agentId: 'video-assembler', model: 'gemini-2.5-flash', temperature: 0.3, maxTokens: 1024 },
+    { agentId: 'publisher', model: 'gemini-2.5-flash', temperature: 0.5, maxTokens: 4096 },
   ];
 }
 

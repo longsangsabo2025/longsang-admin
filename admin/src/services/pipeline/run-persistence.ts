@@ -86,8 +86,10 @@ function fromRow(row: DbRow): GenerationRun {
 
 /** Insert a new run */
 export async function persistCreate(run: GenerationRun): Promise<void> {
+  console.log('[run-persistence] persistCreate:', run.id, run.channelId, run.status);
   const { error } = await supabase.from(TABLE).upsert(toRow(run), { onConflict: 'pipeline_id' });
-  if (error) console.warn('[run-persistence] save failed:', error.message);
+  if (error) console.warn('[run-persistence] save failed:', error.message, error);
+  else console.log('[run-persistence] saved OK:', run.id);
 }
 
 /** Update a run (on complete / fail) */
@@ -114,15 +116,23 @@ export async function persistDelete(runId: string): Promise<void> {
 
 /** Load runs for a specific channel (most recent first, last 50) */
 export async function loadRunsByChannel(channelId: string): Promise<GenerationRun[]> {
-  const { data, error } = await supabase
+  console.log('[run-persistence] loadRunsByChannel:', channelId);
+  const { data, error, count, status, statusText } = await supabase
     .from(TABLE)
-    .select('*')
+    .select('*', { count: 'exact' })
     .filter('input->>channelId', 'eq', channelId)
     .order('started_at', { ascending: false })
     .limit(50);
 
+  console.log('[run-persistence] result:', {
+    status,
+    statusText,
+    count,
+    rows: data?.length,
+    error: error?.message,
+  });
   if (error) {
-    console.warn('[run-persistence] load failed:', error.message);
+    console.warn('[run-persistence] load failed:', error.message, error);
     return [];
   }
   return (data || []).map((row: unknown) => fromRow(row as DbRow));
@@ -130,14 +140,22 @@ export async function loadRunsByChannel(channelId: string): Promise<GenerationRu
 
 /** Load all recent runs (last 100) */
 export async function loadAllRuns(): Promise<GenerationRun[]> {
-  const { data, error } = await supabase
+  console.log('[run-persistence] loadAllRuns...');
+  const { data, error, count, status, statusText } = await supabase
     .from(TABLE)
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('started_at', { ascending: false })
     .limit(100);
 
+  console.log('[run-persistence] loadAllRuns result:', {
+    status,
+    statusText,
+    count,
+    rows: data?.length,
+    error: error?.message,
+  });
   if (error) {
-    console.warn('[run-persistence] load all failed:', error.message);
+    console.warn('[run-persistence] load all failed:', error.message, error);
     return [];
   }
   return (data || []).map((row: unknown) => fromRow(row as DbRow));

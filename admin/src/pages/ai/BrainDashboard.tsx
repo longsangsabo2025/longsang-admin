@@ -8,6 +8,7 @@
  * - Structured knowledge storage with vector embeddings
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 
@@ -67,6 +68,8 @@ const ImageBrainLibrary = lazy(() =>
 
 import { useCoreLogic } from '@/brain/hooks/useCoreLogic';
 import { useDomains } from '@/brain/hooks/useDomains';
+import { useToast } from '@/hooks/use-toast';
+import { getUserSubscription } from '@/lib/subscription/api';
 
 const TabLoader = () => (
   <div className="flex items-center justify-center min-h-[300px]">
@@ -94,15 +97,41 @@ import {
   Zap,
 } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function BrainDashboard() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('harvesters');
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
   const { data: domains } = useDomains();
+
+  const { data: userSub } = useQuery({
+    queryKey: ['brain-user-subscription'],
+    queryFn: () => getUserSubscription(),
+  });
+
+  const currentPlan = userSub?.plan?.name || 'free';
+  const hasBrainProAccess = currentPlan !== 'free';
+  const premiumTabs = new Set(['master-brain', 'multi-domain', 'graph', 'router', 'image-library']);
+
+  const handleTabChange = (nextTab: string) => {
+    if (premiumTabs.has(nextTab) && !hasBrainProAccess) {
+      toast({
+        title: 'Tính năng Brain Pro',
+        description: 'Tab này cần gói Pro hoặc Enterprise. Vui lòng nâng cấp để sử dụng.',
+      });
+      setActiveTab('search');
+      return;
+    }
+
+    setActiveTab(nextTab);
+  };
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
@@ -136,7 +165,7 @@ export default function BrainDashboard() {
       )}
 
       {/* Main Navigation Tabs - Horizontal */}
-      <Tabs defaultValue="harvesters" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         {/* Primary Tab Navigation */}
         <TabsList className="h-auto p-1 bg-muted/50">
           <div className="flex flex-wrap gap-1">
@@ -178,11 +207,21 @@ export default function BrainDashboard() {
             <TabsTrigger value="master-brain" className="flex items-center gap-2 px-4">
               <Brain className="h-4 w-4 text-purple-500" />
               <span>Master Brain</span>
+              {!hasBrainProAccess && (
+                <Badge variant="outline" className="text-[10px]">
+                  Pro
+                </Badge>
+              )}
             </TabsTrigger>
 
             <TabsTrigger value="multi-domain" className="flex items-center gap-2 px-4">
               <Globe className="h-4 w-4" />
               <span>Multi-Query</span>
+              {!hasBrainProAccess && (
+                <Badge variant="outline" className="text-[10px]">
+                  Pro
+                </Badge>
+              )}
             </TabsTrigger>
 
             <Separator orientation="vertical" className="h-6 mx-1" />
@@ -191,16 +230,31 @@ export default function BrainDashboard() {
             <TabsTrigger value="graph" className="flex items-center gap-2 px-4">
               <Network className="h-4 w-4 text-blue-500" />
               <span>Graph</span>
+              {!hasBrainProAccess && (
+                <Badge variant="outline" className="text-[10px]">
+                  Pro
+                </Badge>
+              )}
             </TabsTrigger>
 
             <TabsTrigger value="router" className="flex items-center gap-2 px-4">
               <Route className="h-4 w-4" />
               <span>Router</span>
+              {!hasBrainProAccess && (
+                <Badge variant="outline" className="text-[10px]">
+                  Pro
+                </Badge>
+              )}
             </TabsTrigger>
 
             <TabsTrigger value="image-library" className="flex items-center gap-2 px-4">
               <ImageIcon className="h-4 w-4 text-pink-500" />
               <span>🖼️ Image Library</span>
+              {!hasBrainProAccess && (
+                <Badge variant="outline" className="text-[10px]">
+                  Pro
+                </Badge>
+              )}
             </TabsTrigger>
           </div>
         </TabsList>
@@ -396,16 +450,24 @@ export default function BrainDashboard() {
 
         {/* Master Brain Tab */}
         <TabsContent value="master-brain" className="space-y-4">
-          <Suspense fallback={<TabLoader />}>
-            <MasterBrainInterface />
-          </Suspense>
+          {hasBrainProAccess ? (
+            <Suspense fallback={<TabLoader />}>
+              <MasterBrainInterface />
+            </Suspense>
+          ) : (
+            <BrainProUpsell onUpgrade={() => navigate('/pricing')} />
+          )}
         </TabsContent>
 
         {/* Multi-Domain Tab */}
         <TabsContent value="multi-domain" className="space-y-4">
-          <Suspense fallback={<TabLoader />}>
-            <MultiDomainQuery />
-          </Suspense>
+          {hasBrainProAccess ? (
+            <Suspense fallback={<TabLoader />}>
+              <MultiDomainQuery />
+            </Suspense>
+          ) : (
+            <BrainProUpsell onUpgrade={() => navigate('/pricing')} />
+          )}
         </TabsContent>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
@@ -414,52 +476,82 @@ export default function BrainDashboard() {
 
         {/* Knowledge Graph Tab */}
         <TabsContent value="graph" className="space-y-4">
-          <Suspense fallback={<TabLoader />}>
-            <KnowledgeGraphVisualizer />
-          </Suspense>
+          {hasBrainProAccess ? (
+            <Suspense fallback={<TabLoader />}>
+              <KnowledgeGraphVisualizer />
+            </Suspense>
+          ) : (
+            <BrainProUpsell onUpgrade={() => navigate('/pricing')} />
+          )}
         </TabsContent>
 
         {/* Domain Router Tab */}
         <TabsContent value="router" className="space-y-4">
-          <Suspense fallback={<TabLoader />}>
-            <DomainRouter />
-          </Suspense>
+          {hasBrainProAccess ? (
+            <Suspense fallback={<TabLoader />}>
+              <DomainRouter />
+            </Suspense>
+          ) : (
+            <BrainProUpsell onUpgrade={() => navigate('/pricing')} />
+          )}
         </TabsContent>
 
         {/* 🖼️ IMAGE LIBRARY TAB - Visual Memory for AI */}
         <TabsContent value="image-library" className="space-y-4">
-          <Card className="border-pink-500/20 bg-gradient-to-br from-pink-500/5 to-transparent">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2 text-2xl">
-                    <ImageIcon className="h-6 w-6 text-pink-500" />
-                    🖼️ Image Brain Library
-                  </CardTitle>
-                  <CardDescription className="text-base mt-1">
-                    Thư viện ảnh thông minh với AI Vision Analysis & Semantic Search
-                  </CardDescription>
+          {hasBrainProAccess ? (
+            <Card className="border-pink-500/20 bg-gradient-to-br from-pink-500/5 to-transparent">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-2xl">
+                      <ImageIcon className="h-6 w-6 text-pink-500" />
+                      🖼️ Image Brain Library
+                    </CardTitle>
+                    <CardDescription className="text-base mt-1">
+                      Thư viện ảnh thông minh với AI Vision Analysis & Semantic Search
+                    </CardDescription>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    GPT-4 Vision
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="text-xs">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  GPT-4 Vision
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="h-[calc(100vh-20rem)]">
-              <Suspense fallback={<TabLoader />}>
-                <ImageBrainLibrary
-                  selectionMode={false}
-                  onSelectImages={(images) => {
-                    console.log('[Brain Dashboard] Selected images:', images);
-                  }}
-                />
-              </Suspense>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="h-[calc(100vh-20rem)]">
+                <Suspense fallback={<TabLoader />}>
+                  <ImageBrainLibrary
+                    selectionMode={false}
+                    onSelectImages={(images) => {
+                      console.log('[Brain Dashboard] Selected images:', images);
+                    }}
+                  />
+                </Suspense>
+              </CardContent>
+            </Card>
+          ) : (
+            <BrainProUpsell onUpgrade={() => navigate('/pricing')} />
+          )}
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function BrainProUpsell({ onUpgrade }: { readonly onUpgrade: () => void }) {
+  return (
+    <Card className="border-dashed">
+      <CardContent className="pt-8 pb-8">
+        <div className="max-w-xl mx-auto text-center space-y-4">
+          <Badge variant="outline">Brain Pro</Badge>
+          <h3 className="text-2xl font-semibold">Mở khóa Brain nâng cao</h3>
+          <p className="text-muted-foreground">
+            Nâng cấp Pro/Enterprise để dùng Master Brain, Multi-domain Query, Knowledge Graph,
+            Router và Image Brain Library.
+          </p>
+          <Button onClick={onUpgrade}>Nâng cấp gói</Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

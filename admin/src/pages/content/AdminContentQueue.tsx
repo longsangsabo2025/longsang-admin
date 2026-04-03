@@ -159,7 +159,12 @@ const AdminContentQueue = () => {
 
           {/* Actions */}
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" className="gap-2" onClick={() => setPreviewItem(item)}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={() => setPreviewItem(item)}
+            >
               <Eye className="h-3 w-3" />
               Xem
             </Button>
@@ -352,7 +357,10 @@ const AdminContentQueue = () => {
                 )}
                 {previewItem.scheduled_for && (
                   <p className="text-sm text-muted-foreground">
-                    Lên lịch: {format(new Date(previewItem.scheduled_for), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                    Lên lịch:{' '}
+                    {format(new Date(previewItem.scheduled_for), 'dd/MM/yyyy HH:mm', {
+                      locale: vi,
+                    })}
                   </p>
                 )}
                 {previewItem.metadata && (

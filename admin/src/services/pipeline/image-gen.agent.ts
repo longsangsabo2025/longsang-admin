@@ -8,8 +8,10 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { getNextKey, reportError } from './api-key-pool';
 import { PIPELINE_BASE, pipelineHeaders } from './api-client';
 import { trackCost } from './cost-tracker';
+import { addToLibrary, extractKeywords, findBestMatch, type LibraryImage } from './image-library';
 import {
   failRun,
   findLatestRunWithFile,
@@ -37,11 +39,65 @@ export interface GeneratedImage {
   mimeType: string;
 }
 
-/** Generate a single image via backend proxy (keeps API key server-side) */
+/** Generate a single image — uses key pool for direct calls, proxy as fallback */
 export async function generateSingleImage(
   prompt: string,
   apiKey?: string
 ): Promise<{ dataUrl: string; mimeType: string } | null> {
+  // 1) Try direct Gemini call with rotated key from pool
+  const poolKey = apiKey || getNextKey('gemini');
+  if (poolKey) {
+    try {
+      const directRes = await fetch(`${GEMINI_URL}?key=${poolKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `Generate an image: ${prompt}` }] }],
+          generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+        }),
+      });
+
+      if (directRes.ok) {
+        const directData = (await directRes.json()) as {
+          candidates?: Array<{
+            content?: { parts?: Array<{ inlineData?: { mimeType?: string; data?: string } }> };
+          }>;
+        };
+        const parts = directData.candidates?.[0]?.content?.parts || [];
+        for (const part of parts) {
+          const inline = part.inlineData;
+          if (inline?.mimeType?.startsWith('image/') && inline.data) {
+            return {
+              dataUrl: `data:${inline.mimeType};base64,${inline.data}`,
+              mimeType: inline.mimeType,
+            };
+          }
+        }
+      } else {
+        const errBody = await directRes.json().catch(() => ({}));
+        const errMsg =
+          (errBody as { error?: { message?: string } }).error?.message ||
+          `HTTP ${directRes.status}`;
+        // Report error to pool (auto-disables after 3 consecutive)
+        reportError('gemini', poolKey, errMsg);
+        // If 429, try proxy as fallback
+        if (directRes.status === 429 || errMsg.includes('quota')) {
+          console.warn(`[ImageGen] Key quota hit, falling back to proxy...`);
+        } else {
+          throw new Error(`Gemini direct: ${errMsg}`);
+        }
+      }
+    } catch (err) {
+      // Network error on direct call — fall through to proxy
+      if (err instanceof Error && !err.message.includes('Gemini direct:')) {
+        console.warn(`[ImageGen] Direct call failed, trying proxy: ${err.message}`);
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  // 2) Fallback: use backend proxy (server-side key rotation)
   let proxyError = '';
   try {
     const response = await fetch(`${PIPELINE_BASE}/api/admin/proxy/image-gen`, {
@@ -68,50 +124,28 @@ export async function generateSingleImage(
     proxyError = err instanceof Error ? err.message : 'Image proxy request failed';
   }
 
-  // Fallback for manual generation flows where user key is available.
-  if (!apiKey) {
-    throw new Error(proxyError || 'Image generation failed');
-  }
-
-  const directRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: `Generate an image: ${prompt}` }] }],
-      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
-    }),
-  });
-
-  if (!directRes.ok) {
-    const errBody = await directRes.json().catch(() => ({}));
-    const directError =
-      (errBody as { error?: { message?: string } }).error?.message ||
-      `Gemini direct error ${directRes.status}`;
-    throw new Error(`${proxyError ? `Proxy: ${proxyError}. ` : ''}Direct: ${directError}`);
-  }
-
-  const directData = (await directRes.json()) as {
-    candidates?: Array<{
-      content?: { parts?: Array<{ inlineData?: { mimeType?: string; data?: string } }> };
-    }>;
-  };
-  const parts = directData.candidates?.[0]?.content?.parts || [];
-  for (const part of parts) {
-    const inline = part.inlineData;
-    if (inline?.mimeType?.startsWith('image/') && inline.data) {
-      return {
-        dataUrl: `data:${inline.mimeType};base64,${inline.data}`,
-        mimeType: inline.mimeType,
-      };
-    }
-  }
-
-  throw new Error(
-    `${proxyError ? `Proxy: ${proxyError}. ` : ''}Direct: No image returned from model`
-  );
+  throw new Error(proxyError || 'Image generation failed');
 }
 
-/** Upload an image to Supabase storage, return public URL */
+/** Convert a data URL (any image format) to a WebP Blob via canvas — ~75-80% smaller than PNG */
+async function toWebpBlob(dataUrl: string, quality = 0.82): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return resolve(null);
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob((blob) => resolve(blob), 'image/webp', quality);
+    };
+    img.onerror = () => resolve(null);
+    img.src = dataUrl;
+  });
+}
+
+/** Upload an image to Supabase storage as WebP, return public URL */
 export async function uploadToStorage(
   dataUrl: string,
   channelId: string,
@@ -121,15 +155,30 @@ export async function uploadToStorage(
   const base64Data = dataUrl.split(',')[1];
   if (!base64Data) return dataUrl;
 
-  const byteChars = atob(base64Data);
-  const byteArray = new Uint8Array(byteChars.length);
-  for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
-  const blob = new Blob([byteArray], { type: 'image/png' });
+  // Try WebP compression first (canvas-based, browser-only)
+  const webpBlob = await toWebpBlob(dataUrl, 0.82);
+  let blob: Blob;
+  let contentType: string;
+  let ext: string;
 
-  const filePath = `pipeline-images/${channelId}/${runId}/scene-${String(sceneNum).padStart(2, '0')}.png`;
+  if (webpBlob && webpBlob.size > 0) {
+    blob = webpBlob;
+    contentType = 'image/webp';
+    ext = 'webp';
+  } else {
+    // Fallback: upload original PNG
+    const byteChars = atob(base64Data);
+    const byteArray = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+    blob = new Blob([byteArray], { type: 'image/png' });
+    contentType = 'image/png';
+    ext = 'png';
+  }
+
+  const filePath = `pipeline-images/${channelId}/${runId}/scene-${String(sceneNum).padStart(2, '0')}.${ext}`;
   const { error } = await supabase.storage
     .from('post-images')
-    .upload(filePath, blob, { contentType: 'image/png', upsert: true });
+    .upload(filePath, blob, { contentType, upsert: true });
 
   if (error) return dataUrl; // fallback to data URL
 
@@ -237,6 +286,7 @@ export async function runImageGen(runId: string, req: GenerateRequest): Promise<
   let failCount = 0;
 
   const BATCH_SIZE = 3; // Process 3 scenes concurrently
+  let reusedCount = 0;
 
   try {
     for (let batchStart = 0; batchStart < scenes.length; batchStart += BATCH_SIZE) {
@@ -254,6 +304,27 @@ export async function runImageGen(runId: string, req: GenerateRequest): Promise<
       const batchResults = await Promise.allSettled(
         batch.map(async (scene) => {
           const fullPrompt = buildScenePrompt(scene, req.visualIdentity, req.aspectRatio);
+
+          // 🔍 Check image library for a reusable match first
+          const match = findBestMatch(fullPrompt, channelId, 0.35);
+          if (match) {
+            reusedCount++;
+            run.logs.push({
+              t: Date.now(),
+              level: 'info',
+              msg: `♻️ Scene ${scene.scene} — reusing existing image (similarity: ${(match.similarity * 100).toFixed(0)}%)`,
+              step: 'imageGen',
+            });
+            return {
+              scene,
+              fullPrompt,
+              success: true as const,
+              url: match.url,
+              mimeType: match.mimeType || 'image/png',
+              reused: true,
+            };
+          }
+
           const result = await generateSingleImage(fullPrompt);
           if (!result) return { scene, fullPrompt, success: false as const };
           const publicUrl = await uploadToStorage(result.dataUrl, channelId, scene.scene, runId);
@@ -263,11 +334,13 @@ export async function runImageGen(runId: string, req: GenerateRequest): Promise<
             success: true as const,
             url: publicUrl,
             mimeType: result.mimeType,
+            reused: false,
           };
         })
       );
 
       let batchHit429 = false;
+      const newLibraryEntries: LibraryImage[] = [];
       for (const settled of batchResults) {
         if (settled.status === 'fulfilled' && settled.value.success) {
           const v = settled.value;
@@ -278,19 +351,36 @@ export async function runImageGen(runId: string, req: GenerateRequest): Promise<
             mimeType: v.mimeType,
           });
           successCount++;
-          trackCost({
-            step: 'imageGen',
-            model: 'gemini-2.5-flash-image',
-            type: 'image',
-            quantity: 1,
-            runId,
-            channelId,
-            detail: `Scene ${v.scene.scene}`,
-          });
+
+          // Only track cost for newly generated images
+          if (!v.reused) {
+            trackCost({
+              step: 'imageGen',
+              model: 'gemini-2.5-flash-image',
+              type: 'image',
+              quantity: 1,
+              runId,
+              channelId,
+              detail: `Scene ${v.scene.scene}`,
+            });
+
+            // Add newly generated image to library for future reuse
+            newLibraryEntries.push({
+              id: `${runId}_scene_${v.scene.scene}`,
+              url: v.url,
+              prompt: v.fullPrompt,
+              keywords: extractKeywords(v.fullPrompt),
+              channelId,
+              runId,
+              scene: v.scene.scene,
+              createdAt: new Date().toISOString(),
+            });
+          }
+
           run.logs.push({
             t: Date.now(),
             level: 'info',
-            msg: `✅ Scene ${v.scene.scene} done`,
+            msg: `✅ Scene ${v.scene.scene} done${v.reused ? ' (reused)' : ''}`,
             step: 'imageGen',
           });
         } else {
@@ -322,12 +412,24 @@ export async function runImageGen(runId: string, req: GenerateRequest): Promise<
       run.logs.push({
         t: Date.now(),
         level: 'info',
-        msg: `[${pct}%] 📊 Progress: ${successCount}/${totalScenes} images done`,
+        msg: `[${pct}%] 📊 Progress: ${successCount}/${totalScenes} images done${reusedCount > 0 ? ` (${reusedCount} reused)` : ''}`,
         step: 'imageGen',
       });
 
+      // Index newly generated images into library for future reuse
+      if (newLibraryEntries.length > 0) {
+        addToLibrary(newLibraryEntries);
+      }
+
       // Longer delay if we hit rate limits, shorter otherwise
-      if (batchStart + BATCH_SIZE < scenes.length) {
+      // Skip delay when all images in batch were reused
+      const allReused =
+        batch.length > 0 &&
+        batchResults.every(
+          (r) =>
+            r.status === 'fulfilled' && r.value.success && 'reused' in r.value && r.value.reused
+        );
+      if (batchStart + BATCH_SIZE < scenes.length && !allReused) {
         const delay = batchHit429 ? 5000 : 1000;
         if (batchHit429) {
           run.logs.push({
@@ -354,15 +456,22 @@ export async function runImageGen(runId: string, req: GenerateRequest): Promise<
       outputDir: 'remote',
       files: {
         ...existingFiles,
-        'images.json': { images: generatedImages, totalScenes, successCount, failCount },
+        'images.json': {
+          images: generatedImages,
+          totalScenes,
+          successCount,
+          failCount,
+          reusedCount,
+        },
       },
     });
 
     const elapsed = ((Date.now() - new Date(run.startedAt).getTime()) / 1000).toFixed(1);
+    const newGen = successCount - reusedCount;
     run.logs.push({
       t: Date.now(),
       level: 'info',
-      msg: `[100%] ✅ Image generation complete: ${successCount}/${totalScenes} images (${failCount} failed) — ${elapsed}s`,
+      msg: `[100%] ✅ Image generation complete: ${successCount}/${totalScenes} images (${newGen} new, ${reusedCount} reused, ${failCount} failed) — ${elapsed}s`,
       step: 'imageGen',
     });
   } catch (err: unknown) {

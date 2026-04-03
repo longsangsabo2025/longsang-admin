@@ -635,7 +635,10 @@ export default function BugSystemDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Error Logs ({errors.length})</CardTitle>
-              <CardDescription>Recent errors from the application — Page {errorPage + 1} of {Math.max(1, Math.ceil(errors.length / ERRORS_PER_PAGE))}</CardDescription>
+              <CardDescription>
+                Recent errors from the application — Page {errorPage + 1} of{' '}
+                {Math.max(1, Math.ceil(errors.length / ERRORS_PER_PAGE))}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border">
@@ -658,33 +661,37 @@ export default function BugSystemDashboard() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      errors.slice(errorPage * ERRORS_PER_PAGE, (errorPage + 1) * ERRORS_PER_PAGE).map((error) => (
-                        <TableRow key={error.id}>
-                          <TableCell className="font-medium">{error.error_type}</TableCell>
-                          <TableCell className="max-w-md truncate">{error.error_message}</TableCell>
-                          <TableCell>
-                            <Badge className={getSeverityColor(error.severity)}>
-                              {error.severity}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{error.project_name || 'N/A'}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {formatDate(error.created_at)}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedError(error);
-                                setErrorModalOpen(true);
-                              }}
-                            >
-                              View Details
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      errors
+                        .slice(errorPage * ERRORS_PER_PAGE, (errorPage + 1) * ERRORS_PER_PAGE)
+                        .map((error) => (
+                          <TableRow key={error.id}>
+                            <TableCell className="font-medium">{error.error_type}</TableCell>
+                            <TableCell className="max-w-md truncate">
+                              {error.error_message}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={getSeverityColor(error.severity)}>
+                                {error.severity}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{error.project_name || 'N/A'}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {formatDate(error.created_at)}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedError(error);
+                                  setErrorModalOpen(true);
+                                }}
+                              >
+                                View Details
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
                     )}
                   </TableBody>
                 </Table>
@@ -700,7 +707,8 @@ export default function BugSystemDashboard() {
                     Previous
                   </Button>
                   <span className="text-sm text-muted-foreground">
-                    {errorPage * ERRORS_PER_PAGE + 1}–{Math.min((errorPage + 1) * ERRORS_PER_PAGE, errors.length)} of {errors.length}
+                    {errorPage * ERRORS_PER_PAGE + 1}–
+                    {Math.min((errorPage + 1) * ERRORS_PER_PAGE, errors.length)} of {errors.length}
                   </span>
                   <Button
                     variant="outline"

@@ -384,7 +384,7 @@ export function backfillFromRuns(runs: BackfillableRun[]): number {
     // Script Writer
     if (files['script.json'] || files['script.txt']) {
       const scriptJson = files['script.json'] as { model?: string; wordCount?: number } | undefined;
-      const model = scriptJson?.model || run.input.model || 'gemini-2.0-flash';
+      const model = scriptJson?.model || run.input.model || 'gemini-2.5-flash';
       const entry: CostEntry = {
         id: `bf-${run.id}-script`,
         timestamp: ts,

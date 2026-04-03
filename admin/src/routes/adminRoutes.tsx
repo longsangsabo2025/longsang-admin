@@ -71,6 +71,7 @@ const WorkspaceChatPage = lazy(() => import('../pages/ai/WorkspaceChatPage'));
 const AISettings = lazy(() => import('../pages/ai/AISettings'));
 const AICostDashboardPage = lazy(() => import('../pages/ai/AICostDashboardPage'));
 const PipelineBuilder = lazy(() => import('../pages/video/PipelineBuilder'));
+const PipelineSettings = lazy(() => import('../pages/video/PipelineSettings'));
 const YouTubeChannels = lazy(() => import('../pages/video/YouTubeChannels'));
 const YouTubeChannelWorkspace = lazy(() => import('../pages/video/YouTubeChannelWorkspace'));
 const VideoFactoryDashboard = lazy(() => import('../pages/video/VideoFactoryDashboard'));
@@ -78,6 +79,7 @@ const RevenueDashboardPage = lazy(() => import('../pages/system/RevenueDashboard
 const ServicesHealthPage = lazy(() => import('../pages/system/ServicesHealthPage'));
 const HeartbeatDashboardPage = lazy(() => import('../pages/system/HeartbeatDashboardPage'));
 const TravisDashboardPage = lazy(() => import('../pages/system/TravisDashboardPage'));
+const ContentCommandOS = lazy(() => import('../pages/content/ContentCommandOS'));
 
 export const adminRoutes = (
   <>
@@ -90,6 +92,8 @@ export const adminRoutes = (
     <Route path="workflows" element={<AdminWorkflows />} />
     <Route path="n8n" element={<N8nManagement />} />
     <Route path="content-queue" element={<AdminContentQueue />} />
+    {/* 🎯 Content Command OS — Multi-View Pipeline */}
+    <Route path="content-os" element={<ContentCommandOS />} />
     <Route path="analytics" element={<AdminAnalytics />} />
     <Route path="consultations" element={<AdminConsultations />} />
     <Route path="files" element={<AdminFileManagerReal />} />
@@ -147,6 +151,7 @@ export const adminRoutes = (
       element={<Navigate to="/admin/pipeline-builder?view=monitor" replace />}
     />
     <Route path="pipeline-builder" element={<PipelineBuilder />} />
+    <Route path="pipeline-settings" element={<PipelineSettings />} />
     <Route path="youtube-channels" element={<YouTubeChannels />} />
     <Route path="youtube-channels/:channelId" element={<YouTubeChannelWorkspace />} />
     <Route path="video-factory" element={<VideoFactoryDashboard />} />

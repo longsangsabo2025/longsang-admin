@@ -29,6 +29,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { useDomains } from '@/brain/hooks/useDomains';
 import { useIngestKnowledge } from '@/brain/hooks/useKnowledge';
+import { BRAIN_API_BASE } from '@/brain/lib/brain-config';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,7 +46,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = BRAIN_API_BASE;
 
 // ═══════════════════════════════════════════════════════════════
 // TYPE DEFINITIONS

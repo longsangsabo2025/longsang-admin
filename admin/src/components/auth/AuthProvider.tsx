@@ -25,6 +25,7 @@ export const useAuth = () => {
 };
 
 const isDev = import.meta.env.DEV;
+const isAuthBypassEnabled = isDev || import.meta.env.VITE_AUTH_BYPASS === 'true';
 
 // Real admin user ID (longsangsabo@gmail.com) - use for dev mode too
 const ADMIN_USER_ID = '89917901-cf15-45c4-a7ad-8c4c9513347e';
@@ -63,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // DEV MODE: Always auto-bypass auth — no login screen needed
     // This gives immediate access to ALL routes including admin & manager
-    if (isDev) {
+    if (isAuthBypassEnabled) {
       const devUser = createDevUser();
       const devSession = createDevSession(devUser);
       setSession(devSession);
@@ -105,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    if (isDev && localStorage.getItem('dev-auth-bypass') === 'true') {
+    if (isAuthBypassEnabled && localStorage.getItem('dev-auth-bypass') === 'true') {
       localStorage.removeItem('dev-auth-bypass');
       localStorage.removeItem('dev-user-email');
       setSession(null);

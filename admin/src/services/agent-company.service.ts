@@ -134,8 +134,10 @@ export interface MorningBriefingData {
 
 // ─── Edge Function Helper ────────────────────────────────────────────────────
 
-const SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || 'https://diexsbzqwsbpilsymnfb.supabase.co';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+if (!SUPABASE_URL) {
+  console.error('VITE_SUPABASE_URL is not configured');
+}
 const SUPABASE_ANON_KEY =
   import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_SERVICE_KEY || '';
 

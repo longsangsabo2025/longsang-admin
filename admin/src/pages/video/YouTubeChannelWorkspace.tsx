@@ -27,6 +27,7 @@ import {
   ImageIcon,
   Key,
   Layers,
+  List,
   Loader2,
   Mic,
   Pencil,
@@ -44,7 +45,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,6 +53,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -72,10 +74,17 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import BatchPanel from '@/components/youtube/BatchPanel';
+import ImageLibraryPanel from '@/components/youtube/ImageLibraryPanel';
 import PipelineRoadmap, { type PipelineConfig } from '@/components/youtube/PipelineRoadmap';
-import { DEFAULT_PIPELINE, DEFAULT_VISUAL_IDENTITY, type VisualIdentity } from '@/components/youtube/pipeline-types';
+import {
+  DEFAULT_PIPELINE,
+  DEFAULT_VISUAL_IDENTITY,
+  type VisualIdentity,
+} from '@/components/youtube/pipeline-types';
 import SmartAudio from '@/components/youtube/SmartAudio';
 import { toast, useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { getRunningIdsForChannel } from '@/services/pipeline';
 import {
@@ -109,6 +118,13 @@ import {
   uploadToStorage,
 } from '@/services/pipeline/image-gen.agent';
 import { fixAllOrphanedRuns, getAllRuns, updateRunFile } from '@/services/pipeline/run-tracker';
+import {
+  generateAndDownloadForAllRuns,
+  generateAndDownloadForRun,
+  generatePromptsData,
+  downloadPromptsAsZip,
+  type PromptsData,
+} from '@/services/pipeline/prompt-generator';
 import { regenerateSingleClip } from '@/services/pipeline/voiceover.agent';
 import type { GenerateRequest, GenerationRun } from '@/services/youtube-channels.service';
 import { youtubeChannelsService } from '@/services/youtube-channels.service';
@@ -125,11 +141,70 @@ function getSavedPipelineConfig(chId?: string): PipelineConfig {
   return DEFAULT_PIPELINE;
 }
 
+const CHANNEL_VOICE_DEFAULTS: Record<string, { engine: string; voice: string; speed: number }> = {
+  'dung-day-di': { engine: 'gemini-tts', voice: 'Algenib', speed: 1.0 },
+};
+
+function getDefaultVoiceConfig(chId?: string): {
+  engine: string;
+  voice: string;
+  speed: number;
+  cleanedScript?: string;
+} {
+  const preset = (chId && CHANNEL_VOICE_DEFAULTS[chId]) || {
+    engine: 'gemini-tts',
+    voice: 'Kore',
+    speed: 1.0,
+  };
+  return { ...preset };
+}
+
+function loadSavedVoiceConfig(chId?: string): {
+  engine: string;
+  voice: string;
+  speed: number;
+  cleanedScript?: string;
+} {
+  const defaults = getDefaultVoiceConfig(chId);
+  const key = chId ? `yt-voice-config-${chId}` : 'yt-voice-config';
+  try {
+    const raw =
+      localStorage.getItem(key) || (chId ? localStorage.getItem('yt-voice-config') : null);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<{
+        engine: string;
+        voice: string;
+        speed: number;
+        cleanedScript?: string;
+      }>;
+      // Migrate old dung-day-di default (Kore) to new default (Algenib) without overriding custom voices.
+      const migratedVoice =
+        chId === 'dung-day-di' && (!parsed.voice || parsed.voice === 'Kore')
+          ? 'Algenib'
+          : parsed.voice;
+      return {
+        ...defaults,
+        ...parsed,
+        ...(migratedVoice ? { voice: migratedVoice } : {}),
+        // cleanedScript is run-scoped, do not carry across episodes/runs.
+        cleanedScript: undefined,
+      };
+    }
+  } catch {
+    /* ignore */
+  }
+  return defaults;
+}
+
 // ─── MAIN COMPONENT ────────────────────────────────────────
 
 export default function YouTubeChannelWorkspace() {
   const { channelId } = useParams<{ channelId: string }>();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const channelBase = pathname.startsWith('/youtube')
+    ? '/youtube/channels'
+    : '/admin/youtube-channels';
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -155,25 +230,27 @@ export default function YouTubeChannelWorkspace() {
   const [batchTopics, setBatchTopics] = useState('');
   const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
   const [batchLaunching, setBatchLaunching] = useState(false);
+  const [generatingRunId, setGeneratingRunId] = useState<string | null>(null);
+  const [generateProgress, setGenerateProgress] = useState('');
+  const [promptsViewData, setPromptsViewData] = useState<PromptsData | null>(null);
   const [activeTab, setActiveTab] = useState(s.activeTab || 'generate');
   const [voiceConfig, setVoiceConfig] = useState<{
     engine: string;
     voice: string;
     speed: number;
     cleanedScript?: string;
-  }>(() => {
-    try {
-      const saved = localStorage.getItem('yt-voice-config');
-      if (saved) return { engine: 'gemini-tts', voice: 'Kore', speed: 1.0, ...JSON.parse(saved) };
-    } catch {
-      /* ignore */
-    }
-    return { engine: 'gemini-tts', voice: 'Kore', speed: 1.0 };
-  });
+  }>(() => loadSavedVoiceConfig(channelId));
+
+  // Re-load per-channel voice config when switching channels.
+  useEffect(() => {
+    setVoiceConfig(loadSavedVoiceConfig(channelId));
+  }, [channelId]);
 
   // Persist voiceConfig to localStorage + sync to Pipeline config
   useEffect(() => {
-    localStorage.setItem('yt-voice-config', JSON.stringify(voiceConfig));
+    const voiceKey = channelId ? `yt-voice-config-${channelId}` : 'yt-voice-config';
+    const { cleanedScript: _cleanedScript, ...persistedVoiceConfig } = voiceConfig;
+    localStorage.setItem(voiceKey, JSON.stringify(persistedVoiceConfig));
     // Sync voice settings to Pipeline config so both tabs stay consistent
     const pipeKey = channelId ? `yt-pipeline-config-${channelId}` : 'yt-pipeline-config';
     try {
@@ -185,6 +262,7 @@ export default function YouTubeChannelWorkspace() {
           cfg.voiceover.voice = voiceConfig.voice;
           cfg.voiceover.speed = voiceConfig.speed;
           if (voiceConfig.cleanedScript) cfg.voiceover.cleanedScript = voiceConfig.cleanedScript;
+          else delete cfg.voiceover.cleanedScript;
           localStorage.setItem(pipeKey, JSON.stringify(cfg));
         }
       }
@@ -192,6 +270,14 @@ export default function YouTubeChannelWorkspace() {
       /* ignore */
     }
   }, [voiceConfig, channelId]);
+
+  // cleanedScript is episode/run-specific. Clear it when user switches to another run.
+  useEffect(() => {
+    setVoiceConfig((prev) => {
+      if (!prev.cleanedScript) return prev;
+      return { ...prev, cleanedScript: undefined };
+    });
+  }, [activeRunId]);
 
   // ── Hydrate Key Pool from Supabase on mount ──
   useEffect(() => {
@@ -247,7 +333,10 @@ export default function YouTubeChannelWorkspace() {
     queryKey: ['youtube-channels', 'runs', channelId],
     queryFn: async () => {
       // On first call, hydrate from DB; subsequent polls just read the in-memory map
-      if (channelId) await youtubeChannelsService.hydrateChannel(channelId);
+      if (channelId) {
+        const forceRefresh = Boolean(activeRunId) || runningRunIds.size > 0;
+        await youtubeChannelsService.hydrateChannel(channelId, forceRefresh);
+      }
       // Detect orphaned runs stuck in 'running' for >5 min
       fixAllOrphanedRuns();
       return youtubeChannelsService.getRuns();
@@ -268,6 +357,66 @@ export default function YouTubeChannelWorkspace() {
     enabled: !!activeRunId,
     refetchInterval: 2000,
   });
+
+  // Restore cleanedScript from localStorage (primary) or run input (fallback) when run loads.
+  useEffect(() => {
+    if (!activeRun?.id) return;
+    const runConfig = activeRun.result?.files?.['voiceover-config.json'] as
+      | { cleanedScript?: string }
+      | undefined;
+    const runSavedScript = runConfig?.cleanedScript?.trim() || undefined;
+    const localScript = localStorage.getItem('yt-tts-script-' + activeRun.id) || undefined;
+    const savedScript =
+      runSavedScript || localScript || activeRun.input?.voiceoverCleanedScript || undefined;
+    setVoiceConfig((prev) => ({ ...prev, cleanedScript: savedScript }));
+  }, [activeRun?.id]);
+
+  // Recover legacy runs: if voiceover.json is missing but audio files exist in Storage, rebuild it.
+  useEffect(() => {
+    if (!activeRun?.id || !activeRun.channelId) return;
+    if (activeRun.result?.files?.['voiceover.json']) return;
+
+    let cancelled = false;
+    (async () => {
+      const dir = `pipeline-audio/${activeRun.channelId}/${activeRun.id}`;
+      const { data, error } = await supabase.storage.from('post-images').list(dir, {
+        limit: 200,
+        sortBy: { column: 'name', order: 'asc' },
+      });
+      if (cancelled || error || !data?.length) return;
+
+      const audioFiles = data.filter((f) => /\.(wav|mp3|ogg|m4a)$/i.test(f.name));
+      if (audioFiles.length === 0) return;
+
+      const clips = audioFiles.map((f, idx) => {
+        const { data: pub } = supabase.storage.from('post-images').getPublicUrl(`${dir}/${f.name}`);
+        return {
+          scene: idx + 1,
+          url: pub?.publicUrl || '',
+          duration: 0,
+          charCount: 0,
+          engine: 'unknown',
+        };
+      });
+
+      updateRunFile(activeRun.id, 'voiceover.json', {
+        clips,
+        totalClips: clips.length,
+        successCount: clips.length,
+        failCount: 0,
+        totalDuration: 0,
+        engine: 'unknown',
+        voice: '',
+        speed: 1,
+        recoveredFromStorage: true,
+      });
+      queryClient.invalidateQueries({ queryKey: ['youtube-channels', 'run', activeRun.id] });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeRun?.id, activeRun?.channelId]);
 
   // ── Poll ALL running runs for completion detection ──
   const runningIdsArray = Array.from(runningRunIds);
@@ -568,7 +717,7 @@ export default function YouTubeChannelWorkspace() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <p className="text-muted-foreground">Channel not found</p>
-        <Button variant="outline" onClick={() => navigate('/admin/youtube-channels')}>
+        <Button variant="outline" onClick={() => navigate(channelBase)}>
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Channels
         </Button>
       </div>
@@ -577,11 +726,13 @@ export default function YouTubeChannelWorkspace() {
 
   return (
     <div className="flex-1 space-y-6 p-6">
+      {/* ── Prompts Viewer Dialog ── */}
+      <PromptsViewerDialog data={promptsViewData} onClose={() => setPromptsViewData(null)} />
       {/* ── Header with channel identity ── */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-b pb-4 mb-2">
         <div className="flex items-center gap-3 min-w-0">
           <Button variant="ghost" size="icon" className="shrink-0" asChild>
-            <Link to="/admin/youtube-channels">
+            <Link to={channelBase}>
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
@@ -891,7 +1042,12 @@ export default function YouTubeChannelWorkspace() {
                           {pl.icon} {pl.name}
                         </span>
                         <Badge variant="secondary" className="text-[10px]">
-                          {channelRuns.filter((r) => r.input?.playlist === pl.name && r.status === 'completed').length} ep
+                          {
+                            channelRuns.filter(
+                              (r) => r.input?.playlist === pl.name && r.status === 'completed'
+                            ).length
+                          }{' '}
+                          ep
                         </Badge>
                       </div>
                     ))}
@@ -915,6 +1071,12 @@ export default function YouTubeChannelWorkspace() {
               <TabsTrigger value="results" className="gap-2">
                 <Eye className="h-4 w-4" /> Results
               </TabsTrigger>
+              <TabsTrigger value="batch" className="gap-2">
+                <Sparkles className="h-4 w-4" /> Batch
+              </TabsTrigger>
+              <TabsTrigger value="images" className="gap-2">
+                <ImageIcon className="h-4 w-4" /> Images
+              </TabsTrigger>
               <TabsTrigger value="costs" className="gap-2">
                 <DollarSign className="h-4 w-4" /> Costs
               </TabsTrigger>
@@ -934,7 +1096,8 @@ export default function YouTubeChannelWorkspace() {
                             variant="secondary"
                             className="text-[10px] font-normal max-w-[260px] truncate"
                           >
-                            {activeRun.episodeNumber ? `Tập ${activeRun.episodeNumber} — ` : ''}{activeRun.input.topic}
+                            {activeRun.episodeNumber ? `Tập ${activeRun.episodeNumber} — ` : ''}
+                            {activeRun.input.topic}
                           </Badge>
                         )}
                         {(activeRun?.input?.playlist || (!activeRunId && selectedPlaylist)) && (
@@ -976,9 +1139,10 @@ export default function YouTubeChannelWorkspace() {
                         const isRunning = runningRunIds.has(run.id);
                         const epPrefix = run.episodeNumber ? `T${run.episodeNumber}. ` : '';
                         const label =
-                          epPrefix + (run.input?.topic?.slice(0, 24) ||
-                          run.input?.transcript?.slice(0, 18) ||
-                          run.id.slice(0, 8));
+                          epPrefix +
+                          (run.input?.topic?.slice(0, 24) ||
+                            run.input?.transcript?.slice(0, 18) ||
+                            run.id.slice(0, 8));
                         return (
                           <Button
                             key={run.id}
@@ -1041,7 +1205,8 @@ export default function YouTubeChannelWorkspace() {
                                   : run.status === 'failed'
                                     ? '❌'
                                     : '⏳'}{' '}
-                                {run.episodeNumber ? `T${run.episodeNumber}. ` : ''}{run.input?.topic?.slice(0, 35) || run.id.slice(0, 8)}
+                                {run.episodeNumber ? `T${run.episodeNumber}. ` : ''}
+                                {run.input?.topic?.slice(0, 35) || run.id.slice(0, 8)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -1070,12 +1235,14 @@ export default function YouTubeChannelWorkspace() {
                     activeRun={
                       activeRun
                         ? {
+                            runId: activeRun.id,
                             status: activeRun.status,
                             logs: activeRun.logs,
                             error: activeRun.error,
                             result: activeRun.result,
                             completedSteps: activeRun.completedSteps,
                             pipelineSteps: activeRun.pipelineSteps,
+                            cleanedScriptFromRun: activeRun.input?.voiceoverCleanedScript,
                           }
                         : undefined
                     }
@@ -1092,7 +1259,8 @@ export default function YouTubeChannelWorkspace() {
                   <div>
                     <CardTitle>Generation History</CardTitle>
                     <CardDescription>
-                      {new Set(channelRuns.map((r) => r.input?.topic || r.input?.transcript)).size} tập
+                      {new Set(channelRuns.map((r) => r.input?.topic || r.input?.transcript)).size}{' '}
+                      tập
                       {' • '}
                       {channelRuns.length} runs for this channel
                     </CardDescription>
@@ -1101,7 +1269,50 @@ export default function YouTubeChannelWorkspace() {
                     variant="outline"
                     size="sm"
                     className="h-7 text-xs"
-                    onClick={() => refetchRuns()}
+                    disabled={!!generatingRunId}
+                    onClick={() => {
+                      const completedRuns = channelRuns.filter(
+                        (r) => r.status === 'completed' && (r.result || r.hasResult)
+                      );
+                      if (completedRuns.length === 0) {
+                        toast({ title: 'Không có tập nào hoàn thành', variant: 'destructive' });
+                        return;
+                      }
+                      setGeneratingRunId('all');
+                      setGenerateProgress('Đang tạo prompts cho tất cả các tập...');
+                      generateAndDownloadForAllRuns(completedRuns, setGenerateProgress)
+                        .catch((err: Error) =>
+                          toast({
+                            title: '❌ Lỗi generate prompts',
+                            description: err.message,
+                            variant: 'destructive',
+                          })
+                        )
+                        .finally(() => {
+                          setGeneratingRunId(null);
+                          setGenerateProgress('');
+                        });
+                    }}
+                  >
+                    {generatingRunId === 'all' ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        {generateProgress || 'Generating...'}
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-1" /> Generate All Prompts
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={async () => {
+                      if (channelId) await youtubeChannelsService.hydrateChannel(channelId, true);
+                      await refetchRuns();
+                    }}
                     aria-label="Refresh runs"
                   >
                     <RefreshCw className="h-4 w-4 mr-1" /> Refresh
@@ -1174,7 +1385,10 @@ export default function YouTubeChannelWorkspace() {
                                 {new Date(runs[0].startedAt).toLocaleDateString('vi-VN')}
                               </span>
                               {runs[0].input?.playlist && (
-                                <Badge variant="outline" className="text-[10px] shrink-0 border-primary/40 text-primary">
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] shrink-0 border-primary/40 text-primary"
+                                >
                                   📂 {runs[0].input.playlist}
                                 </Badge>
                               )}
@@ -1203,6 +1417,32 @@ export default function YouTubeChannelWorkspace() {
                                   if (activeRunId === run.id) setActiveRunId(null);
                                   refetchRuns();
                                 }}
+                                onGeneratePrompts={
+                                  run.status === 'completed'
+                                    ? () => {
+                                        setGeneratingRunId(run.id);
+                                        setGenerateProgress('Tìm prompts có sẵn...');
+                                        generatePromptsData(
+                                          run,
+                                          setGenerateProgress,
+                                          channelId ?? undefined
+                                        )
+                                          .then((data) => setPromptsViewData(data))
+                                          .catch((err: Error) =>
+                                            toast({
+                                              title: '❌ Lỗi generate prompts',
+                                              description: err.message,
+                                              variant: 'destructive',
+                                            })
+                                          )
+                                          .finally(() => {
+                                            setGeneratingRunId(null);
+                                            setGenerateProgress('');
+                                          });
+                                      }
+                                    : undefined
+                                }
+                                isGenerating={generatingRunId === run.id}
                               />
                             ))}
                           </div>
@@ -1290,6 +1530,38 @@ export default function YouTubeChannelWorkspace() {
               )}
             </TabsContent>
 
+            {/* ── Batch Pipeline Tab ── */}
+            <TabsContent value="batch">
+              {channel &&
+                (() => {
+                  const cfg = getSavedPipelineConfig(channelId);
+                  return (
+                    <BatchPanel
+                      channelId={channel.id}
+                      channelName={channel.name}
+                      categories={channel.categories}
+                      sampleTopics={channel.sampleTopics}
+                      style={cfg.storyboard.style}
+                      tone={cfg.scriptWriter.tone}
+                      playlist={selectedPlaylist || undefined}
+                      pipelineConfig={cfg}
+                      existingTopics={channelRuns
+                        .filter((r) => r.input?.topic)
+                        .map((r) => r.input.topic!)}
+                      onRunIdClick={(runId) => {
+                        setActiveRunId(runId);
+                        setActiveTab('results');
+                      }}
+                    />
+                  );
+                })()}
+            </TabsContent>
+
+            {/* ── Image Library Tab ── */}
+            <TabsContent value="images">
+              <ImageLibraryPanel channelId={channelId} />
+            </TabsContent>
+
             {/* ── Cost Statistics Tab ── */}
             <TabsContent value="costs">
               <CostDashboard channelId={channel?.id} />
@@ -1354,7 +1626,9 @@ function KeyPoolManager() {
       setPool(getPool());
       try {
         setPins(JSON.parse(localStorage.getItem('pipeline-api-key-pinned') || '{}'));
-      } catch {}
+      } catch (_e) {
+        // ignore parse errors
+      }
     });
     return unsub;
   }, []);
@@ -1913,16 +2187,153 @@ function CostDashboard({ channelId }: { channelId?: string }) {
   );
 }
 
+// ─── PROMPTS VIEWER DIALOG ────────────────────────────────
+
+function PromptsViewerDialog({ data, onClose }: { data: PromptsData | null; onClose: () => void }) {
+  const [tab, setTab] = useState<'image' | 'motion' | 'concepts'>('image');
+  const [copying, setCopying] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  if (!data) return null;
+
+  const imageLines = data.scenes.map((s) => s.imagePrompt);
+  const motionLines = data.scenes.map((s) => s.motionPrompt);
+  const conceptLines = data.scenes.map(
+    (s, i) => `[Scene ${i + 1}]\nScript: ${s.lines}\nConcept: ${s.concept}`
+  );
+
+  const currentLines = tab === 'image' ? imageLines : tab === 'motion' ? motionLines : conceptLines;
+  const currentText = currentLines.join('\n\n');
+
+  function handleCopy() {
+    navigator.clipboard.writeText(currentText).then(() => {
+      setCopying(true);
+      setTimeout(() => setCopying(false), 1500);
+    });
+  }
+
+  async function handleDownload() {
+    setDownloading(true);
+    try {
+      await downloadPromptsAsZip(data);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <Dialog open={!!data} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-3xl w-full max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <List className="h-4 w-4 text-purple-400" />
+            <span className="truncate">{data.title}</span>
+          </DialogTitle>
+          <DialogDescription>
+            {data.scenes.length} scenes · image-prompts / motion-prompts / concepts
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Tabs */}
+        <div className="flex gap-1 border-b pb-2">
+          {(['image', 'motion', 'concepts'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                tab === t
+                  ? 'bg-purple-500/20 text-purple-400 font-medium'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t === 'image'
+                ? '🖼️ Image Prompts'
+                : t === 'motion'
+                  ? '🎬 Motion Prompts'
+                  : '💡 Concepts'}
+            </button>
+          ))}
+          <span className="ml-auto text-xs text-muted-foreground self-center">
+            {currentLines.length} mục
+          </span>
+        </div>
+
+        {/* Prompt list */}
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="space-y-2 pr-4">
+            {currentLines.map((line, i) => (
+              <div key={i} className="group flex gap-2">
+                <span className="text-xs text-muted-foreground font-mono w-7 pt-1 shrink-0 text-right">
+                  {i + 1}.
+                </span>
+                <p
+                  className={`text-xs leading-relaxed flex-1 ${
+                    tab === 'concepts' ? 'whitespace-pre-wrap font-mono text-muted-foreground' : ''
+                  }`}
+                >
+                  {line}
+                </p>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+
+        <DialogFooter className="gap-2 flex-row justify-between sm:justify-between">
+          <span className="text-xs text-muted-foreground self-center">
+            Tab đang xem:{' '}
+            <strong>
+              {tab === 'image' ? 'Image Prompts' : tab === 'motion' ? 'Motion Prompts' : 'Concepts'}
+            </strong>
+          </span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleCopy}>
+              {copying ? (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3.5 w-3.5" /> Copy All
+                </>
+              )}
+            </Button>
+            <Button
+              size="sm"
+              className="h-7 text-xs gap-1 bg-purple-600 hover:bg-purple-700"
+              onClick={handleDownload}
+              disabled={downloading}
+            >
+              {downloading ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tạo ZIP...
+                </>
+              ) : (
+                <>
+                  <Download className="h-3.5 w-3.5" /> Download ZIP
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── RUN CARD ─────────────────────────────────────────────
 
 function RunCard({
   run,
   onView,
   onDelete,
+  onGeneratePrompts,
+  isGenerating,
 }: {
   run: GenerationRun;
   onView: () => void;
   onDelete?: () => void;
+  onGeneratePrompts?: () => void;
+  isGenerating?: boolean;
 }) {
   const statusColor =
     run.status === 'completed'
@@ -1998,6 +2409,26 @@ function RunCard({
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         )}
+        {onGeneratePrompts && run.status === 'completed' && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-muted-foreground hover:text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"
+            disabled={isGenerating}
+            onClick={(e) => {
+              e.stopPropagation();
+              onGeneratePrompts();
+            }}
+            aria-label="Generate prompts"
+            title="Generate image & motion prompts (ZIP)"
+          >
+            {isGenerating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-purple-500" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        )}
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
       </div>
     </div>
@@ -2061,6 +2492,8 @@ function VoiceTabContent({
   onOpenKeyPool?: () => void;
 }) {
   const engine = voiceoverConfig?.engine || 'gemini-tts';
+  const defaultVoiceForRun = run.channelId === 'dung-day-di' ? 'Algenib' : 'Kore';
+  const activeVoice = voiceoverConfig?.voice || defaultVoiceForRun;
   const [regeneratingScene, setRegeneratingScene] = useState<number | null>(null);
   const [downloadingVoices, setDownloadingVoices] = useState(false);
   const isElevenLabs = engine === 'elevenlabs';
@@ -2074,6 +2507,18 @@ function VoiceTabContent({
   const [optimizerError, setOptimizerError] = useState<string | null>(null);
   const [showOptimized, setShowOptimized] = useState(!!voiceoverConfig?.cleanedScript);
   const [selectedHistoryIdx, setSelectedHistoryIdx] = useState<number | null>(null);
+
+  // Sync optimizedScript when cleanedScript is restored from a loaded run.
+  useEffect(() => {
+    if (voiceoverConfig?.cleanedScript && voiceoverConfig.cleanedScript !== optimizedScript) {
+      setOptimizedScript(voiceoverConfig.cleanedScript);
+      setShowOptimized(true);
+    } else if (!voiceoverConfig?.cleanedScript && optimizedScript) {
+      setOptimizedScript(null);
+      setShowOptimized(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voiceoverConfig?.cleanedScript]);
 
   // When viewing a history version, override the displayed voiceover data
   const displayVoiceover =
@@ -2154,6 +2599,12 @@ function VoiceTabContent({
   const handleApplyOptimized = () => {
     if (optimizedScript && onVoiceoverConfigChange) {
       onVoiceoverConfigChange({ cleanedScript: optimizedScript } as never);
+      // Persist keyed by runId so it survives page reload
+      localStorage.setItem('yt-tts-script-' + run.id, optimizedScript);
+      updateRunFile(run.id, 'voiceover-config.json', {
+        cleanedScript: optimizedScript,
+        updatedAt: new Date().toISOString(),
+      });
     }
   };
 
@@ -2163,6 +2614,11 @@ function VoiceTabContent({
     if (onVoiceoverConfigChange) {
       onVoiceoverConfigChange({ cleanedScript: '' } as never);
     }
+    localStorage.removeItem('yt-tts-script-' + run.id);
+    updateRunFile(run.id, 'voiceover-config.json', {
+      cleanedScript: '',
+      updatedAt: new Date().toISOString(),
+    });
   };
 
   // Voice Preview states
@@ -2224,7 +2680,7 @@ function VoiceTabContent({
                 responseModalities: ['AUDIO'],
                 speechConfig: {
                   voiceConfig: {
-                    prebuiltVoiceConfig: { voiceName: voiceoverConfig.voice || 'Kore' },
+                    prebuiltVoiceConfig: { voiceName: activeVoice },
                   },
                 },
               },
@@ -2368,6 +2824,72 @@ function VoiceTabContent({
     const sampleText =
       'Xin chào, đây là giọng đọc mẫu. Bạn có thể nghe thử trước khi tạo voiceover cho video.';
 
+    const previewWithGemini = async (voiceName: string): Promise<Blob> => {
+      const apiKey = getNextKey('gemini');
+      if (!apiKey) throw new Error('No Gemini key — add keys to Key Pool');
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: sampleText }] }],
+            generationConfig: {
+              responseModalities: ['AUDIO'],
+              speechConfig: {
+                voiceConfig: {
+                  prebuiltVoiceConfig: { voiceName },
+                },
+              },
+            },
+          }),
+        }
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(
+          (err as { error?: { message?: string } })?.error?.message ||
+            `Gemini TTS error ${res.status}`
+        );
+      }
+      const data = await res.json();
+      const parts = data.candidates?.[0]?.content?.parts || [];
+      const audioPart = parts.find((p: { inlineData?: { mimeType?: string } }) =>
+        p.inlineData?.mimeType?.startsWith('audio/')
+      );
+      if (!audioPart) throw new Error('No audio returned');
+      const b64 = audioPart.inlineData.data as string;
+      const byteChars = atob(b64);
+      const byteArr = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+      const mime = (audioPart.inlineData.mimeType as string) || '';
+      if (mime.includes('L16') || mime.includes('pcm') || mime.includes('raw')) {
+        const sampleRate = 24000;
+        const numChannels = 1;
+        const bitsPerSample = 16;
+        const wavHeader = new ArrayBuffer(44);
+        const view = new DataView(wavHeader);
+        const writeStr = (off: number, s: string) => {
+          for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i));
+        };
+        writeStr(0, 'RIFF');
+        view.setUint32(4, 36 + byteArr.length, true);
+        writeStr(8, 'WAVE');
+        writeStr(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, (sampleRate * numChannels * bitsPerSample) / 8, true);
+        view.setUint16(32, (numChannels * bitsPerSample) / 8, true);
+        view.setUint16(34, bitsPerSample, true);
+        writeStr(36, 'data');
+        view.setUint32(40, byteArr.length, true);
+        return new Blob([wavHeader, byteArr], { type: 'audio/wav' });
+      }
+      return new Blob([byteArr], { type: mime || 'audio/wav' });
+    };
+
     try {
       let blob: Blob;
 
@@ -2404,70 +2926,7 @@ function VoiceTabContent({
         if (!res.ok) throw new Error(`Fish Audio S2 error ${res.status}`);
         blob = await res.blob();
       } else if (voiceoverConfig.engine === 'gemini-tts') {
-        const apiKey = getNextKey('gemini');
-        if (!apiKey) throw new Error('No Gemini key — add keys to Key Pool');
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: sampleText }] }],
-              generationConfig: {
-                responseModalities: ['AUDIO'],
-                speechConfig: {
-                  voiceConfig: {
-                    prebuiltVoiceConfig: { voiceName: voiceoverConfig.voice || 'Kore' },
-                  },
-                },
-              },
-            }),
-          }
-        );
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(
-            (err as { error?: { message?: string } })?.error?.message ||
-              `Gemini TTS error ${res.status}`
-          );
-        }
-        const data = await res.json();
-        const parts = data.candidates?.[0]?.content?.parts || [];
-        const audioPart = parts.find((p: { inlineData?: { mimeType?: string } }) =>
-          p.inlineData?.mimeType?.startsWith('audio/')
-        );
-        if (!audioPart) throw new Error('No audio returned');
-        const b64 = audioPart.inlineData.data as string;
-        const byteChars = atob(b64);
-        const byteArr = new Uint8Array(byteChars.length);
-        for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
-        const mime = (audioPart.inlineData.mimeType as string) || '';
-        if (mime.includes('L16') || mime.includes('pcm') || mime.includes('raw')) {
-          const sampleRate = 24000;
-          const numChannels = 1;
-          const bitsPerSample = 16;
-          const wavHeader = new ArrayBuffer(44);
-          const view = new DataView(wavHeader);
-          const writeStr = (off: number, s: string) => {
-            for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i));
-          };
-          writeStr(0, 'RIFF');
-          view.setUint32(4, 36 + byteArr.length, true);
-          writeStr(8, 'WAVE');
-          writeStr(12, 'fmt ');
-          view.setUint32(16, 16, true);
-          view.setUint16(20, 1, true);
-          view.setUint16(22, numChannels, true);
-          view.setUint32(24, sampleRate, true);
-          view.setUint32(28, (sampleRate * numChannels * bitsPerSample) / 8, true);
-          view.setUint16(32, (numChannels * bitsPerSample) / 8, true);
-          view.setUint16(34, bitsPerSample, true);
-          writeStr(36, 'data');
-          view.setUint32(40, byteArr.length, true);
-          blob = new Blob([wavHeader, byteArr], { type: 'audio/wav' });
-        } else {
-          blob = new Blob([byteArr], { type: mime || 'audio/wav' });
-        }
+        blob = await previewWithGemini(activeVoice);
       } else if (voiceoverConfig.engine === 'google-tts') {
         const apiKey = getNextKey('google-tts') || getNextKey('gemini');
         if (!apiKey) throw new Error('No Google TTS key — add keys to Key Pool');
@@ -2490,16 +2949,28 @@ function VoiceTabContent({
         );
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(
+          const errMsg =
             (err as { error?: { message?: string } })?.error?.message ||
-              `Google TTS error ${res.status}`
-          );
+            `Google TTS error ${res.status}`;
+          const lower = errMsg.toLowerCase();
+          const googleDisabled =
+            lower.includes('cloud text-to-speech api has not been used') ||
+            lower.includes('texttospeech.googleapis.com') ||
+            lower.includes('api disabled') ||
+            res.status === 403;
+          if (googleDisabled) {
+            const fallbackVoice = voiceoverConfig.voice?.startsWith('vi-') ? 'Algenib' : 'Kore';
+            blob = await previewWithGemini(fallbackVoice);
+          } else {
+            throw new Error(errMsg);
+          }
+        } else {
+          const data = (await res.json()) as { audioContent: string };
+          const byteChars = atob(data.audioContent);
+          const byteArr = new Uint8Array(byteChars.length);
+          for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+          blob = new Blob([byteArr], { type: 'audio/mpeg' });
         }
-        const data = (await res.json()) as { audioContent: string };
-        const byteChars = atob(data.audioContent);
-        const byteArr = new Uint8Array(byteChars.length);
-        for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
-        blob = new Blob([byteArr], { type: 'audio/mpeg' });
       } else {
         const apiKey = getNextKey('elevenlabs');
         if (!apiKey) throw new Error('No ElevenLabs key — add keys to Key Pool');
@@ -2636,8 +3107,12 @@ function VoiceTabContent({
               <ChevronRight className="h-3 w-3 transition-transform group-open:rotate-90" />
               ⚙️ Voice Settings
               <span className="ml-auto text-[11px] font-normal text-muted-foreground">
-                {engine === 'gemini-tts' ? 'Gemini' : 'ElevenLabs'} · {voiceoverConfig.voice} ·{' '}
-                {voiceoverConfig.speed}x
+                {engine === 'gemini-tts'
+                  ? 'Gemini'
+                  : engine === 'google-tts'
+                    ? 'Google TTS'
+                    : 'ElevenLabs'}{' '}
+                · {voiceoverConfig.voice} · {voiceoverConfig.speed}x
               </span>
             </summary>
             <div className="px-3 pb-3 space-y-3">
@@ -2650,6 +3125,12 @@ function VoiceTabContent({
                     onValueChange={(v) => {
                       if (v === 'elevenlabs')
                         onVoiceoverConfigChange({ engine: v, voice: 'pNInz6obpgDQGcFmaJgB' });
+                      else if (v === 'google-tts')
+                        onVoiceoverConfigChange({
+                          engine: v,
+                          voice: 'vi-VN-Chirp3-HD-Umbriel',
+                          speed: 0.9,
+                        });
                       else onVoiceoverConfigChange({ engine: v, voice: 'Kore' });
                     }}
                   >
@@ -2658,6 +3139,7 @@ function VoiceTabContent({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="gemini-tts">Gemini TTS</SelectItem>
+                      <SelectItem value="google-tts">Google TTS</SelectItem>
                       <SelectItem value="elevenlabs">ElevenLabs</SelectItem>
                     </SelectContent>
                   </Select>
@@ -2727,6 +3209,46 @@ function VoiceTabContent({
                             🌐 Trung tính
                           </SelectLabel>
                           <SelectItem value="SAz9YHcvj6GT2YYXdXww">River (Neutral)</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  ) : engine === 'google-tts' ? (
+                    <Select
+                      value={voiceoverConfig.voice}
+                      onValueChange={(v) => onVoiceoverConfigChange({ voice: v })}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel className="text-[11px] text-muted-foreground">
+                            🌑 Dark DNA (Khuyến nghị)
+                          </SelectLabel>
+                          <SelectItem value="vi-VN-Chirp3-HD-Umbriel">
+                            vi-VN-Chirp3-HD-Umbriel ⭐
+                          </SelectItem>
+                          <SelectItem value="vi-VN-Chirp3-HD-Orus">vi-VN-Chirp3-HD-Orus</SelectItem>
+                          <SelectItem value="vi-VN-Chirp3-HD-Fenrir">
+                            vi-VN-Chirp3-HD-Fenrir
+                          </SelectItem>
+                        </SelectGroup>
+                        <SelectSeparator />
+                        <SelectGroup>
+                          <SelectLabel className="text-[11px] text-muted-foreground">
+                            👨 Nam (legacy)
+                          </SelectLabel>
+                          <SelectItem value="vi-VN-Neural2-D">vi-VN-Neural2-D ⭐</SelectItem>
+                          <SelectItem value="vi-VN-Wavenet-B">vi-VN-Wavenet-B</SelectItem>
+                          <SelectItem value="vi-VN-Standard-B">vi-VN-Standard-B</SelectItem>
+                        </SelectGroup>
+                        <SelectSeparator />
+                        <SelectGroup>
+                          <SelectLabel className="text-[11px] text-muted-foreground">
+                            👩 Nữ
+                          </SelectLabel>
+                          <SelectItem value="vi-VN-Neural2-A">vi-VN-Neural2-A</SelectItem>
+                          <SelectItem value="vi-VN-Wavenet-A">vi-VN-Wavenet-A</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -3145,7 +3667,7 @@ function VoiceTabContent({
                                     const result = await regenerateSingleClip({
                                       text: scene.dialogue,
                                       engine: voiceoverConfig?.engine || clip.engine,
-                                      voice: voiceoverConfig?.voice || 'Kore',
+                                      voice: activeVoice,
                                       speed: voiceoverConfig?.speed || 1.0,
                                       channelId: run.input?.channelId || 'default',
                                       runId: run.id,
@@ -3905,8 +4427,34 @@ function ResultsView({
   const result = run.result;
   if (!result) return null;
 
+  const normalizeScriptText = (value: unknown): string => {
+    if (typeof value === 'string') return value;
+    if (value == null) return '';
+    if (typeof value !== 'object') return String(value);
+
+    const obj = value as Record<string, unknown>;
+    const directText = obj.script;
+    if (typeof directText === 'string') return directText;
+
+    const sections = obj.sections;
+    if (Array.isArray(sections)) {
+      const lines = sections
+        .map((section) => {
+          if (!section || typeof section !== 'object') return '';
+          const s = section as Record<string, unknown>;
+          const heading = typeof s.title === 'string' ? s.title : '';
+          const body = typeof s.content === 'string' ? s.content : '';
+          return [heading, body].filter(Boolean).join('\n');
+        })
+        .filter(Boolean);
+      if (lines.length > 0) return lines.join('\n\n');
+    }
+
+    return JSON.stringify(value, null, 2);
+  };
+
   const scriptJson = result.files?.['script.json'] as Record<string, unknown> | undefined;
-  const scriptTxt = result.files?.['script.txt'] as string | undefined;
+  const scriptTxt = normalizeScriptText(result.files?.['script.txt']);
   const storyboardMd = result.files?.['storyboard.md'] as string | undefined;
   const storyboardJson = result.files?.['storyboard.json'] as
     | {
@@ -4203,7 +4751,9 @@ function ResultsView({
                   scriptContext={scriptTxt}
                   channelId={run.channelId}
                   existingImages={imagesJson?.images}
-                  visualIdentity={getSavedPipelineConfig(channelId).storyboard.visualIdentity}
+                  visualIdentity={
+                    getSavedPipelineConfig(run.channelId || undefined).storyboard.visualIdentity
+                  }
                 />
               ) : (
                 <ScrollArea className="h-[600px]">

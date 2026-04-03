@@ -10,6 +10,7 @@ import {
   Cpu,
   Database,
   DollarSign,
+  ExternalLink,
   FileText,
   GraduationCap,
   HardDrive,
@@ -48,16 +49,19 @@ export const NAV_EMOJI: Record<string, string> = {
   '/admin/n8n': '🔗',
   '/admin/social-media': '📱',
   '/admin/content-queue': '📝',
+  '/admin/content-os': '🎯',
   '/admin/unified-analytics': '📈',
   '/admin/services-health': '🏥',
   '/admin/heartbeat': '💓',
   '/admin/library': '📚',
+  '/admin/pipeline-settings': '🔧',
   '/admin/settings': '⚙️',
   '/admin/travis': '🤖',
   '/admin/system-map': '🗺️',
   '/admin/bug-system': '🐛',
   '/admin/database-schema': '🗄️',
   '/admin/docs': '📄',
+  'http://localhost:3001/api-docs/': '🧪',
   '/admin/backup': '💾',
   '/admin/users': '👥',
   '/admin/courses': '🎓',
@@ -70,6 +74,8 @@ export interface NavItem {
   href: string;
   badge?: string;
   description?: string;
+  /** Open in new tab (external app) */
+  external?: boolean;
 }
 
 export interface NavGroup {
@@ -105,9 +111,12 @@ export const adminNavGroups: NavGroup[] = [
     color: 'text-amber-500',
     bgColor: 'hover:bg-amber-500/10',
     items: [
-      { title: 'YouTube Channels', icon: Tv, href: '/admin/youtube-channels' },
+      { title: '🎬 YouTube Studio', icon: Tv, href: '/youtube/channels', badge: 'NEW' },
       { title: 'Pipeline Studio', icon: Workflow, href: '/admin/pipeline-builder' },
       { title: 'Video Factory', icon: Video, href: '/admin/video-factory' },
+      { title: 'Ebook Builder', icon: BookOpen, href: '/admin/ebook-builder' },
+      { title: 'Rise & Shine Leads', icon: Users, href: '/admin/riseshine-leads' },
+      { title: 'Rise & Shine Orders', icon: DollarSign, href: '/admin/riseshine-orders' },
     ],
   },
   {
@@ -135,6 +144,7 @@ export const adminNavGroups: NavGroup[] = [
     bgColor: 'hover:bg-green-500/10',
     items: [
       { title: 'Social Hub', icon: Sparkles, href: '/admin/social-media' },
+      { title: 'Content OS', icon: Target, href: '/admin/content-os' },
       { title: 'Content & SEO', icon: FileText, href: '/admin/content-queue' },
       { title: 'Analytics', icon: BarChart3, href: '/admin/unified-analytics' },
     ],
@@ -153,6 +163,12 @@ export const adminNavGroups: NavGroup[] = [
       { title: 'System Map', icon: Database, href: '/admin/system-map' },
       { title: 'Bug System', icon: Bug, href: '/admin/bug-system' },
       { title: 'Docs Manager', icon: FileText, href: '/admin/docs' },
+      {
+        title: 'SABOHUB API Docs',
+        icon: ExternalLink,
+        href: 'http://localhost:3001/api-docs/',
+        external: true,
+      },
       { title: 'Backup', icon: HardDrive, href: '/admin/backup' },
       { title: 'Users', icon: Users, href: '/admin/users' },
       { title: 'Courses', icon: GraduationCap, href: '/admin/courses' },
